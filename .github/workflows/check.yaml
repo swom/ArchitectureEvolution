@@ -1,0 +1,37 @@
+on:
+  push:
+  pull_request:
+
+name: check
+
+jobs:
+  check:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+
+      - name: Install Codecov
+        run: sudo pip install codecov
+
+      - name: qmake
+        run: qmake mutational_switches.pro
+
+      - name: make
+        run: make debug --silent
+
+      - name: run
+        run: ./mutational_switches
+
+     
+      - name: Measure codecov 1
+        run: ./get_code_cov.sh
+
+      - name: Measure codecov 2
+        run: codecov
+
+      - name: Measure codecov 3
+        run: bash <(curl -s https://codecov.io/bash)
+
