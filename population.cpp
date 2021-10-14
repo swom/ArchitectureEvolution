@@ -78,7 +78,11 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
 
 population calc_fitness(population p, const double& env_value,const double &sel_str)
 {
-    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), env_value);
+    ///give cues to inds
+    ///...
+    ///
+
+    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), env_value/*calculate_optimal_valu(cues)*/);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 
@@ -316,6 +320,20 @@ void test_population() noexcept
                are_equal_with_tolerance(p.get_mut_rate(), mut_rate) &
                are_equal_with_tolerance(p.get_mut_step(), mut_step));
     }
+
+   //#define FIX_ISSUE_4
+#ifdef FIX_ISSUE_4
+    {
+        population p;
+        int n_inputs = 3;
+        auto inputs = create_n_inputs(n_inputs);
+        assign_inputs(p,inputs);
+        for(const auto& ind : p.get_inds())
+        {
+            assert(ind.get_input_values() == inputs);
+        }
+    }
+  #endif
 
 }
 #endif
