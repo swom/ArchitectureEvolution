@@ -99,6 +99,8 @@ cxxopts::Options create_parser(){
             ("G,num_gens",
              "number of generations for which the simulation has to run",
              cxxopts::value<int>()->default_value("1000000"))
+            ("t,test",
+             "run all tests")
             ("h, help",
              "explains the stuff")
             ;

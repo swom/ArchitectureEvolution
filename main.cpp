@@ -18,6 +18,8 @@ void test() {
 
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
+    auto results = create_parser().parse(argc,argv);
+
     const std::vector<std::string> args(argv, argv + argc);
 #ifndef NDEBUG
     if (args.size() > 1 && args[1] == "--test")
@@ -32,7 +34,6 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
 #endif
 
 
-    auto results = create_parser().parse(argc,argv);
     all_params params{
         convert_env_args(results),
                 convert_ind_args(results),
