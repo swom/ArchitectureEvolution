@@ -17,13 +17,13 @@ jobs:
         run: sudo pip install codecov
 
       - name: qmake
-        run: qmake mutational_switches.pro
+        run: qmake arc_evo.pro
 
       - name: make
         run: make debug --silent
 
       - name: run
-        run: ./mutational_switches
+        run: ./arc_evo
 
      
       - name: Measure codecov 1
