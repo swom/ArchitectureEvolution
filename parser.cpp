@@ -16,8 +16,7 @@ env_param convert_env_args(const cxxopts::ParseResult& results)
 ind_param convert_ind_args(const cxxopts::ParseResult& results)
 {
     return ind_param{
-        convert_net_args(results),
-                0
+        convert_net_args(results)
     };
 }
 
