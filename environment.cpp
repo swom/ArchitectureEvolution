@@ -134,6 +134,33 @@ void test_environment() noexcept
 
   }
 
+#define FIX_ISSUE_9
+#ifdef FIX_ISSUE_9
+    {
+        std::mt19937_64 rng;
+        std::uniform_real_distribution<double> test_dist(0,1);
+        environment e;
+
+        int repeats = 100000;
+        std::vector<double> test_distr_values;
+        std::vector<double> env_distr_values;
+
+        for(int i = 0; i != repeats; i++)
+        {
+            test_distr_values.push_back(test_dist(rng));
+            env_distr_values.push_back(e.get_dist(rng));
+        }
+
+        auto mean_test = calc_mean(test_distr_values);
+        auto stdev_test = calc_stdev(test_distr_values);
+
+        auto mean_env = calc_mean(env_distr_values);
+        auto stdev_env = calc_stdev(env_distr_values);
+
+        assert(are_equal_with_tolerance(mean_env,mean_test) && are_equal_with_tolerance(stdev_env,stdev_test));
+    }
+#endif
+
 
 }
 #endif
