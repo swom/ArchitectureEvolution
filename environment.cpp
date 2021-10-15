@@ -137,9 +137,12 @@ void test_environment() noexcept
 //#define FIX_ISSUE_9
 #ifdef FIX_ISSUE_9
     {
+        ///As a first thing, make sure that now environment has a member variable that is a distribution
+        ///
+        environment e;
+
         std::mt19937_64 rng;
         std::uniform_real_distribution<double> test_dist(0,1);
-        environment e;
 
         int repeats = 100000;
         std::vector<double> test_distr_values;
