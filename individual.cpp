@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-individual::individual(std::vector<int> net_arch, int age) :
-  m_age{age},
+individual::individual(std::vector<int> net_arch) :
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(net_arch[0], 1.0),
   m_network{net_arch}
@@ -13,7 +12,6 @@ individual::individual(std::vector<int> net_arch, int age) :
 }
 
 individual::individual(ind_param i_p) :
-  m_age{i_p.age},
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(i_p.net_par.net_arc[0], 1.0),
   m_network{i_p.net_par.net_arc}
@@ -52,16 +50,6 @@ std::vector<double> response(const individual& ind)
 #ifndef NDEBUG
 void test_individual()
 {
-  //An individual has a member variable called m_age
-  //By default initialized to 0
-  {
-    individual i;
-    assert(i.get_age() == 0);
-
-    int age = 5;
-    individual i2{{1},age};
-    assert(i2.get_age() == age);
-  }
 
   ///An indiivdual is initialized with a network architecture,
   /// by default 1,2,1
@@ -88,20 +76,13 @@ void test_individual()
     individual i;
     assert( response(i) == response(i.get_net(),i.get_input_values(), &linear));
   }
+
 //#define FIX_ISSUE_36
-
-
   {
     net_param net_par;
-    int age = 123456789;
-    ind_param i_p{net_par, age};
+    ind_param i_p{net_par};
     individual i{i_p};
     assert(i.get_net() == network{net_par});
-    assert(are_equal_with_tolerance(i.get_age(), age));
   }
-
-
-
-
 }
 #endif
