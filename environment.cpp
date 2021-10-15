@@ -138,12 +138,17 @@ void test_environment() noexcept
 #ifdef FIX_ISSUE_9
     {
         ///As a first thing, make sure that now environment has a member variable that is a distribution
-        ///
+        ///so that when we construct an environment it already has a built in distribution
         environment e;
 
-        std::mt19937_64 rng;
+        ///Let's create a distribution that we can use to compare the distribution
         std::uniform_real_distribution<double> test_dist(0,1);
 
+        ///this is a random engine it is the source of randomness that you can plug inside distribution to generate random numbers with certain characteristic
+        std::mt19937_64 rng;
+
+        ///We are going to draw numbers from both from the env distribution and the test
+        /// and then we are going to store them into vectors
         int repeats = 100000;
         std::vector<double> test_distr_values;
         std::vector<double> env_distr_values;
@@ -154,13 +159,18 @@ void test_environment() noexcept
             env_distr_values.push_back(e.get_dist(rng));
         }
 
+        ///We then calculate the mean and standard deviation of
+        ///both the numbers drawn from the test and env distribution
+        ///and check that they are approximately the same
+
         auto mean_test = calc_mean(test_distr_values);
         auto stdev_test = calc_stdev(test_distr_values);
 
         auto mean_env = calc_mean(env_distr_values);
         auto stdev_env = calc_stdev(env_distr_values);
 
-        assert(are_equal_with_tolerance(mean_env,mean_test) && are_equal_with_tolerance(stdev_env,stdev_test));
+        assert(are_equal_with_tolerance(mean_env,mean_test) &&
+               are_equal_with_tolerance(stdev_env,stdev_test));
     }
 #endif
 
