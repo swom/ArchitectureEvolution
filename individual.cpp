@@ -88,9 +88,8 @@ void test_individual()
     individual i;
     assert( response(i) == response(i.get_net(),i.get_input_values(), &linear));
   }
+
 //#define FIX_ISSUE_36
-
-
   {
     net_param net_par;
     int age = 123456789;
@@ -99,9 +98,5 @@ void test_individual()
     assert(i.get_net() == network{net_par});
     assert(are_equal_with_tolerance(i.get_age(), age));
   }
-
-
-
-
 }
 #endif

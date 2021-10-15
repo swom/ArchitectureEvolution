@@ -18,9 +18,10 @@ void test() {
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
 
-    const std::vector<std::string> args(argv, argv + argc);
+    auto results = create_parser().parse(argc,argv);
+
 #ifndef NDEBUG
-    if (args.size() > 1 && args[1] == "--test")
+    if (results.count("test"))
     {
         test();
         // We've already tested, so the program is done
@@ -30,8 +31,6 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     // In release mode, all asserts are removed from the code
     assert(1 == 2);
 #endif
-    auto results = create_parser().parse(argc,argv);
-
 
     all_params params{
         convert_env_args(results),
@@ -40,13 +39,13 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
                 convert_sim_args(results)
     };
 
-
-
     simulation s{params};
     observer o;
     exec(s, o);
 
-    save_json(o, convert_arc_to_string(params.i_p.net_par.net_arc)+ "_" + std::to_string(params.s_p.seed) + ".json");
+    save_json(o,
+              convert_arc_to_string(params.i_p.net_par.net_arc) +
+              "_" + std::to_string(params.s_p.seed) + ".json");
 
     return 0;
 }
