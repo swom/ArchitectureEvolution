@@ -134,6 +134,16 @@ void test_environment() noexcept
 
   }
 
+    //#define FIX_ISSUE_5
+    #ifdef FIX_ISSUE_5
+        ///It is possible to create an arbitrary number of inputs #5
+        {
+            int n_inputs = 3;
+            auto inputs = create_n_inputs(n_inputs);
+            assert(size_t(n_inputs) == inputs.size());
+        }
+    #endif
+
 //#define FIX_ISSUE_9
 #ifdef FIX_ISSUE_9
     {
