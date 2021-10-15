@@ -17,7 +17,6 @@ void test() {
 
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
-    auto results = create_parser().parse(argc,argv);
 
     const std::vector<std::string> args(argv, argv + argc);
 #ifndef NDEBUG
@@ -31,6 +30,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     // In release mode, all asserts are removed from the code
     assert(1 == 2);
 #endif
+    auto results = create_parser().parse(argc,argv);
 
 
     all_params params{
