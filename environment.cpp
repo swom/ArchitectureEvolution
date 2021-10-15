@@ -174,6 +174,5 @@ void test_environment() noexcept
     }
 #endif
 
-
 }
 #endif
