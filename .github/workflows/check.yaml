@@ -25,13 +25,3 @@ jobs:
       - name: run
         run: ./arc_evo --test
 
-     
-      - name: Measure codecov 1
-        run: ./get_code_cov.sh
-
-      - name: Measure codecov 2
-        run: codecov
-
-      - name: Measure codecov 3
-        run: bash <(curl -s https://codecov.io/bash)
-
