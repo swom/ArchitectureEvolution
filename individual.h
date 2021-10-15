@@ -6,10 +6,8 @@
 struct ind_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ind_param,
-                                   net_par,
-                                   age)
+                                   net_par)
 net_param net_par;
-int age;
 };
 
 
@@ -17,7 +15,7 @@ int age;
 class individual
 {
 public:
-  individual( std::vector<int> net_arch = std::vector<int>{1,2,1}, int age = 0);
+  individual( std::vector<int> net_arch = std::vector<int>{1,2,1});
   individual(ind_param i_p);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
@@ -25,8 +23,6 @@ public:
                                  m_input_values,
                                  m_network);
 
-  ///Returns the age of the individual
-  int get_age() const noexcept {return m_age;}
 
   ///Return const referernce to vector of fixed input values
   const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
@@ -47,9 +43,6 @@ public:
   void set_fitness(double fitness) {m_fitness = fitness;}
 
 private:
-
-  ///The age of the individual
-  int m_age;
 
   ///The fitness of an individual
   double m_fitness = 0;

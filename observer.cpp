@@ -11,7 +11,6 @@ bool operator==(const all_params& lhs, const all_params& rhs)
 {
     return lhs.e_p.targetA == rhs.e_p.targetA &&
            lhs.e_p.targetB == rhs.e_p.targetB &&
-           lhs.i_p.age == rhs.i_p.age &&
            lhs.i_p.net_par.net_arc ==  rhs.i_p.net_par.net_arc &&
            lhs.p_p.mut_rate == rhs.p_p.mut_rate &&
            lhs.p_p.mut_step == rhs.p_p.mut_step &&

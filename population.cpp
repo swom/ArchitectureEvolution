@@ -299,9 +299,8 @@ void test_population() noexcept
 
     {
         net_param net_par;
-        int age = 123456789;
 
-        ind_param i_p{net_par, age};
+        ind_param i_p{net_par};
 
         int number_of_inds = 132;
         double mut_rate = 0.314;
