@@ -134,7 +134,7 @@ void test_environment() noexcept
 
   }
 
-#define FIX_ISSUE_9
+//#define FIX_ISSUE_9
 #ifdef FIX_ISSUE_9
     {
         std::mt19937_64 rng;
