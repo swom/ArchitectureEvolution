@@ -10,7 +10,6 @@ void test() {
     test_individual();
     test_network();
     test_observer();
-    test_parser();
     test_population();
     test_simulation();
 }
