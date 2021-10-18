@@ -92,6 +92,7 @@ public:
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
+
    environment m_environment;
    population m_population;
    int m_n_generations;
