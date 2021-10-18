@@ -7,6 +7,10 @@ bool are_equal_with_tolerance(double lhs, double rhs);
 
 bool are_not_equal_with_tolerance(double lhs, double rhs);
 
+bool are_equal_with_more_tolerance(double lhs, double rhs);
+
+bool are_not_equal_with_more_tolerance(double lhs, double rhs);
+
 ///Claculates mean of a vector of doubles
 double calc_mean(const std::vector<double> &numbers);
 

@@ -13,6 +13,16 @@ bool are_not_equal_with_tolerance(double lhs, double rhs)
   return !are_equal_with_tolerance(lhs, rhs);
 }
 
+bool are_equal_with_more_tolerance(double lhs, double rhs)
+{
+  return lhs - rhs > -0.0005 && lhs - rhs < 0.0005;
+}
+
+bool are_not_equal_with_more_tolerance(double lhs, double rhs)
+{
+  return !are_equal_with_more_tolerance(lhs, rhs);
+}
+
 double calc_mean(const std::vector<double>& numbers){
   return std::accumulate(numbers.begin(),
                               numbers.end(), 0.0)/numbers.size();

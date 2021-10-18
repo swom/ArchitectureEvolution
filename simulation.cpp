@@ -427,5 +427,19 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+//#define FIX_ISSUE_4
+ #ifdef FIX_ISSUE_4
+     {
+         population p;
+         int n_inputs = 3;
+         auto inputs = create_n_inputs(n_inputs);
+         assign_inputs(p,inputs);
+         for(const auto& ind : p.get_inds())
+         {
+             assert(ind.get_input_values() == inputs);
+         }
+     }
+   #endif
+
 }
 #endif
