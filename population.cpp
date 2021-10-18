@@ -94,9 +94,10 @@ population calc_fitness(population p, const double& env_value,const double &sel_
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
+
     mut_dist.mutate_transform(p.get_inds().begin(),
                               p.get_inds().end(),
-                              [](const individual& i) {return i.get_fitness();});
+                              [](const individual& i){return i.get_fitness();});
     return  mut_dist;
 }
 
@@ -333,16 +334,6 @@ void test_population() noexcept
          }
      }
    #endif
-
-//#define FIX_ISSUE_5
-#ifdef FIX_ISSUE_5
-    ///It is possible to create an arbitrary number of inputs #5
-    {
-        int n_inputs = 3;
-        auto inputs = create_n_inputs(n_inputs);
-        assert(size_t(n_inputs) == inputs.size());
-    }
-#endif
 
 }
 #endif

@@ -16,7 +16,9 @@ double targetB;
 class environment
 {
 public:
+    ///deprecated(sort of)
     environment(double target_valueA, double target_valueB);
+
     environment(env_param e_p);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
@@ -36,6 +38,7 @@ private:
     std::vector<double> m_ref_target_values;
 
     double m_current_target_value;
+
 };
 
 ///checks if 2 environments are equal

@@ -145,6 +145,7 @@ std::vector<double> response(const network& n, std::vector<double> input)
 
             output[node] = n(node_value);
         }
+
         input = std::move(output);
     }
 

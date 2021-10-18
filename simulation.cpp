@@ -64,7 +64,9 @@ double avg_fitness(const simulation& s)
 
 void calc_fitness(simulation& s)
 {
-    s.get_pop() = calc_fitness(s.get_pop(), get_current_env_value(s), s.get_sel_str());
+    s.get_pop() = calc_fitness(s.get_pop(),
+                               get_current_env_value(s),/*get_current_cues(), get_optimal env_value_based_on_cues*/
+                               s.get_sel_str());
 }
 
 void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight)
@@ -181,6 +183,7 @@ void save_json(const simulation& s, const std::string& filename)
 
 void select_inds(simulation& s)
 {
+    /*pop_perceives_en*/
     calc_fitness(s);
     reproduce(s);
 }
