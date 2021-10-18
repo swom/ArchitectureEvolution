@@ -190,6 +190,16 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
+void assign_inputs(population &p, std::vector<double> inputs)
+{
+  std::vector<individual> vec_inds;
+  for(size_t i = 0; i != p.get_inds().size(); ++i){
+      auto& ind = p.get_inds()[i];
+      ind.set_input(inputs);
+    }
+}
+
+
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
 {
@@ -427,7 +437,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_4
+#define FIX_ISSUE_4
  #ifdef FIX_ISSUE_4
      {
          population p;
