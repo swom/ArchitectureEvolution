@@ -453,7 +453,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-#define FIX_ISSUE_17
+//#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -473,8 +473,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_17
-#ifdef FIX_ISSUE_17
+#define FIX_ISSUE_18
+#ifdef FIX_ISSUE_18
     {
         simulation s;
         ticks(s);
