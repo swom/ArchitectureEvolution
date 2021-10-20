@@ -192,5 +192,32 @@ void test_environment() noexcept
     }
 #endif
 
+//#define FIX_ISSUE_14
+#ifdef FIX_ISSUE_14
+    {
+        environment e{env_param{}};
+        int n_inputs = 3;
+        std::mt19937_64 rng1;
+
+        auto tester_dist = e.get_dist();
+        std::mt19937_64 rng2;
+
+        std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
+        std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
+        std::vector<std::vector<double>> tester_series1(0, std::vector<double>(n_inputs));
+
+        int repeats = 10000;
+        for(int i = 0; i != repeats; i++)
+        {
+            env_series.push_back(create_n_inputs(e, n_inputs, rng1));
+
+            auto tester_cues = std::vector<double>(n_inputs);
+            for(auto& cue : tester_cues){ cue = tester_dist(rng2);}
+            tester_series.push_back(tester_cues);
+        }
+
+        assert(env_series == tester_series);
+    }
+#endif
 }
 #endif
