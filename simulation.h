@@ -92,6 +92,7 @@ public:
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
+
    environment m_environment;
    population m_population;
    int m_n_generations;
@@ -150,6 +151,9 @@ void save_json(const simulation& s, const std::string& filename);
 
 ///Calculates the standard devaition of the population fitness
 double var_fitness(const simulation&s);
+
+///Assign inputs to a population
+void assign_inputs(population &p, const std::vector<double> &inputs);
 
 void test_simulation() noexcept;
 

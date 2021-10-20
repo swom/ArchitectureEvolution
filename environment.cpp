@@ -15,7 +15,8 @@ environment::environment(double target_valueA, double target_valueB):
 
 environment::environment(env_param e_p):
   m_ref_target_values{e_p.targetA,e_p.targetB},
-  m_current_target_value {e_p.targetA}
+  m_current_target_value {e_p.targetA},
+  m_cue_distribution{0., 1.}
 {
 
 
@@ -58,7 +59,15 @@ void switch_target(environment &e){
     }
 }
 
+std::vector<double> create_n_inputs(int n_inputs)
+{
+  std::vector<double> input_vector;
 
+  for(int i = 0; i != n_inputs; ++i){
+      input_vector.push_back(1234.0);
+    }
+  return input_vector;
+}
 
 
 #ifndef NDEBUG
@@ -134,6 +143,81 @@ void test_environment() noexcept
 
   }
 
+#define FIX_ISSUE_5
+    #ifdef FIX_ISSUE_5
+        ///It is possible to create an arbitrary number of inputs #5
+        {
+            int n_inputs = 3;
+            auto inputs = create_n_inputs(n_inputs);
+            assert(size_t(n_inputs) == inputs.size());
+        }
+    #endif
+#define FIX_ISSUE_9
+#ifdef FIX_ISSUE_9
+    {
+        ///As a first thing, make sure that now environment has a member variable that is a distribution
+        ///so that when we construct an environment it already has a built in distribution
+        environment e{env_param{}};
 
+        ///Let's create a distribution that we can use to compare the distribution
+        std::uniform_real_distribution<double> test_dist(0,1);
+
+        ///this is a random engine it is the source of randomness that you can plug inside distribution to generate random numbers with certain characteristic
+        std::mt19937_64 rng;
+
+        ///We are going to draw numbers from both from the env distribution and the test
+        /// and then we are going to store them into vectors
+        int repeats = 300000;
+        std::vector<double> test_distr_values;
+        std::vector<double> env_distr_values;
+
+        for(int i = 0; i != repeats; i++)
+        {
+            test_distr_values.push_back(test_dist(rng));
+            env_distr_values.push_back(e.get_dist()(rng));
+        }
+
+        ///We then calculate the mean and standard deviation of
+        ///both the numbers drawn from the test and env distribution
+        ///and check that they are approximately the same
+
+        auto mean_test = calc_mean(test_distr_values);
+        auto stdev_test = calc_stdev(test_distr_values);
+
+        auto mean_env = calc_mean(env_distr_values);
+        auto stdev_env = calc_stdev(env_distr_values);
+
+        assert(are_equal_with_more_tolerance(mean_env,mean_test) &&
+               are_equal_with_more_tolerance(stdev_env,stdev_test));
+    }
+#endif
+
+//#define FIX_ISSUE_14
+#ifdef FIX_ISSUE_14
+    {
+        environment e{env_param{}};
+        int n_inputs = 3;
+        std::mt19937_64 rng1;
+
+        auto tester_dist = e.get_dist();
+        std::mt19937_64 rng2;
+
+        std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
+        std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
+        std::vector<std::vector<double>> tester_series1(0, std::vector<double>(n_inputs));
+
+        int repeats = 10000;
+        for(int i = 0; i != repeats; i++)
+        {
+            env_series.push_back(create_n_inputs(e, n_inputs, rng1));
+
+            auto tester_cues = std::vector<double>(n_inputs);
+            for(auto& cue : tester_cues){ cue = tester_dist(rng2);}
+            tester_series.push_back(tester_cues);
+        }
+
+        assert(env_series == tester_series);
+    }
+#endif
 }
 #endif

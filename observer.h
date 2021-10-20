@@ -28,8 +28,8 @@ private:
 
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_var_fitnesses;
-    std::vector<std::vector<individual>> m_top_inds;
     std::vector<double> m_env_values;
+    std::vector<std::vector<individual>> m_top_inds;
     all_params m_params = {};
 };
 

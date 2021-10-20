@@ -64,7 +64,9 @@ double avg_fitness(const simulation& s)
 
 void calc_fitness(simulation& s)
 {
-    s.get_pop() = calc_fitness(s.get_pop(), get_current_env_value(s), s.get_sel_str());
+    s.get_pop() = calc_fitness(s.get_pop(),
+                               get_current_env_value(s),/*get_current_cues(), get_optimal env_value_based_on_cues*/
+                               s.get_sel_str());
 }
 
 void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight)
@@ -181,6 +183,7 @@ void save_json(const simulation& s, const std::string& filename)
 
 void select_inds(simulation& s)
 {
+    /*pop_perceives_en*/
     calc_fitness(s);
     reproduce(s);
 }
@@ -189,6 +192,15 @@ double var_fitness(const simulation&s)
 {
     return var_fitness(s.get_pop());
 }
+
+void assign_inputs(population &p, const std::vector<double> &inputs)
+{
+  std::vector<individual> vec_inds;
+  for(auto& ind : p.get_inds()){
+      ind.set_input(inputs);
+    }
+}
+
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -427,5 +439,54 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+#define FIX_ISSUE_4
+ #ifdef FIX_ISSUE_4
+     {
+         population p;
+         int n_inputs = 3;
+         auto inputs = create_n_inputs(n_inputs);
+         assign_inputs(p,inputs);
+         for(const auto& ind : p.get_inds())
+         {
+             assert(ind.get_input_values() == inputs);
+         }
+     }
+   #endif
+
+//#define FIX_ISSUE_17
+#ifdef FIX_ISSUE_17
+    {
+        simulation s;
+        tick(s);
+
+        int repeats = 5;
+        while(repeats != 0)
+        {
+        auto t1_inputs = get_current_input(s);
+        tick(s);
+        auto t2_inputs = get_current_input(s);
+        assert(t1_inputs == t2_inputs);
+
+        repeats--;
+        }
+
+    }
+#endif
+
+//#define FIX_ISSUE_18
+#ifdef FIX_ISSUE_18
+    {
+        simulation s;
+        assert(all_individuals have_same_input());
+        auto input_t1 = get_current_input(s);
+
+        assign_new_inputs(s);
+        assert(all_individuals have_same_input());
+        auto input_t2 = get_current_input(s);
+
+        assert(input_t1 == input_t2);
+
+    }
+#endif
 }
 #endif

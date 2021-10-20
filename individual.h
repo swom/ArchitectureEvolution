@@ -24,11 +24,12 @@ public:
                                  m_network);
 
 
-  ///Return const referernce to vector of fixed input values
-  const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
 
   ///Returns the fitness
   double get_fitness() const noexcept {return m_fitness;}
+
+  ///Return const referernce to vector of fixed input values
+  const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
 
   ///Returns const ref to network
   const network& get_net() const noexcept {return m_network;}
@@ -41,6 +42,9 @@ public:
 
   ///Sets the fitness of an ind
   void set_fitness(double fitness) {m_fitness = fitness;}
+
+  ///Set the input values of an individual
+  void set_input(std::vector<double> input) {m_input_values = input;}
 
 private:
 
