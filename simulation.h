@@ -155,6 +155,15 @@ double var_fitness(const simulation&s);
 ///Assign inputs to a population
 void assign_inputs(population &p, const std::vector<double> &inputs);
 
+///Checks if all the individuals in a simulated population have the same input
+bool all_individuals_have_same_input(const simulation &s);
+
+///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
+std::vector<double> get_current_input(const simulation &s);
+
+///Changes the inputs of the individuals in the simulation.
+void assign_new_inputs(simulation &s);
+
 void test_simulation() noexcept;
 
 #endif // SIMULATION_H

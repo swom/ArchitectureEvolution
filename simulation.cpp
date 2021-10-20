@@ -201,6 +201,32 @@ void assign_inputs(population &p, const std::vector<double> &inputs)
     }
 }
 
+bool all_individuals_have_same_input(const simulation &s)
+{
+  population p = s.get_pop();  //Would it be prefered to refer to a all_individuals_have_same_input population-level function instead?
+
+  std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
+
+  for(auto& ind : p.get_inds()){
+      if(input_first_individual != ind.get_input_values()){
+          return false;
+        }
+    }
+  return true;
+}
+
+std::vector<double> get_current_input(const simulation &s)
+{
+ assert(all_individuals_have_same_input(s));
+ return s.get_pop().get_inds()[0].get_input_values();
+}
+
+void assign_new_inputs(simulation &s)
+{
+std::vector<double> new_inputs = create_n_inputs(s.get_env(), get_current_input(s).size() , s.get_rng());
+assign_inputs(s.get_pop(), new_inputs);
+}
+
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -473,18 +499,18 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_18
+#define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
     {
         simulation s;
-        assert(all_individuals have_same_input());
+        assert(all_individuals_have_same_input(s));
         auto input_t1 = get_current_input(s);
 
         assign_new_inputs(s);
-        assert(all_individuals have_same_input());
+        assert(all_individuals_have_same_input(s));
         auto input_t2 = get_current_input(s);
 
-        assert(input_t1 == input_t2);
+        assert(input_t1 != input_t2);
 
     }
 #endif
