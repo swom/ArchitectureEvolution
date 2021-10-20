@@ -169,7 +169,13 @@ void tick(simulation &s)
         switch_target(s.get_env());
     }
 
+    if(s.get_pop().get_inds().size()){
+
+      assign_new_inputs(s);
+    }
+
     select_inds(s);
+
 
 }
 
@@ -479,7 +485,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-//#define FIX_ISSUE_17
+#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -491,7 +497,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto t1_inputs = get_current_input(s);
         tick(s);
         auto t2_inputs = get_current_input(s);
-        assert(t1_inputs == t2_inputs);
+        assert(t1_inputs != t2_inputs);
 
         repeats--;
         }
