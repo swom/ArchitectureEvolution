@@ -2,6 +2,7 @@
 #define ENVIRONMENT_H
 
 #include <vector>
+#include <random>
 #include "json.hpp"
 struct env_param
 {
@@ -21,6 +22,8 @@ public:
 
     environment(env_param e_p);
 
+    std::uniform_real_distribution<double>& get_dist() {return m_cue_distribution;}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
                                    m_ref_target_values,
                                    m_current_target_value);
@@ -39,6 +42,8 @@ private:
 
     double m_current_target_value;
 
+    /// A distribution to be used for determining cues
+    std::uniform_real_distribution<double> m_cue_distribution;
 };
 
 ///checks if 2 environments are equal
@@ -47,6 +52,9 @@ bool operator== (const environment& lhs, const environment& rhs);
 void switch_target (environment &e);
 
 void test_environment() noexcept;
+
+///Create a given number of inputs with value fixed to 1
+std::vector<double> create_n_inputs(int n_inputs);
 
 
 #endif // ENVIRONMENT_H
