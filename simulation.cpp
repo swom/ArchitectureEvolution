@@ -453,5 +453,33 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
+#define FIX_ISSUE_17
+#ifdef FIX_ISSUE_17
+    {
+        simulation s;
+        tick(s);
+
+        int repeats = 5;
+        while(repeats != 0)
+        {
+        auto t1_inputs = get_inputs_of_nth_individual(0);
+        tick(s);
+        auto t2_inputs = get_inputs_of_nth_individual(0);
+        assert(t1_inputs == t2_inputs);
+
+        repeats--;
+        }
+
+    }
+#endif
+
+#define FIX_ISSUE_17
+#ifdef FIX_ISSUE_17
+    {
+        simulation s;
+        ticks(s);
+
+    }
+#endif
 }
 #endif
