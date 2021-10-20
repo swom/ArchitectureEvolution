@@ -69,6 +69,17 @@ std::vector<double> create_n_inputs(int n_inputs)
   return input_vector;
 }
 
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng)
+{
+  std::vector<double> input_vector(n_inputs);
+
+  for(auto& cue : input_vector){
+      cue = e.get_dist()(rng);
+    }
+
+  return input_vector;
+}
+
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -192,7 +203,7 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_14
+#define FIX_ISSUE_14
 #ifdef FIX_ISSUE_14
     {
         environment e{env_param{}};
