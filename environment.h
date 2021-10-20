@@ -17,7 +17,9 @@ double targetB;
 class environment
 {
 public:
+    ///deprecated(sort of)
     environment(double target_valueA, double target_valueB);
+
     environment(env_param e_p);
 
     std::uniform_real_distribution<double>& get_dist() {return m_cue_distribution;}
