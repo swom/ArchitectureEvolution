@@ -197,7 +197,7 @@ void assign_inputs(population &p, const std::vector<double> &inputs)
 {
   std::vector<individual> vec_inds;
   for(auto& ind : p.get_inds()){
-      ind.set_input(inputs);
+      ind.assign_input(inputs);
     }
 }
 

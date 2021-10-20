@@ -44,7 +44,7 @@ public:
   void set_fitness(double fitness) {m_fitness = fitness;}
 
   ///Set the input values of an individual
-  void set_input(std::vector<double> input) {m_input_values = input;}
+  void assign_input(std::vector<double> input) {m_input_values = input;}
 
 private:
 
