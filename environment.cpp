@@ -64,7 +64,7 @@ std::vector<double> create_n_inputs(int n_inputs)
   std::vector<double> input_vector;
 
   for(int i = 0; i != n_inputs; ++i){
-      input_vector.push_back(2.0);
+      input_vector.push_back(1234.0);
     }
   return input_vector;
 }

@@ -9,8 +9,8 @@ struct env_param
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
                                    targetA,
                                    targetB)
-double targetA = 1;
-double targetB = 1;
+double targetA;
+double targetB;
 };
 
 
@@ -20,7 +20,7 @@ public:
     environment(double target_valueA, double target_valueB);
     environment(env_param e_p);
 
-    std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;};
+    std::uniform_real_distribution<double>& get_dist() {return m_cue_distribution;}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
                                    m_ref_target_values,

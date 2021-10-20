@@ -152,7 +152,7 @@ void save_json(const simulation& s, const std::string& filename);
 double var_fitness(const simulation&s);
 
 ///Assign inputs to a population
-void assign_inputs(population &p,std::vector<double> inputs);
+void assign_inputs(population &p, const std::vector<double> &inputs);
 
 void test_simulation() noexcept;
 

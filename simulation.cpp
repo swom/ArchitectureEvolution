@@ -190,11 +190,10 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void assign_inputs(population &p, std::vector<double> inputs)
+void assign_inputs(population &p, const std::vector<double> &inputs)
 {
   std::vector<individual> vec_inds;
-  for(size_t i = 0; i != p.get_inds().size(); ++i){
-      auto& ind = p.get_inds()[i];
+  for(auto& ind : p.get_inds()){
       ind.set_input(inputs);
     }
 }
