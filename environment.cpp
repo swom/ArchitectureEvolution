@@ -219,7 +219,7 @@ void test_environment() noexcept
     }
 #endif
 
-#define FIX_ISSUE_25
+//#define FIX_ISSUE_25
 #ifdef FIX_ISSUE_25
     {
         std::mt19937_64 rng;
@@ -232,20 +232,58 @@ void test_environment() noexcept
         int n_of_inputs_requested = env_inp_t1.size();
 
         e.update_n_inputs(rng, n_of_inputs_requested);
-
         auto env_inp_t2 = e.get_inputs();
 
         assert(env_inp_t1 != env_inp_t2);
         assert(env_inp_t1.size() == env_inp_t2.size());
 
         n_of_inputs_requested++;
-
         e.update_n_inputs(rng, n_of_inputs_requested);
-
         env_inp_t3 = e.get_inputs();
 
         assert(env_inp_t2.size() != env_inp_t3.size());
     }
 #endif
+
+    //#define FIX_ISSUE_26
+    #ifdef FIX_ISSUE_26
+    {
+        std::mt19937_64 rng;
+        auto test_rng = rng;
+
+        environment e{env_param{}};
+        auto test_dist = e.get_dist();
+
+        int n_of_inputs_requested = 1;
+        std::vector<double> test_inputs;
+
+        std::vector<double> store_env_inputs;
+        std::vector<double> store_test_inputs;
+
+        int repeats = 30000;
+        for(int i = 0; i != repeats; i++)
+        {
+            e.update_n_inputs(rng, n_of_inputs_requested);
+            auto env_inputs = e.get_inputs();
+            store_env_inputs.insert(store_env_inputs.end(), env_inputs.begin(), env_inputs.end());
+
+            for(int j = 0; j != n_of_inputs_requested; j++)
+            {
+                test_inputs.push_back(test_dist(test_rng));
+            }
+        }
+
+        auto test_mean = calc_mean(store_test_inputs);
+        auto env_mean = calc_mean(store_env_inputs);
+
+        auto test_stdev = calc_stdev(store_test_inputs);
+        auto env_stdev = calc_stdev(store_env_inputs);
+
+        assert(are_equal_with_more_tolerance(test_stdev,env_stdev) &&
+               are_equal_with_tolerance(test_mean, env_mean));
+
+    }
+#endif
+
 }
 #endif
