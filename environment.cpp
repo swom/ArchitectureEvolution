@@ -204,7 +204,6 @@ void test_environment() noexcept
 
         std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
         std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
-        std::vector<std::vector<double>> tester_series1(0, std::vector<double>(n_inputs));
 
         int repeats = 10000;
         for(int i = 0; i != repeats; i++)
