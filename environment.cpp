@@ -218,5 +218,34 @@ void test_environment() noexcept
         assert(env_series == tester_series);
     }
 #endif
+
+#define FIX_ISSUE_25
+#ifdef FIX_ISSUE_25
+    {
+        std::mt19937_64 rng;
+        environment e{env_param{}};
+        auto env_inp_t1 = e.get_inputs();
+
+        ///environment shouldn't know how many inputs individuals require
+        /// nor we want to construct it with a certain number of inputs
+        /// so we will have to specify it
+        int n_of_inputs_requested = env_inp_t1.size();
+
+        e.update_n_inputs(rng, n_of_inputs_requested);
+
+        auto env_inp_t2 = e.get_inputs();
+
+        assert(env_inp_t1 != env_inp_t2);
+        assert(env_inp_t1.size() == env_inp_t2.size());
+
+        n_of_inputs_requested++;
+
+        e.update_n_inputs(rng, n_of_inputs_requested);
+
+        env_inp_t3 = e.get_inputs();
+
+        assert(env_inp_t2.size() != env_inp_t3.size());
+    }
+#endif
 }
 #endif
