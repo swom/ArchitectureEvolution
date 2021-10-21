@@ -89,6 +89,9 @@ public:
   ///Returns seed
   int get_seed() const noexcept {return m_seed;}
 
+  ///Returns a reference to the vector of individuals
+  std::vector<individual> &get_inds();
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -163,6 +166,10 @@ std::vector<double> get_current_input(const simulation &s);
 
 ///Changes the inputs of the individuals in the simulation.
 void assign_new_inputs(simulation &s);
+
+///Returns the input of the nth individual in the population
+std::vector<double> get_nth_individual_input(const simulation &s, const int &n);
+
 
 void test_simulation() noexcept;
 

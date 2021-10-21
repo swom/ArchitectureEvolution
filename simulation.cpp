@@ -45,6 +45,11 @@ simulation::simulation(all_params params):
     }
 }
 
+std::vector<individual>& simulation::get_inds()
+{
+  return simulation::get_pop().get_inds();
+}
+
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
 {
@@ -169,7 +174,7 @@ void tick(simulation &s)
         switch_target(s.get_env());
     }
 
-    if(s.get_pop().get_inds().size()){
+    if(s.get_inds().size()){
 
       assign_new_inputs(s);
     }
@@ -209,22 +214,22 @@ void assign_inputs(population &p, const std::vector<double> &inputs)
 
 bool all_individuals_have_same_input(const simulation &s)
 {
-  population p = s.get_pop();  //Would it be prefered to refer to a all_individuals_have_same_input population-level function instead?
+  population p = s.get_pop();
 
-  std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
+  return all_individuals_have_same_input(p);
+}
 
-  for(auto& ind : p.get_inds()){
-      if(input_first_individual != ind.get_input_values()){
-          return false;
-        }
-    }
-  return true;
+std::vector<double> get_nth_individual_input(const simulation &s, const int &n)
+{
+  population p = s.get_pop();
+
+  return get_nth_individual_input(p, n);
 }
 
 std::vector<double> get_current_input(const simulation &s)
 {
  assert(all_individuals_have_same_input(s));
- return s.get_pop().get_inds()[0].get_input_values();
+ return get_nth_individual_input(s, 0);
 }
 
 void assign_new_inputs(simulation &s)

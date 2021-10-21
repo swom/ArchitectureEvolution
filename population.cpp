@@ -234,6 +234,24 @@ double var_fitness(const population& p)
     return calc_stdev(fitnesses);
 }
 
+bool all_individuals_have_same_input(const population &p)
+{
+  std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
+
+  for(auto& ind : p.get_inds()){
+      if(input_first_individual != ind.get_input_values()){
+          return false;
+        }
+    }
+  return true;
+}
+
+std::vector<double> get_nth_individual_input(const population &p, const int &n)
+{
+  individual nth_individual = p.get_inds()[n];
+  return nth_individual.get_input_values();
+}
+
 #ifndef NDEBUG
 void test_population() noexcept
 {
