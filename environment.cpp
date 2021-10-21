@@ -239,7 +239,7 @@ void test_environment() noexcept
         std::mt19937_64 rng;
         std::vector<double> inputs = create_n_inputs(e, 3, rng);
 
-        std::function<double(std::vector<double>)> env_function;
+        std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
 
         double optimal_output = env_function(inputs);
 
