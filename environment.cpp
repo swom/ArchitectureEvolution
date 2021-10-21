@@ -230,5 +230,22 @@ void test_environment() noexcept
         assert(env_series == tester_series);
     }
 #endif
+
+//#define FIX_ISSUE_11
+#ifdef FIX_ISSUE_11
+    {
+        environment e{env_param{}};
+        std::mt19937_64 rng;
+        auto inputs = create_n_inputs(e, 3, rng);
+
+        std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
+
+        double optimal_output = env_function(inputs);
+
+        assert(optimal_output == calc_optimal_output(inputs, env_function));
+    }
+#endif
+
+
 }
 #endif
