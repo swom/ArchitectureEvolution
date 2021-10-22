@@ -276,5 +276,21 @@ void test_environment() noexcept
           }
   #endif
 
+  //#define FIX_ISSUE_34
+  #ifdef FIX_ISSUE_34
+          {
+              environment e{env_param{}};
+              std::uniform_real_distribution<double> dist_t0= e.get_dist();
+
+              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
+              e.change_dist(new_dist);
+
+              std::uniform_real_distribution<double> dist_t1= e.get_dist();
+
+              assert(dist_t0 != dist_t1);
+              assert(dist_t1 == new_dist);
+          }
+  #endif
+
 }
 #endif
