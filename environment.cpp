@@ -298,7 +298,7 @@ void test_environment() noexcept
     }
 #endif
 
-    //#define FIX_ISSUE_11
+#define FIX_ISSUE_11
 #ifdef FIX_ISSUE_11
     {
         environment e{env_param{}};

@@ -34,6 +34,8 @@ public:
     ///Sets current target value
     void set_current_target_value(double target_value) {m_current_target_value = target_value;}
 
+    const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
+
 
 private:
 
@@ -44,6 +46,9 @@ private:
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
+
+    ///The first function linking input to optimal output
+    std::function<double(std::vector<double>)> m_env_function_A;
 };
 
 ///checks if 2 environments are equal
