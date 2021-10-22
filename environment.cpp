@@ -4,8 +4,8 @@
 
 
 environment::environment(double target_valueA, double target_valueB):
-  m_ref_target_values{target_valueA,target_valueB},
-  m_current_target_value {target_valueA}
+    m_ref_target_values{target_valueA,target_valueB},
+    m_current_target_value {target_valueA}
 {
 
 
@@ -14,9 +14,9 @@ environment::environment(double target_valueA, double target_valueB):
 }
 
 environment::environment(env_param e_p):
-  m_ref_target_values{e_p.targetA,e_p.targetB},
-  m_current_target_value {e_p.targetA},
-  m_cue_distribution{0., 1.}
+    m_ref_target_values{e_p.targetA,e_p.targetB},
+    m_current_target_value {e_p.targetA},
+    m_cue_distribution{0., 1.}
 {
 
 
@@ -28,45 +28,56 @@ environment::environment(env_param e_p):
 
 bool operator== (const environment& lhs, const environment& rhs)
 {
-  bool ref_t_values = lhs.get_ref_target_values() == rhs.get_ref_target_values();
-  bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
+    bool ref_t_values = lhs.get_ref_target_values() == rhs.get_ref_target_values();
+    bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
 
-  return ref_t_values && current_t_value;
+    return ref_t_values && current_t_value;
 }
 
 double get_target_valueA(const environment& e)
 {
-  return e.get_ref_target_values()[0];
+    return e.get_ref_target_values()[0];
 }
 
 double get_target_valueB(const environment& e)
 {
-  return e.get_ref_target_values()[1];
+    return e.get_ref_target_values()[1];
 }
 
 void switch_target(environment &e){
-  //Check which target value is the current one and switch it over to the other
+    //Check which target value is the current one and switch it over to the other
 
-  if (are_equal_with_tolerance(e.get_current_target_value(),
-                               get_target_valueA(e))
-      )
+    if (are_equal_with_tolerance(e.get_current_target_value(),
+                                 get_target_valueA(e))
+            )
     {
-      e.set_current_target_value(get_target_valueB(e));
+        e.set_current_target_value(get_target_valueB(e));
     }
-  else
+    else
     {
-      e.set_current_target_value(get_target_valueA(e));
+        e.set_current_target_value(get_target_valueA(e));
     }
 }
 
 std::vector<double> create_n_inputs(int n_inputs)
 {
-  std::vector<double> input_vector;
+    std::vector<double> input_vector;
 
-  for(int i = 0; i != n_inputs; ++i){
-      input_vector.push_back(1234.0);
+    for(int i = 0; i != n_inputs; ++i){
+        input_vector.push_back(1234.0);
     }
-  return input_vector;
+    return input_vector;
+}
+
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng)
+{
+    std::vector<double> input_vector(n_inputs);
+
+    for(auto& cue : input_vector){
+        cue = e.get_dist()(rng);
+    }
+
+    return input_vector;
 }
 
 
@@ -74,84 +85,84 @@ std::vector<double> create_n_inputs(int n_inputs)
 void test_environment() noexcept
 {
 
-  //an environment has a m_current_target_value member
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
-    assert(e.get_current_target_value() < 0 || e.get_current_target_value() > 0);
-  }
+    //an environment has a m_current_target_value member
+    {
+        double target_valueA = 0.123456;
+        double target_valueB = 0.654321;
+        environment e{target_valueA, target_valueB};
+        assert(e.get_current_target_value() < 0 || e.get_current_target_value() > 0);
+    }
 
 
-  //an env has 2 reference target values;
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
-    assert(e.get_ref_target_values().size() == 2);
-  }
+    //an env has 2 reference target values;
+    {
+        double target_valueA = 0.123456;
+        double target_valueB = 0.654321;
+        environment e{target_valueA, target_valueB};
+        assert(e.get_ref_target_values().size() == 2);
+    }
 
-  //an env can be initialized with 2 reference target values
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
+    //an env can be initialized with 2 reference target values
+    {
+        double target_valueA = 0.123456;
+        double target_valueB = 0.654321;
+        environment e{target_valueA, target_valueB};
 
-    assert(get_target_valueA(e) - target_valueA < 0.0001
-           && get_target_valueA(e) - target_valueA > -0.0001);
+        assert(get_target_valueA(e) - target_valueA < 0.0001
+               && get_target_valueA(e) - target_valueA > -0.0001);
 
-    assert(get_target_valueB(e) - target_valueB < 0.0001
-           && get_target_valueB(e) - target_valueB > -0.0001);
-  }
-
-
-
-  //Current target value is initialized to the first of the 2 target values
-  {
-    double targetA = 0.123456;
-    double targetB = 0.654321;
-    environment e{targetA,targetB};
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-    assert(are_not_equal_with_tolerance(e.get_current_target_value(), targetB));
-  }
+        assert(get_target_valueB(e) - target_valueB < 0.0001
+               && get_target_valueB(e) - target_valueB > -0.0001);
+    }
 
 
-  //ISSUE_25
-  //An environment can switch target values
-  {
-    double targetA = 0.123456;
-    double targetB = 0.654321;
-    environment e{targetA,targetB};
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-    switch_target(e);
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetB));
-    switch_target(e);
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-  }
+
+    //Current target value is initialized to the first of the 2 target values
+    {
+        double targetA = 0.123456;
+        double targetB = 0.654321;
+        environment e{targetA,targetB};
+        assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
+        assert(are_not_equal_with_tolerance(e.get_current_target_value(), targetB));
+    }
 
 
-  //#define FIX_ISSUE_35
+    //ISSUE_25
+    //An environment can switch target values
+    {
+        double targetA = 0.123456;
+        double targetB = 0.654321;
+        environment e{targetA,targetB};
+        assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
+        switch_target(e);
+        assert(are_equal_with_tolerance(e.get_current_target_value(), targetB));
+        switch_target(e);
+        assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
+    }
 
-  {
-    double targetA = 123456;
-    double targetB = 46589;
 
-    env_param e_p{targetA, targetB};
-    environment e{e_p};
-    assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
-    assert(are_equal_with_tolerance(get_target_valueB(e), targetB));
+    //#define FIX_ISSUE_35
 
-  }
+    {
+        double targetA = 123456;
+        double targetB = 46589;
+
+        env_param e_p{targetA, targetB};
+        environment e{e_p};
+        assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
+        assert(are_equal_with_tolerance(get_target_valueB(e), targetB));
+
+    }
 
 #define FIX_ISSUE_5
-    #ifdef FIX_ISSUE_5
-        ///It is possible to create an arbitrary number of inputs #5
-        {
-            int n_inputs = 3;
-            auto inputs = create_n_inputs(n_inputs);
-            assert(size_t(n_inputs) == inputs.size());
-        }
-    #endif
+#ifdef FIX_ISSUE_5
+    ///It is possible to create an arbitrary number of inputs #5
+    {
+        int n_inputs = 3;
+        auto inputs = create_n_inputs(n_inputs);
+        assert(size_t(n_inputs) == inputs.size());
+    }
+#endif
 #define FIX_ISSUE_9
 #ifdef FIX_ISSUE_9
     {
@@ -192,7 +203,7 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_14
+#define FIX_ISSUE_14
 #ifdef FIX_ISSUE_14
     {
         environment e{env_param{}};
@@ -219,7 +230,7 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_25
+    //#define FIX_ISSUE_25
 #ifdef FIX_ISSUE_25
     ///Environment can create n new inputs and update them #25
     {
@@ -247,7 +258,7 @@ void test_environment() noexcept
 #endif
 
     //#define FIX_ISSUE_26
-    #ifdef FIX_ISSUE_26
+#ifdef FIX_ISSUE_26
     ///Environment creates new inputs based on its own distribution
     {
         std::mt19937_64 rng;
@@ -286,6 +297,21 @@ void test_environment() noexcept
 
     }
 #endif
+
+    //#define FIX_ISSUE_11
+#ifdef FIX_ISSUE_11
+    {
+        environment e{env_param{}};
+
+        std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
+
+        std::vector<double> silly_argument{0.123456,0.98765443};
+
+        env_function(silly_argument);
+
+    }
+#endif
+
 
 }
 #endif

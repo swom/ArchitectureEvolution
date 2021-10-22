@@ -116,6 +116,12 @@ void set_nth_ind_fitness (population& p, size_t ind_index, double fitness);
 ///Calculates the standard deviation
 double var_fitness(const population &p);
 
+///Checks that all individuals in the pop have the same input
+bool all_individuals_have_same_input(const population &p);
+
+///Returns the input of the nth individual
+const std::vector<double> &get_nth_individual_input(const population &p, const int n);
+
 void test_population() noexcept;
 
 #endif // POPULATION_H
