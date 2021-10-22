@@ -245,6 +245,25 @@ void test_environment() noexcept
       }
   #endif
 
+//#define FIX_ISSUE_23
+  #ifdef FIX_ISSUE_23
+      {
+          environment e{env_param{}};
+
+          std::vector<double> input = e.get_input();
+
+      }
+  #endif
+
+//#define FIX_ISSUE_29
+  #ifdef FIX_ISSUE_29
+        {
+            environment e{env_param{}};
+
+            std::vector<double> optimal_output = e.get_optimal();
+
+        }
+    #endif
 
 }
 #endif
