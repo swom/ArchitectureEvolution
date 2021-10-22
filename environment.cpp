@@ -215,7 +215,6 @@ void test_environment() noexcept
 
         std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
         std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
-        std::vector<std::vector<double>> tester_series1(0, std::vector<double>(n_inputs));
 
         int repeats = 10000;
         for(int i = 0; i != repeats; i++)
@@ -231,20 +230,19 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_11
-#ifdef FIX_ISSUE_11
-    {
-        environment e{env_param{}};
-        std::mt19937_64 rng;
-        auto inputs = create_n_inputs(e, 3, rng);
+  //#define FIX_ISSUE_11
+  #ifdef FIX_ISSUE_11
+      {
+          environment e{env_param{}};
 
-        std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
+          std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
 
-        double optimal_output = env_function(inputs);
+          std::vector<double> silly_argument{0.123456,0.98765443};
 
-        assert(optimal_output == calc_optimal_output(inputs, env_function));
-    }
-#endif
+          env_function(silly_argument);
+
+      }
+  #endif
 
 
 }
