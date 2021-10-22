@@ -20,8 +20,6 @@ environment::environment(env_param e_p):
 {
 
 
-
-
 }
 
 
@@ -33,6 +31,12 @@ bool operator== (const environment& lhs, const environment& rhs)
 
     return ref_t_values && current_t_value;
 }
+
+double environment::env_function_A(const std::vector<double> &input)
+{
+ return input[0];
+}
+
 
 double get_target_valueA(const environment& e)
 {
