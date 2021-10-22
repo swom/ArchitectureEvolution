@@ -265,5 +265,16 @@ void test_environment() noexcept
         }
     #endif
 
+  //#define FIX_ISSUE_28
+  #ifdef FIX_ISSUE_28
+          {
+              environment lhs{env_param{}};
+              environment rhs = lhs;
+
+              assert(env_1.get_current_target_value() == env_1.get_current_target_value())
+
+          }
+  #endif
+
 }
 #endif
