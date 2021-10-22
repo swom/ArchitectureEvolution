@@ -488,5 +488,27 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     }
 #endif
+
+#define FIX_ISSUE_24
+#ifdef FIX_ISSUE_24
+    {
+        simulation s;
+        environment e{env_param{}};
+
+    }
+#endif
+
+//#define FIX_ISSUE_27
+#ifdef FIX_ISSUE_27
+    {
+        simulation s;
+        const auto& env_inputs_t1 = s.get_env_inputs(); //if you already have this function but with a different name put that function here
+        create_inputs(s);
+        const auto& env_inputs_t2 = s.get_env_inputs();
+        assert(env_inputs_t1 != env_inputs_t2);
+        assert(env_inputs_t2.size() == s.get_inds_input_size());
+
+    }
+#endif
 }
 #endif

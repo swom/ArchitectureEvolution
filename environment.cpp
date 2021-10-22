@@ -221,6 +221,7 @@ void test_environment() noexcept
 
 //#define FIX_ISSUE_25
 #ifdef FIX_ISSUE_25
+    ///Environment can create n new inputs and update them #25
     {
         std::mt19937_64 rng;
         environment e{env_param{}};
@@ -247,6 +248,7 @@ void test_environment() noexcept
 
     //#define FIX_ISSUE_26
     #ifdef FIX_ISSUE_26
+    ///Environment creates new inputs based on its own distribution
     {
         std::mt19937_64 rng;
         auto test_rng = rng;
