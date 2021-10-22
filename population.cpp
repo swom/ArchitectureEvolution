@@ -246,10 +246,9 @@ bool all_individuals_have_same_input(const population &p)
   return true;
 }
 
-std::vector<double> get_nth_individual_input(const population &p, const int &n)
+const std::vector<double> &get_nth_individual_input(const population &p, const int n)
 {
-  individual nth_individual = p.get_inds()[n];
-  return nth_individual.get_input_values();
+  return get_nth_ind(p, n).get_input_values();
 }
 
 #ifndef NDEBUG

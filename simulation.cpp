@@ -45,7 +45,7 @@ simulation::simulation(all_params params):
     }
 }
 
-std::vector<individual>& simulation::get_inds()
+const std::vector<individual> &simulation::get_inds() const
 {
   return simulation::get_pop().get_inds();
 }
@@ -206,7 +206,6 @@ double var_fitness(const simulation&s)
 
 void assign_inputs(population &p, const std::vector<double> &inputs)
 {
-  std::vector<individual> vec_inds;
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
     }
@@ -219,14 +218,13 @@ bool all_individuals_have_same_input(const simulation &s)
   return all_individuals_have_same_input(p);
 }
 
-std::vector<double> get_nth_individual_input(const simulation &s, const int &n)
+const std::vector<double> &get_nth_individual_input(const simulation &s, const int n)
 {
-  population p = s.get_pop();
 
-  return get_nth_individual_input(p, n);
+  return get_nth_individual_input(s.get_pop(), n);
 }
 
-std::vector<double> get_current_input(const simulation &s)
+const std::vector<double> &get_current_input(const simulation &s)
 {
  assert(all_individuals_have_same_input(s));
  return get_nth_individual_input(s, 0);
