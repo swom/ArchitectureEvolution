@@ -89,6 +89,9 @@ public:
   ///Returns seed
   int get_seed() const noexcept {return m_seed;}
 
+  ///Returns a reference to the vector of individuals
+  const std::vector<individual> &get_inds() const;
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -154,6 +157,19 @@ double var_fitness(const simulation&s);
 
 ///Assign inputs to a population
 void assign_inputs(population &p, const std::vector<double> &inputs);
+
+///Checks if all the individuals in a simulated population have the same input
+bool all_individuals_have_same_input(const simulation &s);
+
+///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
+const std::vector<double> &get_current_input(const simulation &s);
+
+///Changes the inputs of the individuals in the simulation.
+void assign_new_inputs(simulation &s);
+
+///Returns the input of the nth individual in the population
+const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
+
 
 void test_simulation() noexcept;
 

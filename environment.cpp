@@ -69,6 +69,17 @@ std::vector<double> create_n_inputs(int n_inputs)
   return input_vector;
 }
 
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng)
+{
+  std::vector<double> input_vector(n_inputs);
+
+  for(auto& cue : input_vector){
+      cue = e.get_dist()(rng);
+    }
+
+  return input_vector;
+}
+
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -192,7 +203,7 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_14
+#define FIX_ISSUE_14
 #ifdef FIX_ISSUE_14
     {
         environment e{env_param{}};
@@ -204,7 +215,6 @@ void test_environment() noexcept
 
         std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
         std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
-        std::vector<std::vector<double>> tester_series1(0, std::vector<double>(n_inputs));
 
         int repeats = 10000;
         for(int i = 0; i != repeats; i++)
@@ -219,5 +229,21 @@ void test_environment() noexcept
         assert(env_series == tester_series);
     }
 #endif
+
+  //#define FIX_ISSUE_11
+  #ifdef FIX_ISSUE_11
+      {
+          environment e{env_param{}};
+
+          std::function<double(std::vector<double>)> env_function = e.get_env_function_A();
+
+          std::vector<double> silly_argument{0.123456,0.98765443};
+
+          env_function(silly_argument);
+
+      }
+  #endif
+
+
 }
 #endif

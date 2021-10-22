@@ -22,7 +22,7 @@ public:
 
     environment(env_param e_p);
 
-    std::uniform_real_distribution<double>& get_dist() {return m_cue_distribution;}
+    std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
                                    m_ref_target_values,
@@ -53,8 +53,11 @@ void switch_target (environment &e);
 
 void test_environment() noexcept;
 
-///Create a given number of inputs with value fixed to 1
+///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
+
+///Create a vector of a given number of inputs from the distribution member of the environment
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng);
 
 
 #endif // ENVIRONMENT_H

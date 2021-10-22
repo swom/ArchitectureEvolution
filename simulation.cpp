@@ -45,6 +45,11 @@ simulation::simulation(all_params params):
     }
 }
 
+const std::vector<individual> &simulation::get_inds() const
+{
+  return simulation::get_pop().get_inds();
+}
+
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
 {
@@ -169,7 +174,13 @@ void tick(simulation &s)
         switch_target(s.get_env());
     }
 
+    if(s.get_inds().size()){
+
+      assign_new_inputs(s);
+    }
+
     select_inds(s);
+
 
 }
 
@@ -195,10 +206,34 @@ double var_fitness(const simulation&s)
 
 void assign_inputs(population &p, const std::vector<double> &inputs)
 {
-  std::vector<individual> vec_inds;
   for(auto& ind : p.get_inds()){
-      ind.set_input(inputs);
+      ind.assign_input(inputs);
     }
+}
+
+bool all_individuals_have_same_input(const simulation &s)
+{
+  population p = s.get_pop();
+
+  return all_individuals_have_same_input(p);
+}
+
+const std::vector<double> &get_nth_individual_input(const simulation &s, const int n)
+{
+
+  return get_nth_individual_input(s.get_pop(), n);
+}
+
+const std::vector<double> &get_current_input(const simulation &s)
+{
+ assert(all_individuals_have_same_input(s));
+ return get_nth_individual_input(s, 0);
+}
+
+void assign_new_inputs(simulation &s)
+{
+std::vector<double> new_inputs = create_n_inputs(s.get_env(), get_current_input(s).size() , s.get_rng());
+assign_inputs(s.get_pop(), new_inputs);
 }
 
 
@@ -453,7 +488,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-//#define FIX_ISSUE_17
+#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -465,7 +500,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto t1_inputs = get_current_input(s);
         tick(s);
         auto t2_inputs = get_current_input(s);
-        assert(t1_inputs == t2_inputs);
+        assert(t1_inputs != t2_inputs);
 
         repeats--;
         }
@@ -473,18 +508,18 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_18
+#define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
     {
         simulation s;
-        assert(all_individuals have_same_input());
+        assert(all_individuals_have_same_input(s));
         auto input_t1 = get_current_input(s);
 
         assign_new_inputs(s);
-        assert(all_individuals have_same_input());
+        assert(all_individuals_have_same_input(s));
         auto input_t2 = get_current_input(s);
 
-        assert(input_t1 == input_t2);
+        assert(input_t1 != input_t2);
 
     }
 #endif
