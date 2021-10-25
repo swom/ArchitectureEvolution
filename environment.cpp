@@ -30,6 +30,7 @@ environment::environment(env_param e_p):
 //}
 
 
+
 bool operator== (const environment& lhs, const environment& rhs)
 {
     bool ref_t_values = lhs.get_ref_target_values() == rhs.get_ref_target_values();
@@ -152,7 +153,7 @@ void test_environment() noexcept
         double targetA = 123456;
         double targetB = 46589;
 
-        env_param e_p{targetA, targetB, env_function_A};
+        env_param e_p{targetA, targetB, env_func_A};
         environment e{e_p};
         assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
         assert(are_equal_with_tolerance(get_target_valueB(e), targetB));

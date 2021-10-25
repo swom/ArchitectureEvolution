@@ -5,13 +5,14 @@
 #include <random>
 #include "json.hpp"
 
-static double env_function_A(std::vector<double> input){
+static double env_func_A(std::vector<double> input){
   return input[0];
  }
 
+
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
 {
-{"A", env_function_A}
+{"A", env_func_A}
 };
 
 
@@ -22,7 +23,7 @@ struct env_param
                                    targetB)
 double targetA;
 double targetB;
-std::function<double(std::vector<double>)> env_function_A;
+std::function<double(std::vector<double>)> env_function_A{env_func_A};
 };
 
 
@@ -31,7 +32,7 @@ class environment
 public:
     ///deprecated(sort of)
     environment(double target_valueA, double target_valueB,
-                std::function<double(std::vector<double>)> env_functionA = &env_function_A);
+                std::function<double(std::vector<double>)> env_functionA = &env_func_A);
 
     environment(env_param e_p);
 
