@@ -120,7 +120,7 @@ double var_fitness(const population &p);
 bool all_individuals_have_same_input(const population &p);
 
 ///Returns the input of the nth individual
-std::vector<double> get_nth_individual_input(const population &p, const int &n);
+const std::vector<double> &get_nth_individual_input(const population &p, const int n);
 
 void test_population() noexcept;
 

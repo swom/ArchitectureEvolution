@@ -45,7 +45,7 @@ simulation::simulation(all_params params):
     }
 }
 
-std::vector<individual>& simulation::get_inds()
+const std::vector<individual> &simulation::get_inds() const
 {
   return simulation::get_pop().get_inds();
 }
@@ -206,7 +206,6 @@ double var_fitness(const simulation&s)
 
 void assign_inputs(population &p, const std::vector<double> &inputs)
 {
-  std::vector<individual> vec_inds;
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
     }
@@ -219,14 +218,13 @@ bool all_individuals_have_same_input(const simulation &s)
   return all_individuals_have_same_input(p);
 }
 
-std::vector<double> get_nth_individual_input(const simulation &s, const int &n)
+const std::vector<double> &get_nth_individual_input(const simulation &s, const int n)
 {
-  population p = s.get_pop();
 
-  return get_nth_individual_input(p, n);
+  return get_nth_individual_input(s.get_pop(), n);
 }
 
-std::vector<double> get_current_input(const simulation &s)
+const std::vector<double> &get_current_input(const simulation &s)
 {
  assert(all_individuals_have_same_input(s));
  return get_nth_individual_input(s, 0);
@@ -523,6 +521,46 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         assert(input_t1 != input_t2);
 
+    }
+#endif
+
+//#define FIX_ISSUE_24
+#ifdef FIX_ISSUE_24
+    {
+        simulation s;
+        create_inputs(s);
+        assign_inputs(s);
+        assert(s.get_env_inputs() == s.get_inds_inputs()/*if you have a function like this with a different name put it here*/);
+
+    }
+#endif
+
+//#define FIX_ISSUE_27
+#ifdef FIX_ISSUE_27
+    {
+        simulation s;
+        auto test_e = s.get_env();
+        auto n_inputs_requested = s.get_inds_inputs(); //if you already have this function but with a different name put it here
+        int repeats = 1000;
+        std::vector<double> sim_env_values;
+        std::vector<double> test_values;
+
+        for(int i = 0; i != repeats; i++)
+        {
+            const auto& env_inputs_t1 = s.get_env_inputs(); //if you already have this function but with a different name put it here
+            create_inputs(s);
+            const auto& env_inputs_t2 = s.get_env_inputs();
+
+            assert(env_inputs_t1 != env_inputs_t2);
+            assert(env_inputs_t2.size() == s.get_inds_input_size());
+
+            sim_env_values.insert(sim_env_values.end, env_inputs_t2.begin(), env_inputs_t2.end());
+
+            auto test_inputs = test_e.update_n_inputs(s.get_rng(), n_inputs_requested);
+            test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
+        }
+
+        assert(are_from_same_distribution(sim_env_values, test_values)); //when you create this funciton you cna plug it also in test #26
     }
 #endif
 }
