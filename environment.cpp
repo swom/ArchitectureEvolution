@@ -16,7 +16,8 @@ environment::environment(double target_valueA, double target_valueB):
 environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
-    m_cue_distribution{0., 1.}
+    m_cue_distribution{0., 1.},
+    m_input(3, 0.5)
 {
 
 
@@ -32,6 +33,12 @@ bool operator== (const environment& lhs, const environment& rhs)
     bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
 
     return ref_t_values && current_t_value;
+}
+
+void environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
+{
+  std::vector<double> new_inputs = create_n_inputs(m_cue_distribution , n, rng);
+  m_input = new_inputs;
 }
 
 double get_target_valueA(const environment& e)
@@ -75,6 +82,17 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
 
     for(auto& cue : input_vector){
         cue = e.get_dist()(rng);
+    }
+
+    return input_vector;
+}
+
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, std::mt19937_64 &rng)
+{
+    std::vector<double> input_vector(n_inputs);
+
+    for(auto& cue : input_vector){
+        cue = dist(rng);
     }
 
     return input_vector;
@@ -230,13 +248,13 @@ void test_environment() noexcept
     }
 #endif
 
-    //#define FIX_ISSUE_25
+#define FIX_ISSUE_25
 #ifdef FIX_ISSUE_25
     ///Environment can create n new inputs and update them #25
     {
         std::mt19937_64 rng;
         environment e{env_param{}};
-        auto env_inp_t1 = e.get_inputs();
+        auto env_inp_t1 = e.get_input();
 
         ///environment shouldn't know how many inputs individuals require
         /// nor we want to construct it with a certain number of inputs
@@ -244,20 +262,20 @@ void test_environment() noexcept
         int n_of_inputs_requested = env_inp_t1.size();
 
         e.update_n_inputs(rng, n_of_inputs_requested);
-        auto env_inp_t2 = e.get_inputs();
+        auto env_inp_t2 = e.get_input();
 
         assert(env_inp_t1 != env_inp_t2);
         assert(env_inp_t1.size() == env_inp_t2.size());
 
         n_of_inputs_requested++;
         e.update_n_inputs(rng, n_of_inputs_requested);
-        env_inp_t3 = e.get_inputs();
+        auto env_inp_t3 = e.get_input();
 
         assert(env_inp_t2.size() != env_inp_t3.size());
     }
 #endif
 
-    //#define FIX_ISSUE_26
+#define FIX_ISSUE_26
 #ifdef FIX_ISSUE_26
     ///Environment creates new inputs based on its own distribution
     {
@@ -277,12 +295,12 @@ void test_environment() noexcept
         for(int i = 0; i != repeats; i++)
         {
             e.update_n_inputs(rng, n_of_inputs_requested);
-            auto env_inputs = e.get_inputs();
+            auto env_inputs = e.get_input();
             store_env_inputs.insert(store_env_inputs.end(), env_inputs.begin(), env_inputs.end());
 
             for(int j = 0; j != n_of_inputs_requested; j++)
             {
-                test_inputs.push_back(test_dist(test_rng));
+                store_test_inputs.push_back(test_dist(test_rng));
             }
         }
 
@@ -312,7 +330,7 @@ void test_environment() noexcept
     }
 #endif
 
-//#define FIX_ISSUE_23
+#define FIX_ISSUE_23
   #ifdef FIX_ISSUE_23
       {
           environment e{env_param{}};
@@ -322,64 +340,16 @@ void test_environment() noexcept
       }
   #endif
 
-//#define FIX_ISSUE_29
+#define FIX_ISSUE_29
   #ifdef FIX_ISSUE_29
-        {
-            environment e{env_param{}};
+  {
+    environment e{env_param{}};
 
-            std::vector<double> optimal_output = e.get_optimal();
+    double optimal_output = e.get_optimal();
+    (void) optimal_output ;  //I added that because it was complaining about optimal_output never being used
 
-        }
+  }
     #endif
-
-//WIP DO NOT REVIEW
-//#define FIX_ISSUE_28
-  #ifdef FIX_ISSUE_28
-          {
-            //Two equal environments returns true
-              environment lhs{env_param{}};
-              environment rhs = lhs;
-
-              assert(lhs == rhs);
-
-            //Two environments that differ in their reference target values returns false
-            //Testing this would also require a function to change it
-            //but idk if that's super relevant to have
-
-            //Two environments that differ in their current target values returns false
-              rhs.set_current_target_value(lhs.get_current_target_value() + 123);
-              assert (!(lhs == rhs));
-              rhs = lhs;
-
-            //Two environments that differ in their cue distribution returns false
-              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              rhs.change_dist(new_dist);
-              assert (!(lhs == rhs));
-              rhs = lhs;
-
-            //Two environments that differ in their input  & optimal output returns false
-              std::mt19937_64 rng;
-              rhs.update_n_inputs(rng, 3); //does this also update output? Probably not?
-              assert (!(lhs == rhs));
-              rhs = lhs;
-          }
-  #endif
-
-  //#define FIX_ISSUE_34
-  #ifdef FIX_ISSUE_34
-          {
-              environment e{env_param{}};
-              std::uniform_real_distribution<double> dist_t0= e.get_dist();
-
-              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              e.change_dist(new_dist);
-
-              std::uniform_real_distribution<double> dist_t1= e.get_dist();
-
-              assert(dist_t0 != dist_t1);
-              assert(dist_t1 == new_dist);
-          }
-  #endif
 
 }
 #endif
