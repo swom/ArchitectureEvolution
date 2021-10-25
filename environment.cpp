@@ -265,54 +265,5 @@ void test_environment() noexcept
         }
     #endif
 
-//WIP DO NOT REVIEW
-//#define FIX_ISSUE_28
-  #ifdef FIX_ISSUE_28
-          {
-            //Two equal environments returns true
-              environment lhs{env_param{}};
-              environment rhs = lhs;
-
-              assert(lhs == rhs);
-
-            //Two environments that differ in their reference target values returns false
-            //Testing this would also require a function to change it
-            //but idk if that's super relevant to have
-
-            //Two environments that differ in their current target values returns false
-              rhs.set_current_target_value(lhs.get_current_target_value() + 123);
-              assert (!(lhs == rhs));
-              rhs = lhs;
-
-            //Two environments that differ in their cue distribution returns false
-              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              rhs.change_dist(new_dist);
-              assert (!(lhs == rhs));
-              rhs = lhs;
-
-            //Two environments that differ in their input  & optimal output returns false
-              std::mt19937_64 rng;
-              rhs.update_n_inputs(rng, 3); //does this also update output? Probably not?
-              assert (!(lhs == rhs));
-              rhs = lhs;
-          }
-  #endif
-
-  //#define FIX_ISSUE_34
-  #ifdef FIX_ISSUE_34
-          {
-              environment e{env_param{}};
-              std::uniform_real_distribution<double> dist_t0= e.get_dist();
-
-              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              e.change_dist(new_dist);
-
-              std::uniform_real_distribution<double> dist_t1= e.get_dist();
-
-              assert(dist_t0 != dist_t1);
-              assert(dist_t1 == new_dist);
-          }
-  #endif
-
 }
 #endif
