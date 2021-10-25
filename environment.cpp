@@ -3,9 +3,10 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB):
+environment::environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA):
     m_ref_target_values{target_valueA,target_valueB},
-    m_current_target_value {target_valueA}
+    m_current_target_value {target_valueA},
+    m_env_function_A{env_functionA}
 {
 
 
@@ -16,12 +17,17 @@ environment::environment(double target_valueA, double target_valueB):
 environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
-    m_cue_distribution{0., 1.}
+    m_cue_distribution{0., 1.},
+    m_env_function_A{e_p.env_function_A}
 {
 
 
 }
 
+double env_function_A(std::vector<double> input)
+{
+ return input[0];
+}
 
 
 bool operator== (const environment& lhs, const environment& rhs)
@@ -30,11 +36,6 @@ bool operator== (const environment& lhs, const environment& rhs)
     bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
 
     return ref_t_values && current_t_value;
-}
-
-double environment::env_function_A(const std::vector<double> &input)
-{
- return input[0];
 }
 
 
@@ -150,8 +151,9 @@ void test_environment() noexcept
     {
         double targetA = 123456;
         double targetB = 46589;
+        double env_function_A(std::vector<double>);
 
-        env_param e_p{targetA, targetB};
+        env_param e_p{targetA, targetB, env_function_A};
         environment e{e_p};
         assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
         assert(are_equal_with_tolerance(get_target_valueB(e), targetB));
