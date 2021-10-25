@@ -330,7 +330,9 @@ void test_environment() noexcept
     }
 #endif
 
+
 #define FIX_ISSUE_23
+
   #ifdef FIX_ISSUE_23
       {
           environment e{env_param{}};
@@ -349,6 +351,7 @@ void test_environment() noexcept
     (void) optimal_output ;  //I added that because it was complaining about optimal_output never being used
 
   }
+
     #endif
 
 }
