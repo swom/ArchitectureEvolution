@@ -30,7 +30,8 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA = &env_function_A);
+    environment(double target_valueA, double target_valueB,
+                std::function<double(std::vector<double>)> env_functionA = &env_function_A);
 
     environment(env_param e_p);
 

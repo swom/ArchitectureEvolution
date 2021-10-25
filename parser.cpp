@@ -9,7 +9,7 @@ env_param convert_env_args(const cxxopts::ParseResult& results)
     return env_param{
         results["targetA"].as<double>(),
                 results["targetB"].as<double>(),
-                    string_env_function_A_map.find(results["env_func"].as<std::string>())->second
+                    string_env_function_A_map.find(results["env_func_A"].as<std::string>())->second
     };
 }
 
@@ -59,11 +59,11 @@ cxxopts::Options create_parser(){
     options.add_options()
             ("A,targetA", "the value fo env target A", cxxopts::value<double>()->default_value("0.1"))
             ("B,targetB", "the value fo env target B", cxxopts::value<double>()->default_value("0.75"))
-            ("E,env_func", "the starting env function",cxxopts::value<std::string>()->default_value("sigmoid"))
+            ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("A"))
             ("N,net_arc", "the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
             ("F,act_func",
              "the string representing the name of the activation function of the net",
-             cxxopts::value<std::string>()->default_value("A"))
+             cxxopts::value<std::string>()->default_value("sigmoid"))
             ("R,mut_rate",
              "the probability with whihc a mutation can happen",
              cxxopts::value<double>()->default_value("0.01"))
