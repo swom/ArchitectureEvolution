@@ -76,7 +76,7 @@ void test_observer()
     {
         observer o;
         //Give sim some non-default params
-        double env_function_A(std::vector<double>);
+
         env_param e_p{132465, 123465, env_function_A};
         all_params params = {e_p,{},{},{}};
 

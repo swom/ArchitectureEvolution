@@ -24,10 +24,10 @@ environment::environment(env_param e_p):
 
 }
 
-double env_function_A(std::vector<double> input)
-{
- return input[0];
-}
+//static double env_function_A(std::vector<double> input)
+//{
+// return input[0];
+//}
 
 
 bool operator== (const environment& lhs, const environment& rhs)
@@ -151,7 +151,6 @@ void test_environment() noexcept
     {
         double targetA = 123456;
         double targetB = 46589;
-        double env_function_A(std::vector<double>);
 
         env_param e_p{targetA, targetB, env_function_A};
         environment e{e_p};

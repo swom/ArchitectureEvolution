@@ -5,7 +5,9 @@
 #include <random>
 #include "json.hpp"
 
-double env_function_A(std::vector<double> input);
+static double env_function_A(std::vector<double> input){
+  return input[0];
+ }
 
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
 {
