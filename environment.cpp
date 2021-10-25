@@ -260,7 +260,7 @@ void test_environment() noexcept
         {
             environment e{env_param{}};
 
-            std::vector<double> optimal_output = e.get_optimal();
+            double optimal_output = e.get_optimal();
 
         }
     #endif
