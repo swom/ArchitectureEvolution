@@ -4,6 +4,18 @@
 #include <vector>
 #include <random>
 #include "json.hpp"
+
+static double env_func_A(std::vector<double> input){
+  return input[0];
+ }
+
+
+static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
+{
+{"A", env_func_A}
+};
+
+
 struct env_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
@@ -11,6 +23,7 @@ struct env_param
                                    targetB)
 double targetA;
 double targetB;
+std::function<double(std::vector<double>)> env_function_A{env_func_A};
 };
 
 
@@ -18,7 +31,8 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB);
+    environment(double target_valueA, double target_valueB,
+                std::function<double(std::vector<double>)> env_functionA = &env_func_A);
 
     environment(env_param e_p);
 
@@ -34,6 +48,8 @@ public:
     ///Sets current target value
     void set_current_target_value(double target_value) {m_current_target_value = target_value;}
 
+    const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
+
 
 private:
 
@@ -44,6 +60,14 @@ private:
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
+
+    ///Points to The first function linking input to optimal output
+    std::function<double(std::vector<double>)> m_env_function_A;
+
+    ///The actual function
+    //double env_function_A(const std::vector<double> &input);
+
+
 };
 
 ///checks if 2 environments are equal
