@@ -3,9 +3,10 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB):
+environment::environment(double target_valueA, double target_valueB, size_t n_inputs):
     m_ref_target_values{target_valueA,target_valueB},
-    m_current_target_value {target_valueA}
+    m_current_target_value {target_valueA},
+    m_input(n_inputs, 0.5)
 {
 
 
@@ -35,10 +36,11 @@ bool operator== (const environment& lhs, const environment& rhs)
     return ref_t_values && current_t_value;
 }
 
-void environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
+std::vector<double> environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
 {
   std::vector<double> new_inputs = create_n_inputs(m_cue_distribution , n, rng);
   m_input = new_inputs;
+  return new_inputs;
 }
 
 double get_target_valueA(const environment& e)
@@ -304,14 +306,7 @@ void test_environment() noexcept
             }
         }
 
-        auto test_mean = calc_mean(store_test_inputs);
-        auto env_mean = calc_mean(store_env_inputs);
-
-        auto test_stdev = calc_stdev(store_test_inputs);
-        auto env_stdev = calc_stdev(store_env_inputs);
-
-        assert(are_equal_with_more_tolerance(test_stdev,env_stdev) &&
-               are_equal_with_tolerance(test_mean, env_mean));
+        assert(are_from_same_distribution(store_env_inputs,store_test_inputs));
 
     }
 #endif

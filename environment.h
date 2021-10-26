@@ -4,6 +4,8 @@
 #include <vector>
 #include <random>
 #include "json.hpp"
+#include "utilities.h"
+
 struct env_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
@@ -18,7 +20,7 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB);
+    environment(double target_valueA, double target_valueB, size_t n_inputs = 3);
 
     environment(env_param e_p);
 
@@ -41,7 +43,7 @@ public:
     const double &get_optimal() const noexcept {return m_optimal_output;}
 
     ///Updates the n first inputs by drawing random ones from the distribution
-    void update_n_inputs(std::mt19937_64 &rng, const size_t n);
+    std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
 
 
 private:
