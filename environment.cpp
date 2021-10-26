@@ -338,5 +338,50 @@ void test_environment() noexcept
         }
     #endif
 
+//#define FIX_ISSUE_34
+  #ifdef FIX_ISSUE_34
+          {
+              environment e{env_param{}};
+              int n_inputs = 1;
+              std::mt19937_64 rng1;
+              std::mt19937_64 rng2;
+              std::mt19937_64 rng3;
+
+              std::vector<double> env_t0_series;
+              std::vector<double> env_t1_series;
+              std::vector<double> tester_t1_series;
+
+              int repeats = 10000;
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t0_series.push_back(create_n_inputs(e, n_inputs, rng1)[0]);
+              }
+
+              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
+              e.change_dist(new_dist);
+
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t1_series.push_back(create_n_inputs(e, n_inputs, rng2)[0]);
+                  tester_t1_series.push_back(create_n_inputs(new_dist, n_inputs, rng3)[0]); //This function working from a distribution is on a newer branch
+              }
+
+              auto env_t0_mean = calc_mean(env_t0_series);
+              auto env_t1_mean = calc_mean(env_t1_series);
+              auto tester_t1_mean = calc_mean(tester_t1_series);
+
+              auto env_t0_stdev = calc_stdev(env_t0_series);
+              auto env_t1_stdev = calc_stdev(env_t1_series);
+              auto tester_t1_stdev = calc_stdev(tester_t1_series);
+
+                      assert(are_not_equal_with_more_tolerance(env_t1_mean,env_t0_mean) &&
+                             are_not_equal_with_tolerance(env_t0_stdev, env_t1_stdev));
+                      assert(are_equal_with_more_tolerance(env_t1_mean,tester_t1_mean) &&
+                             are_equal_with_tolerance(tester_t1_stdev, env_t1_stdev));
+
+          }
+  #endif
+
+
 }
 #endif
