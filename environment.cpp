@@ -301,6 +301,7 @@ void test_environment() noexcept
           }
   #endif
 
+
   //#define FIX_ISSUE_34
   #ifdef FIX_ISSUE_34
           {
