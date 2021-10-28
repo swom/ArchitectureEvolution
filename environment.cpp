@@ -383,5 +383,26 @@ void test_environment() noexcept
   #endif
 
 
+//#define FIX_ISSUE_30
+  //Environment can use its function to calculate the optimal value and store it
+#ifdef FIX_ISSUE_30
+  {
+    environment e{env_param{}};
+    std::function<double(std::vector<double>)> function = e.get_env_function_A();
+
+    std::vector<double> inputs = e.get_input(); //might be a different name
+
+    double theoretical_optimal_output = function(inputs);
+    double calculated_optimal_output = e.calculate_optimal();
+
+    assert(theoretical_optimal_output == calculated_optimal_output);
+
+    e.update_optimal();
+    assert(theoretical_optimal_output == e.get_optimal()); //might be a different name
+
+  }
+#endif
+
+
 }
 #endif
