@@ -3,9 +3,11 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB):
+environment::environment(double target_valueA, double target_valueB,
+                         std::function<double(std::vector<double>)> env_functionA):
   m_ref_target_values{target_valueA,target_valueB},
-  m_current_target_value {target_valueA}
+  m_current_target_value {target_valueA},
+  m_env_function_A{env_functionA}
 {
 
 
@@ -298,15 +300,6 @@ void test_environment() noexcept
               rhs.update_output;
               assert (!(lhs == rhs));
               rhs = lhs;
-
-            //Two environments that differ in their function returns false
-              double function(std::vector<double> input);
-              //I am not sure this will work as the function has not been defined and cannot be here;
-              //if it doesn't a function defined somewhere else might be needed
-              environment rhs2{321, 654, function};
-
-              assert (!(lhs == rhs2));
-
           }
   #endif
 
