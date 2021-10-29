@@ -388,7 +388,7 @@ void test_environment() noexcept
 #ifdef FIX_ISSUE_30
   {
     environment e{env_param{}};
-    std::function<double(std::vector<double>)> function = e.get_env_function_A();
+   auto function = e.get_env_function_A();
 
     std::vector<double> inputs = e.get_input(); //might be a different name
 
