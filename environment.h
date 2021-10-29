@@ -6,6 +6,18 @@
 #include "json.hpp"
 #include "utilities.h"
 
+static double env_func_A(std::vector<double> input){
+  return input[0];
+ }
+
+
+static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
+{
+{"A", env_func_A}
+};
+
+
+
 struct env_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
@@ -13,6 +25,7 @@ struct env_param
                                    targetB)
 double targetA;
 double targetB;
+std::function<double(std::vector<double>)> env_function_A{env_func_A};
 };
 
 
@@ -20,7 +33,8 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB);
+    environment(double target_valueA, double target_valueB,
+                std::function<double(std::vector<double>)> env_functionA = &env_func_A);
 
     environment(env_param e_p);
 
@@ -45,6 +59,11 @@ public:
     ///Updates the n first inputs by drawing random ones from the distribution
     std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
 
+    const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
+
+    void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
+
+
 
 private:
 
@@ -56,11 +75,16 @@ private:
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
 
+
     ///The current inputs that the networks of individuals will recieve
     std::vector<double> m_input;
 
     ///The optimal output at a given moment; depends on inputs and environmental function
     double m_optimal_output;
+
+    ///Points to The first function linking input to optimal output
+    std::function<double(std::vector<double>)> m_env_function_A;
+
 };
 
 ///checks if 2 environments are equal
@@ -78,6 +102,10 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 
 ///Create a vector of a given number of inputs from the distribution member of the environment
 std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng);
+
+///Creates a vector of a given number of inputs for a distribution
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng);
 
 
 #endif // ENVIRONMENT_H

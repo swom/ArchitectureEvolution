@@ -3,10 +3,11 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB):
+environment::environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA):
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
-    m_input(3, 0.5)
+    m_input(3, 0.5),
+    m_env_function_A{env_functionA}
 {
 
 
@@ -18,13 +19,17 @@ environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
-    m_input(3, 0.5)
+    m_input(3, 0.5),
+    m_env_function_A{e_p.env_function_A}
 {
 
 
-
-
 }
+
+//static double env_function_A(std::vector<double> input)
+//{
+// return input[0];
+//}
 
 
 
@@ -36,12 +41,14 @@ bool operator== (const environment& lhs, const environment& rhs)
     return ref_t_values && current_t_value;
 }
 
+
 std::vector<double> environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
 {
   std::vector<double> new_inputs = create_n_inputs(m_cue_distribution , n, rng);
   m_input = new_inputs;
   return new_inputs;
 }
+
 
 double get_target_valueA(const environment& e)
 {
@@ -89,7 +96,8 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
     return input_vector;
 }
 
-std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, std::mt19937_64 &rng)
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng)
 {
     std::vector<double> input_vector(n_inputs);
 
@@ -167,7 +175,7 @@ void test_environment() noexcept
         double targetA = 123456;
         double targetB = 46589;
 
-        env_param e_p{targetA, targetB};
+        env_param e_p{targetA, targetB, env_func_A};
         environment e{e_p};
         assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
         assert(are_equal_with_tolerance(get_target_valueB(e), targetB));
@@ -311,7 +319,7 @@ void test_environment() noexcept
     }
 #endif
 
-    //#define FIX_ISSUE_11
+#define FIX_ISSUE_11
 #ifdef FIX_ISSUE_11
     {
         environment e{env_param{}};
@@ -348,6 +356,51 @@ void test_environment() noexcept
   }
 
     #endif
+
+#define FIX_ISSUE_34
+  #ifdef FIX_ISSUE_34
+          {
+              environment e{env_param{}};
+              int n_inputs = 1;
+              std::mt19937_64 rng1;
+              std::mt19937_64 rng2;
+              std::mt19937_64 rng3;
+
+              std::vector<double> env_t0_series;
+              std::vector<double> env_t1_series;
+              std::vector<double> tester_t1_series;
+
+              int repeats = 10000;
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t0_series.push_back(create_n_inputs(e, n_inputs, rng1)[0]);
+              }
+
+              std::uniform_real_distribution<double> new_dist{1.23, 4.56};
+              e.change_uniform_dist(new_dist);
+
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t1_series.push_back(create_n_inputs(e, n_inputs, rng2)[0]);
+                  tester_t1_series.push_back(create_n_inputs(new_dist, n_inputs, rng3)[0]); //This function working from a distribution is on a newer branch
+              }
+
+              auto env_t0_mean = calc_mean(env_t0_series);
+              auto env_t1_mean = calc_mean(env_t1_series);
+              auto tester_t1_mean = calc_mean(tester_t1_series);
+
+              auto env_t0_stdev = calc_stdev(env_t0_series);
+              auto env_t1_stdev = calc_stdev(env_t1_series);
+              auto tester_t1_stdev = calc_stdev(tester_t1_series);
+
+                      assert(are_not_equal_with_more_tolerance(env_t1_mean,env_t0_mean) &&
+                             are_not_equal_with_tolerance(env_t0_stdev, env_t1_stdev));
+                      assert(are_equal_with_more_tolerance(env_t1_mean,tester_t1_mean) &&
+                             are_equal_with_tolerance(tester_t1_stdev, env_t1_stdev));
+
+          }
+  #endif
+
 
 }
 #endif
