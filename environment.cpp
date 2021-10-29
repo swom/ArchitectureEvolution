@@ -82,6 +82,17 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
   return input_vector;
 }
 
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng)
+{
+    std::vector<double> input_vector(n_inputs);
+
+    for(auto& cue : input_vector){
+        cue = dist(rng);
+    }
+
+    return input_vector;
+}
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -274,12 +285,14 @@ void test_environment() noexcept
                 environment lhs{321, 654};
                 environment rhs{123, 456};
 
+
                 assert(lhs == lhs);
 
               //Two environments that differ in their reference target values returns false
               //Testing this would also require a function to change it
               //but idk if that's super relevant to have
               //So maybe for now this test can be slightly less rigorous
+
 
               //Two environments that differ in their current target values returns false
                 rhs.set_current_target_value(lhs.get_current_target_value() + 123);
@@ -307,25 +320,54 @@ void test_environment() noexcept
                 //if it doesn't a function defined somewhere else might be needed
                 environment rhs2{321, 654, function};
 
+
                 assert (!(lhs == rhs2));
 
             }
     #endif
 
 
-  //#define FIX_ISSUE_34
+ #define FIX_ISSUE_34
   #ifdef FIX_ISSUE_34
           {
               environment e{env_param{}};
-              std::uniform_real_distribution<double> dist_t0= e.get_dist();
+              int n_inputs = 1;
+              std::mt19937_64 rng1;
+              std::mt19937_64 rng2;
+              std::mt19937_64 rng3;
+
+              std::vector<double> env_t0_series;
+              std::vector<double> env_t1_series;
+              std::vector<double> tester_t1_series;
+
+              int repeats = 10000;
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t0_series.push_back(create_n_inputs(e, n_inputs, rng1)[0]);
+              }
 
               std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              e.change_dist(new_dist);
+              e.change_uniform_dist(new_dist);
 
-              std::uniform_real_distribution<double> dist_t1= e.get_dist();
+              for(int i = 0; i != repeats; i++)
+              {
+                  env_t1_series.push_back(create_n_inputs(e, n_inputs, rng2)[0]);
+                  tester_t1_series.push_back(create_n_inputs(new_dist, n_inputs, rng3)[0]); //This function working from a distribution is on a newer branch
+              }
 
-              assert(dist_t0 != dist_t1);
-              assert(dist_t1 == new_dist);
+              auto env_t0_mean = calc_mean(env_t0_series);
+              auto env_t1_mean = calc_mean(env_t1_series);
+              auto tester_t1_mean = calc_mean(tester_t1_series);
+
+              auto env_t0_stdev = calc_stdev(env_t0_series);
+              auto env_t1_stdev = calc_stdev(env_t1_series);
+              auto tester_t1_stdev = calc_stdev(tester_t1_series);
+
+                      assert(are_not_equal_with_more_tolerance(env_t1_mean,env_t0_mean) &&
+                             are_not_equal_with_tolerance(env_t0_stdev, env_t1_stdev));
+                      assert(are_equal_with_more_tolerance(env_t1_mean,tester_t1_mean) &&
+                             are_equal_with_tolerance(tester_t1_stdev, env_t1_stdev));
+
           }
   #endif
 
