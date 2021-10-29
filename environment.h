@@ -50,6 +50,8 @@ public:
 
     const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
 
+    void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
+
 
 private:
 
@@ -64,8 +66,6 @@ private:
     ///Points to The first function linking input to optimal output
     std::function<double(std::vector<double>)> m_env_function_A;
 
-    ///The actual function
-    //double env_function_A(const std::vector<double> &input);
 
 
 };
@@ -82,6 +82,10 @@ std::vector<double> create_n_inputs(int n_inputs);
 
 ///Create a vector of a given number of inputs from the distribution member of the environment
 std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng);
+
+///Creates a vector of a given number of inputs for a distribution
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng);
 
 
 #endif // ENVIRONMENT_H

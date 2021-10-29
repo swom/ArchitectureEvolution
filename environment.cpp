@@ -86,6 +86,17 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
     return input_vector;
 }
 
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng)
+{
+    std::vector<double> input_vector(n_inputs);
+
+    for(auto& cue : input_vector){
+        cue = dist(rng);
+    }
+
+    return input_vector;
+}
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -338,7 +349,7 @@ void test_environment() noexcept
         }
     #endif
 
-//#define FIX_ISSUE_34
+#define FIX_ISSUE_34
   #ifdef FIX_ISSUE_34
           {
               environment e{env_param{}};
@@ -358,7 +369,7 @@ void test_environment() noexcept
               }
 
               std::uniform_real_distribution<double> new_dist{1.23, 4.56};
-              e.change_dist(new_dist);
+              e.change_uniform_dist(new_dist);
 
               for(int i = 0; i != repeats; i++)
               {
