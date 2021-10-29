@@ -12,7 +12,7 @@ simulation::simulation(double targetA, double targetB,
                        std::vector<int> net_arch,
                        double sel_str,
                        int number_of_generations):
-    m_environment{targetA, targetB, static_cast<size_t>(net_arch[0])},
+    m_environment{targetA, targetB},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
     m_seed{seed},
@@ -245,7 +245,7 @@ assign_inputs(s.get_pop(), new_inputs);
 void create_inputs(simulation &s)
 {
   environment &e = s.get_env();
-  e.update_n_inputs(s.get_rng(), e.get_input().size());
+  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
 }
 
 

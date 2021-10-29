@@ -3,10 +3,10 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB, size_t n_inputs):
+environment::environment(double target_valueA, double target_valueB):
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
-    m_input(n_inputs, 0.5)
+    m_input(3, 0.5)
 {
 
 

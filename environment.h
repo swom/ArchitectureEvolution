@@ -20,7 +20,7 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB, size_t n_inputs = 3);
+    environment(double target_valueA, double target_valueB);
 
     environment(env_param e_p);
 
