@@ -182,6 +182,9 @@ const std::vector<double> &get_nth_individual_input(const simulation &s, const i
 ///Changes the inputs in the environment of the simulation
 void create_inputs(simulation &s);
 
+///Updates the inputs of the simulation with the inputs of the environment
+void assign_inputs(simulation &s);
+
 
 void test_simulation() noexcept;
 
