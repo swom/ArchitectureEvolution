@@ -343,7 +343,9 @@ void test_environment() noexcept
   
              environment e{env_param{}};
 
-            double optimal_output = e.get_optimal();
+            auto optimal_output = e.get_optimal();
+
+            assert(optimal_output > 0 || optimal_output < 0);
 
         }
     #endif
