@@ -46,6 +46,16 @@ std::vector<double> environment::update_n_inputs(std::mt19937_64 &rng, const siz
   return new_inputs;
 }
 
+double environment::calculate_optimal()
+{
+  return get_env_function_A()(get_input());
+}
+
+void environment::update_optimal()
+{
+  m_optimal_output = calculate_optimal();
+}
+
 
 double get_target_valueA(const environment& e)
 {
@@ -443,14 +453,14 @@ void test_environment() noexcept
   #endif
 
 
-//#define FIX_ISSUE_30
+#define FIX_ISSUE_30
 #ifdef FIX_ISSUE_30
     //Environment can use its function to calculate the optimal value and store it
   {
     environment e{env_param{}};
    auto function = e.get_env_function_A();
 
-    std::vector<double> inputs = e.get_input(); //might be a different name
+    std::vector<double> inputs = e.get_input();
 
     double theoretical_optimal_output = function(inputs);
     double calculated_optimal_output = e.calculate_optimal();
@@ -458,7 +468,7 @@ void test_environment() noexcept
     assert(theoretical_optimal_output == calculated_optimal_output);
 
     e.update_optimal();
-    assert(theoretical_optimal_output == e.get_optimal()); //might be a different name
+    assert(theoretical_optimal_output == e.get_optimal());
 
   }
 #endif
