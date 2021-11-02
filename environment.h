@@ -56,6 +56,10 @@ public:
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
 
+    ///Returns the cue distribution of the environment
+    const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
+        {return m_cue_distribution;}
+
     ///Updates the n first inputs by drawing random ones from the distribution
     std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
 
