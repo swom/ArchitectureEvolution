@@ -15,7 +15,7 @@ bool are_not_equal_with_tolerance(double lhs, double rhs)
 
 bool are_equal_with_more_tolerance(double lhs, double rhs)
 {
-  return lhs - rhs > -0.0005 && lhs - rhs < 0.0005;
+  return lhs - rhs > -0.001 && lhs - rhs < 0.001;
 }
 
 bool are_not_equal_with_more_tolerance(double lhs, double rhs)
@@ -50,4 +50,19 @@ for(size_t i = 0; i < v.size(); ++i)
   ss << v[i];
 }
 return ss.str();
+}
+
+bool are_from_same_distribution(const std::vector<double> &lhs, const std::vector<double> &rhs)
+{
+  auto lhs_mean = calc_mean(lhs);
+  auto rhs_mean = calc_mean(rhs);
+
+  auto lhs_stdev = calc_stdev(lhs);
+  auto rhs_stdev = calc_stdev(rhs);
+
+  if(are_equal_with_more_tolerance(lhs_mean, rhs_mean) &&
+         are_equal_with_tolerance(lhs_stdev, rhs_stdev))
+    return true;
+  else
+    return false;
 }

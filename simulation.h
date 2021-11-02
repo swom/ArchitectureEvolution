@@ -92,6 +92,15 @@ public:
   ///Returns a reference to the vector of individuals
   const std::vector<individual> &get_inds() const;
 
+  ///Returns the current input in the environment
+  const std::vector<double> &get_env_inputs() const {return get_env().get_input();}
+
+  ///Returns the input of the individuals
+  const std::vector<double> &get_inds_input() const;
+
+  ///Returns the size of the inputs of the individuals
+  size_t get_inds_input_size() const{return get_inds_input().size();}
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -169,6 +178,9 @@ void assign_new_inputs(simulation &s);
 
 ///Returns the input of the nth individual in the population
 const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
+
+///Changes the inputs in the environment of the simulation
+void create_inputs(simulation &s);
 
 
 void test_simulation() noexcept;
