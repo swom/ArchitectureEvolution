@@ -18,7 +18,8 @@ environment::environment(double target_valueA, double target_valueB,
 environment::environment(env_param e_p):
   m_ref_target_values{e_p.targetA,e_p.targetB},
   m_current_target_value {e_p.targetA},
-  m_cue_distribution{0., 1.}
+  m_cue_distribution{0., 1.},
+  m_env_function_A{e_p.env_function_A}
 {
 
 
