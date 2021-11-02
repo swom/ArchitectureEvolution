@@ -63,6 +63,9 @@ public:
 
     void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
 
+    double calculate_optimal();
+
+    void update_optimal();
 
 
 private:
