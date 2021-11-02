@@ -444,8 +444,8 @@ void test_environment() noexcept
 
 
 //#define FIX_ISSUE_30
-  //Environment can use its function to calculate the optimal value and store it
 #ifdef FIX_ISSUE_30
+    //Environment can use its function to calculate the optimal value and store it
   {
     environment e{env_param{}};
    auto function = e.get_env_function_A();
