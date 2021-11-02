@@ -350,7 +350,7 @@ void test_environment() noexcept
         }
     #endif
 
-  //#define FIX_ISSUE_28
+    //#define FIX_ISSUE_28
     #ifdef FIX_ISSUE_28
             {
               //Two equal environments returns true
@@ -382,7 +382,7 @@ void test_environment() noexcept
               //Two environments that differ in their input  & optimal output returns false
                 std::mt19937_64 rng;
                 rhs.update_n_inputs(rng, 3);
-                rhs.update_output;
+                rhs.update_output();
                 assert (!(lhs == rhs));
                 rhs = lhs;
 
