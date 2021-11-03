@@ -27,10 +27,10 @@ bool are_from_same_distribution(const std::vector<double> &lhs, const std::vecto
 
 ///Checks if two distributions are the same (quicker than are_from_same_distribution)
 bool are_same_distribution(std::uniform_real_distribution<double> lhs,
-                           std::uniform_real_distribution<double> rhs);
+                           std::uniform_real_distribution<double> rhs, int n_repeat = 1000);
 
 ///Checks if two environmental functions are the same
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
-                            const std::function<double(std::vector<double>)> &rhs);
+                            const std::function<double(std::vector<double>)> &rhs, int n_repeat = 1000);
 
 #endif // UTILITIES_H

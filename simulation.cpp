@@ -210,7 +210,7 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void assign_inputs(population &p, const std::vector<double> &inputs)
+void update_inputs(population &p, const std::vector<double> &inputs)
 {
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
@@ -239,7 +239,7 @@ const std::vector<double> &get_current_input(const simulation &s)
 void assign_new_inputs(simulation &s)
 {
   create_inputs(s);
-  assign_inputs(s);
+  update_inputs(s);
 }
 
 void create_inputs(simulation &s)
@@ -248,10 +248,10 @@ void create_inputs(simulation &s)
   e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
 }
 
-void assign_inputs(simulation &s)
+void update_inputs(simulation &s)
 {
   std::vector<double> env_inputs = s.get_env_inputs();
-  assign_inputs(s.get_pop(), env_inputs);
+  update_inputs(s.get_pop(), env_inputs);
 }
 
 
@@ -498,7 +498,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          population p;
          int n_inputs = 3;
          auto inputs = create_n_inputs(n_inputs);
-         assign_inputs(p,inputs);
+         update_inputs(p,inputs);
          for(const auto& ind : p.get_inds())
          {
              assert(ind.get_input_values() == inputs);
@@ -547,7 +547,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
         create_inputs(s);
-        assign_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
+        update_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
                           //bc they don't do quite the same thing
         assert(s.get_env_inputs() == s.get_inds_input());
     }
