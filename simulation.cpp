@@ -238,8 +238,8 @@ const std::vector<double> &get_current_input(const simulation &s)
 
 void assign_new_inputs(simulation &s)
 {
-std::vector<double> new_inputs = create_n_inputs(s.get_env(), get_current_input(s).size() , s.get_rng());
-assign_inputs(s.get_pop(), new_inputs);
+  create_inputs(s);
+  assign_inputs(s);
 }
 
 void create_inputs(simulation &s)
