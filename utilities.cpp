@@ -66,3 +66,47 @@ bool are_from_same_distribution(const std::vector<double> &lhs, const std::vecto
   else
     return false;
 }
+
+bool are_same_distribution(std::uniform_real_distribution<double>lhs,
+                           std::uniform_real_distribution<double> rhs, int n_repeat)
+{
+  std::vector<double> lhs_cues;
+  std::vector<double> rhs_cues;
+  std::mt19937_64 rng1;
+  std::mt19937_64 rng2;
+
+  int repeats = n_repeat;
+  for(int i = 0; i != repeats; i++)
+  {
+      lhs_cues.push_back(lhs(rng1)) ;
+      rhs_cues.push_back(rhs(rng2)) ;
+  }
+
+  return lhs_cues == rhs_cues;
+}
+
+bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
+                            const std::function<double(std::vector<double>)> &rhs, int n_repeat)
+{
+  std::vector<std::vector<double>> input_series;
+
+  for(int i = 0; i != n_repeat; ++i)
+    {
+      double j = i;
+      std::vector<double> input{j+1, j+2, j+3};
+      input_series.push_back(input);
+    }
+
+  std::vector<double> lhs_optimal;
+  std::vector<double> rhs_optimal;
+
+  int repeats = n_repeat;
+  for(int i = 0; i != repeats; i++)
+  {
+      lhs_optimal.push_back(lhs(input_series[i]));
+      rhs_optimal.push_back(rhs(input_series[i]));
+  }
+
+  return lhs_optimal == rhs_optimal;
+
+}

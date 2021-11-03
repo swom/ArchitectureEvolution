@@ -7,6 +7,7 @@ environment::environment(double target_valueA, double target_valueB, std::functi
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
     m_input(3, 0.5),
+    m_optimal_output{1},
     m_env_function_A{env_functionA}
 {
 
@@ -20,6 +21,7 @@ environment::environment(env_param e_p):
     m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
     m_input(3, 0.5),
+    m_optimal_output{1},
     m_env_function_A{e_p.env_function_A}
 {
 
@@ -35,7 +37,18 @@ bool operator== (const environment& lhs, const environment& rhs)
   bool ref_t_values = lhs.get_ref_target_values() == rhs.get_ref_target_values();
   bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
 
-  return ref_t_values && current_t_value;
+  std::uniform_real_distribution<double> lhs_dist = lhs.get_cue_distribtion();
+  std::uniform_real_distribution<double> rhs_dist = rhs.get_cue_distribtion();
+
+  bool cue_distrib = are_same_distribution(lhs_dist, rhs_dist);
+
+  bool inputs = lhs.get_input() == rhs.get_input();
+
+  bool optimal = lhs.get_optimal() == rhs.get_optimal();
+
+  bool env_function = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
+
+  return ref_t_values && current_t_value && cue_distrib && inputs && optimal && env_function;
 }
 
 
@@ -115,6 +128,10 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
     return input_vector;
 }
 
+double dummy_function(std::vector<double> input)
+{
+  return input[0]+1;
+}
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -360,7 +377,7 @@ void test_environment() noexcept
         }
     #endif
 
-    //#define FIX_ISSUE_28
+    #define FIX_ISSUE_28
     #ifdef FIX_ISSUE_28
             {
               //Two equal environments returns true
@@ -392,15 +409,12 @@ void test_environment() noexcept
               //Two environments that differ in their input  & optimal output returns false
                 std::mt19937_64 rng;
                 rhs.update_n_inputs(rng, 3);
-                rhs.update_output();
+                rhs.update_optimal();
                 assert (!(lhs == rhs));
                 rhs = lhs;
 
               //Two environments that differ in their function returns false
-                double function(std::vector<double> input);
-                //I am not sure this will work as the function has not been defined and cannot be here;
-                //if it doesn't a function defined somewhere else might be needed
-                environment rhs2{321, 654, function};
+                environment rhs2{321, 654, dummy_function};
 
                 assert (!(lhs == rhs2));
 

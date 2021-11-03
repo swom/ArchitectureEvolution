@@ -165,7 +165,7 @@ void save_json(const simulation& s, const std::string& filename);
 double var_fitness(const simulation&s);
 
 ///Assign inputs to a population
-void assign_inputs(population &p, const std::vector<double> &inputs);
+void update_inputs(population &p, const std::vector<double> &inputs);
 
 ///Checks if all the individuals in a simulated population have the same input
 bool all_individuals_have_same_input(const simulation &s);
@@ -181,6 +181,9 @@ const std::vector<double> &get_nth_individual_input(const simulation &s, const i
 
 ///Changes the inputs in the environment of the simulation
 void create_inputs(simulation &s);
+
+///Updates the inputs of the simulation with the inputs of the environment
+void update_inputs(simulation &s);
 
 
 void test_simulation() noexcept;
