@@ -555,7 +555,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_27
+//#define FIX_ISSUE_27
 #ifdef FIX_ISSUE_27
     {
         simulation s;

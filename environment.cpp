@@ -40,27 +40,19 @@ bool operator== (const environment& lhs, const environment& rhs)
 
   bool cue_distrib = are_same_distribution(lhs_dist, rhs_dist);
 
-  bool inputs = lhs.get_input() == rhs.get_input();
-
   bool optimal = lhs.get_optimal() == rhs.get_optimal();
 
   bool env_function = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
 
-  return ref_t_values && current_t_value && cue_distrib && inputs && optimal && env_function;
+  return ref_t_values && current_t_value && cue_distrib && optimal && env_function;
 }
 
 
-std::vector<double> environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
-{
-  std::vector<double> new_inputs = create_n_inputs(m_cue_distribution , n, rng);
-  m_input = new_inputs;
-  return new_inputs;
-}
 
-double environment::calculate_optimal()
-{
-  return get_env_function_A()(get_input());
-}
+//double environment::calculate_optimal()
+//{
+//  return get_env_function_A()(get_input());
+//}
 
 void environment::update_optimal()
 {
