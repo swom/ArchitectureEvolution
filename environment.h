@@ -50,8 +50,6 @@ public:
     ///Sets current target value
     void set_current_target_value(double target_value) {m_current_target_value = target_value;}
 
-    ///Returns the current optimal output
-    const double &get_optimal() const noexcept {return m_optimal_output;}
 
     ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
@@ -78,10 +76,6 @@ private:
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
-
-
-    ///The optimal output at a given moment; depends on inputs and environmental function
-    double m_optimal_output;
 
     ///Points to The first function linking input to optimal output
     std::function<double(std::vector<double>)> m_env_function_A;

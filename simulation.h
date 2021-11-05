@@ -101,6 +101,9 @@ public:
   ///Returns the size of the inputs of the individuals
   size_t get_inds_input_size() const{return get_inds_input().size();}
 
+  ///Returns the current optimal output
+  const double &get_optimal() const noexcept {return m_optimal_output;}
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -118,6 +121,9 @@ public:
 
    ///The current inputs that the networks of individuals will recieve
    std::vector<double> m_input;
+
+   ///The optimal output at a given moment; depends on inputs and environmental function
+   double m_optimal_output;
 
 };
 ///Checks if 2 simulations are equal

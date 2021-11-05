@@ -19,7 +19,8 @@ simulation::simulation(double targetA, double targetB,
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
-    m_input(3, 0.5)
+    m_input(3, 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -38,7 +39,8 @@ simulation::simulation(all_params params):
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
     m_params {params},
-    m_input(3, 0.5)
+    m_input(3, 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -597,7 +599,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
  #endif
   
-  //#define FIX_ISSUE_47
+ #define FIX_ISSUE_47
     //Simulation has a private member where it can store the optimal value of its inputs.
    #ifdef FIX_ISSUE_47
          {
