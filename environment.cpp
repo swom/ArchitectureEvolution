@@ -6,7 +6,6 @@
 environment::environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA):
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
-    m_input(3, 0.5),
     m_optimal_output{1},
     m_env_function_A{env_functionA}
 {
@@ -20,7 +19,6 @@ environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
-    m_input(3, 0.5),
     m_optimal_output{1},
     m_env_function_A{e_p.env_function_A}
 {

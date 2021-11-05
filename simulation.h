@@ -92,8 +92,8 @@ public:
   ///Returns a reference to the vector of individuals
   const std::vector<individual> &get_inds() const;
 
-  ///Returns the current input in the environment
-  const std::vector<double> &get_env_inputs() const {return get_env().get_input();}
+  ///Returns the current inputs in the simulation
+  const std::vector<double> &get_input() const noexcept {return m_input;}
 
   ///Returns the input of the individuals
   const std::vector<double> &get_inds_input() const;
@@ -115,6 +115,9 @@ public:
    double m_sel_str;
    double m_change_freq;
    all_params m_params;
+
+   ///The current inputs that the networks of individuals will recieve
+   std::vector<double> m_input;
 
 };
 ///Checks if 2 simulations are equal

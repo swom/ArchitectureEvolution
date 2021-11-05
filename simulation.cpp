@@ -18,7 +18,8 @@ simulation::simulation(double targetA, double targetB,
     m_seed{seed},
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
-    m_change_freq {static_cast<double>(t_change_interval)}
+    m_change_freq {static_cast<double>(t_change_interval)},
+    m_input(3, 0.5)
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -36,7 +37,8 @@ simulation::simulation(all_params params):
     m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
-    m_params {params}
+    m_params {params},
+    m_input(3, 0.5)
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -248,11 +250,11 @@ void create_inputs(simulation &s)
   e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
 }
 
-void update_inputs(simulation &s)
-{
-  std::vector<double> env_inputs = s.get_env_inputs();
-  update_inputs(s.get_pop(), env_inputs);
-}
+//void update_inputs(simulation &s)
+//{
+//  std::vector<double> env_inputs = s.get_env_inputs();
+//  update_inputs(s.get_pop(), env_inputs);
+//}
 
 
 #ifndef NDEBUG
@@ -549,7 +551,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         create_inputs(s);
         update_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
                           //bc they don't do quite the same thing
-        assert(s.get_env_inputs() == s.get_inds_input());
+        assert(s.get_input() == s.get_inds_input());
     }
 #endif
 
@@ -582,8 +584,10 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_from_same_distribution(sim_env_values, test_values));
     }
 #endif
+
+
   
-//#define FIX_ISSUE_46
+#define FIX_ISSUE_46
 //Simulation has a private member that stores the input that are gonna be fed to individuals environment
  #ifdef FIX_ISSUE_46
      {

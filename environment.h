@@ -50,9 +50,6 @@ public:
     ///Sets current target value
     void set_current_target_value(double target_value) {m_current_target_value = target_value;}
 
-    ///Returns the current inputs
-    const std::vector<double> &get_input() const noexcept {return m_input;}
-
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
 
@@ -82,9 +79,6 @@ private:
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
 
-
-    ///The current inputs that the networks of individuals will recieve
-    std::vector<double> m_input;
 
     ///The optimal output at a given moment; depends on inputs and environmental function
     double m_optimal_output;
