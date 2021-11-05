@@ -112,6 +112,9 @@ public:
   void update_optimal(double new_optimal) {m_optimal_output = new_optimal;}
 
   ///Updates the inputs of the simulation with new calculated inputs
+  void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
+
+  ///Calculates the inputs and updates the inputs of the simulation with them
   void update_inputs();
 
 
@@ -205,6 +208,11 @@ double calculate_optimal(const simulation &s);
 ///Assigns the given new input to each individual in the simulation
 void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
 
+///Assigns the input in simulation to individuals
+void assign_inputs(simulation &s);
+
+///Updates the inputs in simulation and assigns them to individuals
+void assign_new_inputs(simulation &s);
 
 void test_simulation() noexcept;
 

@@ -271,7 +271,7 @@ void test_environment() noexcept
 
 
 
-//#define FIX_ISSUE_52
+#define FIX_ISSUE_52
 #ifdef FIX_ISSUE_52
 
     ///Environment creates new inputs based on its own distribution
@@ -290,7 +290,7 @@ void test_environment() noexcept
         int repeats = 30000;
         for(int i = 0; i != repeats; i++)
         {
-            const auto new_inputs = create_n_inputs(e, rng, n_of_inputs_requested);
+            const auto new_inputs = create_n_inputs(e, n_of_inputs_requested, rng);
             store_new_inputs.insert(store_new_inputs.end(), new_inputs.begin(), new_inputs.end());
 
             for(int j = 0; j != n_of_inputs_requested; j++)

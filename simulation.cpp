@@ -60,6 +60,12 @@ const std::vector<individual> &simulation::get_inds() const
   return simulation::get_pop().get_inds();
 }
 
+void simulation::update_inputs()
+{
+  std::vector<double> new_inputs = create_inputs(*this);
+  m_input = new_inputs;
+}
+
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
 {
@@ -186,7 +192,7 @@ void tick(simulation &s)
 
     if(s.get_inds().size()){
 
-      //assign_new_inputs(s);
+      assign_new_inputs(s);
     }
 
     select_inds(s);
@@ -250,10 +256,6 @@ double calculate_optimal(const simulation &s)
   return(calculate_optimal(s.get_env(), s.get_input()));
 }
 
-void simulation::update_inputs(){
-  std::vector<double> new_inputs = create_inputs(*this);
-  m_input = new_inputs;
-}
 
 std::vector<double> create_inputs(simulation &s)
 {
@@ -261,6 +263,16 @@ std::vector<double> create_inputs(simulation &s)
   return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
 }
 
+void assign_inputs(simulation &s)
+{
+  assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+}
+
+void assign_new_inputs(simulation &s)
+{
+  s.update_inputs();
+  assign_inputs(s);
+}
 
 
 #ifndef NDEBUG
@@ -514,7 +526,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-//#define FIX_ISSUE_17
+#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -552,7 +564,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_54
+#define FIX_ISSUE_54
 //Simulation passes on its inputs to individuals after updating them
 #ifdef FIX_ISSUE_54
     {
@@ -562,37 +574,6 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(s.get_input() == s.get_inds_input());
     }
 #endif
-
-//#define FIX_ISSUE_27
-#ifdef FIX_ISSUE_27
-    {
-        simulation s;
-        auto test_e = s.get_env();
-        auto n_inputs_requested = s.get_inds_input_size();
-
-        int repeats = 100000;
-        std::vector<double> sim_env_values;
-        std::vector<double> test_values;
-
-        for(int i = 0; i != repeats; i++)
-        {
-            const auto env_inputs_t1 = s.get_env_inputs();
-            create_inputs(s);
-            const auto env_inputs_t2 = s.get_env_inputs();
-
-            assert(env_inputs_t1 != env_inputs_t2);
-            assert(env_inputs_t2.size() == s.get_inds_input_size());
-
-            sim_env_values.insert(sim_env_values.end(), env_inputs_t2.begin(), env_inputs_t2.end());
-
-            auto test_inputs = test_e.update_n_inputs(s.get_rng(), n_inputs_requested);
-            test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
-        }
-
-        assert(are_from_same_distribution(sim_env_values, test_values));
-    }
-#endif
-
 
   
 #define FIX_ISSUE_46
@@ -655,7 +636,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-  //#define FIX_ISSUE_50
+  #define FIX_ISSUE_50
   ///Simulation can make environment create new inputs to update its own inputs with, based on the number of inputs individuals have
   #ifdef FIX_ISSUE_50
       {
@@ -681,7 +662,7 @@ void test_simulation() noexcept//!OCLINT test may be many
               sim_values.insert(sim_values.end(), sim_inputs_t2.begin(), sim_inputs_t2.end());
 
               environment e = s.get_env();
-              auto test_inputs = create_n_inputs(e, s.get_rng(), s.get_inds_input_size());
+              auto test_inputs = create_n_inputs(e, s.get_inds_input_size(), s.get_rng());
               test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
           }
 
