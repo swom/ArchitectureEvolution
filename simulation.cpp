@@ -19,7 +19,8 @@ simulation::simulation(double targetA, double targetB,
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
-    m_input(3, 0.5)
+    m_input(net_arch[0], 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -38,7 +39,8 @@ simulation::simulation(all_params params):
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
     m_params {params},
-    m_input(3, 0.5)
+    m_input(params.i_p.net_par.net_arc[0], 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -184,7 +186,7 @@ void tick(simulation &s)
 
     if(s.get_inds().size()){
 
-      assign_new_inputs(s);
+      //assign_new_inputs(s);
     }
 
     select_inds(s);
@@ -212,11 +214,16 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void update_inputs(population &p, const std::vector<double> &inputs)
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
 {
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
     }
+}
+
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
+{
+  assign_new_inputs_to_inds(s.get_pop(), new_input);
 }
 
 bool all_individuals_have_same_input(const simulation &s)
@@ -238,23 +245,22 @@ const std::vector<double> &get_current_input(const simulation &s)
  return get_nth_individual_input(s, 0);
 }
 
-void assign_new_inputs(simulation &s)
+double calculate_optimal(const simulation &s)
 {
-  create_inputs(s);
-  update_inputs(s);
+  return(calculate_optimal(s.get_env(), s.get_input()));
 }
 
-void create_inputs(simulation &s)
+void simulation::update_inputs(){
+  std::vector<double> new_inputs = create_inputs(*this);
+  m_input = new_inputs;
+}
+
+std::vector<double> create_inputs(simulation &s)
 {
   environment &e = s.get_env();
-  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
+  return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
 }
 
-//void update_inputs(simulation &s)
-//{
-//  std::vector<double> env_inputs = s.get_env_inputs();
-//  update_inputs(s.get_pop(), env_inputs);
-//}
 
 
 #ifndef NDEBUG
@@ -500,7 +506,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          population p;
          int n_inputs = 3;
          auto inputs = create_n_inputs(n_inputs);
-         update_inputs(p,inputs);
+         assign_new_inputs_to_inds(p,inputs);
          for(const auto& ind : p.get_inds())
          {
              assert(ind.get_input_values() == inputs);
@@ -508,7 +514,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-#define FIX_ISSUE_17
+//#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -533,24 +539,25 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
         assert(all_individuals_have_same_input(s));
-        auto input_t1 = get_current_input(s);
+        auto input_t1 = s.get_inds_input();
 
-        assign_new_inputs(s);
+        std::vector<double> new_input;
+
+        assign_new_inputs_to_inds(s, new_input);
         assert(all_individuals_have_same_input(s));
-        auto input_t2 = get_current_input(s);
+        auto input_t2 = s.get_inds_input();
 
         assert(input_t1 != input_t2);
 
     }
 #endif
 
-#define FIX_ISSUE_24
+//#define FIX_ISSUE_24
 #ifdef FIX_ISSUE_24
     {
         simulation s;
         create_inputs(s);
-        update_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
-                          //bc they don't do quite the same thing
+        update_inputs(s);
         assert(s.get_input() == s.get_inds_input());
     }
 #endif
@@ -598,7 +605,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
  #endif
   
-  //#define FIX_ISSUE_47
+ #define FIX_ISSUE_47
     //Simulation has a private member where it can store the optimal value of its inputs.
    #ifdef FIX_ISSUE_47
          {
@@ -612,7 +619,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          }
      #endif
 
-//#define FIX_ISSUE_48
+#define FIX_ISSUE_48
 #ifdef FIX_ISSUE_48
     //Simulation can use the environment's function to calculate the optimal value and store it
   {
@@ -626,12 +633,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     assert(theoretical_optimal_output == calculated_optimal_output);
 
-    s.update_optimal();
+    s.update_optimal(calculated_optimal_output);
     assert(theoretical_optimal_output == s.get_optimal());
   }
 #endif
 
-//#define FIX_ISSUE_49
+#define FIX_ISSUE_49
 #ifdef FIX_ISSUE_49
     ///Simulation can ask environment to create n new inputs to update its input with
     {
