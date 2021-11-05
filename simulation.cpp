@@ -552,12 +552,13 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_24
-#ifdef FIX_ISSUE_24
+//#define FIX_ISSUE_54
+//Simulation passes on its inputs to individuals after updating them
+#ifdef FIX_ISSUE_54
     {
         simulation s;
-        create_inputs(s);
-        update_inputs(s);
+        s.update_inputs();
+        assign_inputs(s);
         assert(s.get_input() == s.get_inds_input());
     }
 #endif
