@@ -240,6 +240,11 @@ const std::vector<double> &get_current_input(const simulation &s)
  return get_nth_individual_input(s, 0);
 }
 
+double calculate_optimal(const simulation &s)
+{
+  return(calculate_optimal(s.get_env(), s.get_input()));
+}
+
 //void assign_new_inputs(simulation &s)
 //{
 //  create_inputs(s);
@@ -613,7 +618,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          }
      #endif
 
-//#define FIX_ISSUE_48
+#define FIX_ISSUE_48
 #ifdef FIX_ISSUE_48
     //Simulation can use the environment's function to calculate the optimal value and store it
   {
@@ -627,7 +632,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     assert(theoretical_optimal_output == calculated_optimal_output);
 
-    s.update_optimal();
+    s.update_optimal(calculated_optimal_output);
     assert(theoretical_optimal_output == s.get_optimal());
   }
 #endif

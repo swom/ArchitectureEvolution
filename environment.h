@@ -62,7 +62,6 @@ public:
 
     void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
 
-    double calculate_optimal();
 
     void update_optimal();
 
@@ -101,6 +100,9 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
 ///Creates a vector of a given number of inputs for a distribution
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
                                     const int &n_inputs, std::mt19937_64 &rng);
+
+///Calculates the optimal output, given input, using the env function
+double calculate_optimal(const environment &e, std::vector<double> input);
 
 
 #endif // ENVIRONMENT_H

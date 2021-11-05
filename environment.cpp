@@ -45,10 +45,10 @@ bool operator== (const environment& lhs, const environment& rhs)
 
 
 
-//double environment::calculate_optimal()
-//{
-//  return get_env_function_A()(get_input());
-//}
+double calculate_optimal(const environment &e, std::vector<double> input)
+{
+  return e.get_env_function_A()(input);
+}
 
 //void environment::update_optimal()
 //{

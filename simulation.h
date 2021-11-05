@@ -104,6 +104,13 @@ public:
   ///Returns the current optimal output
   const double &get_optimal() const noexcept {return m_optimal_output;}
 
+  ///Returns the function A of the environment
+  const std::function<double(std::vector<double>)> &get_env_function_A() const noexcept
+    {return get_env().get_env_function_A();}
+
+  ///Updates the optimal to the given value
+  void update_optimal(double new_optimal) {m_optimal_output = new_optimal;}
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -193,6 +200,9 @@ void create_inputs(simulation &s);
 
 ///Updates the inputs of the simulation with the inputs of the environment
 void update_inputs(simulation &s);
+
+///Calculates the optimal output
+double calculate_optimal(const simulation &s);
 
 
 void test_simulation() noexcept;
