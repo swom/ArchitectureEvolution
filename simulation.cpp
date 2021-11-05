@@ -184,7 +184,7 @@ void tick(simulation &s)
 
     if(s.get_inds().size()){
 
-      assign_new_inputs(s);
+      //assign_new_inputs(s);
     }
 
     select_inds(s);
@@ -238,17 +238,17 @@ const std::vector<double> &get_current_input(const simulation &s)
  return get_nth_individual_input(s, 0);
 }
 
-void assign_new_inputs(simulation &s)
-{
-  create_inputs(s);
-  update_inputs(s);
-}
+//void assign_new_inputs(simulation &s)
+//{
+//  create_inputs(s);
+//  update_inputs(s);
+//}
 
-void create_inputs(simulation &s)
-{
-  environment &e = s.get_env();
-  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
-}
+//void create_inputs(simulation &s)
+//{
+//  environment &e = s.get_env();
+//  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
+//}
 
 //void update_inputs(simulation &s)
 //{
@@ -508,7 +508,7 @@ void test_simulation() noexcept//!OCLINT test may be many
      }
    #endif
 
-#define FIX_ISSUE_17
+//#define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
         simulation s;
@@ -528,7 +528,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_18
+//#define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
     {
         simulation s;
@@ -544,13 +544,12 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_24
+//#define FIX_ISSUE_24
 #ifdef FIX_ISSUE_24
     {
         simulation s;
         create_inputs(s);
-        update_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
-                          //bc they don't do quite the same thing
+        update_inputs(s);
         assert(s.get_input() == s.get_inds_input());
     }
 #endif

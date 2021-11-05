@@ -54,10 +54,10 @@ bool operator== (const environment& lhs, const environment& rhs)
 //  return get_env_function_A()(get_input());
 //}
 
-void environment::update_optimal()
-{
-  m_optimal_output = calculate_optimal();
-}
+//void environment::update_optimal()
+//{
+//  m_optimal_output = calculate_optimal();
+//}
 
 
 double get_target_valueA(const environment& e)
@@ -274,7 +274,7 @@ void test_environment() noexcept
 #endif
 
 
-#define FIX_ISSUE_26
+//#define FIX_ISSUE_26
 #ifdef FIX_ISSUE_26
     ///Environment creates new inputs based on its own distribution
     {
@@ -346,13 +346,6 @@ void test_environment() noexcept
               //Two environments that differ in their cue distribution returns false
                 std::uniform_real_distribution<double> new_dist{1.23, 4.56};
                 rhs.change_uniform_dist(new_dist);
-                assert (!(lhs == rhs));
-                rhs = lhs;
-
-              //Two environments that differ in their input  & optimal output returns false
-                std::mt19937_64 rng;
-                rhs.update_n_inputs(rng, 3);
-                rhs.update_optimal();
                 assert (!(lhs == rhs));
                 rhs = lhs;
 
