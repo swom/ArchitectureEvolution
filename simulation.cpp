@@ -214,11 +214,16 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void update_inputs(population &p, const std::vector<double> &inputs)
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
 {
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
     }
+}
+
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
+{
+  assign_new_inputs_to_inds(s.get_pop(), new_input);
 }
 
 bool all_individuals_have_same_input(const simulation &s)
@@ -501,7 +506,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          population p;
          int n_inputs = 3;
          auto inputs = create_n_inputs(n_inputs);
-         update_inputs(p,inputs);
+         assign_new_inputs_to_inds(p,inputs);
          for(const auto& ind : p.get_inds())
          {
              assert(ind.get_input_values() == inputs);
@@ -529,16 +534,18 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_18
+#define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
     {
         simulation s;
         assert(all_individuals_have_same_input(s));
-        auto input_t1 = get_current_input(s);
+        auto input_t1 = s.get_inds_input();
 
-        assign_new_inputs(s);
+        std::vector<double> new_input;
+
+        assign_new_inputs_to_inds(s, new_input);
         assert(all_individuals_have_same_input(s));
-        auto input_t2 = get_current_input(s);
+        auto input_t2 = s.get_inds_input();
 
         assert(input_t1 != input_t2);
 

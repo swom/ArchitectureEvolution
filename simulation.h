@@ -185,7 +185,7 @@ void save_json(const simulation& s, const std::string& filename);
 double var_fitness(const simulation&s);
 
 ///Assign inputs to a population
-void update_inputs(population &p, const std::vector<double> &inputs);
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
 
 ///Checks if all the individuals in a simulated population have the same input
 bool all_individuals_have_same_input(const simulation &s);
@@ -201,6 +201,9 @@ std::vector<double> create_inputs(simulation &s);
 
 ///Calculates the optimal output
 double calculate_optimal(const simulation &s);
+
+///Assigns the given new input to each individual in the simulation
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
 
 
 void test_simulation() noexcept;
