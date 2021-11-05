@@ -546,11 +546,11 @@ void test_simulation() noexcept//!OCLINT test may be many
 #endif
 
 //#define FIX_ISSUE_54
+//Simulation passes on its inputs to individuals after updating them
 #ifdef FIX_ISSUE_54
     {
         simulation s;
         s.update_inputs();
-        s.update_ind_inputs();
         assert(s.get_input() == s.get_inds_input());
     }
 #endif
