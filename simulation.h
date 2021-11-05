@@ -111,6 +111,10 @@ public:
   ///Updates the optimal to the given value
   void update_optimal(double new_optimal) {m_optimal_output = new_optimal;}
 
+  ///Updates the inputs of the simulation with new calculated inputs
+  void update_inputs();
+
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -189,17 +193,11 @@ bool all_individuals_have_same_input(const simulation &s);
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
 const std::vector<double> &get_current_input(const simulation &s);
 
-///Changes the inputs of the individuals in the simulation.
-void assign_new_inputs(simulation &s);
-
 ///Returns the input of the nth individual in the population
 const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
 
 ///Changes the inputs in the environment of the simulation
-void create_inputs(simulation &s);
-
-///Updates the inputs of the simulation with the inputs of the environment
-void update_inputs(simulation &s);
+std::vector<double> create_inputs(simulation &s);
 
 ///Calculates the optimal output
 double calculate_optimal(const simulation &s);

@@ -19,7 +19,7 @@ simulation::simulation(double targetA, double targetB,
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
-    m_input(3, 0.5),
+    m_input(net_arch[0], 0.5),
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
@@ -39,7 +39,7 @@ simulation::simulation(all_params params):
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
     m_params {params},
-    m_input(3, 0.5),
+    m_input(params.i_p.net_par.net_arc[0], 0.5),
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
@@ -245,23 +245,17 @@ double calculate_optimal(const simulation &s)
   return(calculate_optimal(s.get_env(), s.get_input()));
 }
 
-//void assign_new_inputs(simulation &s)
-//{
-//  create_inputs(s);
-//  update_inputs(s);
-//}
+void simulation::update_inputs(){
+  std::vector<double> new_inputs = create_inputs(*this);
+  m_input = new_inputs;
+}
 
-//void create_inputs(simulation &s)
-//{
-//  environment &e = s.get_env();
-//  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
-//}
+std::vector<double> create_inputs(simulation &s)
+{
+  environment &e = s.get_env();
+  return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
+}
 
-//void update_inputs(simulation &s)
-//{
-//  std::vector<double> env_inputs = s.get_env_inputs();
-//  update_inputs(s.get_pop(), env_inputs);
-//}
 
 
 #ifndef NDEBUG
@@ -637,7 +631,7 @@ void test_simulation() noexcept//!OCLINT test may be many
   }
 #endif
 
-//#define FIX_ISSUE_49
+#define FIX_ISSUE_49
 #ifdef FIX_ISSUE_49
     ///Simulation can ask environment to create n new inputs to update its input with
     {
