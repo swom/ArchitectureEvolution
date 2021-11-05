@@ -555,7 +555,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_27
+//#define FIX_ISSUE_27
 #ifdef FIX_ISSUE_27
     {
         simulation s;
@@ -646,6 +646,40 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(sim_inp_t2.size() == s.get_inds_input_size());
     }
 #endif
+
+  //#define FIX_ISSUE_50
+  ///Simulation can make environment create new inputs to update its own inputs with, based on the number of inputs individuals have
+  #ifdef FIX_ISSUE_50
+      {
+          simulation s;
+
+          int repeats = 100000;
+          std::vector<double> sim_values;
+          std::vector<double> test_values;
+
+          for(int i = 0; i != repeats; i++)
+          {
+              const auto sim_inputs_t1 = s.get_input();
+              const auto new_inputs = create_inputs(s);
+
+              assert(sim_inputs_t1 != new_inputs);
+              assert(new_inputs.size() == s.get_inds_input_size());
+
+              s.update_inputs(new_inputs);
+              const auto sim_inputs_t2 = s.get_input();
+
+              assert(sim_inputs_t2 == new_inputs);
+
+              sim_values.insert(sim_values.end(), sim_inputs_t2.begin(), sim_inputs_t2.end());
+
+              environment e = s.get_env();
+              auto test_inputs = create_n_inputs(e, s.get_rng(), s.get_inds_input_size());
+              test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
+          }
+
+          assert(are_from_same_distribution(sim_values, test_values));
+      }
+  #endif
 
   
 }
