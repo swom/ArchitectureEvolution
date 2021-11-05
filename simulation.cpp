@@ -558,6 +558,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
         s.update_inputs();
+        assign_inputs(s);
         assert(s.get_input() == s.get_inds_input());
     }
 #endif
