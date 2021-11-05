@@ -283,32 +283,6 @@ void test_environment() noexcept
     }
 #endif
 
-#define FIX_ISSUE_25
-#ifdef FIX_ISSUE_25
-    ///Environment can create n new inputs and update them #25
-    {
-        std::mt19937_64 rng;
-        environment e{env_param{}};
-        auto env_inp_t1 = e.get_input();
-
-        ///environment shouldn't know how many inputs individuals require
-        /// nor we want to construct it with a certain number of inputs
-        /// so we will have to specify it
-        int n_of_inputs_requested = env_inp_t1.size();
-
-        e.update_n_inputs(rng, n_of_inputs_requested);
-        auto env_inp_t2 = e.get_input();
-
-        assert(env_inp_t1 != env_inp_t2);
-        assert(env_inp_t1.size() == env_inp_t2.size());
-
-        n_of_inputs_requested++;
-        e.update_n_inputs(rng, n_of_inputs_requested);
-        auto env_inp_t3 = e.get_input();
-
-        assert(env_inp_t2.size() != env_inp_t3.size());
-    }
-#endif
 
 #define FIX_ISSUE_26
 #ifdef FIX_ISSUE_26
@@ -354,28 +328,7 @@ void test_environment() noexcept
       }
   #endif
   
- #define FIX_ISSUE_23
-  #ifdef FIX_ISSUE_23
-      {
-          environment e{env_param{}};
 
-          std::vector<double> input = e.get_input();
-
-      }
-  #endif
-  
- #define FIX_ISSUE_29
-  #ifdef FIX_ISSUE_29
-        {            
-  
-             environment e{env_param{}};
-
-            auto optimal_output = e.get_optimal();
-
-            assert(optimal_output > 0 || optimal_output < 0);
-
-        }
-    #endif
 
     #define FIX_ISSUE_28
     #ifdef FIX_ISSUE_28
@@ -467,25 +420,7 @@ void test_environment() noexcept
   #endif
 
 
-#define FIX_ISSUE_30
-#ifdef FIX_ISSUE_30
-    //Environment can use its function to calculate the optimal value and store it
-  {
-    environment e{env_param{}};
-   auto function = e.get_env_function_A();
 
-    std::vector<double> inputs = e.get_input();
-
-    double theoretical_optimal_output = function(inputs);
-    double calculated_optimal_output = e.calculate_optimal();
-
-    assert(theoretical_optimal_output == calculated_optimal_output);
-
-    e.update_optimal();
-    assert(theoretical_optimal_output == e.get_optimal());
-
-  }
-#endif
 
 }
 #endif

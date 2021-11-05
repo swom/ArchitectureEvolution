@@ -582,5 +582,67 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_from_same_distribution(sim_env_values, test_values));
     }
 #endif
+  
+//#define FIX_ISSUE_46
+//Simulation has a private member that stores the input that are gonna be fed to individuals environment
+ #ifdef FIX_ISSUE_46
+     {
+         simulation s{};
+
+         std::vector<double> input = s.get_input();
+
+     }
+ #endif
+  
+  //#define FIX_ISSUE_47
+    //Simulation has a private member where it can store the optimal value of its inputs.
+   #ifdef FIX_ISSUE_47
+         {
+
+              simulation s{};
+
+             auto optimal_output = s.get_optimal();
+
+             assert(optimal_output >= 0 || optimal_output < 0);
+
+         }
+     #endif
+
+//#define FIX_ISSUE_48
+#ifdef FIX_ISSUE_48
+    //Simulation can use the environment's function to calculate the optimal value and store it
+  {
+    simulation s{};
+    auto function = s.get_env_function_A();
+
+    std::vector<double> inputs = s.get_input();
+
+    double theoretical_optimal_output = function(inputs);
+    double calculated_optimal_output = calculate_optimal(s);
+
+    assert(theoretical_optimal_output == calculated_optimal_output);
+
+    s.update_optimal();
+    assert(theoretical_optimal_output == s.get_optimal());
+  }
+#endif
+
+//#define FIX_ISSUE_49
+#ifdef FIX_ISSUE_49
+    ///Simulation can ask environment to create n new inputs to update its input with
+    {
+        simulation s {};
+        auto sim_inp_t1 = s.get_input();
+
+        s.update_inputs();
+        auto sim_inp_t2 = s.get_input();
+
+        assert(sim_inp_t1 != sim_inp_t2);
+        assert(sim_inp_t1.size() == sim_inp_t2.size());
+        assert(sim_inp_t2.size() == s.get_inds_input_size());
+    }
+#endif
+
+  
 }
 #endif
