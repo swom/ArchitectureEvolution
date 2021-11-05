@@ -6,7 +6,6 @@
 environment::environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA):
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
-    m_optimal_output{1},
     m_env_function_A{env_functionA}
 {
 
@@ -19,7 +18,6 @@ environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
-    m_optimal_output{1},
     m_env_function_A{e_p.env_function_A}
 {
 
@@ -40,32 +38,22 @@ bool operator== (const environment& lhs, const environment& rhs)
 
   bool cue_distrib = are_same_distribution(lhs_dist, rhs_dist);
 
-  bool inputs = lhs.get_input() == rhs.get_input();
-
-  bool optimal = lhs.get_optimal() == rhs.get_optimal();
-
   bool env_function = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
 
-  return ref_t_values && current_t_value && cue_distrib && inputs && optimal && env_function;
+  return ref_t_values && current_t_value && cue_distrib && env_function;
 }
 
 
-std::vector<double> environment::update_n_inputs(std::mt19937_64 &rng, const size_t n)
+
+double calculate_optimal(const environment &e, std::vector<double> input)
 {
-  std::vector<double> new_inputs = create_n_inputs(m_cue_distribution , n, rng);
-  m_input = new_inputs;
-  return new_inputs;
+  return e.get_env_function_A()(input);
 }
 
-double environment::calculate_optimal()
-{
-  return get_env_function_A()(get_input());
-}
-
-void environment::update_optimal()
-{
-  m_optimal_output = calculate_optimal();
-}
+//void environment::update_optimal()
+//{
+//  m_optimal_output = calculate_optimal();
+//}
 
 
 double get_target_valueA(const environment& e)
@@ -282,7 +270,7 @@ void test_environment() noexcept
 #endif
 
 
-#define FIX_ISSUE_26
+//#define FIX_ISSUE_26
 #ifdef FIX_ISSUE_26
     ///Environment creates new inputs based on its own distribution
     {
@@ -354,13 +342,6 @@ void test_environment() noexcept
               //Two environments that differ in their cue distribution returns false
                 std::uniform_real_distribution<double> new_dist{1.23, 4.56};
                 rhs.change_uniform_dist(new_dist);
-                assert (!(lhs == rhs));
-                rhs = lhs;
-
-              //Two environments that differ in their input  & optimal output returns false
-                std::mt19937_64 rng;
-                rhs.update_n_inputs(rng, 3);
-                rhs.update_optimal();
                 assert (!(lhs == rhs));
                 rhs = lhs;
 
