@@ -274,8 +274,8 @@ void test_environment() noexcept
 #endif
 
 
-#define FIX_ISSUE_26
-#ifdef FIX_ISSUE_26
+//#define FIX_ISSUE_52
+#ifdef FIX_ISSUE_52
     ///Environment creates new inputs based on its own distribution
     {
         std::mt19937_64 rng;
@@ -285,17 +285,15 @@ void test_environment() noexcept
         auto test_dist = e.get_dist();
 
         int n_of_inputs_requested = 1;
-        std::vector<double> test_inputs;
 
-        std::vector<double> store_env_inputs;
         std::vector<double> store_test_inputs;
+        std::vector<double> store_new_inputs;
 
         int repeats = 30000;
         for(int i = 0; i != repeats; i++)
         {
-            e.update_n_inputs(rng, n_of_inputs_requested);
-            auto env_inputs = e.get_input();
-            store_env_inputs.insert(store_env_inputs.end(), env_inputs.begin(), env_inputs.end());
+            const auto new_inputs = create_n_inputs(e, rng, n_of_inputs_requested);
+            store_new_inputs.insert(store_new_inputs.end(), new_inputs.begin(), new_inputs.end());
 
             for(int j = 0; j != n_of_inputs_requested; j++)
             {
@@ -303,7 +301,7 @@ void test_environment() noexcept
             }
         }
 
-        assert(are_from_same_distribution(store_env_inputs,store_test_inputs));
+        assert(are_from_same_distribution(store_new_inputs,store_test_inputs));
 
     }
 #endif
