@@ -6,14 +6,21 @@
 #include "json.hpp"
 #include "utilities.h"
 
-static double env_func_A(std::vector<double> input){
+static double env_func_1(std::vector<double> input){
   return input[0];
- }
+}
+
+static double env_func_2(std::vector<double> input){
+  return input[0]+1;
+}
+
+
 
 
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
 {
-{"A", env_func_A}
+{"1", env_func_1},
+{"2", env_func_2}
 };
 
 
@@ -25,7 +32,8 @@ struct env_param
                                    targetB)
 double targetA;
 double targetB;
-std::function<double(std::vector<double>)> env_function_A{env_func_A};
+std::function<double(std::vector<double>)> env_function_A{env_func_1};
+std::function<double(std::vector<double>)> env_function_B{env_func_2};
 };
 
 
@@ -34,7 +42,8 @@ class environment
 public:
     ///deprecated(sort of)
     environment(double target_valueA, double target_valueB,
-                std::function<double(std::vector<double>)> env_functionA = &env_func_A);
+                std::function<double(std::vector<double>)> env_functionA = &env_func_1,
+                std::function<double(std::vector<double>)> env_functionB = &env_func_2);
 
     environment(env_param e_p);
 
@@ -58,12 +67,15 @@ public:
     ///Updates the n first inputs by drawing random ones from the distribution
     std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
 
+    ///Returns the environmental function A
     const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
 
+    ///Returns the environmental function B
+    const std::function<double(std::vector<double>)> &get_env_function_B() const {return m_env_function_B;}
+
+    ///Changes the cue distribution to a new given uniform distribution
     void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
 
-
-    void update_optimal();
 
 
 private:
@@ -78,6 +90,9 @@ private:
 
     ///Points to The first function linking input to optimal output
     std::function<double(std::vector<double>)> m_env_function_A;
+
+    ///Points to The second function linking input to optimal output
+    std::function<double(std::vector<double>)> m_env_function_B;
 
 };
 

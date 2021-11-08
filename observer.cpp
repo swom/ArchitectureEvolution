@@ -77,7 +77,7 @@ void test_observer()
         observer o;
         //Give sim some non-default params
 
-        env_param e_p{132465, 123465, env_func_A};
+        env_param e_p{132465, 123465, env_func_1, env_func_2};
         all_params params = {e_p,{},{},{}};
 
         simulation s{params};
