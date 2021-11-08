@@ -114,8 +114,6 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
-  ///Calculates the inputs and updates the inputs of the simulation with them
-  void update_inputs();
 
 
   const all_params& get_params() const noexcept {return m_params;}
@@ -200,7 +198,7 @@ const std::vector<double> &get_current_input(const simulation &s);
 const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
 
 ///Changes the inputs in the environment of the simulation
-std::vector<double> create_inputs(simulation &s);
+std::vector<double> create_inputs(simulation s);
 
 ///Calculates the optimal output
 double calculate_optimal(const simulation &s);

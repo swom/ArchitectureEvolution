@@ -60,11 +60,6 @@ const std::vector<individual> &simulation::get_inds() const
   return simulation::get_pop().get_inds();
 }
 
-void simulation::update_inputs()
-{
-  std::vector<double> new_inputs = create_inputs(*this);
-  m_input = new_inputs;
-}
 
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
@@ -257,7 +252,7 @@ double calculate_optimal(const simulation &s)
 }
 
 
-std::vector<double> create_inputs(simulation &s)
+std::vector<double> create_inputs(simulation s)
 {
   environment &e = s.get_env();
   return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
@@ -270,7 +265,7 @@ void assign_inputs(simulation &s)
 
 void assign_new_inputs(simulation &s)
 {
-  s.update_inputs();
+  s.update_inputs(create_inputs(s));
   assign_inputs(s);
 }
 
@@ -569,7 +564,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 #ifdef FIX_ISSUE_54
     {
         simulation s;
-        s.update_inputs();
+        std::vector<double> new_input{1,2,3};
+
+        s.update_inputs(new_input);
         assign_inputs(s);
         assert(s.get_input() == s.get_inds_input());
     }
@@ -627,7 +624,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s {};
         auto sim_inp_t1 = s.get_input();
 
-        s.update_inputs();
+        s.update_inputs(create_inputs(s));
         auto sim_inp_t2 = s.get_input();
 
         assert(sim_inp_t1 != sim_inp_t2);
