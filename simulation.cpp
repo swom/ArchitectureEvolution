@@ -681,13 +681,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         std::vector<double> silly_inputs{1.23456, 9.87654};
         s.update_inputs(silly_inputs);
 
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         switch_optimal_function(s);
-        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_B(silly_inputs)));
+        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
         switch_optimal_function(s);
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
-        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_B(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
+        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
     }
 #endif
 
