@@ -415,12 +415,12 @@ void test_environment() noexcept
           }
   #endif
 
+
 #define FIX_ISSUE_57
 #ifdef FIX_ISSUE_57
 
     ///An enviroment can switch between optimum/al functions
     {
-
       environment e{env_param{}};
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
       switch_env_function(e); //Changed the name to match what we've been using
@@ -444,6 +444,7 @@ void test_environment() noexcept
           assert(!are_same_env_functions(func_A,func_B));
       }
   #endif
+
 
 }
 #endif
