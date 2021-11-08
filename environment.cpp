@@ -398,8 +398,33 @@ void test_environment() noexcept
           }
   #endif
 
+//#define FIX_ISSUE_57
+#ifdef FIX_ISSUE_57
 
+    ///An enviroment can switch between optimum/al functions
+    {
+      environment e{env_param{}};
+      assert(are_same_env_functions(e.get_current_function(), env_function_A));
+      switch_optimal_function(e);
+      assert(are_same_env_functions(e.get_current_function(), env_function_B));
+      assert(!are_same_env_functions(e.get_current_function(), env_function_A));
+      switch_optimal_function(e);
+      assert(are_equal_with_tolerance(e.get_current_function(), env_function_A));
+      assert(!are_equal_with_tolerance(e.get_current_function(), env_function_B));
+    }
+#endif
 
+//#define FIX_ISSUE_58
+#ifdef FIX_ISSUE_58
+
+    ///An environment can store 2 different optimal functions
+    {
+        environment e{env_param{}};
+        auto func_A = e.get_env_function_A();
+        auto func_B = e.get_env_function_B();
+        assert(!are_same_env_functions(func_A,func_B));
+    }
+#endif
 
 }
 #endif
