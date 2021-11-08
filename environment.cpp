@@ -3,10 +3,14 @@
 #include <cassert>
 
 
-environment::environment(double target_valueA, double target_valueB, std::function<double(std::vector<double>)> env_functionA):
+environment::environment(double target_valueA, double target_valueB,
+                         std::function<double(std::vector<double>)> env_functionA,
+                         std::function<double(std::vector<double>)> env_functionB):
     m_ref_target_values{target_valueA,target_valueB},
     m_current_target_value {target_valueA},
-    m_env_function_A{env_functionA}
+    m_env_function_A{env_functionA},
+    m_env_function_B{env_functionB},
+    m_current_function{env_functionA}
 {
 
 
@@ -18,7 +22,9 @@ environment::environment(env_param e_p):
     m_ref_target_values{e_p.targetA,e_p.targetB},
     m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
-    m_env_function_A{e_p.env_function_A}
+    m_env_function_A{e_p.env_function_A},
+    m_env_function_B{e_p.env_function_B},
+    m_current_function{e_p.env_function_A}
 {
 
 
@@ -116,8 +122,19 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 
 double dummy_function(std::vector<double> input)
 {
-  return input[0]+1;
+  return input[0]+123;
 }
+
+void switch_env_function(environment &e)
+{
+  if(are_same_env_functions(e.get_current_function(), e.get_env_function_A())){
+      e.change_env_function(e.get_env_function_B());
+    }
+  else
+    e.change_env_function(e.get_env_function_A());
+}
+
+
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -398,33 +415,36 @@ void test_environment() noexcept
           }
   #endif
 
-//#define FIX_ISSUE_57
+
+#define FIX_ISSUE_57
 #ifdef FIX_ISSUE_57
 
     ///An enviroment can switch between optimum/al functions
     {
       environment e{env_param{}};
-      assert(are_same_env_functions(e.get_current_function(), env_function_A));
-      switch_optimal_function(e);
-      assert(are_same_env_functions(e.get_current_function(), env_function_B));
-      assert(!are_same_env_functions(e.get_current_function(), env_function_A));
-      switch_optimal_function(e);
-      assert(are_equal_with_tolerance(e.get_current_function(), env_function_A));
-      assert(!are_equal_with_tolerance(e.get_current_function(), env_function_B));
+      assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
+      switch_env_function(e); //Changed the name to match what we've been using
+      assert(are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
+      assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
+      switch_env_function(e);
+      assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
+      assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
     }
 #endif
 
-//#define FIX_ISSUE_58
-#ifdef FIX_ISSUE_58
 
-    ///An environment can store 2 different optimal functions
-    {
-        environment e{env_param{}};
-        auto func_A = e.get_env_function_A();
-        auto func_B = e.get_env_function_B();
-        assert(!are_same_env_functions(func_A,func_B));
-    }
-#endif
+  #define FIX_ISSUE_58
+  #ifdef FIX_ISSUE_58
+
+      ///An environment can store 2 different optimal functions
+      {
+          environment e{env_param{}};
+          auto func_A = e.get_env_function_A();
+          auto func_B = e.get_env_function_B();
+          assert(!are_same_env_functions(func_A,func_B));
+      }
+  #endif
+
 
 }
 #endif

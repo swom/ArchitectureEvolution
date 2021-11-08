@@ -59,7 +59,8 @@ cxxopts::Options create_parser(){
     options.add_options()
             ("A,targetA", "the value fo env target A", cxxopts::value<double>()->default_value("0.1"))
             ("B,targetB", "the value fo env target B", cxxopts::value<double>()->default_value("0.75"))
-            ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("A"))
+            ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("1"))
+            ("b,env_func_B", "the starting env function B",cxxopts::value<std::string>()->default_value("2"))
             ("N,net_arc", "the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
             ("F,act_func",
              "the string representing the name of the activation function of the net",
