@@ -73,8 +73,14 @@ public:
     ///Returns the environmental function B
     const std::function<double(std::vector<double>)> &get_env_function_B() const {return m_env_function_B;}
 
+    ///Returns the current environmental function
+    const std::function<double(std::vector<double>)> &get_current_function() const {return m_current_function;}
+
     ///Changes the cue distribution to a new given uniform distribution
     void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
+
+    ///Changes the current environmental function to a new given one.
+    void change_env_function(std::function<double(std::vector<double>)> new_func) {m_current_function = new_func;}
 
 
 
@@ -93,6 +99,9 @@ private:
 
     ///Points to The second function linking input to optimal output
     std::function<double(std::vector<double>)> m_env_function_B;
+
+    ///The environmental function that is currently used to determine the optimal output
+    std::function<double(std::vector<double>)> m_current_function;
 
 };
 
@@ -118,6 +127,9 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 
 ///Calculates the optimal output, given input, using the env function
 double calculate_optimal(const environment &e, std::vector<double> input);
+
+///Switches the current environmental function from A to B or B to A
+void switch_env_function(environment &e);
 
 
 #endif // ENVIRONMENT_H
