@@ -18,7 +18,9 @@ simulation::simulation(double targetA, double targetB,
     m_seed{seed},
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
-    m_change_freq {static_cast<double>(t_change_interval)}
+    m_change_freq {static_cast<double>(t_change_interval)},
+    m_input(net_arch[0], 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -36,7 +38,9 @@ simulation::simulation(all_params params):
     m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
-    m_params {params}
+    m_params {params},
+    m_input(params.i_p.net_par.net_arc[0], 0.5),
+    m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
@@ -54,6 +58,12 @@ const std::vector<double>& simulation::get_inds_input() const
 const std::vector<individual> &simulation::get_inds() const
 {
   return simulation::get_pop().get_inds();
+}
+
+void simulation::update_inputs()
+{
+  std::vector<double> new_inputs = create_inputs(*this);
+  m_input = new_inputs;
 }
 
 
@@ -210,11 +220,16 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void update_inputs(population &p, const std::vector<double> &inputs)
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
 {
   for(auto& ind : p.get_inds()){
       ind.assign_input(inputs);
     }
+}
+
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
+{
+  assign_new_inputs_to_inds(s.get_pop(), new_input);
 }
 
 bool all_individuals_have_same_input(const simulation &s)
@@ -236,22 +251,27 @@ const std::vector<double> &get_current_input(const simulation &s)
  return get_nth_individual_input(s, 0);
 }
 
-void assign_new_inputs(simulation &s)
+double calculate_optimal(const simulation &s)
 {
-  create_inputs(s);
-  update_inputs(s);
+  return(calculate_optimal(s.get_env(), s.get_input()));
 }
 
-void create_inputs(simulation &s)
+
+std::vector<double> create_inputs(simulation &s)
 {
   environment &e = s.get_env();
-  e.update_n_inputs(s.get_rng(), s.get_inds_input_size());
+  return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
 }
 
-void update_inputs(simulation &s)
+void assign_inputs(simulation &s)
 {
-  std::vector<double> env_inputs = s.get_env_inputs();
-  update_inputs(s.get_pop(), env_inputs);
+  assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+}
+
+void assign_new_inputs(simulation &s)
+{
+  s.update_inputs();
+  assign_inputs(s);
 }
 
 
@@ -498,7 +518,7 @@ void test_simulation() noexcept//!OCLINT test may be many
          population p;
          int n_inputs = 3;
          auto inputs = create_n_inputs(n_inputs);
-         update_inputs(p,inputs);
+         assign_new_inputs_to_inds(p,inputs);
          for(const auto& ind : p.get_inds())
          {
              assert(ind.get_input_values() == inputs);
@@ -531,56 +551,125 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
         assert(all_individuals_have_same_input(s));
-        auto input_t1 = get_current_input(s);
+        auto input_t1 = s.get_inds_input();
 
-        assign_new_inputs(s);
+        std::vector<double> new_input;
+
+        assign_new_inputs_to_inds(s, new_input);
         assert(all_individuals_have_same_input(s));
-        auto input_t2 = get_current_input(s);
+        auto input_t2 = s.get_inds_input();
 
         assert(input_t1 != input_t2);
 
     }
 #endif
 
-#define FIX_ISSUE_24
-#ifdef FIX_ISSUE_24
+#define FIX_ISSUE_54
+//Simulation passes on its inputs to individuals after updating them
+#ifdef FIX_ISSUE_54
     {
         simulation s;
-        create_inputs(s);
-        update_inputs(s); //would update_inputs not be a better name? rn this overloads another function in a confusing way
-                          //bc they don't do quite the same thing
-        assert(s.get_env_inputs() == s.get_inds_input());
+        s.update_inputs();
+        assign_inputs(s);
+        assert(s.get_input() == s.get_inds_input());
     }
 #endif
 
-#define FIX_ISSUE_27
-#ifdef FIX_ISSUE_27
+  
+#define FIX_ISSUE_46
+//Simulation has a private member that stores the input that are gonna be fed to individuals environment
+ #ifdef FIX_ISSUE_46
+     {
+         simulation s{};
+
+         std::vector<double> input = s.get_input();
+
+     }
+ #endif
+  
+ #define FIX_ISSUE_47
+    //Simulation has a private member where it can store the optimal value of its inputs.
+   #ifdef FIX_ISSUE_47
+         {
+
+              simulation s{};
+
+             auto optimal_output = s.get_optimal();
+
+             assert(optimal_output >= 0 || optimal_output < 0);
+
+         }
+     #endif
+
+#define FIX_ISSUE_48
+#ifdef FIX_ISSUE_48
+    //Simulation can use the environment's function to calculate the optimal value and store it
+  {
+    simulation s{};
+    auto function = s.get_env_function_A();
+
+    std::vector<double> inputs = s.get_input();
+
+    double theoretical_optimal_output = function(inputs);
+    double calculated_optimal_output = calculate_optimal(s);
+
+    assert(theoretical_optimal_output == calculated_optimal_output);
+
+    s.update_optimal(calculated_optimal_output);
+    assert(theoretical_optimal_output == s.get_optimal());
+  }
+#endif
+
+#define FIX_ISSUE_49
+#ifdef FIX_ISSUE_49
+    ///Simulation can ask environment to create n new inputs to update its input with
     {
-        simulation s;
-        auto test_e = s.get_env();
-        auto n_inputs_requested = s.get_inds_input_size();
+        simulation s {};
+        auto sim_inp_t1 = s.get_input();
 
-        int repeats = 100000;
-        std::vector<double> sim_env_values;
-        std::vector<double> test_values;
+        s.update_inputs();
+        auto sim_inp_t2 = s.get_input();
 
-        for(int i = 0; i != repeats; i++)
-        {
-            const auto env_inputs_t1 = s.get_env_inputs();
-            create_inputs(s);
-            const auto env_inputs_t2 = s.get_env_inputs();
-
-            assert(env_inputs_t1 != env_inputs_t2);
-            assert(env_inputs_t2.size() == s.get_inds_input_size());
-
-            sim_env_values.insert(sim_env_values.end(), env_inputs_t2.begin(), env_inputs_t2.end());
-
-            auto test_inputs = test_e.update_n_inputs(s.get_rng(), n_inputs_requested);
-            test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
-        }
-
-        assert(are_from_same_distribution(sim_env_values, test_values));
+        assert(sim_inp_t1 != sim_inp_t2);
+        assert(sim_inp_t1.size() == sim_inp_t2.size());
+        assert(sim_inp_t2.size() == s.get_inds_input_size());
     }
 #endif
+
+  #define FIX_ISSUE_50
+  ///Simulation can make environment create new inputs to update its own inputs with, based on the number of inputs individuals have
+  #ifdef FIX_ISSUE_50
+      {
+          simulation s;
+
+          int repeats = 100000;
+          std::vector<double> sim_values;
+          std::vector<double> test_values;
+
+          for(int i = 0; i != repeats; i++)
+          {
+              const auto sim_inputs_t1 = s.get_input();
+              const auto new_inputs = create_inputs(s);
+
+              assert(sim_inputs_t1 != new_inputs);
+              assert(new_inputs.size() == s.get_inds_input_size());
+
+              s.update_inputs(new_inputs);
+              const auto sim_inputs_t2 = s.get_input();
+
+              assert(sim_inputs_t2 == new_inputs);
+
+              sim_values.insert(sim_values.end(), sim_inputs_t2.begin(), sim_inputs_t2.end());
+
+              environment e = s.get_env();
+              auto test_inputs = create_n_inputs(e, s.get_inds_input_size(), s.get_rng());
+              test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
+          }
+
+          assert(are_from_same_distribution(sim_values, test_values));
+      }
+  #endif
+
+  
 }
 #endif

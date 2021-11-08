@@ -50,11 +50,6 @@ public:
     ///Sets current target value
     void set_current_target_value(double target_value) {m_current_target_value = target_value;}
 
-    ///Returns the current inputs
-    const std::vector<double> &get_input() const noexcept {return m_input;}
-
-    ///Returns the current optimal output
-    const double &get_optimal() const noexcept {return m_optimal_output;}
 
     ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
@@ -67,7 +62,6 @@ public:
 
     void change_uniform_dist(std::uniform_real_distribution<double> new_dist) {m_cue_distribution = new_dist;}
 
-    double calculate_optimal();
 
     void update_optimal();
 
@@ -81,13 +75,6 @@ private:
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
-
-
-    ///The current inputs that the networks of individuals will recieve
-    std::vector<double> m_input;
-
-    ///The optimal output at a given moment; depends on inputs and environmental function
-    double m_optimal_output;
 
     ///Points to The first function linking input to optimal output
     std::function<double(std::vector<double>)> m_env_function_A;
@@ -113,6 +100,9 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
 ///Creates a vector of a given number of inputs for a distribution
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
                                     const int &n_inputs, std::mt19937_64 &rng);
+
+///Calculates the optimal output, given input, using the env function
+double calculate_optimal(const environment &e, std::vector<double> input);
 
 
 #endif // ENVIRONMENT_H
