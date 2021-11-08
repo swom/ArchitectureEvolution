@@ -182,7 +182,7 @@ void tick(simulation &s)
 
     if(is_environment_changing(s)){
 
-        switch_target(s.get_env());
+        switch_optimal_function(s);
     }
 
     if(s.get_inds().size()){
@@ -474,7 +474,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 
 
-#define FIX_ISSUE_39
+//#define FIX_ISSUE_39
 #ifdef FIX_ISSUE_39
 
     {
