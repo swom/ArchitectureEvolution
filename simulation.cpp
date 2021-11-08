@@ -269,6 +269,11 @@ void assign_new_inputs(simulation &s)
     assign_inputs(s);
 }
 
+void switch_optimal_function(simulation &s)
+{
+  switch_env_function(s.get_env());
+}
+
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -667,7 +672,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_63
+#define FIX_ISSUE_63
 #ifdef FIX_ISSUE_63
     ///A simulation can switch between optimum/al functions
     {

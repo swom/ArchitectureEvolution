@@ -212,6 +212,9 @@ void assign_inputs(simulation &s);
 ///Updates the inputs in simulation and assigns them to individuals
 void assign_new_inputs(simulation &s);
 
+///Switches the function of the environment used to calculate the optimal output
+void switch_optimal_function(simulation &s);
+
 void test_simulation() noexcept;
 
 #endif // SIMULATION_H
