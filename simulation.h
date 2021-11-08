@@ -95,12 +95,6 @@ public:
   ///Returns the current inputs in the simulation
   const std::vector<double> &get_input() const noexcept {return m_input;}
 
-  ///Returns the input of the individuals
-  const std::vector<double> &get_inds_input() const;
-
-  ///Returns the size of the inputs of the individuals
-  size_t get_inds_input_size() const{return get_inds_input().size();}
-
   ///Returns the current optimal output
   const double &get_optimal() const noexcept {return m_optimal_output;}
 
@@ -214,6 +208,12 @@ void assign_new_inputs(simulation &s);
 
 ///Switches the function of the environment used to calculate the optimal output
 void switch_optimal_function(simulation &s);
+
+///Returns the input of the individuals
+std::vector<double> get_inds_input(const simulation &s);
+
+///Returns the size of the inputs of the individuals
+size_t get_inds_input_size(const simulation &s);
 
 void test_simulation() noexcept;
 
