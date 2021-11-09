@@ -49,18 +49,11 @@ simulation::simulation(all_params params):
     }
 }
 
-const std::vector<double>& simulation::get_inds_input() const
+std::vector<double> get_inds_input(const simulation &s)
 {
-    assert(all_individuals_have_same_input(*this));
-    return get_inds()[0].get_input_values();
+    assert(all_individuals_have_same_input(s));
+    return get_inds(s)[0].get_input_values();
 }
-
-const std::vector<individual> &simulation::get_inds() const
-{
-    return simulation::get_pop().get_inds();
-}
-
-
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
 {
@@ -185,7 +178,7 @@ void tick(simulation &s)
         switch_target(s.get_env());
     }
 
-    if(s.get_inds().size()){
+    if(get_inds(s).size()){
 
         assign_new_inputs(s);
 
@@ -255,7 +248,7 @@ double calculate_optimal(const simulation &s)
 std::vector<double> create_inputs(simulation s)
 {
     environment &e = s.get_env();
-    return(create_n_inputs(e, s.get_inds_input_size(), s.get_rng() ));
+    return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
 }
 
 void assign_inputs(simulation &s)
@@ -268,6 +261,15 @@ void assign_new_inputs(simulation &s)
     s.update_inputs(create_inputs(s));
     assign_inputs(s);
 }
+
+void switch_optimal_function(simulation &s)
+{
+  switch_env_function(s.get_env());
+}
+
+size_t get_inds_input_size(const simulation &s)
+{return get_inds_input(s).size();
+  }
 
 
 #ifndef NDEBUG
@@ -546,13 +548,13 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
         assert(all_individuals_have_same_input(s));
-        auto input_t1 = s.get_inds_input();
+        auto input_t1 = get_inds_input(s);
 
         std::vector<double> new_input;
 
         assign_new_inputs_to_inds(s, new_input);
         assert(all_individuals_have_same_input(s));
-        auto input_t2 = s.get_inds_input();
+        auto input_t2 = get_inds_input(s);
 
         assert(input_t1 != input_t2);
 
@@ -568,7 +570,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         s.update_inputs(new_input);
         assign_inputs(s);
-        assert(s.get_input() == s.get_inds_input());
+        assert(s.get_input() == get_inds_input(s));
     }
 #endif
 
@@ -629,7 +631,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         assert(sim_inp_t1 != sim_inp_t2);
         assert(sim_inp_t1.size() == sim_inp_t2.size());
-        assert(sim_inp_t2.size() == s.get_inds_input_size());
+        assert(sim_inp_t2.size() == get_inds_input_size(s));
     }
 #endif
 
@@ -649,7 +651,7 @@ void test_simulation() noexcept//!OCLINT test may be many
             const auto new_inputs = create_inputs(s);
 
             assert(sim_inputs_t1 != new_inputs);
-            assert(new_inputs.size() == s.get_inds_input_size());
+            assert(new_inputs.size() == get_inds_input_size(s));
 
             s.update_inputs(new_inputs);
             const auto sim_inputs_t2 = s.get_input();
@@ -659,7 +661,7 @@ void test_simulation() noexcept//!OCLINT test may be many
             sim_values.insert(sim_values.end(), sim_inputs_t2.begin(), sim_inputs_t2.end());
 
             environment e = s.get_env();
-            auto test_inputs = create_n_inputs(e, s.get_inds_input_size(), s.get_rng());
+            auto test_inputs = create_n_inputs(e, get_inds_input_size(s), s.get_rng());
             test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
         }
 
@@ -667,7 +669,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_63
+#define FIX_ISSUE_63
 #ifdef FIX_ISSUE_63
     ///A simulation can switch between optimum/al functions
     {
@@ -676,13 +678,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         std::vector<double> silly_inputs{1.23456, 9.87654};
         s.update_inputs(silly_inputs);
 
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         switch_optimal_function(s);
-        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_B(silly_inputs)));
+        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
         switch_optimal_function(s);
-        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_A(silly_inputs)));
-        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_B(silly_inputs)));
+        assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
+        assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
     }
 #endif
 
