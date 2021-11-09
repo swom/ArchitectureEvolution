@@ -82,6 +82,12 @@ public:
     ///Changes the current environmental function to a new given one.
     void change_env_function(std::function<double(std::vector<double>)> new_func) {m_current_function = new_func;}
 
+    /// Returns the name of the current function
+    const char &get_name_current_function() const {return m_name_current_function;}
+
+    ///Switches the name of the current function from A to B or B to A
+    void switch_name_current_function();
+
 
 
 private:
@@ -102,6 +108,9 @@ private:
 
     ///The environmental function that is currently used to determine the optimal output
     std::function<double(std::vector<double>)> m_current_function;
+
+    /// The name of the current function
+    char m_name_current_function;
 
 };
 
@@ -130,6 +139,7 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);
+
 
 
 #endif // ENVIRONMENT_H

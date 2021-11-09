@@ -483,17 +483,18 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     {
         simulation s{0, 0.1, 0};
+        environment &e = s.get_env();
         int repeats =  100000;
-        auto previous_env_function = get_current_env_function(s);
+        auto previous_env_function = e.get_name_current_function();
 
         int number_of_env_change = 0;
 
         for( int i = 0; i != repeats; i++)
         {
             tick(s);
-            if(!are_same_env_functions(previous_env_function, get_current_env_function(s)))
+            if(previous_env_function != e.get_name_current_function())
             {
-                previous_env_function = get_current_env_function(s);
+                previous_env_function = e.get_name_current_function();
                 number_of_env_change++;
             }
         }

@@ -10,7 +10,8 @@ environment::environment(double target_valueA, double target_valueB,
     m_current_target_value {target_valueA},
     m_env_function_A{env_functionA},
     m_env_function_B{env_functionB},
-    m_current_function{env_functionA}
+    m_current_function{env_functionA},
+    m_name_current_function{'A'}
 {
 
 
@@ -24,7 +25,8 @@ environment::environment(env_param e_p):
     m_cue_distribution{0., 1.},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
-    m_current_function{e_p.env_function_A}
+    m_current_function{e_p.env_function_A},
+    m_name_current_function{'A'}
 {
 
 
@@ -47,6 +49,14 @@ bool operator== (const environment& lhs, const environment& rhs)
   bool env_function = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
 
   return ref_t_values && current_t_value && cue_distrib && env_function;
+}
+
+void environment::switch_name_current_function()
+{
+    if(get_name_current_function() == 'A')
+        m_name_current_function = 'B';
+    else if(get_name_current_function() == 'B')
+        m_name_current_function = 'A';
 }
 
 
@@ -127,12 +137,17 @@ double dummy_function(std::vector<double> input)
 
 void switch_env_function(environment &e)
 {
-  if(are_same_env_functions(e.get_current_function(), e.get_env_function_A())){
+  if(e.get_name_current_function()=='A'){
       e.change_env_function(e.get_env_function_B());
+      e.switch_name_current_function();
     }
   else
+  {
     e.change_env_function(e.get_env_function_A());
+    e.switch_name_current_function();
+  }
 }
+
 
 
 
