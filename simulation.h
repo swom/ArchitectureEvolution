@@ -5,6 +5,8 @@
 #include "population.h"
 #include <vector>
 
+double identity_first_element(std::vector<double> x){ return x[0];}
+
 struct sim_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,

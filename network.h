@@ -8,6 +8,7 @@
 
 
 double sigmoid(double x);
+static double identity_first_element(std::vector<double> x){ return x[0];}
 double linear(double x);
 
 static std::map<std::string, std::function<double(double)>> string_to_act_func_map
