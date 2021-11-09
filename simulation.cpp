@@ -368,16 +368,25 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-//#define FIX_ISSUE_30
-#ifdef FIX_ISSUE_30
+#define FIX_ISSUE_68
+#ifdef FIX_ISSUE_68
+    ///Ex issue #30 test
+    ///#define FIX_ISSUE_30
+    ///#ifdef FIX_ISSUE_30
+
     ///individuals in a pop are selected based on how closely they match the current_env_target_value
     {
         int pop_size = 2;
         simulation s{0,0, pop_size};
 
+        env_param special_e_p;
+        special_e_p.env_function_A{optima_is_response_of_grn_first_ind};
+        environment special_env{special_e_p};
+
+        s.use_new_env(special_env);
+
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_current_target_value(s, response(get_nth_ind(s, best_ind))[0]);
         auto best_net = get_nth_ind_net(s, best_ind);
         auto resp_best = response(get_nth_ind(s, best_ind))[0];
 
@@ -386,8 +395,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         change_nth_ind_net(s, worst_ind, worst_net);
         auto resp_worst = response(get_nth_ind(s, worst_ind))[0];
 
-        assert(resp_best == get_current_env_value(s));
-        assert(resp_worst != get_current_env_value(s));
+        assert(resp_best == optima_is_response_of_grn_first_ind(s.get_pop()));
+        assert(resp_worst != optima_is_response_of_grn_first_ind(s.get_pop()));
 
         select_inds(s);
 
