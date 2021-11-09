@@ -52,15 +52,8 @@ simulation::simulation(all_params params):
 std::vector<double> get_inds_input(const simulation &s)
 {
     assert(all_individuals_have_same_input(s));
-    return s.get_inds()[0].get_input_values();
+    return get_inds(s)[0].get_input_values();
 }
-
-const std::vector<individual> &simulation::get_inds() const
-{
-    return simulation::get_pop().get_inds();
-}
-
-
 
 bool operator ==(const simulation& lhs, const simulation& rhs)
 {
@@ -185,7 +178,7 @@ void tick(simulation &s)
         switch_target(s.get_env());
     }
 
-    if(s.get_inds().size()){
+    if(get_inds(s).size()){
 
         assign_new_inputs(s);
 
