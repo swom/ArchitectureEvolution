@@ -17,7 +17,7 @@ static double env_func_2(std::vector<double> input){
 
 
 
-static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_A_map
+static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map
 {
 {"1", env_func_1},
 {"2", env_func_2}
@@ -28,12 +28,11 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 struct env_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
-                                   targetA,
-                                   targetB)
-double targetA;
-double targetB;
+                                   dummy)
+
 std::function<double(std::vector<double>)> env_function_A{env_func_1};
 std::function<double(std::vector<double>)> env_function_B{env_func_2};
+int dummy{1};
 };
 
 
@@ -41,23 +40,15 @@ class environment
 {
 public:
     ///deprecated(sort of)
-    environment(double target_valueA, double target_valueB,
-                std::function<double(std::vector<double>)> env_functionA = &env_func_1,
+    environment(std::function<double(std::vector<double>)> env_functionA = &env_func_1,
                 std::function<double(std::vector<double>)> env_functionB = &env_func_2);
 
     environment(env_param e_p);
 
     std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
-                                   m_ref_target_values,
-                                   m_current_target_value);
-    ///Returns the target value of the environment
-    double get_current_target_value() const noexcept {return m_current_target_value;}
-    const std::vector<double>& get_ref_target_values() const noexcept {return m_ref_target_values;}
-
-    ///Sets current target value
-    void set_current_target_value(double target_value) {m_current_target_value = target_value;}
+   NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
+                                  m_dummy);
 
 
     ///Returns the cue distribution of the environment
@@ -86,10 +77,8 @@ public:
 
 private:
 
-    ///The target value of the environment
-    std::vector<double> m_ref_target_values;
-
-    double m_current_target_value;
+    ///a dummy for saving
+    int m_dummy;
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
@@ -108,7 +97,6 @@ private:
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
 
-void switch_target (environment &e);
 
 void test_environment() noexcept;
 
