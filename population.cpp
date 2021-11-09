@@ -76,10 +76,10 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
     return distance_from_target;
 }
 
-population calc_fitness(population p, const double& env_value,const double &sel_str)
+population calc_fitness(population p, const double& optimal_value,const double &sel_str)
 {
 
-    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), env_value);
+    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 

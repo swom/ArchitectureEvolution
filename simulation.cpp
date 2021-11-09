@@ -74,7 +74,7 @@ double avg_fitness(const simulation& s)
 void calc_fitness(simulation& s)
 {
     s.get_pop() = calc_fitness(s.get_pop(),
-                               get_current_env_value(s),/*get_current_cues(), get_optimal env_value_based_on_cues*/
+                               calculate_optimal(s),
                                s.get_sel_str());
 }
 
@@ -375,7 +375,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-#define FIX_ISSUE_30
+//#define FIX_ISSUE_30
 #ifdef FIX_ISSUE_30
     ///individuals in a pop are selected based on how closely they match the current_env_target_value
     {
