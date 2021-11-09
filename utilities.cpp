@@ -86,27 +86,18 @@ bool are_same_distribution(std::uniform_real_distribution<double>lhs,
 }
 
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
-                            const std::function<double(std::vector<double>)> &rhs, int n_repeat)
+                            const std::function<double(std::vector<double>)> &rhs)
 {
-  std::vector<std::vector<double>> input_series;
+    std::vector<double> weird_numbers_1{1234.5678, 98765.432, 7687687686};
+    std::vector<double> weird_numbers_2{12345.678, 98.765432, 7687.687686};
 
-  for(int i = 0; i != n_repeat; ++i)
-    {
-      double j = i;
-      std::vector<double> input{j+1, j+2, j+3};
-      input_series.push_back(input);
-    }
 
-  std::vector<double> lhs_optimal;
-  std::vector<double> rhs_optimal;
+  double lhs_optimal_1 = lhs(weird_numbers_1);
+  double rhs_optimal_1 = rhs(weird_numbers_1);
 
-  int repeats = n_repeat;
-  for(int i = 0; i != repeats; i++)
-  {
-      lhs_optimal.push_back(lhs(input_series[i]));
-      rhs_optimal.push_back(rhs(input_series[i]));
-  }
+  double lhs_optimal_2 = lhs(weird_numbers_2);
+  double rhs_optimal_2 = rhs(weird_numbers_2);
 
-  return lhs_optimal == rhs_optimal;
+  return lhs_optimal_1 == rhs_optimal_1 && lhs_optimal_2 == rhs_optimal_2;
 
 }
