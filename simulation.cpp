@@ -408,19 +408,24 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+//#define FIX_ISSUE_73
+#ifdef FIX_ISSUE_73
+
     ///Fitness of individuals is calculated based on how close they are to the current target value
     {
         int pop_size = 2;
         simulation s{0,0,pop_size};
 
+        env_param special_e_p;
+        special_e_p.env_function_A{optima_is_response_of_grn_first_ind};
+        environment special_env{special_e_p};
+
+        s.use_new_env(special_env);
+
         size_t first_ind = 0;
         size_t second_ind = 1;
         change_all_weights_nth_ind(s, first_ind, 1);
         change_all_weights_nth_ind(s, second_ind, 0.99);
-
-
-        //change target value to match output of ind 0 net
-        change_current_target_value(s, response(get_nth_ind(s, 0))[0]);
 
         calc_fitness(s);
 
@@ -439,6 +444,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
     }
+#endif
 
     //#define FIX_ISSUE_34
     {
