@@ -5,7 +5,7 @@
 #include "population.h"
 #include <vector>
 
-double identity_first_element(std::vector<double> x){ return x[0];}
+double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
 {

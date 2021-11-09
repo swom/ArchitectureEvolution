@@ -146,6 +146,11 @@ double find_min_fitness(const simulation&s)
     return min_ind->get_fitness();
 }
 
+double identity_first_element(const std::vector<double> &vector)
+{
+    return vector[0];
+}
+
 bool is_environment_changing (simulation &s) {
 
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
@@ -368,7 +373,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-#define FIX_ISSUE_68
+//#define FIX_ISSUE_68
 #ifdef FIX_ISSUE_68
     ///Ex issue #30 test
     ///#define FIX_ISSUE_30

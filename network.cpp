@@ -103,11 +103,6 @@ double linear(double x)
     return x;
 }
 
-static double identity_first_element(std::vector<double> x)
-{
-    return x[0];
-}
-
 void network::mutate(const double& mut_rate,
                          const double& mut_step,
                          std::mt19937_64& rng)
