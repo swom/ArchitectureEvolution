@@ -215,6 +215,9 @@ std::vector<double> get_inds_input(const simulation &s);
 ///Returns the size of the inputs of the individuals
 size_t get_inds_input_size(const simulation &s);
 
+///Returns the current optimal function of the environment
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s);
+
 void test_simulation() noexcept;
 
 #endif // SIMULATION_H

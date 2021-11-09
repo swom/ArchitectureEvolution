@@ -268,8 +268,15 @@ void switch_optimal_function(simulation &s)
 }
 
 size_t get_inds_input_size(const simulation &s)
-{return get_inds_input(s).size();
-  }
+{
+    return get_inds_input(s).size();
+}
+
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s)
+{
+    environment e = s.get_env();
+    return e.get_current_function();
+}
 
 
 #ifndef NDEBUG
@@ -471,22 +478,22 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 
 
-//#define FIX_ISSUE_39
+#define FIX_ISSUE_39
 #ifdef FIX_ISSUE_39
 
     {
         simulation s{0, 0.1, 0};
         int repeats =  100000;
-        auto previous_env_value = get_current_env_value(s);
+        auto previous_env_function = get_current_env_function(s);
 
         int number_of_env_change = 0;
 
         for( int i = 0; i != repeats; i++)
         {
             tick(s);
-            if(previous_env_value != get_current_env_value(s))
+            if(!are_same_env_functions(previous_env_function, get_current_env_function(s)))
             {
-                previous_env_value = get_current_env_value(s);
+                previous_env_function = get_current_env_function(s);
                 number_of_env_change++;
             }
         }
