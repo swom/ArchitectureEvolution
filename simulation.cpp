@@ -368,7 +368,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-#define FIX_ISSUE_68
+//#define FIX_ISSUE_68
 #ifdef FIX_ISSUE_68
     ///Ex issue #30 test
     ///#define FIX_ISSUE_30
