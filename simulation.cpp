@@ -428,6 +428,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+    //#define FIX_ISSUE_73
+    #ifdef FIX_ISSUE_73
     ///Fitness of individuals is calculated based on how close they are to the current target value
     {
         int pop_size = 2;
@@ -459,6 +461,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
     }
+    #endif
 
     //#define FIX_ISSUE_34
     {
