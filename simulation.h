@@ -5,6 +5,8 @@
 #include "population.h"
 #include <vector>
 
+double identity_first_element(const std::vector<double>& vector);
+
 struct sim_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
@@ -92,6 +94,24 @@ public:
   ///Returns a reference to the vector of individuals
   const std::vector<individual> &get_inds() const;
 
+  ///Returns the current inputs in the simulation
+  const std::vector<double> &get_input() const noexcept {return m_input;}
+
+  ///Returns the current optimal output
+  const double &get_optimal() const noexcept {return m_optimal_output;}
+
+  ///Returns the function A of the environment
+  const std::function<double(std::vector<double>)> &get_env_function_A() const noexcept
+    {return get_env().get_env_function_A();}
+
+  ///Updates the optimal to the given value
+  void update_optimal(double new_optimal) {m_optimal_output = new_optimal;}
+
+  ///Updates the inputs of the simulation with new calculated inputs
+  void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
+
+
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -106,6 +126,12 @@ public:
    double m_sel_str;
    double m_change_freq;
    all_params m_params;
+
+   ///The current inputs that the networks of individuals will recieve
+   std::vector<double> m_input;
+
+   ///The optimal output at a given moment; depends on inputs and environmental function
+   double m_optimal_output;
 
 };
 ///Checks if 2 simulations are equal
@@ -156,7 +182,7 @@ void save_json(const simulation& s, const std::string& filename);
 double var_fitness(const simulation&s);
 
 ///Assign inputs to a population
-void assign_inputs(population &p, const std::vector<double> &inputs);
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
 
 ///Checks if all the individuals in a simulated population have the same input
 bool all_individuals_have_same_input(const simulation &s);
@@ -164,12 +190,35 @@ bool all_individuals_have_same_input(const simulation &s);
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
 const std::vector<double> &get_current_input(const simulation &s);
 
-///Changes the inputs of the individuals in the simulation.
-void assign_new_inputs(simulation &s);
-
 ///Returns the input of the nth individual in the population
 const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
 
+///Changes the inputs in the environment of the simulation
+std::vector<double> create_inputs(simulation s);
+
+///Calculates the optimal output
+double calculate_optimal(const simulation &s);
+
+///Assigns the given new input to each individual in the simulation
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
+
+///Assigns the input in simulation to individuals
+void assign_inputs(simulation &s);
+
+///Updates the inputs in simulation and assigns them to individuals
+void assign_new_inputs(simulation &s);
+
+///Switches the function of the environment used to calculate the optimal output
+void switch_optimal_function(simulation &s);
+
+///Returns the input of the individuals
+std::vector<double> get_inds_input(const simulation &s);
+
+///Returns the size of the inputs of the individuals
+size_t get_inds_input_size(const simulation &s);
+
+///Returns the current optimal function of the environment
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s);
 
 void test_simulation() noexcept;
 
