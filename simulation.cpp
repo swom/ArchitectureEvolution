@@ -431,29 +431,42 @@ void test_simulation() noexcept//!OCLINT test may be many
 //#define FIX_ISSUE_73
 #ifdef FIX_ISSUE_73
 
-    ///Fitness of individuals is calculated based on how close they are to the current target value
+    ///Fitness of individuals is calculated based on how close they are to the current optimal output
     {
+
+        std::function<double(std::vector<double>)> identity{identity_first_element};
+        env_param identity_env {};
+        identity_env.env_function_A = identity;
+        assert(are_same_env_functions(identity_env.env_function_A, identity));
+
+        auto identity_net = net_param{{1,1}, linear};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net};
+
+
         int pop_size = 2;
-        simulation s{0,0,pop_size};
+        auto minimal_pop = pop_param{pop_size, 0, 0};
 
-        env_param special_e_p;
-        special_e_p.env_function_A{optima_is_response_of_grn_first_ind};
-        environment special_env{special_e_p};
 
-        s.use_new_env(special_env);
+        simulation s{all_params{
+                identity_env,
+                identity_ind,
+                minimal_pop,
+                sim_param{}
+            }};
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_all_weights_nth_ind(s, first_ind, 1);
         change_all_weights_nth_ind(s, second_ind, 0.99);
 
         calc_fitness(s);
 
-        ///ind 0 response should match exactly the target value therefore it will have fitness 1 (max)
+        ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
         auto first_ind_fit =  get_nth_ind_fitness(s,0) ;
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
-        ///ind 1 response is 0, therefore its fitness would be the lowest in all the population
+        ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
         auto first_response = response(get_nth_ind(s, 0))[0];
         auto second_response = response(get_nth_ind(s, 1))[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
