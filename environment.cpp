@@ -57,6 +57,7 @@ void environment::switch_name_current_function()
         m_name_current_function = 'B';
     else if(get_name_current_function() == 'B')
         m_name_current_function = 'A';
+    else throw;
 }
 
 
@@ -141,11 +142,11 @@ void switch_env_function(environment &e)
       e.change_env_function(e.get_env_function_B());
       e.switch_name_current_function();
     }
-  else
-  {
+  else if (e.get_name_current_function()=='B'){
     e.change_env_function(e.get_env_function_A());
     e.switch_name_current_function();
   }
+  else throw;
 }
 
 
