@@ -27,12 +27,8 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 
 struct env_param
 {
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
-                                   dummy)
-
 std::function<double(std::vector<double>)> env_function_A{env_func_1};
 std::function<double(std::vector<double>)> env_function_B{env_func_2};
-int dummy{1};
 };
 
 
@@ -46,9 +42,6 @@ public:
     environment(env_param e_p);
 
     std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
-
-   NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
-                                  m_dummy);
 
 
     ///Returns the cue distribution of the environment
@@ -82,9 +75,6 @@ public:
 
 
 private:
-
-    ///a dummy for saving
-    int m_dummy;
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;

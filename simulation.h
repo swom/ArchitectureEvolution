@@ -24,7 +24,6 @@ struct sim_param
 struct all_params
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
-                                   e_p,
                                    i_p,
                                    p_p,
                                    s_p)
@@ -32,6 +31,7 @@ struct all_params
  ind_param i_p;
  pop_param p_p;
  sim_param s_p;
+
 
 };
 
@@ -49,7 +49,7 @@ public:
   simulation (all_params params);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
-                                 m_environment,
+
                                  m_population,
                                  m_time,
                                  m_change_freq,
