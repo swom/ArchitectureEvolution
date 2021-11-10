@@ -180,7 +180,7 @@ void tick(simulation &s)
 
     if(is_environment_changing(s)){
 
-        switch_target(s.get_env());
+        switch_optimal_function(s);
     }
 
     if(get_inds(s).size()){
@@ -273,7 +273,15 @@ void switch_optimal_function(simulation &s)
 }
 
 size_t get_inds_input_size(const simulation &s)
-{return get_inds_input(s).size();
+
+{
+    return get_inds_input(s).size();
+}
+
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s)
+{
+    auto e = s.get_env();
+    return e.get_current_function();
 }
 
 
@@ -508,17 +516,18 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     {
         simulation s{0, 0.1, 0};
+        environment &e = s.get_env();
         int repeats =  100000;
-        auto previous_env_value = get_current_env_value(s);
+        auto previous_env_function = e.get_name_current_function();
 
         int number_of_env_change = 0;
 
         for( int i = 0; i != repeats; i++)
         {
             tick(s);
-            if(previous_env_value != get_current_env_value(s))
+            if(previous_env_function != e.get_name_current_function())
             {
-                previous_env_value = get_current_env_value(s);
+                previous_env_function = e.get_name_current_function();
                 number_of_env_change++;
             }
         }
