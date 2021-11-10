@@ -146,6 +146,11 @@ double find_min_fitness(const simulation&s)
     return min_ind->get_fitness();
 }
 
+double identity_first_element(const std::vector<double> &vector)
+{
+    return vector[0];
+}
+
 bool is_environment_changing (simulation &s) {
 
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
@@ -264,12 +269,12 @@ void assign_new_inputs(simulation &s)
 
 void switch_optimal_function(simulation &s)
 {
-  switch_env_function(s.get_env());
+    switch_env_function(s.get_env());
 }
 
 size_t get_inds_input_size(const simulation &s)
 {return get_inds_input(s).size();
-  }
+}
 
 
 #ifndef NDEBUG
@@ -376,14 +381,28 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///individuals in a pop are selected based on how closely they match the current_env_target_value
     {
+        std::function<double(std::vector<double>)> identity{identity_first_element};
+
+        ///default func_A is already identity
+        env_param identity_env {};
+        identity_env.env_function_A = identity;
+        assert(are_same_env_functions(identity_env.env_function_A, identity));
+
+        auto identity_net = net_param{{1,1}, linear};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net};
+
         int pop_size = 2;
-        simulation s{0,0, pop_size};
+        auto minimal_pop = pop_param{pop_size, 0, 0};
 
-        env_param special_e_p;
-        special_e_p.env_function_A{optima_is_response_of_grn_first_ind};
-        environment special_env{special_e_p};
 
-        s.use_new_env(special_env);
+        simulation s{all_params{
+                identity_env,
+                identity_ind,
+                minimal_pop,
+                sim_param{}
+            }};
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
@@ -395,8 +414,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         change_nth_ind_net(s, worst_ind, worst_net);
         auto resp_worst = response(get_nth_ind(s, worst_ind))[0];
 
-        assert(resp_best == optima_is_response_of_grn_first_ind(s.get_pop()));
-        assert(resp_worst != optima_is_response_of_grn_first_ind(s.get_pop()));
+        assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
+        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
+
 
         select_inds(s);
 
