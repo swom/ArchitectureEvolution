@@ -1,7 +1,7 @@
 #include "environment.h"
 #include "utilities.h"
 #include <cassert>
-
+#include <iostream>
 
 environment::environment(double target_valueA, double target_valueB,
                          std::function<double(std::vector<double>)> env_functionA,
@@ -53,11 +53,19 @@ bool operator== (const environment& lhs, const environment& rhs)
 
 void environment::switch_name_current_function()
 {
-    if(get_name_current_function() == 'A')
-        m_name_current_function = 'B';
-    else if(get_name_current_function() == 'B')
-        m_name_current_function = 'A';
-    else throw;
+    try
+    {
+        if(get_name_current_function() == 'A')
+            m_name_current_function = 'B';
+        else if(get_name_current_function() == 'B')
+            m_name_current_function = 'A';
+        else throw std::runtime_error("Problem in switching functions: current function has an invalid name");
+    }  catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        abort();
+    }
+
 }
 
 
@@ -138,15 +146,24 @@ double dummy_function(std::vector<double> input)
 
 void switch_env_function(environment &e)
 {
-  if(e.get_name_current_function()=='A'){
-      e.change_env_function(e.get_env_function_B());
-      e.switch_name_current_function();
+    try
+    {
+        if(e.get_name_current_function()=='A'){
+            e.change_env_function(e.get_env_function_B());
+            e.switch_name_current_function();
+          }
+        else if (e.get_name_current_function()=='B'){
+          e.change_env_function(e.get_env_function_A());
+          e.switch_name_current_function();
+        }
+        else throw std::runtime_error("Error while switching functions: current function has invalid name");
     }
-  else if (e.get_name_current_function()=='B'){
-    e.change_env_function(e.get_env_function_A());
-    e.switch_name_current_function();
-  }
-  else throw;
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        abort();
+    }
+
 }
 
 
