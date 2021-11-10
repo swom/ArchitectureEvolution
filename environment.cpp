@@ -1,13 +1,14 @@
 #include "environment.h"
 #include "utilities.h"
 #include <cassert>
-
+#include <iostream>
 
 environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
     m_env_function_A{env_functionA},
     m_env_function_B{env_functionB},
-    m_current_function{env_functionA}
+    m_current_function{env_functionA},
+    m_name_current_function{'A'}
 {
 
 
@@ -19,7 +20,8 @@ environment::environment(env_param e_p):
     m_cue_distribution{0., 1.},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
-    m_current_function{e_p.env_function_A}
+    m_current_function{e_p.env_function_A},
+    m_name_current_function{'A'}
 {
 
 
@@ -41,6 +43,23 @@ bool operator== (const environment& lhs, const environment& rhs)
   bool env_function_B = are_same_env_functions(lhs.get_env_function_B(), rhs.get_env_function_B());
 
   return cue_distrib && env_function_A && env_function_B;
+}
+
+void environment::switch_name_current_function()
+{
+    try
+    {
+        if(get_name_current_function() == 'A')
+            m_name_current_function = 'B';
+        else if(get_name_current_function() == 'B')
+            m_name_current_function = 'A';
+        else throw std::runtime_error("Problem in switching functions: current function has an invalid name");
+    }  catch (const std::exception& exc)
+    {
+        std::cerr << exc.what() << std::endl;
+        abort();
+    }
+
 }
 
 
@@ -92,12 +111,26 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 
 void switch_env_function(environment &e)
 {
-  if(are_same_env_functions(e.get_current_function(), e.get_env_function_A())){
-      e.change_env_function(e.get_env_function_B());
+    try
+    {
+        if(e.get_name_current_function()=='A'){
+            e.change_env_function(e.get_env_function_B());
+            e.switch_name_current_function();
+          }
+        else if (e.get_name_current_function()=='B'){
+          e.change_env_function(e.get_env_function_A());
+          e.switch_name_current_function();
+        }
+        else throw std::runtime_error("Error while switching functions: current function has invalid name");
     }
-  else
-    e.change_env_function(e.get_env_function_A());
+    catch (const std::exception& exc)
+    {
+        std::cerr << exc.what() << std::endl;
+        abort();
+    }
+
 }
+
 
 
 

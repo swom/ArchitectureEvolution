@@ -86,11 +86,11 @@ bool are_same_distribution(std::uniform_real_distribution<double>lhs,
 }
 
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
-                            const std::function<double(std::vector<double>)> &rhs, int n_repeat)
+                            const std::function<double(std::vector<double>)> &rhs, int n_repeats)
 {
   std::vector<std::vector<double>> input_series;
 
-  for(int i = 0; i != n_repeat; ++i)
+  for(int i = 0; i != n_repeats; ++i)
     {
       double j = i;
       std::vector<double> input{j+1, j+2, j+3};
@@ -100,7 +100,7 @@ bool are_same_env_functions(const std::function<double(std::vector<double>)> &lh
   std::vector<double> lhs_optimal;
   std::vector<double> rhs_optimal;
 
-  int repeats = n_repeat;
+  int repeats = n_repeats;
   for(int i = 0; i != repeats; i++)
   {
       lhs_optimal.push_back(lhs(input_series[i]));

@@ -130,6 +130,11 @@ double find_min_fitness(const simulation&s)
     return min_ind->get_fitness();
 }
 
+double identity_first_element(const std::vector<double> &vector)
+{
+    return vector[0];
+}
+
 bool is_environment_changing (simulation &s) {
 
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
@@ -159,7 +164,7 @@ void tick(simulation &s)
 
     if(is_environment_changing(s)){
 
-        //another issue is taking care of that
+        switch_optimal_function(s);
     }
 
     if(get_inds(s).size()){
@@ -248,12 +253,20 @@ void assign_new_inputs(simulation &s)
 
 void switch_optimal_function(simulation &s)
 {
-  switch_env_function(s.get_env());
+    switch_env_function(s.get_env());
 }
 
 size_t get_inds_input_size(const simulation &s)
-{return get_inds_input(s).size();
-  }
+
+{
+    return get_inds_input(s).size();
+}
+
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s)
+{
+    auto e = s.get_env();
+    return e.get_current_function();
+}
 
 
 #ifndef NDEBUG
@@ -345,16 +358,39 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-//#define FIX_ISSUE_30
-#ifdef FIX_ISSUE_30
+//#define FIX_ISSUE_68
+#ifdef FIX_ISSUE_68
+    ///Ex issue #30 test
+    ///#define FIX_ISSUE_30
+    ///#ifdef FIX_ISSUE_30
+
     ///individuals in a pop are selected based on how closely they match the current_env_target_value
     {
+        std::function<double(std::vector<double>)> identity{identity_first_element};
+
+        ///default func_A is already identity
+        env_param identity_env {};
+        identity_env.env_function_A = identity;
+        assert(are_same_env_functions(identity_env.env_function_A, identity));
+
+        auto identity_net = net_param{{1,1}, linear};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net};
+
         int pop_size = 2;
-        simulation s{0,0, pop_size};
+        auto minimal_pop = pop_param{pop_size, 0, 0};
+
+
+        simulation s{all_params{
+                identity_env,
+                identity_ind,
+                minimal_pop,
+                sim_param{}
+            }};
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_current_target_value(s, response(get_nth_ind(s, best_ind))[0]);
         auto best_net = get_nth_ind_net(s, best_ind);
         auto resp_best = response(get_nth_ind(s, best_ind))[0];
 
@@ -363,8 +399,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         change_nth_ind_net(s, worst_ind, worst_net);
         auto resp_worst = response(get_nth_ind(s, worst_ind))[0];
 
-        assert(resp_best == get_current_env_value(s));
-        assert(resp_worst != get_current_env_value(s));
+        assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
+        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
+
 
         select_inds(s);
 
@@ -376,37 +413,58 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//    ///Fitness of individuals is calculated based on how close they are to the current target value
-//    {
-//        int pop_size = 2;
-//        simulation s{pop_size};
 
-//        size_t first_ind = 0;
-//        size_t second_ind = 1;
-//        change_all_weights_nth_ind(s, first_ind, 1);
-//        change_all_weights_nth_ind(s, second_ind, 0.99);
+//#define FIX_ISSUE_73
+#ifdef FIX_ISSUE_73
+
+    ///Fitness of individuals is calculated based on how close they are to the current optimal output
+    {
+
+        std::function<double(std::vector<double>)> identity{identity_first_element};
+        env_param identity_env {};
+        identity_env.env_function_A = identity;
+        assert(are_same_env_functions(identity_env.env_function_A, identity));
+
+        auto identity_net = net_param{{1,1}, linear};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net};
 
 
-//        //change target value to match output of ind 0 net
-//        change_current_target_value(s, response(get_nth_ind(s, 0))[0]);
+        int pop_size = 2;
+        auto minimal_pop = pop_param{pop_size, 0, 0};
 
-//        calc_fitness(s);
 
-//        ///ind 0 response should match exactly the target value therefore it will have fitness 1 (max)
-//        auto first_ind_fit =  get_nth_ind_fitness(s,0) ;
-//        assert(are_equal_with_tolerance( first_ind_fit, 1));
+        simulation s{all_params{
+                identity_env,
+                identity_ind,
+                minimal_pop,
+                sim_param{}
+            }};
 
-//        ///ind 1 response is 0, therefore its fitness would be the lowest in all the population
-//        auto first_response = response(get_nth_ind(s, 0))[0];
-//        auto second_response = response(get_nth_ind(s, 1))[0];
-//        assert(!are_equal_with_tolerance(first_response, second_response));
+        size_t first_ind = 0;
+        size_t second_ind = 1;
+        change_all_weights_nth_ind(s, second_ind, 0.99);
+
+        calc_fitness(s);
+
+        ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
+        auto first_ind_fit =  get_nth_ind_fitness(s,0) ;
+        assert(are_equal_with_tolerance( first_ind_fit, 1));
+
+        ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
+        auto first_response = response(get_nth_ind(s, 0))[0];
+        auto second_response = response(get_nth_ind(s, 1))[0];
+        assert(!are_equal_with_tolerance(first_response, second_response));
 
 //        auto second_ind_fit =  get_nth_ind_fitness(s,1) ;
 //        auto min_fit = find_min_fitness(s);
 
 //        assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
-//    }
+    }
+    #endif
+
 
     //#define FIX_ISSUE_34
     {
@@ -451,28 +509,29 @@ void test_simulation() noexcept//!OCLINT test may be many
 //#define FIX_ISSUE_39
 //#ifdef FIX_ISSUE_39
 
-//    {
-//        simulation s{0};
-//        int repeats =  100000;
-//        auto previous_env_value = get_current_env_value(s);
+    {
+        simulation s{0};
+        environment &e = s.get_env();
+        int repeats =  100000;
+        auto previous_env_function = e.get_name_current_function();
 
-//        int number_of_env_change = 0;
+        int number_of_env_change = 0;
 
-//        for( int i = 0; i != repeats; i++)
-//        {
-//            tick(s);
-//            if(previous_env_value != get_current_env_value(s))
-//            {
-//                previous_env_value = get_current_env_value(s);
-//                number_of_env_change++;
-//            }
-//        }
+        for( int i = 0; i != repeats; i++)
+        {
+            tick(s);
+            if(previous_env_function != e.get_name_current_function())
+            {
+                previous_env_function = e.get_name_current_function();
+                number_of_env_change++;
+            }
+        }
 
-//        auto expected_changes = s.get_change_freq() * repeats;
-//        assert( number_of_env_change - expected_changes < repeats / 1000 &&
-//                number_of_env_change - expected_changes > -repeats / 1000);
-//    }
-//#endif
+
+        auto expected_changes = s.get_change_freq() * repeats;
+        assert( number_of_env_change - expected_changes < repeats / 1000 &&
+                number_of_env_change - expected_changes > -repeats / 1000);
+    }
 
 #define FIX_ISSUE_40
 #ifdef FIX_ISSUE_40
