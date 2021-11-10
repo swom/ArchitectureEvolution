@@ -60,9 +60,9 @@ void environment::switch_name_current_function()
         else if(get_name_current_function() == 'B')
             m_name_current_function = 'A';
         else throw std::runtime_error("Problem in switching functions: current function has an invalid name");
-    }  catch (const std::exception& e)
+    }  catch (const std::exception& exc)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << exc.what() << std::endl;
         abort();
     }
 
@@ -158,9 +158,9 @@ void switch_env_function(environment &e)
         }
         else throw std::runtime_error("Error while switching functions: current function has invalid name");
     }
-    catch (const std::exception& e)
+    catch (const std::exception& exc)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << exc.what() << std::endl;
         abort();
     }
 
