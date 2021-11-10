@@ -280,7 +280,7 @@ size_t get_inds_input_size(const simulation &s)
 
 std::function<double(std::vector<double>)> get_current_env_function(const simulation &s)
 {
-    environment e = s.get_env();
+    auto e = s.get_env();
     return e.get_current_function();
 }
 
