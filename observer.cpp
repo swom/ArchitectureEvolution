@@ -9,15 +9,15 @@ observer::observer()
 
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
-    return lhs.e_p.targetA == rhs.e_p.targetA &&
-           lhs.e_p.targetB == rhs.e_p.targetB &&
-           lhs.i_p.net_par.net_arc ==  rhs.i_p.net_par.net_arc &&
+    return lhs.i_p.net_par.net_arc ==  rhs.i_p.net_par.net_arc &&
            lhs.p_p.mut_rate == rhs.p_p.mut_rate &&
            lhs.p_p.mut_step == rhs.p_p.mut_step &&
            lhs.p_p.number_of_inds == rhs.p_p.number_of_inds &&
            lhs.s_p.change_freq == rhs.s_p.change_freq &&
            lhs.s_p.seed == rhs.s_p.seed &&
-           lhs.s_p.selection_strength == rhs.s_p.selection_strength;
+           lhs.s_p.selection_strength == rhs.s_p.selection_strength &&
+           are_same_env_functions(lhs.e_p.env_function_A, rhs.e_p.env_function_A)&&
+           are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
 
 }
 
@@ -28,11 +28,10 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 
 
 
-void observer::store_avg_fit_and_env(const simulation& s)
+void observer::store_avg_fit(const simulation& s)
 {
     m_avg_fitnesses.push_back(avg_fitness(s));
     m_var_fitnesses.push_back(var_fitness(s));
-    m_env_values.push_back(get_current_env_value(s));
 }
 
 void observer::save_best_n_inds(const simulation &s, int n)
@@ -55,7 +54,7 @@ void exec(simulation& s , observer& o)
     for (int i = 0; i < s.get_n_gen(); i++)
     {
         tick (s);
-        o.store_avg_fit_and_env(s);
+        o.store_avg_fit(s);
         if(i % 1000 == 0)
         {
             o.save_best_n_inds(s,10);
@@ -77,7 +76,7 @@ void test_observer()
         observer o;
         //Give sim some non-default params
 
-        env_param e_p{132465, 123465, env_func_1, env_func_2};
+        env_param e_p{env_func_2, env_func_1};
         all_params params = {e_p,{},{},{}};
 
         simulation s{params};
