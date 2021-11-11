@@ -373,10 +373,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
-        assert(net_behaves_like_the_function(change_all_weights(identity_net, 1), identity));
+        auto identity_net_param = net_param{{1,1}, linear};
+        network identity_net {identity_net_param};
+        identity_net = change_all_weights(identity_net, 1);
 
-        auto identity_ind = ind_param{identity_net};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net_param};
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
@@ -427,10 +430,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
-        assert(net_behaves_like_the_function(change_all_weights(identity_net, 1), identity));
+        auto identity_net_param = net_param{{1,1}, linear};
+        network identity_net {identity_net_param};
+        identity_net = change_all_weights(identity_net, 1);
 
-        auto identity_ind = ind_param{identity_net};
+        assert(net_behaves_like_the_function(identity_net, identity));
+
+        auto identity_ind = ind_param{identity_net_param};
 
 
         int pop_size = 2;

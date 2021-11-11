@@ -111,34 +111,3 @@ bool are_same_env_functions(const std::function<double(std::vector<double>)> &lh
 
 }
 
-bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats)
-{
-    std::vector<std::vector<double>> input_series;
-    size_t input_size = n.get_input_size();
-
-    double k = 0.;
-    for(int i = 0; i != n_repeats; ++i)
-      {
-        std::vector<double> input;
-        for(size_t j = 0; j != input_size; ++j){
-        input.push_back(k + j);
-        }
-        input_series.push_back(input);
-        ++k;
-      }
-
-    std::vector<double> n_output;
-    std::vector<double> f_output;
-
-    assert(response(n, input_series[0]).size() == 1);
-
-    int repeats = n_repeats;
-    for(int i = 0; i != repeats; i++)
-    {
-        n_output.push_back(response(n, input_series[i])[0]);
-        f_output.push_back(f(input_series[i]));
-    }
-
-    return n_output == f_output;
-
-}

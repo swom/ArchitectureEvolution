@@ -116,6 +116,10 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
 
 std::vector<double> response(const network& n, std::vector<double> input);
 
+///Checks if a network and a function return the same output
+bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats = 1000);
+
+
 
 void test_network();
 
