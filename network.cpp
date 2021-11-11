@@ -297,6 +297,28 @@ void test_network() //!OCLINT
     std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
     }
 
+    #define FIX_ISSUE_88
+    #ifdef FIX_ISSUE_88
+     /// We can return a vector of double with weights from a vector of weights
+    {
+    net_param n_p{};
+    network n{n_p};
+
+    auto weights = n.get_net_weights();
+    std::vector<std::vector<std::vector<double>>> weights_as_double;
+
+    weights_as_double = convert_to_double(weights);
+
+    for(size_t i = 1; i != n_p.net_arc.size(); i++)
+      {
+        size_t n_nodes_prev_layer = n_p.net_arc[i-1];
+        for(int j = 0; j != n_p.net_arc[i]; j++)
+        {
+            for (size_t k = 0; k != n_nodes_prev_layer; k++)
+              assert(weights[i][j][k].get_weight() == weights_as_double[i][j][k]);
+        }
+      }
+    }
     #endif
 }
 #endif
