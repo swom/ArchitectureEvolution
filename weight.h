@@ -18,6 +18,12 @@ private:
   bool m_is_active;
 };
 
+bool operator== (const weight& lhs, const weight& rhs);
+
+//I am not sure when this would be needed but some files
+//included by json.hpp would throw a fit when i didn't have it
+double operator* (double& number, const weight& weight_to_multiply);
+double operator+ (double& number, const weight& weight_to_add);
 
 
 ///Free function that returns weight

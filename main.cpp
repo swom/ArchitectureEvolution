@@ -6,13 +6,13 @@
 
 #ifndef NDEBUG
 void test() {
-    test_environment();
-    test_individual();
+//    test_environment();
+//    test_individual();
     test_network();
-    test_observer();
-    test_population();
-    test_simulation();
-    test_weight();
+//    test_observer();
+//    test_population();
+//    test_simulation();
+//    test_weight();
 }
 #endif
 
@@ -42,7 +42,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
 
     simulation s{params};
     observer o;
-    exec(s, o);
+    //exec(s, o);
 
     save_json(o,
               convert_arc_to_string(params.i_p.net_par.net_arc) +

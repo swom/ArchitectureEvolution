@@ -138,18 +138,18 @@ std::vector<double> extract_fitnesses(const std::vector<individual>& inds)
     return fitnesses;
 }
 
-void select_new_pop(population& p,
-                    const rndutils::mutable_discrete_distribution<>& mut_dist,
-                    std::mt19937_64& rng)
-{
-    for( size_t i = 0; i != p.get_inds().size(); i++)
-    {
-        p.get_new_inds()[i] = p.get_inds()[mut_dist(rng)];
-        p.get_new_inds()[i].mutate(p.get_mut_rate(),
-                                   p.get_mut_step(),
-                                   rng);
-    }
-}
+//void select_new_pop(population& p,
+//                    const rndutils::mutable_discrete_distribution<>& mut_dist,
+//                    std::mt19937_64& rng)
+//{
+//    for( size_t i = 0; i != p.get_inds().size(); i++)
+//    {
+//        p.get_new_inds()[i] = p.get_inds()[mut_dist(rng)];
+//        p.get_new_inds()[i].mutate(p.get_mut_rate(),
+//                                   p.get_mut_step(),
+//                                   rng);
+//    }
+//}
 
 void swap_new_with_old_pop(population& p)
 {
@@ -199,14 +199,14 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
     return fitness_inds;
 }
 
-void reproduce(population& p, std::mt19937_64& rng)
-{
-    auto mut_dist = create_mut_dist_fit(p);
+//void reproduce(population& p, std::mt19937_64& rng)
+//{
+//    auto mut_dist = create_mut_dist_fit(p);
 
-    select_new_pop(p, mut_dist, rng);
+//    select_new_pop(p, mut_dist, rng);
 
-    swap_new_with_old_pop(p);
-}
+//    swap_new_with_old_pop(p);
+//}
 
 void set_fitness_inds(population& p, const std::vector<double>& fitness_vector)
 {
@@ -287,28 +287,28 @@ void test_population() noexcept
         assert(p.get_new_inds().size() == p.get_inds().size());
     }
 
-#define FIX_ISSUE_32
-#ifdef FIX_ISSUE_32
-    ///Individuals with higher fitness are preferentially selected for the next generation
-    {
-        int n_inds = 2;
-        size_t first_ind = 0;
-        size_t second_ind = 1;
-        population p{n_inds};
-        std::mt19937_64 rng;
+//#define FIX_ISSUE_32
+//#ifdef FIX_ISSUE_32
+//    ///Individuals with higher fitness are preferentially selected for the next generation
+//    {
+//        int n_inds = 2;
+//        size_t first_ind = 0;
+//        size_t second_ind = 1;
+//        population p{n_inds};
+//        std::mt19937_64 rng;
 
-        //make first ind net recognizable
-        auto new_net =  change_all_weights(get_nth_ind_net(p,first_ind), 123456);
-        change_nth_ind_net(p, first_ind, new_net);
+//        //make first ind net recognizable
+//        auto new_net =  change_all_weights(get_nth_ind_net(p,first_ind), 123456);
+//        change_nth_ind_net(p, first_ind, new_net);
 
-        set_nth_ind_fitness(p, first_ind, 1);
-        set_nth_ind_fitness(p, second_ind, 0);
+//        set_nth_ind_fitness(p, first_ind, 1);
+//        set_nth_ind_fitness(p, second_ind, 0);
 
-        reproduce(p, rng);
+//        reproduce(p, rng);
 
-        assert(all_nets_equals_to(p, new_net));
-    }
-#endif
+//        assert(all_nets_equals_to(p, new_net));
+//    }
+//#endif
 
     //#define FIX_ISSUE_37
 

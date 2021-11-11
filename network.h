@@ -116,6 +116,9 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
 
 std::vector<double> response(const network& n, std::vector<double> input);
 
+std::vector<std::vector<std::vector<double>>> convert_to_double
+  (const std::vector<std::vector<std::vector<weight>>> &weights);
+
 
 void test_network();
 

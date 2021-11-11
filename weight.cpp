@@ -9,6 +9,26 @@ weight::weight(double weight_init, bool is_active):
 
 }
 
+bool operator== (const weight& lhs, const weight& rhs)
+{
+    return lhs.get_weight() == rhs.get_weight() &&
+      lhs.is_active() == rhs.is_active();
+}
+
+
+
+double operator* (double& number, const weight& weight_to_multiply)
+{
+  double new_weight = weight_to_multiply.get_weight()*number;
+  return new_weight;
+}
+
+double operator+ (double& number, const weight& weight_to_add)
+{
+  double new_weight = weight_to_add.get_weight()+number;
+  return new_weight;
+}
+
 double get_weight(const weight &w)
 {
  return w.get_weight();
