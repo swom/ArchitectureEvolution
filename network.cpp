@@ -286,5 +286,17 @@ void test_network() //!OCLINT
         }
 
     }
+
+    //#define FIX_ISSUE_XX
+    #ifdef FIX_ISSUE_XX
+     /// A network contains a vector of vectors of vectors of weight objects
+    {
+    net_param n_p{};
+    network n{n_p};
+
+    std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
+    }
+
+    #endif
 }
 #endif
