@@ -3,11 +3,8 @@
 #include <cassert>
 #include <iostream>
 
-environment::environment(double target_valueA, double target_valueB,
-                         std::function<double(std::vector<double>)> env_functionA,
+environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
-    m_ref_target_values{target_valueA,target_valueB},
-    m_current_target_value {target_valueA},
     m_env_function_A{env_functionA},
     m_env_function_B{env_functionB},
     m_current_function{env_functionA},
@@ -20,8 +17,6 @@ environment::environment(double target_valueA, double target_valueB,
 }
 
 environment::environment(env_param e_p):
-    m_ref_target_values{e_p.targetA,e_p.targetB},
-    m_current_target_value {e_p.targetA},
     m_cue_distribution{0., 1.},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
@@ -38,17 +33,16 @@ environment::environment(env_param e_p):
 
 bool operator== (const environment& lhs, const environment& rhs)
 {
-  bool ref_t_values = lhs.get_ref_target_values() == rhs.get_ref_target_values();
-  bool current_t_value = are_equal_with_tolerance(lhs.get_current_target_value(), rhs.get_current_target_value());
-
   std::uniform_real_distribution<double> lhs_dist = lhs.get_cue_distribtion();
   std::uniform_real_distribution<double> rhs_dist = rhs.get_cue_distribtion();
 
   bool cue_distrib = are_same_distribution(lhs_dist, rhs_dist);
 
-  bool env_function = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
+  bool env_function_A = are_same_env_functions(lhs.get_env_function_A(), rhs.get_env_function_A());
 
-  return ref_t_values && current_t_value && cue_distrib && env_function;
+  bool env_function_B = are_same_env_functions(lhs.get_env_function_B(), rhs.get_env_function_B());
+
+  return cue_distrib && env_function_A && env_function_B;
 }
 
 void environment::switch_name_current_function()
@@ -80,31 +74,6 @@ double calculate_optimal(const environment &e, std::vector<double> input)
 //  m_optimal_output = calculate_optimal();
 //}
 
-
-double get_target_valueA(const environment& e)
-{
-  return e.get_ref_target_values()[0];
-}
-
-double get_target_valueB(const environment& e)
-{
-  return e.get_ref_target_values()[1];
-}
-
-void switch_target(environment &e){
-  //Check which target value is the current one and switch it over to the other
-
-  if (are_equal_with_tolerance(e.get_current_target_value(),
-                               get_target_valueA(e))
-      )
-    {
-      e.set_current_target_value(get_target_valueB(e));
-    }
-  else
-    {
-      e.set_current_target_value(get_target_valueA(e));
-    }
-}
 
 std::vector<double> create_n_inputs(int n_inputs)
 {
@@ -139,10 +108,6 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
     return input_vector;
 }
 
-double dummy_function(std::vector<double> input)
-{
-  return input[0]+123;
-}
 
 void switch_env_function(environment &e)
 {
@@ -173,74 +138,6 @@ void switch_env_function(environment &e)
 void test_environment() noexcept
 {
 
-  //an environment has a m_current_target_value member
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
-    assert(e.get_current_target_value() < 0 || e.get_current_target_value() > 0);
-  }
-
-
-  //an env has 2 reference target values;
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
-    assert(e.get_ref_target_values().size() == 2);
-  }
-
-  //an env can be initialized with 2 reference target values
-  {
-    double target_valueA = 0.123456;
-    double target_valueB = 0.654321;
-    environment e{target_valueA, target_valueB};
-
-    assert(get_target_valueA(e) - target_valueA < 0.0001
-           && get_target_valueA(e) - target_valueA > -0.0001);
-
-    assert(get_target_valueB(e) - target_valueB < 0.0001
-           && get_target_valueB(e) - target_valueB > -0.0001);
-  }
-
-
-
-  //Current target value is initialized to the first of the 2 target values
-  {
-    double targetA = 0.123456;
-    double targetB = 0.654321;
-    environment e{targetA,targetB};
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-    assert(are_not_equal_with_tolerance(e.get_current_target_value(), targetB));
-  }
-
-
-  //ISSUE_25
-  //An environment can switch target values
-  {
-    double targetA = 0.123456;
-    double targetB = 0.654321;
-    environment e{targetA,targetB};
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-    switch_target(e);
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetB));
-    switch_target(e);
-    assert(are_equal_with_tolerance(e.get_current_target_value(), targetA));
-  }
-
-
-  //#define FIX_ISSUE_35
-
-  {
-    double targetA = 123456;
-    double targetB = 46589;
-
-    env_param e_p{targetA, targetB};
-    environment e{e_p};
-    assert(are_equal_with_tolerance(get_target_valueA(e), targetA));
-    assert(are_equal_with_tolerance(get_target_valueB(e), targetB));
-
-  }
 
 #define FIX_ISSUE_5
     #ifdef FIX_ISSUE_5
@@ -370,35 +267,23 @@ void test_environment() noexcept
     #ifdef FIX_ISSUE_28
             {
               //Two equal environments returns true
-                environment lhs{321, 654};
-                environment rhs{123, 456};
+                environment lhs{env_func_1, env_func_2};
+                environment rhs = lhs;
 
                 assert(lhs == lhs);
 
-              //Two environments that differ in their reference target values returns false
-              //Testing this would also require a function to change it
-              //but idk if that's super relevant to have
-              //So maybe for now this test can be slightly less rigorous
-
-
-              //Two environments that differ in their current target values returns false
-                rhs.set_current_target_value(lhs.get_current_target_value() + 123);
-                //I checked and there is no way to do this via the current constructor. The set function already existed, I didn't create it.
-
-                assert (!(lhs == rhs));
-                rhs = lhs;
-
-
-              //Two environments that differ in their cue distribution returns false
+                //Two environments that differ in their cue distribution returns false
                 std::uniform_real_distribution<double> new_dist{1.23, 4.56};
                 rhs.change_uniform_dist(new_dist);
                 assert (!(lhs == rhs));
-                rhs = lhs;
 
-              //Two environments that differ in their function returns false
-                environment rhs2{321, 654, dummy_function};
+
+              //Two environments that differ in their function A or B returns false
+                environment rhs2{env_func_2, env_func_2};
+                environment rhs3{env_func_1, env_func_1};
 
                 assert (!(lhs == rhs2));
+                assert (!(lhs == rhs3));
 
             }
     #endif
@@ -477,6 +362,29 @@ void test_environment() noexcept
           assert(!are_same_env_functions(func_A,func_B));
       }
   #endif
+
+#define FIX_ISSUE_77
+#ifdef FIX_ISSUE_77
+
+    ///The current function matches with the name of the current function
+    {
+        //Create an environment with non-default functions
+        env_param param{};
+        param.env_function_A = env_func_2;
+        param.env_function_B = env_func_1;
+        environment e{param};
+
+        std::function<double(std::vector<double>)> current_function = e.get_current_function();
+        assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
+
+        switch_env_function(e);
+
+        current_function = e.get_current_function();
+        assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));
+
+
+    }
+#endif
 
 
 }
