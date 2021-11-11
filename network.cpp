@@ -12,11 +12,11 @@ network::network(net_param n_p):
 {
     for (size_t i = 1; i != n_p.net_arc.size(); i++ )
     {
-        std::vector<std::vector<double>>temp_layer_vector;
+        std::vector<std::vector<weight>>temp_layer_vector;
         size_t n_nodes_prev_layer = n_p.net_arc[i-1];
         for(int j = 0; j != n_p.net_arc[i]; j++)
         {
-            std::vector<double> temp_weights(n_nodes_prev_layer, 0);
+            std::vector<weight> temp_weights(n_nodes_prev_layer);
             temp_layer_vector.push_back(temp_weights);
         }
 
@@ -35,11 +35,11 @@ network::network(std::vector<int> nodes_per_layer, std::function<double(double)>
 {
     for (size_t i = 1; i != nodes_per_layer.size(); i++ )
     {
-        std::vector<std::vector<double>>temp_layer_vector;
+        std::vector<std::vector<weight>>temp_layer_vector;
         size_t n_nodes_prev_layer = nodes_per_layer[i-1];
         for(int j = 0; j != nodes_per_layer[i]; j++)
         {
-            std::vector<double> temp_weights(n_nodes_prev_layer, 0);
+            std::vector<weight> temp_weights(n_nodes_prev_layer);
             temp_layer_vector.push_back(temp_weights);
         }
 
@@ -73,9 +73,9 @@ network change_all_weights(network n, double new_weight)
     return n;
 }
 
-std::vector<double> register_n_mutations(network n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
+std::vector<weight> register_n_mutations(network n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
-    std::vector<double> networks_weights;
+    std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
     {
 
@@ -86,7 +86,7 @@ std::vector<double> register_n_mutations(network n, double mut_rate, double mut_
             for(auto& node : layer)
                 for(auto& weight : node)
                 {
-                    if(weight < -0.0001 || weight > 0.0001)
+                    if(weight.get_weight() < -0.0001 || weight.get_weight() > 0.0001)
                         networks_weights.push_back(weight);
                 }
     }
@@ -287,7 +287,7 @@ void test_network() //!OCLINT
 
     }
 
-    //#define FIX_ISSUE_XX
+    #define FIX_ISSUE_XX
     #ifdef FIX_ISSUE_XX
      /// A network contains a vector of vectors of vectors of weight objects
     {
