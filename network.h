@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 #include "json.hpp"
+#include "weight.h"
 
 
 double sigmoid(double x);

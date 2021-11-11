@@ -12,6 +12,7 @@ void test() {
     test_observer();
     test_population();
     test_simulation();
+    test_weight();
 }
 #endif
 

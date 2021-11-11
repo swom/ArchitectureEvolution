@@ -10,7 +10,8 @@ HEADERS +=  \
   population.h \
   rndutils.hpp \
   simulation.h \
-  utilities.h
+  utilities.h \
+  weight.h
 
 
 SOURCES +=  \
@@ -22,7 +23,8 @@ SOURCES +=  \
   parser.cpp \
   population.cpp \
   simulation.cpp \
-  utilities.cpp
+  utilities.cpp \
+  weight.cpp
 
 
 CONFIG += c++17
