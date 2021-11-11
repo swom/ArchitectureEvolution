@@ -287,8 +287,8 @@ void test_network() //!OCLINT
 
     }
 
-    #define FIX_ISSUE_XX
-    #ifdef FIX_ISSUE_XX
+    #define FIX_ISSUE_87
+    #ifdef FIX_ISSUE_87
      /// A network contains a vector of vectors of vectors of weight objects
     {
     net_param n_p{};
