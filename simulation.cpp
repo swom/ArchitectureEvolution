@@ -153,10 +153,10 @@ simulation load_json(
     return s = json_in;
 }
 
-//void reproduce(simulation& s)
-//{
-//    reproduce(s.get_pop(), s.get_rng());
-//}
+void reproduce(simulation& s)
+{
+    reproduce(s.get_pop(), s.get_rng());
+}
 
 //void tick(simulation &s)
 //{
