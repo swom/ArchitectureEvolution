@@ -13,6 +13,8 @@ public:
   ///Returns a bool indicating whether this connection is active
   const bool &is_active() const noexcept {return m_is_active;}
 
+  void change_weight(double new_weight) {m_weight = new_weight;}
+
 private:
   double m_weight;
   bool m_is_active;
