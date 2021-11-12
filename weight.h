@@ -16,6 +16,8 @@ public:
 
   void change_weight(double new_weight) {m_weight = new_weight;}
 
+  void change_activation(double new_activation) {m_is_active = new_activation;}
+
 private:
   double m_weight;
   bool m_is_active;

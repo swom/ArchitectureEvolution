@@ -83,6 +83,7 @@ bool operator==(const network& lhs, const network& rhs);
 bool operator!=(const network& lhs, const network& rhs);
 
 network change_all_weights(network n, double new_weight);
+network change_all_weights(network n, weight new_weight);
 
 ///Mutates a network n times with given mutation
 /// rate and step and returns vector all mutated weights
@@ -100,10 +101,11 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
 
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
+            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),
-                                       n.get_net_weights()[layer][node].begin(),
+                                       w.begin(),
                                        0.0);
 
             output[node] = fun(node_value);

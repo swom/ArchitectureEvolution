@@ -73,6 +73,18 @@ network change_all_weights(network n, double new_weight)
     return n;
 }
 
+network change_all_weights(network n, weight new_weight)
+{
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                weight.change_weight(new_weight.get_weight());
+                weight.change_activation(new_weight.is_active());
+            }
+    return n;
+}
+
 std::vector<weight> register_n_mutations(network n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
     std::vector<weight> networks_weights;
