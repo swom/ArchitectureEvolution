@@ -300,5 +300,24 @@ void test_network() //!OCLINT
     }
     #endif
 
+    #define FIX_ISSUE_96
+    #ifdef FIX_ISSUE_96
+     /// The response function works as intended when some connections are switched off
+    {
+    auto very_simple_nodes = std::vector<int>{1,2,1};
+    auto input = std::vector<double>{1};
+
+    //Comparing a default network with weights = 0 to a network with other weights, all switched off
+    network n_default{very_simple_nodes};
+    auto output_default = response(n_default, input, &linear);
+
+    weight new_weight_value{1.0, false};
+    network n_changed = change_all_weights(n_default, new_weight_value);
+    auto output_changed = response(n_changed,input, &linear);
+
+    assert(output_default == output_changed);
+    }
+    #endif
+
 }
 #endif
