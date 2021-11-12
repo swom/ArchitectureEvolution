@@ -48,7 +48,7 @@ void test_weight() noexcept
   #define FIX_ISSUE_80
   #ifdef FIX_ISSUE_80
   {
-   weight w;
+   weight w{1};
    const double& actual_weight = w.get_weight();
    const bool& var_is_active = w.is_active();
    assert(var_is_active && actual_weight);
