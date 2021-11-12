@@ -342,21 +342,5 @@ void test_network() //!OCLINT
     }
     #endif
 
-  #define FIX_ISSUE_89
-  #ifdef FIX_ISSUE_89
-  ///The weight of a weight object can be changed (without changing its activation state)
-  {
-    weight w{1, true};
-    weight w2{2, true};
-    weight w3{2, false};
-    assert (w != w2);
-
-    w.change_weight(2);
-
-    assert (w == w2);
-    assert (w != w3)
-  }
-  #endif
-
 }
 #endif

@@ -15,7 +15,10 @@ bool operator== (const weight& lhs, const weight& rhs)
       lhs.is_active() == rhs.is_active();
 }
 
-
+bool operator!= (const weight& lhs, const weight& rhs)
+{
+    return !(lhs == rhs);
+}
 
 double operator* (double& number, const weight& weight_to_multiply)
 {
@@ -55,6 +58,22 @@ void test_weight() noexcept
    const bool& free_is_active = is_active(w);
    assert(free_is_active  && free_actual_weight );
 
+  }
+  #endif
+
+  #define FIX_ISSUE_89
+  #ifdef FIX_ISSUE_89
+  ///The weight of a weight object can be changed (without changing its activation state)
+  {
+    weight w{1, true};
+    weight w2{2, true};
+    weight w3{2, false};
+    assert (w != w2);
+
+    w.change_weight(2);
+
+    assert (w == w2);
+    assert (w != w3);
   }
   #endif
 
