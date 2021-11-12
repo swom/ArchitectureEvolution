@@ -5,7 +5,7 @@
 class weight
 {
 public:
-  weight(double weight_init = 1, bool is_active = true);
+  weight(double weight_init = 0, bool is_active = true);
 
   ///Returns the weight of a connection
   const double &get_weight() const noexcept {return m_weight;}
