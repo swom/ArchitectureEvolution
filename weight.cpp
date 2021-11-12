@@ -55,6 +55,21 @@ std::vector<double> convert_to_double
   return double_vector;
 }
 
+std::vector<double> convert_to_double_or_zero
+  (const std::vector<weight> &weights)
+{
+  std::vector<double> double_vector;
+
+  for(size_t i = 0; i != weights.size(); i++)
+    {
+      if(weights[i].is_active()==true)
+        double_vector.push_back(weights[i].get_weight());
+      else
+        double_vector.push_back(0);
+    }
+  return double_vector;
+}
+
 #ifndef NDEBUG
 void test_weight() noexcept
 {

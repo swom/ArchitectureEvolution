@@ -1,5 +1,6 @@
 #ifndef WEIGHT_H
 #define WEIGHT_H
+#include <vector>
 
 
 class weight
@@ -33,6 +34,12 @@ double get_weight(const weight &w);
 
 ///Free function that whether a connection is active
 bool is_active(const weight &w);
+
+///Converts a vector of weights to a vector of double with the weights
+std::vector<double> convert_to_double(const std::vector<weight> &weights);
+
+///Converts a vector of weights to a vector of double with the weights and weights of inactive connections replaced with 0
+std::vector<double> convert_to_double_or_zero(const std::vector<weight> &weights);
 
 void test_weight() noexcept;
 
