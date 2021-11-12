@@ -1,5 +1,6 @@
 #ifndef WEIGHT_H
 #define WEIGHT_H
+#include "json.hpp"
 #include <vector>
 
 
@@ -7,6 +8,10 @@ class weight
 {
 public:
   weight(double weight_init = 0, bool is_active = true);
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(weight,
+                                 m_weight,
+                                 m_is_active);
 
   ///Returns the weight of a connection
   const double &get_weight() const noexcept {return m_weight;}

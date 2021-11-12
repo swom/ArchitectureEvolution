@@ -42,7 +42,7 @@ public:
     network (net_param n_p);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
-                                   m_input_size);
+                                   m_input_size, m_network_weights);
 
     ///Returns the activation function
     std::function<double(double)> get_activation_function() const noexcept{return m_activation_function;}
