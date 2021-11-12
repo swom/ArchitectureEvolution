@@ -42,7 +42,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
 
     simulation s{params};
     observer o;
-    //exec(s, o);
+    exec(s, o);
 
     save_json(o,
               convert_arc_to_string(params.i_p.net_par.net_arc) +
