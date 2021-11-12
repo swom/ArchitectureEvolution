@@ -137,10 +137,11 @@ std::vector<double> response(const network& n, std::vector<double> input)
 
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
+            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),
-                                       n.get_net_weights()[layer][node].begin(),
+                                       w.begin(),
                                        0.0);
 
             output[node] = n(node_value);
@@ -151,6 +152,7 @@ std::vector<double> response(const network& n, std::vector<double> input)
 
     return input;
 }
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
