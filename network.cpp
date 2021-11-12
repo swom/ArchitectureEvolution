@@ -152,25 +152,15 @@ std::vector<double> response(const network& n, std::vector<double> input)
     return input;
 }
 
-std::vector<std::vector<std::vector<double>>> convert_to_double
-  (const std::vector<std::vector<std::vector<weight>>> &weights)
+std::vector<double> convert_to_double
+  (const std::vector<weight> &weights)
 {
-  std::vector<std::vector<std::vector<double>>> double_vector;
+  std::vector<double> double_vector;
 
   for(size_t i = 0; i != weights.size(); i++)
     {
-      std::vector<std::vector<double>> temp_layer_weights;
-      for(size_t j = 0; j != weights[i].size(); j++)
-      {
-          std::vector<double> temp_node_weights;
-
-          for (size_t k = 0; k != weights[i][j].size(); k++){
-            temp_node_weights.push_back(weights[i][j][k].get_weight());
-      }
-          temp_layer_weights.push_back(temp_node_weights);
+      double_vector.push_back(weights[i].get_weight());
     }
-      double_vector.push_back(temp_layer_weights);
-  }
   return double_vector;
 }
 
@@ -322,22 +312,22 @@ void test_network() //!OCLINT
     #ifdef FIX_ISSUE_88
      /// We can return a vector of double with weights from a vector of weights
     {
-    net_param n_p{};
-    network n{n_p};
+    int vector_length = 10;
+    std::vector<weight> weights_vector;
 
-    auto weights = n.get_net_weights();
-    std::vector<std::vector<std::vector<double>>> weights_as_double;
 
-    weights_as_double = convert_to_double(weights);
+    for (int i = 0; i != vector_length; ++i){
+        weight w{(double)i};
+        weights_vector.push_back(w);
+      }
 
-    for(size_t i = 1; i != n_p.net_arc.size(); i++)
+    std::vector<double> weights_as_double;
+
+    weights_as_double = convert_to_double(weights_vector);
+
+    for(int i = 0; i != vector_length; i++)
       {
-        size_t n_nodes_prev_layer = n_p.net_arc[i-1];
-        for(int j = 0; j != n_p.net_arc[i]; j++)
-        {
-            for (size_t k = 0; k != n_nodes_prev_layer; k++)
-              assert(weights[i-1][j][k].get_weight() == weights_as_double[i-1][j][k]);
-        }
+              assert(weights_vector[i].get_weight() == weights_as_double[i]);
       }
     }
     #endif
