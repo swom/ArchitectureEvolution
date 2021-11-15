@@ -404,7 +404,6 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
-        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
 
         select_inds(s);
@@ -429,13 +428,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net_param = net_param{{1,1}, linear};
-        network identity_net {identity_net_param};
-        identity_net = change_all_weights(identity_net, 1);
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        potential_identity_net = change_all_weights(potential_identity_net, 1);
 
-        assert(net_behaves_like_the_function(identity_net, identity));
+        assert(net_behaves_like_the_function(potential_identity_net, identity));
 
-        auto identity_ind = ind_param{identity_net_param};
+        auto identity_ind = ind_param{potential_identity_net_param};
 
 
         int pop_size = 2;
@@ -454,8 +453,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_all_weights_nth_ind(s, first_ind, 1);
-        change_all_weights_nth_ind(s, second_ind, 0.95);
+        change_nth_ind_net(s, first_ind, potential_identity_net);
 
         calc_fitness(s);
 
@@ -468,7 +466,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto second_response = response(get_nth_ind(s, 1))[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
-        auto second_ind_fit =  get_nth_ind_fitness(s,1) ;
+        auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
         auto min_fit = find_min_fitness(s);
 
         assert(!are_equal_with_tolerance(first_ind_fit, second_ind_fit));
