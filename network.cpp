@@ -166,12 +166,13 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
         input.push_back(i + j);
         }
         assert(response(n, input).size() == 1);
-        n_output.push_back(response(n, input)[0]);
-        f_output.push_back(f(input));
+        if( (response(n, input) [0] != f(input)) 
+        {
+        return false
+        };
       }
-
-
-    return n_output == f_output;
+      
+    return true;
 
 }
 
