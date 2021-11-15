@@ -4,6 +4,7 @@ HEADERS +=  \
   Stopwatch.hpp \
   environment.h \
   individual.h \
+  json.hpp \
   network.h \
   observer.h \
   parser.h \
