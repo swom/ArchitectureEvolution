@@ -401,8 +401,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;
-        auto worst_net = change_all_weights(get_nth_ind_net(s,worst_ind), 100);
-        change_nth_ind_net(s, worst_ind, worst_net);
+        auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
         assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
