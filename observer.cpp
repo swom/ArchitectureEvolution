@@ -96,17 +96,27 @@ void test_observer()
 
     //Give sim some non-default inputs and optimal
     simulation s{};
-    assign_new_inputs(s);
-    s.update_optimal(calculate_optimal(s));
+    int n_repeats = 100;
 
-    assert(o.get_input() != s.get_input());
-    assert(o.get_optimal() != s.get_optimal());
+    for(int i = 0; i != n_repeats; ++i){
+        tick(s);
+        assert(o.get_input()[i] != s.get_input());
+        assert(o.get_optimal()[i] != s.get_optimal());
 
-    o.store_input(s);
-    o.store_optimal(s);
+        o.store_input(s);
+        o.store_optimal(s);
 
-    assert(o.get_input() == s.get_input());
-    assert(o.get_optimal() == s.get_optimal());
+        assert(o.get_input()[i] == s.get_input());
+        assert(o.get_optimal()[i] == s.get_optimal());
+    }
+
+    auto name = "obs_save_test";
+    save_json(o, name);
+    auto loaded_o = load_json(name);
+    assert(o.get_input() == loaded_o.get_input());
+    assert(o.get_optimal() == loaded_o.get_optimal());
+
+
   }
 #endif
 
