@@ -45,11 +45,11 @@ bool is_active(const weight &w)
 
 std::vector<double> convert_to_double (const std::vector<weight> &weights)
 {
-  std::vector<double> double_vector;
-
-  for(size_t i = 0; i != weights.size(); i++)
+  std::vector<double> double_vector(weights.size());
+ 
+ for(size_t i = 0; i != weights.size(); i++)
     {
-      double_vector.push_back(weights[i].get_weight());
+      double_vector[i] = weights[i].get_weight());
     }
   return double_vector;
 }
