@@ -397,7 +397,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        auto best_net = change_all_weights(get_nth_ind_net(s, best_ind), 1);
+        change_nth_ind_net(s, best_ind, identity_net);
+        auto best_net = get_nth_ind_net(s, best_ind);
         change_nth_ind_net(s, best_ind, best_net);
 
         size_t worst_ind = 1;
