@@ -43,8 +43,7 @@ bool is_active(const weight &w)
  return w.is_active();
 }
 
-std::vector<double> convert_to_double
-  (const std::vector<weight> &weights)
+std::vector<double> convert_to_double (const std::vector<weight> &weights)
 {
   std::vector<double> double_vector;
 
