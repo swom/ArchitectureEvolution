@@ -47,24 +47,24 @@ void save_json(const observer& o, const std::string& filename)
     f << json_out;
 }
 
-//void exec(simulation& s , observer& o)
-//{
-//    stopwatch::Stopwatch sw;
-//    o.store_par(s);
-//    for (int i = 0; i < s.get_n_gen(); i++)
-//    {
-//        tick (s);
-//        o.store_avg_fit(s);
-//        if(i % 1000 == 0)
-//        {
-//            o.save_best_n_inds(s,10);
-//        }
-//        if(i % 1000 == 0)
-//        {
-//            std::cout << "Cycle " << i << ". Elapsed: " << sw.lap<stopwatch::s>() << " seconds." << std::endl;
-//        }
-//    }
-//}
+void exec(simulation& s , observer& o)
+{
+    stopwatch::Stopwatch sw;
+    o.store_par(s);
+    for (int i = 0; i < s.get_n_gen(); i++)
+    {
+        tick (s);
+        o.store_avg_fit(s);
+        if(i % 1000 == 0)
+        {
+            o.save_best_n_inds(s,10);
+        }
+        if(i % 1000 == 0)
+        {
+            std::cout << "Cycle " << i << ". Elapsed: " << sw.lap<stopwatch::s>() << " seconds." << std::endl;
+        }
+    }
+}
 
 #ifndef NDEBUG
 void test_observer()

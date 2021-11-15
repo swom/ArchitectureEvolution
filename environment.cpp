@@ -69,12 +69,6 @@ double calculate_optimal(const environment &e, std::vector<double> input)
   return e.get_current_function()(input);
 }
 
-//void environment::update_optimal()
-//{
-//  m_optimal_output = calculate_optimal();
-//}
-
-
 std::vector<double> create_n_inputs(int n_inputs)
 {
   std::vector<double> input_vector;
