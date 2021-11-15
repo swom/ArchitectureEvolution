@@ -373,13 +373,13 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net_param = net_param{{1,1}, linear};
-        network identity_net {identity_net_param};
-        identity_net = change_all_weights(identity_net, 1);
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        potential_identity_net = change_all_weights(potential_identity_net, 1);
 
-        assert(net_behaves_like_the_function(identity_net, identity));
+        assert(net_behaves_like_the_function(potential_identity_net, identity));
 
-        auto identity_ind = ind_param{identity_net_param};
+        auto identity_ind = ind_param{potential_identity_net_param};
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
@@ -397,9 +397,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_nth_ind_net(s, best_ind, identity_net);
+        change_nth_ind_net(s, best_ind, potential_identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
-        change_nth_ind_net(s, best_ind, best_net);
 
         size_t worst_ind = 1;
         auto worst_net = change_all_weights(get_nth_ind_net(s,worst_ind), 100);
