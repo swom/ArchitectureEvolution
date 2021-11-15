@@ -279,7 +279,7 @@ void test_network() //!OCLINT
 
         std::vector<double> weights_as_doubles = convert_to_double(networks_weights);
 
-        auto mean = calc_mean(weights_as_doubles);
+        double mean = calc_mean(weights_as_doubles);
         double stdev = calc_stdev(weights_as_doubles);
 
         assert(mean - expected_mean_value < 0.01 && mean - expected_mean_value > -0.01);
