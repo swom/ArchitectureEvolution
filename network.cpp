@@ -286,5 +286,39 @@ void test_network() //!OCLINT
         }
 
     }
+
+//#define FIX_ISSUE_98
+#ifdef FIX_ISSUE_98
+    {
+        std::mt19937 rng;
+        network n{net_param{}};
+        double mut_rate = 1;
+
+        assert(all_weigths_are_active(n));
+        n.mutate_activation(mut_rate, rng);
+        assert(!all_weigths_are_active(n));
+    }
+#endif
+
+
+#define FIX_ISSUE_100
+#ifdef FIX_ISSUE_100
+    {
+        std::mt19937 rng;
+
+        std::vector<int> net_arch{5,5,5,5,5};
+        network n{net_param{net_arch, linear}};
+
+        std::vector<double> mut_rates{1/2, 1/3, 1/4, 0.56789};
+        int repeats = 1000;
+
+        for(const auto& mut_rate : mut_rates)
+        {
+        assert(all_weigths_are_active(n));
+        auto active_connections = register_n_activation_mutations(n, repeats);
+        assert(on_average_an_nth_of_the_weigths_are_active(n, active_connections));
+        }
+    }
+#endif
 }
 #endif
