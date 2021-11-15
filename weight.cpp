@@ -54,8 +54,7 @@ std::vector<double> convert_to_double (const std::vector<weight> &weights)
   return double_vector;
 }
 
-std::vector<double> convert_to_double_or_zero
-  (const std::vector<weight> &weights)
+std::vector<double> convert_to_double_or_zero (const std::vector<weight> &weights)
 {
   std::vector<double> double_vector;
 
