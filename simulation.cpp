@@ -533,17 +533,17 @@ void test_simulation() noexcept//!OCLINT test may be many
                 number_of_env_change - expected_changes > -repeats / 1000);
     }
 
-//#define FIX_ISSUE_40
-//#ifdef FIX_ISSUE_40
-//    {
-//        //create a non-default simulaiton
-//        simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
-//        auto name = "sim_save_test";
-//        save_json(s, name);
-//        auto loaded_s = load_json(name);
-//        assert(s == loaded_s);
-//    }
-//#endif
+#define FIX_ISSUE_40
+#ifdef FIX_ISSUE_40
+    {
+        //create a non-default simulaiton
+        simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
+        auto name = "sim_save_test";
+        save_json(s, name);
+        auto loaded_s = load_json(name);
+        assert(s == loaded_s);
+    }
+#endif
 
 #define FIX_ISSUE_4
 #ifdef FIX_ISSUE_4
