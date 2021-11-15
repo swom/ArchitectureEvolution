@@ -153,30 +153,30 @@ simulation load_json(
     return s = json_in;
 }
 
-//void reproduce(simulation& s)
-//{
-//    reproduce(s.get_pop(), s.get_rng());
-//}
+void reproduce(simulation& s)
+{
+    reproduce(s.get_pop(), s.get_rng());
+}
 
-//void tick(simulation &s)
-//{
-//    s.increase_time();
+void tick(simulation &s)
+{
+    s.increase_time();
 
-//    if(is_environment_changing(s)){
+    if(is_environment_changing(s)){
 
-//        switch_optimal_function(s);
-//    }
+        switch_optimal_function(s);
+    }
 
-//    if(get_inds(s).size()){
+    if(get_inds(s).size()){
 
-//        assign_new_inputs(s);
+        assign_new_inputs(s);
 
-//    }
+    }
 
-//    select_inds(s);
+    select_inds(s);
 
 
-//}
+}
 
 void save_json(const simulation& s, const std::string& filename)
 {
@@ -186,11 +186,11 @@ void save_json(const simulation& s, const std::string& filename)
     f << json_out;
 }
 
-//void select_inds(simulation& s)
-//{
-//    calc_fitness(s);
-//    reproduce(s);
-//}
+void select_inds(simulation& s)
+{
+    calc_fitness(s);
+    reproduce(s);
+}
 
 double var_fitness(const simulation&s)
 {
@@ -332,22 +332,22 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
 
-//    //Every tick simulation timer increases by one
-//    {
-//        simulation s;
-//        auto init_timer_value = s.get_time();
-//        tick(s);
-//        assert(s.get_time() == init_timer_value + 1);
+    //Every tick simulation timer increases by one
+    {
+        simulation s;
+        auto init_timer_value = s.get_time();
+        tick(s);
+        assert(s.get_time() == init_timer_value + 1);
 
-//        simulation s2;
-//        init_timer_value = s2.get_time();
-//        int repeats = 123;
-//        for(int i = 0; i != repeats; i++)
-//        {
-//            tick(s2);
-//        }
-//        assert(s2.get_time() == init_timer_value + repeats);
-//    }
+        simulation s2;
+        init_timer_value = s2.get_time();
+        int repeats = 123;
+        for(int i = 0; i != repeats; i++)
+        {
+            tick(s2);
+        }
+        assert(s2.get_time() == init_timer_value + repeats);
+    }
 
 
     ///Simulation can be initialized with network architecture for inds in pop
@@ -506,32 +506,32 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 
 
-////#define FIX_ISSUE_39
-////#ifdef FIX_ISSUE_39
+//#define FIX_ISSUE_39
+//#ifdef FIX_ISSUE_39
 
-//    {
-//        simulation s{0};
-//        environment &e = s.get_env();
-//        int repeats =  100000;
-//        auto previous_env_function = e.get_name_current_function();
+    {
+        simulation s{0};
+        environment &e = s.get_env();
+        int repeats =  100000;
+        auto previous_env_function = e.get_name_current_function();
 
-//        int number_of_env_change = 0;
+        int number_of_env_change = 0;
 
-//        for( int i = 0; i != repeats; i++)
-//        {
-//            tick(s);
-//            if(previous_env_function != e.get_name_current_function())
-//            {
-//                previous_env_function = e.get_name_current_function();
-//                number_of_env_change++;
-//            }
-//        }
+        for( int i = 0; i != repeats; i++)
+        {
+            tick(s);
+            if(previous_env_function != e.get_name_current_function())
+            {
+                previous_env_function = e.get_name_current_function();
+                number_of_env_change++;
+            }
+        }
 
 
-//        auto expected_changes = s.get_change_freq() * repeats;
-//        assert( number_of_env_change - expected_changes < repeats / 1000 &&
-//                number_of_env_change - expected_changes > -repeats / 1000);
-//    }
+        auto expected_changes = s.get_change_freq() * repeats;
+        assert( number_of_env_change - expected_changes < repeats / 1000 &&
+                number_of_env_change - expected_changes > -repeats / 1000);
+    }
 
 #define FIX_ISSUE_40
 #ifdef FIX_ISSUE_40
@@ -559,25 +559,25 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_17
-//#ifdef FIX_ISSUE_17
-//    {
-//        simulation s;
-//        tick(s);
+#define FIX_ISSUE_17
+#ifdef FIX_ISSUE_17
+    {
+        simulation s;
+        tick(s);
 
-//        int repeats = 5;
-//        while(repeats != 0)
-//        {
-//            auto t1_inputs = get_current_input(s);
-//            tick(s);
-//            auto t2_inputs = get_current_input(s);
-//            assert(t1_inputs != t2_inputs);
+        int repeats = 5;
+        while(repeats != 0)
+        {
+            auto t1_inputs = get_current_input(s);
+            tick(s);
+            auto t2_inputs = get_current_input(s);
+            assert(t1_inputs != t2_inputs);
 
-//            repeats--;
-//        }
+            repeats--;
+        }
 
-//    }
-//#endif
+    }
+#endif
 
 #define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
