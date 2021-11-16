@@ -165,6 +165,30 @@ std::vector<double> response(const network& n, std::vector<double> input)
     return input;
 }
 
+bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats)
+{
+    std::vector<std::vector<double>> input_series;
+    size_t input_size = n.get_input_size();
+    std::vector<double> n_output;
+    std::vector<double> f_output;
+
+    for(int i = 0; i != n_repeats; ++i)
+      {
+        std::vector<double> input;
+        for(size_t j = 0; j != input_size; ++j){
+        input.push_back(i + j);
+        }
+        assert(response(n, input).size() == 1);
+        if(response(n, input) [0] != f(input))
+        {
+        return false;
+        };
+      }
+      
+    return true;
+
+}
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT

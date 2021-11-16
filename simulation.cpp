@@ -358,7 +358,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(get_nth_ind_net(s, 0) == network{net_arch});
     }
 
-//#define FIX_ISSUE_68
+#define FIX_ISSUE_68
 #ifdef FIX_ISSUE_68
     ///Ex issue #30 test
     ///#define FIX_ISSUE_30
@@ -373,34 +373,37 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
-        assert(net_behaves_like_the_function(identity_net, identity));
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        potential_identity_net = change_all_weights(potential_identity_net, 1);
 
-        auto identity_ind = ind_param{identity_net};
+        assert(net_behaves_like_the_function(potential_identity_net, identity));
+
+        auto identity_ind = ind_param{potential_identity_net_param};
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
+
+        auto sim_p = sim_param{};
+        sim_p.selection_strength = 2;
 
 
         simulation s{all_params{
                 identity_env,
                 identity_ind,
                 minimal_pop,
-                sim_param{}
+                sim_p
             }};
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
+        change_nth_ind_net(s, best_ind, potential_identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
-        auto resp_best = response(get_nth_ind(s, best_ind))[0];
 
         size_t worst_ind = 1;
-        auto worst_net = change_all_weights(get_nth_ind_net(s,worst_ind), 100);
-        change_nth_ind_net(s, worst_ind, worst_net);
-        auto resp_worst = response(get_nth_ind(s, worst_ind))[0];
+        auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
-        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
 
         select_inds(s);
@@ -414,7 +417,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 #endif
 
 
-//#define FIX_ISSUE_73
+#define FIX_ISSUE_73
 #ifdef FIX_ISSUE_73
 
     ///Fitness of individuals is calculated based on how close they are to the current optimal output
@@ -425,31 +428,37 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
-        assert(net_behaves_like_the_function(identity_net, identity));
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        potential_identity_net = change_all_weights(potential_identity_net, 1);
 
-        auto identity_ind = ind_param{identity_net};
+        assert(net_behaves_like_the_function(potential_identity_net, identity));
+
+        auto identity_ind = ind_param{potential_identity_net_param};
 
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
+
+        auto sim_p = sim_param{};
+        sim_p.selection_strength = 2;
 
 
         simulation s{all_params{
                 identity_env,
                 identity_ind,
                 minimal_pop,
-                sim_param{}
+                sim_p
             }};
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_all_weights_nth_ind(s, second_ind, 0.99);
+        change_nth_ind_net(s, first_ind, potential_identity_net);
 
         calc_fitness(s);
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
-        auto first_ind_fit =  get_nth_ind_fitness(s,0) ;
+        auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
         ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
@@ -457,10 +466,11 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto second_response = response(get_nth_ind(s, 1))[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
-//        auto second_ind_fit =  get_nth_ind_fitness(s,1) ;
-//        auto min_fit = find_min_fitness(s);
+        auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
+        auto min_fit = find_min_fitness(s);
 
-//        assert(are_equal_with_tolerance(min_fit,second_ind_fit));
+        assert(!are_equal_with_tolerance(first_ind_fit, second_ind_fit));
+        assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
     }
     #endif

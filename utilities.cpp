@@ -110,3 +110,4 @@ bool are_same_env_functions(const std::function<double(std::vector<double>)> &lh
   return lhs_optimal == rhs_optimal;
 
 }
+
