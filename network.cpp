@@ -92,7 +92,7 @@ std::vector<weight> register_n_mutations(network n, double mut_rate, double mut_
     {
 
         auto n_new = n;
-        n_new.mutate(mut_rate, mut_step, rng);
+        n_new.mutate_weights(mut_rate, mut_step, rng);
 
         for(auto& layer : n_new.get_net_weights())
             for(auto& node : layer)
@@ -115,7 +115,7 @@ double linear(double x)
     return x;
 }
 
-void network::mutate(const double& mut_rate,
+void network::mutate_weights(const double& mut_rate,
                      const double& mut_step,
                      std::mt19937_64& rng)
 {
@@ -138,6 +138,21 @@ void network::mutate(const double& mut_rate,
             {bias += mut_st(rng);}
         }
 }
+
+void network::mutate_activation(const double &mut_rate, std::mt19937 &rng)
+{
+  std::bernoulli_distribution mut_p{mut_rate};
+
+  for(auto& layer : m_network_weights)
+      for(auto& node : layer)
+          for(auto& weight : node)
+          {
+              if(mut_p(rng))
+              {weight.change_activation(!weight.is_active());}
+          }
+}
+
+
 
 std::vector<double> response(const network& n, std::vector<double> input)
 {
@@ -187,6 +202,22 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
       
     return true;
 
+}
+
+bool all_weigths_are_active(const network &n)
+{
+  std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
+
+  for(auto &layer : weights ){
+      for(auto &node : layer){
+          for (auto &weight : node){
+              if(!weight.is_active()){
+                  return false;
+                }
+            }
+        }
+    }
+  return true;
 }
 
 
@@ -325,7 +356,7 @@ void test_network() //!OCLINT
 
     }
 
-    //#define FIX_ISSUE_98
+#define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
     {
         std::mt19937 rng;
