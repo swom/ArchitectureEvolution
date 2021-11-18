@@ -18,7 +18,13 @@ bool operator==(const all_params& lhs, const all_params& rhs)
            lhs.s_p.selection_strength == rhs.s_p.selection_strength &&
            are_same_env_functions(lhs.e_p.env_function_A, rhs.e_p.env_function_A)&&
            are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
+}
 
+bool operator==(const observer& lhs, const observer& rhs)
+{
+    return lhs.get_params() ==  rhs.get_params() &&
+           lhs.get_input() == rhs.get_input() &&
+           lhs.get_optimal() == rhs.get_optimal();
 }
 
 bool operator!=(const all_params& lhs, const all_params& rhs)
@@ -46,6 +52,17 @@ void save_json(const observer& o, const std::string& filename)
     json_out = o;
     f << json_out;
 }
+
+observer load_observer_json(const std::string& filename)
+{
+    std::ifstream f(filename);
+    nlohmann::json json_in;
+    observer o;
+    f >> json_in;
+    return o = json_in;
+}
+
+
 
 void exec(simulation& s , observer& o)
 {
@@ -88,7 +105,7 @@ void test_observer()
     }
 #endif
 
-//#define FIX_ISSUE_81
+#define FIX_ISSUE_81
 #ifdef FIX_ISSUE_81
   ///The observer stores inputs and optimal values
   {
@@ -115,8 +132,8 @@ void test_observer()
 
     auto name = "obs_save_test";
     save_json(o, name);
-    auto loaded_o = load_json(name);
-    assert(o == loaded_o); //Don't forget to add input and optimal to the == operator of observer!
+    auto loaded_o = load_observer_json(name);
+    assert(o == loaded_o);
 
 
   }
