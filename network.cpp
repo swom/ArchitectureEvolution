@@ -109,7 +109,8 @@ std::vector<weight> register_n_activation_mutations(network n, double mut_rate, 
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
-    {   auto n_new = n;
+    {
+       auto n_new = n;
         n_new.mutate_activation(mut_rate, rng);
         auto weights = n_new.get_net_weights();
 
