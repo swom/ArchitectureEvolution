@@ -118,7 +118,6 @@ std::vector<weight> register_n_activation_mutations(network n, double mut_rate, 
             for(size_t k=0; k != weights[j].size(); ++k)
                 for(size_t l=0; l != weights[j][k].size(); ++l)
                 {
-                    if(!weights[j][k][l].is_active())
                         networks_weights.push_back(weights[j][k][l]);
                 }
     }
