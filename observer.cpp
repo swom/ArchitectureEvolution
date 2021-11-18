@@ -87,5 +87,40 @@ void test_observer()
         assert(o.get_params() == params);
     }
 #endif
+
+//#define FIX_ISSUE_81
+#ifdef FIX_ISSUE_81
+  ///The observer stores inputs and optimal values
+  {
+    observer o;
+
+    //Give sim some non-default inputs and optimal
+    simulation s{};
+    int n_repeats = 100;
+
+    for(int i = 0; i != n_repeats; ++i){
+        tick(s);
+
+        if(!o.get_input().empty() && !o.get_optimal().empty()){
+        assert(o.get_input().back() != s.get_input());
+        assert(o.get_optimal().back() != s.get_optimal());
+          }
+
+        o.store_input(s);
+        o.store_optimal(s);
+
+        assert(o.get_input().back() == s.get_input());
+        assert(o.get_optimal().back() == s.get_optimal());
+    }
+
+    auto name = "obs_save_test";
+    save_json(o, name);
+    auto loaded_o = load_json(name);
+    assert(o == loaded_o); //Don't forget to add input and optimal to the == operator of observer!
+
+
+  }
+#endif
+
 }
 #endif
