@@ -240,14 +240,20 @@ bool all_weigths_are_active(const network &n)
   return true;
 }
 
-bool on_average_an_nth_of_the_activations_are_mutated(const network &n, const std::vector<weight>&registered_mutations,
-                                                      const double &mut_rate, int repeats)
+bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
+                                                      const double &proportion, int repeats)
 {
   int number_of_weights = get_number_weights(n);
-  size_t number_mutations = registered_mutations.size();
+  int inactive_weights = 0;
+
+  for (auto &weight : registered_mutations){
+      if(!weight.is_active())
+        ++inactive_weights;
+    }
+
   double error = 0.1 * repeats;
-  return number_mutations > mut_rate * repeats * number_of_weights - error &&
-           number_mutations < mut_rate * repeats * number_of_weights + error);
+  return (inactive_weights > proportion * repeats * number_of_weights - error &&
+           inactive_weights < proportion * repeats * number_of_weights + error);
 }
 
 int get_number_weights(const network &n)
@@ -427,7 +433,7 @@ void test_network() //!OCLINT
         {
             assert(all_weigths_are_active(n));
             auto active_connections = register_n_activation_mutations(n, mut_rate, rng, repeats);
-            assert(on_average_an_nth_of_the_activations_are_mutated(n, active_connections, mut_rate, repeats));
+            assert(on_average_an_nth_of_the_weights_are_inactive(n, active_connections, mut_rate, repeats));
         }
     }
 #endif

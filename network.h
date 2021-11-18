@@ -132,8 +132,8 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
 bool all_weigths_are_active(const network &n);
 
 ///Checks that the registered_mutations correspond to the given mutation rate
-bool on_average_an_nth_of_the_activations_are_mutated(const network &n, const std::vector<weight>&registered_mutations,
-                                                      const double &mut_rate, int repeats);
+bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
+                                                      const double &proportion, int repeats);
 
 ///Returns the total number of connections in the network
 int get_number_weights(const network &n);
