@@ -254,7 +254,7 @@ bool on_average_an_nth_of_the_activations_are_mutated(const network &n, const st
 int get_number_weights(const network &n)
 {
   size_t number_weights = 0;
-  for(auto &layer : n.get_net_weights() ){
+  for(const auto &layer : n.get_net_weights() ){
       for(auto &node : layer){
           number_weights += node.size();
             }
