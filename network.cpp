@@ -227,7 +227,7 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
 
 bool all_weigths_are_active(const network &n)
 {
-  std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
+ auto weights = n.get_net_weights();
 
   for(auto &layer : weights ){
       for(auto &node : layer){
