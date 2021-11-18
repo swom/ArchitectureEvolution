@@ -247,8 +247,8 @@ bool on_average_an_nth_of_the_activations_are_mutated(const network &n, const st
   int number_of_weights = get_number_weights(n);
   size_t number_mutations = registered_mutations.size();
   double error = 0.1 * repeats;
-  return !(number_mutations < mut_rate * repeats * number_of_weights - error ||
-           number_mutations > mut_rate * repeats * number_of_weights + error);
+  return number_mutations > mut_rate * repeats * number_of_weights - error &&
+           number_mutations < mut_rate * repeats * number_of_weights + error);
 }
 
 int get_number_weights(const network &n)
