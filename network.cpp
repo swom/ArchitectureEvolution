@@ -255,7 +255,7 @@ int get_number_weights(const network &n)
 {
   size_t number_weights = 0;
   for(const auto &layer : n.get_net_weights() ){
-      for(auto &node : layer){
+      for(const auto &node : layer){
           number_weights += node.size();
             }
         }
