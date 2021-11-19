@@ -39,7 +39,8 @@ double calc_sqr_distance(const individual& i, double env_value)
 
 void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 {
-  m_network.mutate_weights(mut_rate, mut_step, rng);
+    m_network.mutate_weights(mut_rate, mut_step, rng);
+    m_network.mutate_activation(mut_rate / 10, rng);
 }
 
 std::vector<double> response(const individual& ind)
