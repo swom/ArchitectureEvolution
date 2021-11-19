@@ -16,11 +16,24 @@ public:
                                    m_input,
                                    m_optimal)
 
-    ///Saves the avg fitness and current environment value
+    ///returns const ref to m_avg_fitness
+    const std::vector<double>& get_avg_fitness() const noexcept{return m_avg_fitnesses;}
+
+    ///returns const ref to m_var_fitnesses
+    const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
+
+
+    ///returns const ref to best_ind vector
+    const std::vector<std::vector<individual>>& get_top_inds() const noexcept{return m_top_inds;}
+
+    ///Saves the avg fitness
     void store_avg_fit(const simulation& s);
 
+    ///Saves the variance of the fitness
+    void store_var_fit(const simulation& s);
+
     ///Saves the 100 best individuals in the population
-    void save_best_n_inds(const simulation& s, int n);
+    void store_top_n_inds(const simulation& s, int n);
 
     const all_params& get_params() const noexcept {return m_params;};
 
