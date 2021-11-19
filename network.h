@@ -61,8 +61,11 @@ public:
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
 
-    ///Mutates the network
-    void mutate(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
+    ///Mutates the weights of the network
+    void mutate_weights(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
+
+    ///Mutates the activation of the weights of the network - they get switched on and off
+    void mutate_activation(const double &mut_rate, std::mt19937 &rng);
 
     double operator ()(double n) const {return m_activation_function(n);}
 
@@ -90,7 +93,9 @@ network change_all_weights(network n, weight new_weight);
 ///Mutates a network n times with given mutation
 /// rate and step and returns vector all mutated weights
 /// of network in all times it was mutated
-std::vector<weight> register_n_mutations(network n, double mut_rate, double mut_step, std::mt19937_64 &rng, int repeats);
+std::vector<weight> register_n_weight_mutations(network n, double mut_rate, double mut_step, std::mt19937_64 &rng, int repeats);
+
+std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937 &rng, int repeats);
 
 template <typename Fun>
 inline std::vector<double> response(const network& n, std::vector<double> input, Fun fun = &linear)
@@ -123,7 +128,15 @@ std::vector<double> response(const network& n, std::vector<double> input);
 ///Checks if a network and a function return the same output
 bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats = 1000);
 
+///Checks whether all connections of the network are active
+bool all_weigths_are_active(const network &n);
 
+///Checks that the registered_mutations correspond to the given mutation rate
+bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
+                                                      const double &proportion, int repeats);
+
+///Returns the total number of connections in the network
+int get_number_weights(const network &n);
 
 
 
