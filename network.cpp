@@ -468,7 +468,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_112
+#define FIX_ISSUE_112
 #ifdef FIX_ISSUE_112
     {
         network<mutation_type::activation> n_activation{net_param()};
