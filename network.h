@@ -6,7 +6,7 @@
 #include <random>
 #include "json.hpp"
 #include "weight.h"
-
+#include "mutation_type.h"
 
 double sigmoid(double x);
 double linear(double x);
