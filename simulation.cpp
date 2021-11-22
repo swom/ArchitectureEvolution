@@ -99,6 +99,11 @@ const std::vector<individual>& get_inds(const simulation&s)
     return s.get_pop().get_inds();
 }
 
+char get_name_current_function(const simulation& s) noexcept
+{
+ return s.get_env().get_name_current_function();
+}
+
 const individual& get_nth_ind(const simulation& s, size_t ind_index)
 {
     return get_nth_ind(s.get_pop(), ind_index);
