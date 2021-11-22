@@ -34,6 +34,13 @@ struct net_param
 //    std::string str_func = act_funct_to_string_map.find(function)->second;
 };
 
+class base_network
+{
+public:
+    virtual ~base_network() {}
+    virtual void mutate() = 0;
+
+};
 
 class network
 {

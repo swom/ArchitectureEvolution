@@ -468,5 +468,26 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_112
+#ifdef FIX_ISSUE_112
+    {
+        network<mutation_type::activation> n_activation{net_param()};
+        network<mutation_type::weights> n_weights{net_param()};
+
+        auto mutation_rate = 1;
+        auto mutation_step = 1;
+        std::mt19937_64 rng;
+        auto rng_copy = rng;
+
+        n_activtion.mutate();
+
+        auto before_mutation = n_weights;
+        n_weights.mutate();
+
+        assert(n_activation.get_net_weights() != n_weigths.get_net_weights())
+        assert(!all_weigths_are_active(n_activation));
+        assert(before_mutation != n_weights);
+    }
+#endif
 }
 #endif
