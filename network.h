@@ -34,19 +34,16 @@ struct net_param
 //    std::string str_func = act_funct_to_string_map.find(function)->second;
 };
 
-class base_network
-{
-public:
-    virtual ~base_network() {}
-    virtual void mutate() = 0;
-
-};
-
 class network
 {
 public:
     network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function = &linear);
     network (net_param n_p);
+
+    virtual ~network() {}
+    virtual void mutate(const double& mut_rate,
+                        const double& mut_step,
+                        std::mt19937_64& rng);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size, 
@@ -59,11 +56,6 @@ public:
     ///Returns the const ref to the node biases
     const std::vector<std::vector<double>>& get_biases() const noexcept{return m_nodes_biases;}
 
-    ///Returns const ref to vector of weights
-    const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
-
-    ///Returns not constant ref to vector of weights
-    std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
 
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
@@ -72,10 +64,15 @@ public:
     void mutate_weights(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
 
     ///Mutates the activation of the weights of the network - they get switched on and off
-    void mutate_activation(const double &mut_rate, std::mt19937 &rng);
+    void mutate_activation(const double &mut_rate, std::mt19937_64 &rng);
 
     double operator ()(double n) const {return m_activation_function(n);}
 
+    ///Returns const ref to vector of weights
+    const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
+
+    ///Returns not constant ref to vector of weights
+    std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
 private:
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<std::vector<weight>>> m_network_weights;
@@ -102,7 +99,7 @@ network change_all_weights(network n, weight new_weight);
 /// of network in all times it was mutated
 std::vector<weight> register_n_weight_mutations(network n, double mut_rate, double mut_step, std::mt19937_64 &rng, int repeats);
 
-std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937 &rng, int repeats);
+std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats);
 
 template <typename Fun>
 inline std::vector<double> response(const network& n, std::vector<double> input, Fun fun = &linear)
@@ -129,6 +126,17 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
 
     return input;
 }
+
+
+template <mutation_type mutation_type>
+class mutator_network : public network
+{
+public:
+    mutator_network(const net_param& p) : network{p} {};
+    void mutate(const double& mut_rate,
+                const double& mut_step,
+                std::mt19937_64& rng);
+};
 
 std::vector<double> response(const network& n, std::vector<double> input);
 
