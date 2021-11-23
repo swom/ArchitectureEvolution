@@ -105,7 +105,7 @@ std::vector<weight> register_n_weight_mutations(network n, double mut_rate, doub
     return  networks_weights;
 }
 
-std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937 &rng, int repeats)
+std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
@@ -135,6 +135,27 @@ double linear(double x)
     return x;
 }
 
+template<mutation_type M>
+void mutator_network<M>::mutate(const double& mut_rate,
+                                const double& mut_step,
+                                std::mt19937_64& rng)
+{
+  if constexpr (M == mutation_type::activation)
+  {
+          mutate_activation(mut_rate, rng);
+  }
+
+  else if constexpr(M == mutation_type::weights)
+  {
+      mutate_weights(mut_rate, mut_step, rng);
+  }
+
+  else if constexpr(M == mutation_type::weights_and_activation)
+  {
+      mutate_activation(mut_rate, rng);
+      mutate_weights(mut_rate, mut_step, rng);
+  }
+}
 void network::mutate_weights(const double& mut_rate,
                      const double& mut_step,
                      std::mt19937_64& rng)
@@ -159,7 +180,7 @@ void network::mutate_weights(const double& mut_rate,
         }
 }
 
-void network::mutate_activation(const double &mut_rate, std::mt19937 &rng)
+void network::mutate_activation(const double &mut_rate, std::mt19937_64 &rng)
 {
   std::bernoulli_distribution mut_p{mut_rate};
 
@@ -171,7 +192,6 @@ void network::mutate_activation(const double &mut_rate, std::mt19937 &rng)
               {weight.change_activation(!weight.is_active());}
           }
 }
-
 
 
 std::vector<double> response(const network& n, std::vector<double> input)
@@ -219,7 +239,7 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
         return false;
         };
       }
-      
+
     return true;
 
 }
@@ -234,6 +254,23 @@ bool all_weigths_are_active(const network &n)
               if(!weight.is_active()){
                   return false;
                 }
+            }
+        }
+    }
+  return true;
+}
+
+bool all_weigths_have_value(const network &n, double value)
+{
+ auto weights = n.get_net_weights();
+
+  for(auto &layer : weights ){
+      for(auto &node : layer){
+          for (auto &weight : node){
+              if(weight.get_weight() != value)
+              {
+                  return false;
+              }
             }
         }
     }
@@ -407,7 +444,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
     {
-        std::mt19937 rng;
+        std::mt19937_64 rng;
         network n{net_param{}};
         double mut_rate = 1;
 
@@ -421,7 +458,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_100
 #ifdef FIX_ISSUE_100
     {
-        std::mt19937 rng;
+        std::mt19937_64 rng;
 
         std::vector<int> net_arch{5,5,5,5,5};
         network n{net_param{net_arch, linear}};
@@ -468,5 +505,43 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_112
+#ifdef FIX_ISSUE_112
+    {
+        mutator_network<mutation_type::activation> n_activation{net_param()};
+        assert(all_weigths_are_active(n_activation));
+
+        mutator_network<mutation_type::weights> n_weights{net_param()};
+        assert(all_weigths_have_value(n_weights, 0));
+
+        auto mutation_rate = 1;
+        auto mutation_step = 1;
+        std::mt19937_64 rng;
+        auto rng_copy = rng;
+
+        auto before_mutation = n_weights;
+        n_weights.mutate(mutation_rate, mutation_step, rng_copy);
+        n_activation.mutate(mutation_rate, mutation_step, rng);
+
+        assert(n_activation.get_net_weights() != n_weights.get_net_weights());
+        assert(!all_weigths_are_active(n_activation));
+
+        assert(all_weigths_are_active(n_weights));
+        assert(before_mutation != n_weights);
+    }
+#endif
+
+#define FIX_ISSUE_126
+#ifdef FIX_ISSUE_126
+    {
+        auto pars = net_param();
+        mutator_network<mutation_type::activation> n_activation{pars};
+        mutator_network<mutation_type::weights> n_weights{pars};
+        network n{pars};
+
+        assert(n == n_activation);
+        assert(n == n_weights);
+    }
+#endif
 }
 #endif
