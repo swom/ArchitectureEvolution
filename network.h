@@ -2,7 +2,6 @@
 #define NETWORK_H
 #include "utilities.h"
 #include <iostream>
-#include <vector>
 #include <random>
 #include "json.hpp"
 #include "weight.h"
@@ -28,8 +27,13 @@ struct net_param
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
                                    net_arc
                                    )
+    net_param(const std::vector<int>& net_arch = {1,2,1},
+              std::function<double(double)> func = linear):
+        net_arc{net_arch},
+        function{func}
+    {};
 
-    std::vector<int> net_arc {1,2,1};
+    std::vector<int> net_arc;
     std::function<double(double)> function;
 //    std::string str_func = act_funct_to_string_map.find(function)->second;
 };
@@ -41,9 +45,10 @@ public:
     network (net_param n_p);
 
     virtual ~network() {}
-    virtual void mutate(const double& mut_rate,
-                        const double& mut_step,
-                        std::mt19937_64& rng);
+    virtual void mutate(const double& ,
+                        const double& ,
+                        std::mt19937_64& )
+    {};
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size, 
@@ -87,6 +92,17 @@ private:
     std::function<double(double)> m_activation_function;
 };
 
+
+template <mutation_type mutation_type>
+class mutator_network : public network
+{
+public:
+    mutator_network(const net_param& p) : network{p} {};
+    void mutate(const double& mut_rate,
+                const double& mut_step,
+                std::mt19937_64& rng);
+};
+
 bool operator==(const network& lhs, const network& rhs);
 
 bool operator!=(const network& lhs, const network& rhs);
@@ -127,16 +143,6 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
     return input;
 }
 
-
-template <mutation_type mutation_type>
-class mutator_network : public network
-{
-public:
-    mutator_network(const net_param& p) : network{p} {};
-    void mutate(const double& mut_rate,
-                const double& mut_step,
-                std::mt19937_64& rng);
-};
 
 std::vector<double> response(const network& n, std::vector<double> input);
 

@@ -11,9 +11,9 @@ struct ind_param
     net_param net_par;
     mutation_type mutation_type;
 
-    ind_param(net_param net_par = net_param(),
+    ind_param(net_param net_pars = net_param(),
               enum mutation_type mut = mutation_type::activation):
-        net_par{net_par},
+        net_par{net_pars},
         mutation_type{mut}
     {}
 };
@@ -23,9 +23,8 @@ struct ind_param
 class individual
 {
 public:
-  individual(std::vector<int> net_arch = std::vector<int>{1,2,1},
-             mutation_type mut = mutation_type::weights);
-  individual(ind_param i_p);
+
+    individual(ind_param i_p = {});
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
                                  m_fitness,
@@ -63,7 +62,7 @@ private:
   std::vector<double> m_input_values;
 
   ///The network of an individual
-  std::unique_ptr<network> m_network;
+  std::shared_ptr<network> m_network;
 };
 
 /// Checks if 2 individuals are the same

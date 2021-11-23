@@ -3,20 +3,19 @@
 #include <algorithm>
 #include <cassert>
 
-individual::individual(std::vector<int> net_arch, mutation_type mut) :
-  ///!!!!Attention!!!! input values are for now a fixed amount
-  m_input_values(net_arch[0], 1.0)
-{
- switch (mut)
- {
- case mutation_type::activation :
-     std::make_unique<mutator_network<mutation_type::activation>>(net_arch);
-     break;
- default:
-     throw std::runtime_error("Unkwon mutation type");
- }
-
-}
+//individual::individual(std::vector<int> net_arch, mutation_type mut) :
+//  ///!!!!Attention!!!! input values are for now a fixed amount
+//  m_input_values(net_arch[0], 1.0)
+//{
+// switch (mut)
+// {
+// case mutation_type::activation :
+//     m_network = std::make_shared<mutator_network<mutation_type::activation>>(net_arch);
+//     break;
+// default:
+//     throw std::runtime_error("Unkwon mutation type");
+// }
+//}
 
 individual::individual(ind_param i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
@@ -25,7 +24,7 @@ individual::individual(ind_param i_p) :
  switch (i_p.mutation_type)
  {
  case mutation_type::activation :
-     std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
+     m_network = std::make_shared<mutator_network<mutation_type::activation>>(i_p.net_par);
      break;
  default:
      throw std::runtime_error("Unkwon mutation type");
@@ -69,7 +68,8 @@ void test_individual()
   /// by default 1,2,1
   {
     std::vector<int> net_arch{1,2,1};
-    individual i{net_arch};
+    ind_param i_p{};
+    individual i{i_p};
     assert(i.get_net() == network{net_arch});
   }
 
@@ -77,7 +77,10 @@ void test_individual()
   {
     int n_input = 456;
     std::vector<int> net_arch{n_input};
-    individual i{net_arch};
+    ind_param i_p{};
+    i_p.net_par.net_arc = net_arch;
+    individual i{i_p};
+
     assert(i.get_input_values().size() == static_cast<size_t>(n_input));
     for(const auto& value : i.get_input_values())
       {
@@ -87,8 +90,8 @@ void test_individual()
 
   ///When an individual responds to environment it uses its input values as input
   {
-    individual i;
-    assert( response(i) == response(i.get_net(),i.get_input_values(), &linear));
+        individual i{ind_param{}};
+        assert( response(i) == response(i.get_net(),i.get_input_values(), &linear));
   }
 
 //#define FIX_ISSUE_36

@@ -22,8 +22,8 @@ class population
 public:
   population(int init_nr_indiv = 1,
              double mut_rate = 0.01,
-             double mut_step = 0.1
-             , std::vector<int> net_arch = {1,2,1});
+             double mut_step = 0.1,
+             std::vector<int> net_arch = {1,2,1});
    population(pop_param p_p, ind_param i_p);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
