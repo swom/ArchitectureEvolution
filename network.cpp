@@ -510,8 +510,10 @@ void test_network() //!OCLINT
     {
         mutator_network<mutation_type::activation> n_activation{net_param()};
         assert(all_weigths_are_active(n_activation));
+
         mutator_network<mutation_type::weights> n_weights{net_param()};
         assert(all_weigths_have_value(n_weights, 0));
+
         auto mutation_rate = 1;
         auto mutation_step = 1;
         std::mt19937_64 rng;
@@ -523,6 +525,7 @@ void test_network() //!OCLINT
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
         assert(!all_weigths_are_active(n_activation));
+        assert(!all_weigths_have_value(n_weights, 0));
         assert(before_mutation != n_weights);
     }
 #endif
