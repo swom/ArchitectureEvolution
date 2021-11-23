@@ -525,7 +525,8 @@ void test_network() //!OCLINT
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
         assert(!all_weigths_are_active(n_activation));
-        assert(!all_weigths_have_value(n_weights, 0));
+
+        assert(all_weigths_are_active(n_weights));
         assert(before_mutation != n_weights);
     }
 #endif
