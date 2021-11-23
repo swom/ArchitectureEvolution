@@ -26,12 +26,6 @@ public:
 
     individual(ind_param i_p = {});
 
-//    NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
-//                                   m_fitness,
-//                                   m_input_values,
-//                                   m_network);
-
-
     ///Changes the netowrk of an individual with another network
     void change_net(const network& n);
 
