@@ -260,6 +260,23 @@ bool all_weigths_are_active(const network &n)
   return true;
 }
 
+bool all_weigths_have_value(const network &n, double value)
+{
+ auto weights = n.get_net_weights();
+
+  for(auto &layer : weights ){
+      for(auto &node : layer){
+          for (auto &weight : node){
+              if(weight.get_weight() != value)
+              {
+                  return false;
+              }
+            }
+        }
+    }
+  return true;
+}
+
 bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
                                                       const double &proportion, int repeats)
 {
@@ -492,8 +509,9 @@ void test_network() //!OCLINT
 #ifdef FIX_ISSUE_112
     {
         mutator_network<mutation_type::activation> n_activation{net_param()};
+        assert(all_weigths_are_active(n_activation));
         mutator_network<mutation_type::weights> n_weights{net_param()};
-
+        assert(all_weigths_have_value(n_weights, 0));
         auto mutation_rate = 1;
         auto mutation_step = 1;
         std::mt19937_64 rng;
@@ -504,7 +522,7 @@ void test_network() //!OCLINT
         n_activation.mutate(mutation_rate, mutation_step, rng);
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
-        assert(all_weigths_are_active(n_activation));
+        assert(!all_weigths_are_active(n_activation));
         assert(before_mutation != n_weights);
     }
 #endif

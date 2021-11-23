@@ -3,19 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-//individual::individual(std::vector<int> net_arch, mutation_type mut) :
-//  ///!!!!Attention!!!! input values are for now a fixed amount
-//  m_input_values(net_arch[0], 1.0)
-//{
-// switch (mut)
-// {
-// case mutation_type::activation :
-//     m_network = std::make_shared<mutator_network<mutation_type::activation>>(net_arch);
-//     break;
-// default:
-//     throw std::runtime_error("Unkwon mutation type");
-// }
-//}
 
 individual::individual(ind_param i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
@@ -50,6 +37,11 @@ double calc_sqr_distance(const individual& i, double env_value)
    return (response(i)[0] - env_value) * (response(i)[0] - env_value);
 }
 
+void individual::change_net(const network& n)
+{
+    *m_network = n;
+}
+
 void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 {
   m_network->mutate(mut_rate, mut_step, rng);
@@ -58,6 +50,21 @@ void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 std::vector<double> response(const individual& ind)
 {
     return response(ind.get_net(),ind.get_input_values(), &sigmoid);
+}
+
+using json = nlohmann::json;
+
+void to_json(json& j, const individual& ind) {
+    j = json{    {"fitness", ind.get_fitness()},
+    {"input_values", ind.get_input_values()},
+    {"network", ind.get_net()}
+};
+}
+
+void from_json(const json& j, individual& ind) {
+    j.at("fitness").get_to(ind.get_to_fitness());
+    j.at("input_values").get_to(ind.get_to_input_values());
+    j.at("network").get_to(ind.get_to_net());
 }
 
 #ifndef NDEBUG

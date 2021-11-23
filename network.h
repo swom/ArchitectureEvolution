@@ -35,7 +35,6 @@ struct net_param
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
-//    std::string str_func = act_funct_to_string_map.find(function)->second;
 };
 
 class network
@@ -151,6 +150,9 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
 
 ///Checks whether all connections of the network are active
 bool all_weigths_are_active(const network &n);
+
+///Checks that all weights have a certain value
+bool all_weigths_have_value(const network &n, double value);
 
 ///Checks that the registered_mutations correspond to the given mutation rate
 bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,

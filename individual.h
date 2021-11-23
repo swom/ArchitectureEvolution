@@ -26,44 +26,61 @@ public:
 
     individual(ind_param i_p = {});
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
-                                 m_fitness,
-                                 m_input_values);
+//    NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
+//                                   m_fitness,
+//                                   m_input_values,
+//                                   m_network);
 
 
+    ///Changes the netowrk of an individual with another network
+    void change_net(const network& n);
 
-  ///Returns the fitness
-  double get_fitness() const noexcept {return m_fitness;}
+    ///Returns copy of fitness
+    const double& get_fitness() const noexcept {return m_fitness;}
 
-  ///Return const referernce to vector of fixed input values
-  const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
+    ///Return const referernce to vector of fixed input values
+    const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
 
-  ///Returns const ref to network
-  const network& get_net() const noexcept {return *m_network;}
+    ///Returns const ref to network
+    const network& get_net() const noexcept {return *m_network;}
 
-  ///Returns ref to network
-  network& get_net() noexcept {return *m_network;}
+    ///Returns ref to fitness USED FOR JSON SAVING
+    double& get_to_fitness() noexcept {return m_fitness;}
 
-  ///Mutates the network of an individual
-  void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng);
+    ///Returns ref to inputs
+    std::vector<double>& get_to_input_values() noexcept {return m_input_values;}
 
-  ///Sets the fitness of an ind
-  void set_fitness(double fitness) {m_fitness = fitness;}
+    ///Returns ref to network USED FOR JSON SAVING
+    network& get_to_net() noexcept {return *m_network;}
 
-  ///Set the input values of an individual
-  void assign_input(const std::vector<double> &input) {m_input_values = input;}
+    ///Mutates the network of an individual
+    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng);
+
+    ///Sets the fitness of an ind
+    void set_fitness(double fitness) {m_fitness = fitness;}
+
+    ///Set the input values of an individual
+    void assign_input(const std::vector<double> &input) {m_input_values = input;}
 
 private:
 
-  ///The fitness of an individual
-  double m_fitness = 0;
+    ///The fitness of an individual
+    double m_fitness = 0;
 
-  ///The vector of fixed input values that will be given to the network
-  std::vector<double> m_input_values;
+    ///The vector of fixed input values that will be given to the network
+    std::vector<double> m_input_values;
 
-  ///The network of an individual
-  std::shared_ptr<network> m_network;
+    ///The network of an individual
+    std::shared_ptr<network> m_network;
 };
+
+///Functions required to save to json format
+using json = nlohmann::json;
+
+void to_json(json& j, const individual& ind);
+
+void from_json(const json& j, individual& ind);
+
 
 /// Checks if 2 individuals are the same
 bool operator== (const individual& lhs, const individual& rhs);

@@ -31,6 +31,9 @@ public:
                                m_mut_rate,
                                m_mut_step);
 
+  ///Changes the network of the nth individual to a given network
+  void change_nth_ind_net(size_t ind_index, const network& n);
+
   ///Get const ref to vector of individuals
   const std::vector<individual>& get_inds() const noexcept{return m_vec_indiv;}
 
@@ -88,7 +91,6 @@ individual& get_nth_ind(population& p, size_t ind_index);
 double get_nth_ind_fitness(const population& p, const size_t& ind_index);
 
 const network& get_nth_ind_net(const population& p, size_t ind_index);
-network& get_nth_ind_net( population& p, size_t ind_index);
 
 ///Rescales the distance fro the target of an ind
 ///to a fitness value between 0  and 1
