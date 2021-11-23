@@ -530,5 +530,18 @@ void test_network() //!OCLINT
         assert(before_mutation != n_weights);
     }
 #endif
+
+#define FIX_ISSUE_126
+#ifdef FIX_ISSUE_126
+    {
+        auto pars = net_param();
+        mutator_network<mutation_type::activation> n_activation{pars};
+        mutator_network<mutation_type::weights> n_weights{pars};
+        network n{pars};
+
+        assert(n == n_activation);
+        assert(n == n_weights);
+    }
+#endif
 }
 #endif
