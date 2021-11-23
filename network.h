@@ -37,6 +37,7 @@ struct net_param
     std::function<double(double)> function;
 };
 
+
 class network
 {
 public:

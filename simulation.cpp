@@ -728,6 +728,5 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-
 }
 #endif
