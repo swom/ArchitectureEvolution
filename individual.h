@@ -9,7 +9,7 @@ struct ind_param
                                    net_par,
                                    mutation_type)
     net_param net_par;
-    mutation_type mutation_type;
+    enum mutation_type mutation_type;
 
     ind_param(net_param net_pars = net_param(),
               enum mutation_type mut = mutation_type::activation):
