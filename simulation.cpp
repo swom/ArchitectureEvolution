@@ -68,9 +68,8 @@ double avg_fitness(const simulation& s)
 
 void calc_fitness(simulation& s)
 {
-    s.update_optimal(calculate_optimal(s)); //I realized we had forgotten that!!
     s.get_pop() = calc_fitness(s.get_pop(),
-                               s.get_optimal(),
+                               calculate_optimal(s),
                                s.get_sel_str());
 }
 

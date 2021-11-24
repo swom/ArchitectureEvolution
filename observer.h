@@ -11,10 +11,15 @@ public:
                                    m_avg_fitnesses,
                                    m_var_fitnesses,
                                    m_top_inds,
+<<<<<<< HEAD
                                    m_env_functions,
                                    m_params,
                                    m_input,
                                    m_optimal)
+=======
+                                   m_env_values,
+                                   m_params)
+>>>>>>> parent of 9f50d7c... Merge pull request #102 from swom/test81
 
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness() const noexcept{return m_avg_fitnesses;}
@@ -43,6 +48,7 @@ public:
 
     void store_par (const simulation& s) noexcept {m_params = s.get_params();}
 
+<<<<<<< HEAD
     void store_input(const simulation& s) noexcept {m_input.push_back(s.get_input());}
 
     void store_optimal(const simulation& s) noexcept {m_optimal.push_back(s.get_optimal());}
@@ -51,6 +57,8 @@ public:
 
     const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 
+=======
+>>>>>>> parent of 9f50d7c... Merge pull request #102 from swom/test81
 private:
 
     std::vector<double> m_avg_fitnesses;
@@ -58,11 +66,7 @@ private:
     std::vector<char> m_env_functions;
     std::vector<std::vector<individual>> m_top_inds;
     all_params m_params = {};
-    std::vector<std::vector<double>> m_input;
-    std::vector<double> m_optimal;
 };
-
-bool operator==(const observer& lhs, const observer& rhs);
 
 bool operator==(const all_params& lhs, const all_params& rhs);
 
@@ -74,9 +78,6 @@ void exec(simulation& s , observer& o);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
 void save_json(const observer &o, const std::string& filename);
-
-///Loads the observer back from json file.
-observer load_observer_json(const std::string& filename);
 
 void test_observer();
 
