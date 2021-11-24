@@ -44,7 +44,11 @@ void individual::change_net(const network& n)
 
 void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 {
+<<<<<<< HEAD
   m_network->mutate(mut_rate, mut_step, rng);
+=======
+  m_network.mutate_weights(mut_rate, mut_step, rng);
+>>>>>>> parent of 293518c... changing one argument to mutate_activations 9we need the 64bit version of the mersene twister
 }
 
 std::vector<double> response(const individual& ind)
