@@ -24,7 +24,7 @@ simulation::simulation(int init_pop_size,
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
     {
-        ind.get_net() = net_arch;
+        ind = individual{net_param{net_arch}};
     }
 }
 
@@ -42,10 +42,6 @@ simulation::simulation(all_params params):
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds())
-    {
-        ind.get_net() = params.i_p.net_par.net_arc;
-    }
 }
 
 std::vector<double> get_inds_input(const simulation &s)
@@ -110,11 +106,6 @@ double get_nth_ind_fitness(const simulation& s, const size_t ind_index)
 }
 
 const network& get_nth_ind_net(const simulation& s, size_t ind_index)
-{
-    return get_nth_ind_net(s.get_pop(), ind_index);
-}
-
-network& get_nth_ind_net( simulation& s, size_t ind_index)
 {
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
@@ -353,10 +344,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulation can be initialized with network architecture for inds in pop
     {
-        std::vector<int> net_arch{1,33,2,1};
+        std::vector<int> net_arch{1,1,2,1};
         simulation s{1,0,0, net_arch};
 
-        assert(get_nth_ind_net(s, 0) == network{net_arch});
+        auto sim_1st_net = get_nth_ind_net(s, 0);
+        auto expected_net = network{net_arch};
+        assert(sim_1st_net == expected_net);
     }
 
 #define FIX_ISSUE_68
@@ -425,17 +418,17 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
 
         std::function<double(std::vector<double>)> identity{identity_first_element};
-        env_param identity_env {};
-        identity_env.env_function_A = identity;
-        assert(are_same_env_functions(identity_env.env_function_A, identity));
+
+        env_param identity_env_par {};
+        identity_env_par.env_function_A = identity;
 
         auto potential_identity_net_param = net_param{{1,1}, linear};
         network potential_identity_net {potential_identity_net_param};
-        potential_identity_net = change_all_weights(potential_identity_net, 1);
+        auto identity_net = change_all_weights(potential_identity_net, 1);
 
-        assert(net_behaves_like_the_function(potential_identity_net, identity));
+        assert(net_behaves_like_the_function(identity_net, identity));
 
-        auto identity_ind = ind_param{potential_identity_net_param};
+        auto potential_identity_ind_par = ind_param{potential_identity_net_param};
 
 
         int pop_size = 2;
@@ -446,15 +439,15 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         simulation s{all_params{
-                identity_env,
-                identity_ind,
+                identity_env_par,
+                potential_identity_ind_par,
                 minimal_pop,
                 sim_p
             }};
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_nth_ind_net(s, first_ind, potential_identity_net);
+        change_nth_ind_net(s, first_ind, identity_net);
 
         calc_fitness(s);
 

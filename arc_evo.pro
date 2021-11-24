@@ -5,6 +5,7 @@ HEADERS +=  \
   environment.h \
   individual.h \
   json.hpp \
+  mutation_type.h \
   network.h \
   observer.h \
   parser.h \
@@ -19,6 +20,7 @@ SOURCES +=  \
   environment.cpp \
   individual.cpp \
   main.cpp \
+  mutation_type.cpp \
   network.cpp \
   observer.cpp \
   parser.cpp \

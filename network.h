@@ -2,11 +2,10 @@
 #define NETWORK_H
 #include "utilities.h"
 #include <iostream>
-#include <vector>
 #include <random>
 #include "json.hpp"
 #include "weight.h"
-
+#include "mutation_type.h"
 
 double sigmoid(double x);
 double linear(double x);
@@ -17,21 +16,19 @@ static std::map<std::string, std::function<double(double)>> string_to_act_func_m
 {"sigmoid", sigmoid}
 };
 
-//static std::map<std::function<double(double)>, std::string> act_funct_to_string_map
-//{
-//{linear, "linear"},
-//{sigmoid, "sigmoid"}
-//};
-
 struct net_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
                                    net_arc
                                    )
+    net_param(const std::vector<int>& net_arch = {1,2,1},
+              std::function<double(double)> func = linear):
+        net_arc{net_arch},
+        function{func}
+    {};
 
-    std::vector<int> net_arc {1,2,1};
+    std::vector<int> net_arc;
     std::function<double(double)> function;
-//    std::string str_func = act_funct_to_string_map.find(function)->second;
 };
 
 
@@ -40,6 +37,12 @@ class network
 public:
     network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function = &linear);
     network (net_param n_p);
+
+    virtual ~network() {}
+    virtual void mutate(const double& ,
+                        const double& ,
+                        std::mt19937_64& )
+    {};
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size, 
@@ -52,11 +55,6 @@ public:
     ///Returns the const ref to the node biases
     const std::vector<std::vector<double>>& get_biases() const noexcept{return m_nodes_biases;}
 
-    ///Returns const ref to vector of weights
-    const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
-
-    ///Returns not constant ref to vector of weights
-    std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
 
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
@@ -69,6 +67,11 @@ public:
 
     double operator ()(double n) const {return m_activation_function(n);}
 
+    ///Returns const ref to vector of weights
+    const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
+
+    ///Returns not constant ref to vector of weights
+    std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
 private:
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<std::vector<weight>>> m_network_weights;
@@ -81,6 +84,17 @@ private:
 
     ///The activation function of the nodes
     std::function<double(double)> m_activation_function;
+};
+
+
+template <mutation_type mutation_type>
+class mutator_network : public network
+{
+public:
+    mutator_network(const net_param& p) : network{p} {};
+    void mutate(const double& mut_rate,
+                const double& mut_step,
+                std::mt19937_64& rng);
 };
 
 bool operator==(const network& lhs, const network& rhs);
@@ -123,6 +137,7 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
     return input;
 }
 
+
 std::vector<double> response(const network& n, std::vector<double> input);
 
 ///Checks if a network and a function return the same output
@@ -130,6 +145,9 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
 
 ///Checks whether all connections of the network are active
 bool all_weigths_are_active(const network &n);
+
+///Checks that all weights have a certain value
+bool all_weigths_have_value(const network &n, double value);
 
 ///Checks that the registered_mutations correspond to the given mutation rate
 bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
