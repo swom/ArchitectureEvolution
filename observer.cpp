@@ -22,12 +22,22 @@ bool operator==(const all_params& lhs, const all_params& rhs)
 
 bool operator==(const observer& lhs, const observer& rhs)
 {
-    return lhs.get_params() ==  rhs.get_params() &&
-            lhs.get_input() == rhs.get_input() &&
-            lhs.get_optimal() == rhs.get_optimal() &&
-            lhs.get_avg_fitness() == rhs.get_avg_fitness() &&
-            lhs.get_var_fitness() == rhs.get_var_fitness() &&
-            lhs.get_top_inds() == rhs.get_top_inds();
+    auto same_par = lhs.get_params() ==  rhs.get_params();
+    auto same_env_inputs = lhs.get_input() == rhs.get_input();
+    auto same_env_optimum =lhs.get_optimal() == rhs.get_optimal();
+    auto same_avg_fitness = lhs.get_avg_fitness() == rhs.get_avg_fitness();
+    auto same_fit_var = lhs.get_var_fitness() == rhs.get_var_fitness();
+    auto same_top_inds = lhs.get_top_inds() == rhs.get_top_inds();
+    auto same_env_func = lhs.get_env_funcs() == rhs.get_env_funcs();
+
+    return same_par &&
+            same_env_inputs &&
+            same_env_optimum &&
+            same_env_func &&
+            same_avg_fitness &&
+            same_fit_var &&
+            same_top_inds;
+
 }
 
 bool operator!=(const observer& lhs, const observer& rhs)
@@ -201,6 +211,11 @@ void test_observer()
         auto o5 = o4;
         assert(o5.get_optimal().empty());
         o5.store_optimal(s);
+        assert(o5 != o4);
+
+        auto o6 = o5;
+        assert(o5.get_env_funcs().empty());
+        o5.store_env_func(s);
         assert(o5 != o4);
     }
 #endif
