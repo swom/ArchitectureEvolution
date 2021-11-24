@@ -3,6 +3,13 @@
 
 #include "network.h"
 
+static std::map<std::string, mutation_type> string_to_mut_type_map
+{
+    {"weights", mutation_type::weights},
+    {"activation", mutation_type::activation},
+    {"weights_and_activation", mutation_type::weights_and_activation}
+};
+
 struct ind_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ind_param,

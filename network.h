@@ -39,7 +39,7 @@ public:
     network (net_param n_p);
 
     virtual ~network() {}
-    virtual void mutate(const double& ,
+    void mutate(const double& ,
                         const double& ,
                         std::mt19937_64& )
     {};
