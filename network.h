@@ -63,7 +63,7 @@ public:
     void mutate_weights(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
 
     ///Mutates the activation of the weights of the network - they get switched on and off
-    void mutate_activation(const double &mut_rate, std::mt19937 &rng);
+    void mutate_activation(const double &mut_rate, std::mt19937_64 &rng);
 
     double operator ()(double n) const {return m_activation_function(n);}
 
@@ -109,7 +109,7 @@ network change_all_weights(network n, weight new_weight);
 /// of network in all times it was mutated
 std::vector<weight> register_n_weight_mutations(network n, double mut_rate, double mut_step, std::mt19937_64 &rng, int repeats);
 
-std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937 &rng, int repeats);
+std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats);
 
 template <typename Fun>
 inline std::vector<double> response(const network& n, std::vector<double> input, Fun fun = &linear)
