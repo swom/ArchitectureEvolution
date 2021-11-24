@@ -135,6 +135,21 @@ public:
 ///Checks if 2 simulations are equal
 bool operator ==(const simulation& lhs, const simulation& rhs);
 
+///Checks if all the individuals in a simulated population have the same input
+bool all_individuals_have_same_input(const simulation &s);
+
+///Assigns the given new input to each individual in the simulation
+void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
+
+///Assigns the input in simulation to individuals
+void assign_inputs(simulation &s);
+
+///Assign inputs to a population
+void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
+
+///Updates the inputs in simulation and assigns them to individuals
+void assign_new_inputs(simulation &s);
+
 ///Calculates the avg_fitness of the population
 double avg_fitness(const simulation& s);
 
@@ -150,11 +165,17 @@ void change_nth_ind_net(simulation& s, size_t ind_index, const network& n);
 ///Gets the best n individuals in a pop
 std::vector<individual> get_best_n_inds(const simulation& s, int n);
 
-///Returns the current target value of the environment in the simualtion
-double get_current_env_value(const simulation&s);
+///Returns the input of the individuals
+std::vector<double> get_inds_input(const simulation &s);
 
-///Returns the current target value of the environment in the simualtion
-double get_current_env_value(simulation&s);
+///Returns the size of the inputs of the individuals
+size_t get_inds_input_size(const simulation &s);
+
+///Returns the current optimal function of the environment
+std::function<double(std::vector<double>)> get_current_env_function(const simulation &s);
+
+///Gets the name of the current environmental function
+char get_name_current_function(const simulation& s) noexcept;
 
 ///Returns the individuals in the simualtion
 const std::vector<individual>& get_inds(const simulation&s);
@@ -166,23 +187,19 @@ double get_nth_ind_fitness(const simulation& s, const size_t ind_index);
 /// popoulation member of a simulation
 const network& get_nth_ind_net(const simulation& s, size_t ind_index);
 
+///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
+void save_json(const simulation& s, const std::string& filename);
+
 ///Calculates fitness and selects a new population based on fitness
 void select_inds(simulation& s);
 
 ///Ticks time one generation into the future
 void tick(simulation &s);
 
-///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-void save_json(const simulation& s, const std::string& filename);
 
 ///Calculates the standard devaition of the population fitness
 double var_fitness(const simulation&s);
 
-///Assign inputs to a population
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
-
-///Checks if all the individuals in a simulated population have the same input
-bool all_individuals_have_same_input(const simulation &s);
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
 const std::vector<double> &get_current_input(const simulation &s);
@@ -196,26 +213,10 @@ std::vector<double> create_inputs(simulation s);
 ///Calculates the optimal output
 double calculate_optimal(const simulation &s);
 
-///Assigns the given new input to each individual in the simulation
-void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
-
-///Assigns the input in simulation to individuals
-void assign_inputs(simulation &s);
-
-///Updates the inputs in simulation and assigns them to individuals
-void assign_new_inputs(simulation &s);
 
 ///Switches the function of the environment used to calculate the optimal output
 void switch_optimal_function(simulation &s);
 
-///Returns the input of the individuals
-std::vector<double> get_inds_input(const simulation &s);
-
-///Returns the size of the inputs of the individuals
-size_t get_inds_input_size(const simulation &s);
-
-///Returns the current optimal function of the environment
-std::function<double(std::vector<double>)> get_current_env_function(const simulation &s);
 
 void test_simulation() noexcept;
 

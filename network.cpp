@@ -105,7 +105,7 @@ std::vector<weight> register_n_weight_mutations(network n, double mut_rate, doub
     return  networks_weights;
 }
 
-std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats)
+std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937 &rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
@@ -180,7 +180,7 @@ void network::mutate_weights(const double& mut_rate,
         }
 }
 
-void network::mutate_activation(const double &mut_rate, std::mt19937_64 &rng)
+void network::mutate_activation(const double &mut_rate, std::mt19937 &rng)
 {
   std::bernoulli_distribution mut_p{mut_rate};
 
@@ -444,7 +444,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
     {
-        std::mt19937_64 rng;
+        std::mt19937 rng;
         network n{net_param{}};
         double mut_rate = 1;
 
@@ -458,7 +458,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_100
 #ifdef FIX_ISSUE_100
     {
-        std::mt19937_64 rng;
+        std::mt19937 rng;
 
         std::vector<int> net_arch{5,5,5,5,5};
         network n{net_param{net_arch, linear}};
