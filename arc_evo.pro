@@ -4,7 +4,6 @@ HEADERS +=  \
   Stopwatch.hpp \
   environment.h \
   individual.h \
-  json.hpp \
   mutation_type.h \
   network.h \
   observer.h \
