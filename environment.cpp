@@ -103,17 +103,19 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 }
 
 
-void switch_env_function(environment &e)
+environment switch_env_function(environment e)
 {
     try
     {
         if(e.get_name_current_function()=='A'){
             e.change_env_function(e.get_env_function_B());
             e.switch_name_current_function();
+            return e;
           }
         else if (e.get_name_current_function()=='B'){
           e.change_env_function(e.get_env_function_A());
           e.switch_name_current_function();
+          return e;
         }
         else throw std::runtime_error("Error while switching functions: current function has invalid name");
     }
@@ -335,10 +337,10 @@ void test_environment() noexcept
     {
       environment e{env_param{}};
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
-      switch_env_function(e); //Changed the name to match what we've been using
+      e = switch_env_function(e); //Changed the name to match what we've been using
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
       assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
-      switch_env_function(e);
+      e = switch_env_function(e);
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
       assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
     }
@@ -371,7 +373,7 @@ void test_environment() noexcept
         std::function<double(std::vector<double>)> current_function = e.get_current_function();
         assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
 
-        switch_env_function(e);
+        e = switch_env_function(e);
 
         current_function = e.get_current_function();
         assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));

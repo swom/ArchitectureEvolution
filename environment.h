@@ -116,7 +116,7 @@ std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
 double calculate_optimal(const environment &e, std::vector<double> input);
 
 ///Switches the current environmental function from A to B or B to A
-void switch_env_function(environment &e);
+environment switch_env_function(environment e);
 
 
 

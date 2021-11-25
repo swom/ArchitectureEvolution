@@ -235,7 +235,7 @@ double calculate_optimal(const simulation &s)
 
 std::vector<double> create_inputs(simulation s)
 {
-    environment &e = s.get_env();
+    environment e = s.get_env();
     return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
 }
 
@@ -252,7 +252,7 @@ void assign_new_inputs(simulation &s)
 
 void switch_optimal_function(simulation &s)
 {
-    switch_env_function(s.get_env());
+    s.change_env(switch_env_function(s.get_env()));
 }
 
 size_t get_inds_input_size(const simulation &s)
@@ -522,7 +522,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     {
         simulation s{0};
-        environment &e = s.get_env();
+        environment e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
 
@@ -531,6 +531,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         for( int i = 0; i != repeats; i++)
         {
             tick(s);
+            e = s.get_env();
             if(previous_env_function != e.get_name_current_function())
             {
                 previous_env_function = e.get_name_current_function();

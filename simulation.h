@@ -68,8 +68,8 @@ public:
   ///Returns const ref to env_member
   const environment& get_env() const noexcept {return m_environment;}
 
-  ///Returns const ref to env_member
-  environment& get_env() noexcept {return m_environment;}
+  /// Changes the environment member
+  void change_env(const environment& new_env) {m_environment = new_env;}
 
   ///Returns the number of generatiosn for which the simualtion has to run
   const int& get_n_gen() const noexcept {return m_n_generations;}
