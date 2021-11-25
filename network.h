@@ -55,15 +55,11 @@ public:
     ///Returns the const ref to the node biases
     const std::vector<std::vector<double>>& get_biases() const noexcept{return m_nodes_biases;}
 
+    ///Sets the value of the nodes to the given value
+    void change_biases(std::vector<std::vector<double>> new_biases) {m_nodes_biases = new_biases;}
 
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
-
-    ///Mutates the weights of the network
-    void mutate_weights(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
-
-    ///Mutates the activation of the weights of the network - they get switched on and off
-    void mutate_activation(const double &mut_rate, std::mt19937_64 &rng);
 
     double operator ()(double n) const {return m_activation_function(n);}
 
@@ -156,7 +152,17 @@ bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::
 ///Returns the total number of connections in the network
 int get_number_weights(const network &n);
 
+///Mutates the weights of a network
+void mutate_weights(network &n, const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
 
+///Mutates the activation of the weights of the network - they get switched on and off
+void mutate_activation(network &n, const double &mut_rate, std::mt19937_64 &rng);
+
+///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
+std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
+                                               const double& mut_step,
+                                               std::mt19937_64& rng,
+                                               const std::vector<std::vector<double>>& biases);
 
 void test_network();
 
