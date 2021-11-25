@@ -116,9 +116,10 @@ std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_fro
     return fitness_inds;
 }
 
-void change_nth_ind_net(population& p, size_t ind_index, network n)
+population change_nth_ind_net(population p, size_t ind_index, network n)
 {
     p.change_nth_ind_net(ind_index, n);
+    return p;
 }
 
 void check_and_correct_dist(std::vector<double>& distance_from_target, double& min_distance)
@@ -203,13 +204,15 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
     return fitness_inds;
 }
 
-void reproduce(population& p, std::mt19937_64& rng)
+population reproduce(population p, std::mt19937_64& rng)
 {
     auto mut_dist = create_mut_dist_fit(p);
 
     select_new_pop(p, mut_dist, rng);
 
     swap_new_with_old_pop(p);
+
+    return p;
 }
 
 void set_fitness_inds(population& p, const std::vector<double>& fitness_vector)
@@ -303,12 +306,12 @@ void test_population() noexcept
 
         //make first ind net recognizable
         auto new_net =  change_all_weights(get_nth_ind_net(p,first_ind), 123456);
-        change_nth_ind_net(p, first_ind, new_net);
+        p = change_nth_ind_net(p, first_ind, new_net);
 
         set_nth_ind_fitness(p, first_ind, 1);
         set_nth_ind_fitness(p, second_ind, 0);
 
-        reproduce(p, rng);
+        p = reproduce(p, rng);
 
         assert(all_nets_equals_to(p, new_net));
     }

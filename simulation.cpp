@@ -68,10 +68,11 @@ double avg_fitness(const simulation& s)
 
 void calc_fitness(simulation& s)
 {
-    s.update_optimal(calculate_optimal(s)); //I realized we had forgotten that!!
-    s.get_pop() = calc_fitness(s.get_pop(),
-                               s.get_optimal(),
-                               s.get_sel_str());
+    s.update_optimal(calculate_optimal(s));
+    population pop_with_fitness = calc_fitness(s.get_pop(),
+                                               s.get_optimal(),
+                                               s.get_sel_str());
+    s.change_pop(pop_with_fitness);
 }
 
 void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight)
@@ -82,7 +83,7 @@ void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weig
 
 void change_nth_ind_net(simulation& s, size_t ind_index, const network& n)
 {
-    change_nth_ind_net(s.get_pop(), ind_index, n) ;
+    s.change_pop(change_nth_ind_net(s.get_pop(), ind_index, n)) ;
 }
 
 std::vector<individual> get_best_n_inds(const simulation& s, int n)
@@ -152,7 +153,7 @@ simulation load_json(
 
 void reproduce(simulation& s)
 {
-    reproduce(s.get_pop(), s.get_rng());
+    s.change_pop(reproduce(s.get_pop(), s.get_rng()));
 }
 
 void tick(simulation &s)
@@ -194,16 +195,17 @@ double var_fitness(const simulation&s)
     return var_fitness(s.get_pop());
 }
 
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
+population assign_new_inputs_to_inds(population p, const std::vector<double> &inputs)
 {
     for(auto& ind : p.get_inds()){
         ind.assign_input(inputs);
     }
+    return p;
 }
 
 void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
 {
-    assign_new_inputs_to_inds(s.get_pop(), new_input);
+    s.change_pop(assign_new_inputs_to_inds(s.get_pop(), new_input));
 }
 
 bool all_individuals_have_same_input(const simulation &s)
@@ -239,7 +241,7 @@ std::vector<double> create_inputs(simulation s)
 
 void assign_inputs(simulation &s)
 {
-    assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+    s.change_pop(assign_new_inputs_to_inds(s.get_pop(), s.get_input()));
 }
 
 void assign_new_inputs(simulation &s)
@@ -560,7 +562,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         population p;
         int n_inputs = 3;
         auto inputs = create_n_inputs(n_inputs);
-        assign_new_inputs_to_inds(p,inputs);
+        p = assign_new_inputs_to_inds(p,inputs);
         for(const auto& ind : p.get_inds())
         {
             assert(ind.get_input_values() == inputs);

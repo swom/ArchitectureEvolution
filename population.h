@@ -72,8 +72,8 @@ double avg_fitness(const population& p);
 ///Calculates the fitness of inds in pop given a target env_value
 population calc_fitness(population p, const double &env_value, const double &sel_str);
 
-///changes the net of the nth individual to a given net
-void change_nth_ind_net(population& p, size_t ind_index, network n);
+///returns a pop with the net of the nth individual changed to a given net
+population change_nth_ind_net(population p, size_t ind_index, network n);
 
 ///Creates a mutable distribution from whihc to draw inds based on fitness
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population& p);
@@ -98,7 +98,7 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
                                         double selection_strength);
 
 ///Reproduces inds with a probability proportional to their fitness
-void reproduce(population& p, std::mt19937_64& rng);
+population reproduce(population p, std::mt19937_64& rng);
 
 ///Select inds for new pop from old pop based on mutable dist
 /// and mutates them

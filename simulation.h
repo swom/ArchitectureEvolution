@@ -59,8 +59,8 @@ public:
   ///Returns const ref ot population memeber
   const population& get_pop() const noexcept {return m_population;}
 
-  ///Returns const ref ot population memeber
-  population& get_pop() noexcept {return m_population;}
+  /// Changes the population member
+  void change_pop(const population& new_p) {m_population = new_p;}
 
   ///Returns ref to rng
   std::mt19937_64& get_rng() noexcept {return m_rng;}
@@ -145,7 +145,7 @@ void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
 void assign_inputs(simulation &s);
 
 ///Assign inputs to a population
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
+population assign_new_inputs_to_inds(population p, const std::vector<double> &inputs);
 
 ///Updates the inputs in simulation and assigns them to individuals
 void assign_new_inputs(simulation &s);
