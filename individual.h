@@ -26,6 +26,11 @@ public:
 
     individual(ind_param i_p = {});
 
+
+    ///Overload of copy assignment where pointer to netowrk is not copied
+    /// but the pointee is copied and assigned
+    individual& operator=(const individual&);
+
     ///Changes the netowrk of an individual with another network
     void change_net(const network& n);
 
@@ -65,8 +70,9 @@ private:
     std::vector<double> m_input_values;
 
     ///The network of an individual
-    std::shared_ptr<network> m_network;
+    std::unique_ptr<network> m_network;
 };
+
 
 ///Functions required to save to json format
 using json = nlohmann::json;
