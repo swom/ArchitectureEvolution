@@ -64,24 +64,52 @@ bool operator!=(const network& lhs, const network& rhs)
 
 network change_all_weights(network n, double new_weight)
 {
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
+  auto former_weights = n.get_net_weights();
+  std::vector<std::vector<std::vector<weight>>> new_weights;
+
+    for(size_t i = 0; i != former_weights.size(); i++){
+      std::vector<std::vector<weight>> temp_layer;
+
+        for(size_t j = 0; j != former_weights[i].size(); j++){
+          std::vector<weight> temp_node;
+
+            for(size_t k = 0; k != former_weights[i][j].size(); k++)
             {
-                weight.change_weight(new_weight);
+                weight w{new_weight, n.get_net_weights()[i][j][k].is_active()};
+                temp_node.push_back(w);
             }
-    return n;
+
+            temp_layer.push_back(temp_node);
+          }
+        new_weights.push_back(temp_layer);
+      }
+
+   n.change_weights(new_weights);
+   return n;
 }
 
 network change_all_weights(network n, weight new_weight)
 {
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                weight.change_weight(new_weight.get_weight());
-                weight.change_activation(new_weight.is_active());
-            }
+   auto former_weights = n.get_net_weights();
+   std::vector<std::vector<std::vector<weight>>> new_weights;
+
+     for(size_t i = 0; i != former_weights.size(); i++){
+       std::vector<std::vector<weight>> temp_layer;
+
+         for(size_t j = 0; j != former_weights[i].size(); j++){
+           std::vector<weight> temp_node;
+
+             for(size_t k = 0; k != former_weights[i][j].size(); k++)
+             {
+                 temp_node.push_back(new_weight);
+             }
+
+             temp_layer.push_back(temp_node);
+           }
+         new_weights.push_back(temp_layer);
+       }
+
+    n.change_weights(new_weights);
     return n;
 }
 
@@ -302,6 +330,20 @@ int get_number_weights(const network &n)
             }
         }
     return (int) number_weights;
+}
+
+bool is_same_mutator_network(const network &lhs, const network &rhs)
+{
+  if(lhs != rhs){
+    return false;
+    }
+
+  if(typeid(lhs) == typeid(rhs)){
+    return true;
+    }
+  else{
+    return false;
+    }
 }
 
 

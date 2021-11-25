@@ -41,7 +41,7 @@ public:
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
 
-    ///Returns ref to inputs
+    ///Returns ref to inputs USED FOR JSON SAVING
     std::vector<double>& get_to_input_values() noexcept {return m_input_values;}
 
     ///Returns ref to network USED FOR JSON SAVING
