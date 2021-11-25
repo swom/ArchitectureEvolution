@@ -108,5 +108,18 @@ void test_individual()
     individual i{i_p};
     assert(i.get_net() == network{net_par});
   }
+
+
+#define FIX_ISSUE_120
+#ifdef FIX_ISSUE_120
+///ind_param contains a mutation_type member, with which network can be templated
+  {
+    ind_param i_p;
+    enum mutation_type mut_type = i_p.mutation_type;
+
+    assert(mut_type == mutation_type::activation);
+  }
+#endif
+
 }
 #endif
