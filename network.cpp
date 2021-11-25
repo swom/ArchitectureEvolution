@@ -304,6 +304,20 @@ int get_number_weights(const network &n)
     return (int) number_weights;
 }
 
+bool is_same_mutator_network(const network &lhs, const network &rhs)
+{
+  if(lhs != rhs){
+    return false;
+    }
+
+  if(typeid(lhs) == typeid(rhs)){
+    return true;
+    }
+  else{
+    return false;
+    }
+}
+
 
 
 #ifndef NDEBUG

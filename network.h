@@ -156,6 +156,9 @@ bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::
 ///Returns the total number of connections in the network
 int get_number_weights(const network &n);
 
+///Checks that both networks are mutator_networks that have the same mutation function
+///In addition to checking the normal equality
+bool is_same_mutator_network(const network &lhs, const network &rhs);
 
 
 void test_network();
