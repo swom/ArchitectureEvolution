@@ -57,23 +57,23 @@ public:
     };
 
     // move assignment
-//    individual& operator=(individual&& other) noexcept
-//    {
-//        // Guard self assignment
-//        if (this == &other)
-//            return *this;
+    individual& operator=(individual&& other) noexcept
+    {
+        // Guard self assignment
+        if (this == &other)
+            return *this;
 
-//        m_input_values = std::exchange(other.get_to_input_values(),
-//                                       std::vector<double>{});
-//        m_fitness = std::exchange(other.get_to_fitness(),0);
+        m_input_values = std::exchange(other.get_to_input_values(),
+                                       std::vector<double>{});
+        m_fitness = std::exchange(other.get_to_fitness(),0);
 
-//        m_network = std::move(other.get_net_ptr());
-//        other.get_net_ptr().reset();
+        m_network = std::move(other.get_net_ptr());
+        other.get_net_ptr().reset();
 
-//        return *this;
-//    }
+        return *this;
+    }
 
-    ///Changes the netowrk of an individual with another network
+    ///Changes the network of an individual with another network
     void change_net(const network& n);
 
     ///Returns copy of fitness
