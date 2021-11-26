@@ -37,9 +37,6 @@ public:
   ///Get const ref to vector of individuals
   const std::vector<individual>& get_inds() const noexcept{return m_vec_indiv;}
 
-  ///Get ref to vector of individuals
-  std::vector<individual>& get_inds() noexcept{return m_vec_indiv;}
-
   ///Returns the ref tot the mutable fitness distribution
   rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
   ///Get const ref to vector of individuals
@@ -53,6 +50,12 @@ public:
 
   ///Return mutation step
   double get_mut_step() const noexcept {return m_mut_step;}
+
+  ///Modifies the vector of individuals to the given vector
+  void change_vector_individuals(const std::vector<individual> &inds){m_vec_indiv = inds;}
+
+  ///Modifies one individual in the vector of individuals
+  void change_nth_individual(size_t index, const individual &new_ind){m_vec_indiv[index] = new_ind;}
 
 private:
 
@@ -85,7 +88,6 @@ std::vector<double> extract_fitnesses(const std::vector<individual>& inds);
 std::vector<individual> get_best_n_inds(const population& p, int nth);
 
 const individual& get_nth_ind(const population& p, size_t ind_index);
-individual& get_nth_ind(population& p, size_t ind_index);
 
 ///Returns the fitness of the nth individual
 double get_nth_ind_fitness(const population& p, const size_t& ind_index);
@@ -110,7 +112,7 @@ void select_new_pop(population& p,
 void set_fitness_inds(population& p, const std::vector<double>& fitness_vector);
 
 ///Swaps a vector of new_inds with the vector of old inds
-void swap_new_with_old_pop(population& p);
+void swap_new_with_old_pop(population &p);
 
 ///Sets the fitness of the nth ind in the population
 void set_nth_ind_fitness (population& p, size_t ind_index, double fitness);

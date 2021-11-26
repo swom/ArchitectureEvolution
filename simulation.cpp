@@ -22,10 +22,13 @@ simulation::simulation(int init_pop_size,
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds())
-    {
-        ind = individual{net_param{net_arch}};
+
+    std::vector<individual> vec_inds;
+    for(size_t i = 0; i != m_population.get_inds().size(); ++i){
+       individual ind = individual{net_param{net_arch}};
+       vec_inds.push_back(ind);
     }
+    m_population.change_vector_individuals(vec_inds);
 }
 
 
@@ -197,9 +200,11 @@ double var_fitness(const simulation&s)
 
 population assign_new_inputs_to_inds(population p, const std::vector<double> &inputs)
 {
-    for(auto& ind : p.get_inds()){
+    std::vector<individual> inds = p.get_inds();
+    for(auto& ind : inds){
         ind.assign_input(inputs);
     }
+    p.change_vector_individuals(inds);
     return p;
 }
 

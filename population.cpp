@@ -158,7 +158,9 @@ void select_new_pop(population& p,
 
 void swap_new_with_old_pop(population& p)
 {
-    p.get_inds().swap(p.get_new_inds());
+    std::vector<individual> inds = p.get_inds();
+    inds.swap(p.get_new_inds());
+    p.change_vector_individuals(inds);
 }
 
 std::vector<individual> get_best_n_inds(const population& p, int nth)
@@ -172,11 +174,6 @@ std::vector<individual> get_best_n_inds(const population& p, int nth)
 }
 
 const individual& get_nth_ind(const population& p, size_t ind_index)
-{
-    return p.get_inds()[ind_index];
-}
-
-individual& get_nth_ind(population& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
 }
@@ -227,8 +224,9 @@ void set_fitness_inds(population& p, const std::vector<double>& fitness_vector)
 
 void set_nth_ind_fitness (population& p, size_t ind_index, double fitness)
 {
-    auto& ind = p.get_inds()[ind_index];
+    auto ind = p.get_inds()[ind_index];
     ind.set_fitness(fitness);
+    p.change_nth_individual(ind_index, ind);
 }
 
 double var_fitness(const population& p)
