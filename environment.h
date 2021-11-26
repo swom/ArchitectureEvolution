@@ -14,21 +14,36 @@ static double env_func_2(std::vector<double> input){
   return input[0]  * input[0] * input[0];
 }
 
+static double env_func_3(std::vector<double>){
+  return 0.7;
+}
+
+static double env_func_4(std::vector<double>){
+  return 0.2;
+}
+
 
 
 
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map
 {
 {"1", env_func_1},
-{"2", env_func_2}
+{"2", env_func_2},
+{"3", env_func_3},
+{"4", env_func_4}
 };
 
 
 
 struct env_param
 {
-std::function<double(std::vector<double>)> env_function_A{env_func_1};
-std::function<double(std::vector<double>)> env_function_B{env_func_2};
+    env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
+              std::function<double(std::vector<double>)> fun_B = env_func_2) :
+        env_function_A{fun_A},
+        env_function_B{fun_B}
+    {}
+std::function<double(std::vector<double>)> env_function_A;
+std::function<double(std::vector<double>)> env_function_B;
 };
 
 

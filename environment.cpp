@@ -17,7 +17,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 }
 
 environment::environment(env_param e_p):
-    m_cue_distribution{-1, 1.},
+    m_cue_distribution{1,1},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
