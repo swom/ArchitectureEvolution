@@ -39,7 +39,7 @@ public:
     const network& get_net() const noexcept {return *m_network;}
 
     ///Returns const ref to the pointer to network
-    const std::shared_ptr<network>& get_pointer_to_net() const noexcept {return m_network;}
+    const std::unique_ptr<network>& get_net_ptr() const noexcept {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
