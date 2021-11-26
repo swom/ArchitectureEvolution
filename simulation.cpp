@@ -407,18 +407,12 @@ void test_simulation() noexcept//!OCLINT test may be many
         change_nth_ind_net(s, best_ind, identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
 
-        auto best_resp = response(best_net, s.get_input())[0];
-        auto sim_input = s.get_input();
-        assert(best_resp == sim_input[0]);
-        assert(best_resp = calculate_optimal(s));
-
         size_t worst_ind = 1;
+        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
         auto worst_net = get_nth_ind_net(s,worst_ind);
-        auto worst_resp = response(worst_net, s.get_input())[0];
-        assert(are_equal_with_tolerance(worst_resp,0));
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
-
+        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
         select_inds(s);
 

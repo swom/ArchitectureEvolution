@@ -72,7 +72,7 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
 {
     std::vector<double> distance_from_target;
 
-    for(auto& ind : inds)
+    for(const auto& ind : inds)
     {
         auto sqr_distance = calc_sqr_distance(ind, env_value);
         distance_from_target.push_back(sqr_distance);
@@ -149,7 +149,8 @@ void select_new_pop(population& p,
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
-        auto selected_ind = p.get_inds()[mut_dist(rng)];
+        auto selected_ind_index = mut_dist(rng);
+        auto selected_ind = p.get_inds()[selected_ind_index];
         p.get_new_inds()[i] = selected_ind;
         p.get_new_inds()[i].mutate(p.get_mut_rate(),
                                    p.get_mut_step(),
