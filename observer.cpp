@@ -96,7 +96,8 @@ void exec(simulation& s , observer& o)
         o.store_avg_fit(s);
         if(i % 1000 == 0)
         {
-            o.store_top_n_inds(s,10);
+            int n_indivs = get_inds(s).size() > 10 ? 10 : get_inds(s).size();
+            o.store_top_n_inds(s,n_indivs);
         }
         if(i % 1000 == 0)
         {
