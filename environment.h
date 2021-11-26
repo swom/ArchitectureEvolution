@@ -32,8 +32,8 @@ struct env_param
         env_function_A{fun_A},
         env_function_B{fun_B}
     {}
-std::function<double(std::vector<double>)> env_function_A{env_func_1};
-std::function<double(std::vector<double>)> env_function_B{env_func_2};
+std::function<double(std::vector<double>)> env_function_A;
+std::function<double(std::vector<double>)> env_function_B;
 };
 
 
