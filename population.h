@@ -42,9 +42,6 @@ public:
   ///Get const ref to vector of individuals
   const std::vector<individual>& get_new_inds() const noexcept{return m_vec_new_indiv;}
 
-  ///Get ref to vector of individuals
-  std::vector<individual>& get_new_inds() noexcept{return m_vec_new_indiv;}
-
   ///Return mutation rate
   double get_mut_rate() const noexcept {return m_mut_rate;}
 
@@ -54,8 +51,14 @@ public:
   ///Modifies the vector of individuals to the given vector
   void change_vector_individuals(const std::vector<individual> &inds){m_vec_indiv = inds;}
 
+  ///Modifies the vector of new individuals to the given vector
+  void change_vector_new_inds(const std::vector<individual> &inds){m_vec_new_indiv = inds;}
+
   ///Modifies one individual in the vector of individuals
   void change_nth_individual(size_t index, const individual &new_ind){m_vec_indiv[index] = new_ind;}
+
+  ///Modifies one individual in the vector of new individuals
+  void change_nth_new_ind(size_t index, const individual &new_ind){m_vec_new_indiv[index] = new_ind;}
 
 private:
 

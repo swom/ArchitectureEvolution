@@ -149,18 +149,23 @@ void select_new_pop(population& p,
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
-        p.get_new_inds()[i] = p.get_inds()[mut_dist(rng)];
-        p.get_new_inds()[i].mutate(p.get_mut_rate(),
-                                   p.get_mut_step(),
-                                   rng);
+        p.change_nth_new_ind(i, p.get_inds()[mut_dist(rng)]);
+        individual mutated_ind = p.get_new_inds()[i];
+        mutated_ind.mutate(p.get_mut_rate(),
+                            p.get_mut_step(),
+                            rng);
+
+        p.change_nth_new_ind(i, mutated_ind);
     }
 }
 
 void swap_new_with_old_pop(population& p)
 {
     std::vector<individual> inds = p.get_inds();
-    inds.swap(p.get_new_inds());
+    std::vector<individual> new_inds = p.get_new_inds();
+    inds.swap(new_inds);
     p.change_vector_individuals(inds);
+    p.change_vector_new_inds(new_inds);
 }
 
 std::vector<individual> get_best_n_inds(const population& p, int nth)
