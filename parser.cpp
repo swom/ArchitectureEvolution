@@ -7,7 +7,9 @@
 env_param convert_env_args(const cxxopts::ParseResult& results)
 {
     return env_param{
-                    string_env_function_map.find(results["env_func_A"].as<std::string>())->second
+                    string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
+                            string_env_function_map.find(results["env_func_B"].as<std::string>())->second
+
     };
 }
 
