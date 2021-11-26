@@ -193,7 +193,6 @@ void network::mutate_activation(const double &mut_rate, std::mt19937_64 &rng)
           }
 }
 
-
 std::vector<double> response(const network& n, std::vector<double> input)
 {
     assert(input.size() == n.get_input_size());
