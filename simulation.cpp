@@ -458,6 +458,12 @@ void test_simulation() noexcept//!OCLINT test may be many
                 minimal_pop,
                 sim_p
             }};
+        //give simulation a simple input
+        //this will be used to calculate optimum
+        //and also fed to individuals
+        s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
 
         size_t first_ind = 0;
         size_t second_ind = 1;
