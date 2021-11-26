@@ -27,6 +27,11 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 
 struct env_param
 {
+    env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
+              std::function<double(std::vector<double>)> fun_B = env_func_2) :
+        env_function_A{fun_A},
+        env_function_B{fun_B}
+    {}
 std::function<double(std::vector<double>)> env_function_A{env_func_1};
 std::function<double(std::vector<double>)> env_function_B{env_func_2};
 };
