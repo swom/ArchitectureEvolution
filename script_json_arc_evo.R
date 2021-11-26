@@ -46,6 +46,7 @@ Timetochangecalc = function (threshold, simple_res){
 
 dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 dir = paste(dir,"/data_sim2",sep = "")
+dir = "X:/build-arc_evo-Desktop_Qt_6_1_1_MinGW_64_bit-Release"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = "*json$"

@@ -99,7 +99,13 @@ void exec(simulation& s , observer& o)
     for (int i = 0; i < s.get_n_gen(); i++)
     {
         tick (s);
+
         o.store_avg_fit(s);
+        o.store_env_func(s);
+        o.store_var_fit(s);
+        o.store_input(s);
+        o.store_optimal(s);
+
         if(i % 1000 == 0)
         {
             o.store_top_n_inds(s);
