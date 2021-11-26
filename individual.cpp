@@ -11,7 +11,7 @@ individual::individual(ind_param i_p) :
  switch (i_p.mutation_type)
  {
  case mutation_type::activation :
-     m_network = std::make_shared<mutator_network<mutation_type::activation>>(i_p.net_par);
+     m_network = std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
      break;
  default:
      throw std::runtime_error("Unkwon mutation type");
@@ -19,9 +19,11 @@ individual::individual(ind_param i_p) :
 
 }
 
-
-
-
+individual::individual(const individual& i) noexcept :
+    m_fitness{i.get_fitness()},
+    m_input_values{i.get_input_values()},
+    m_network{std::make_unique<network>(i.get_net())}
+{}
 
 bool operator== (const individual& lhs, const individual& rhs)
 {
