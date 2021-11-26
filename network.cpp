@@ -234,7 +234,7 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
         input.push_back(i + j);
         }
         assert(response(n, input).size() == 1);
-        if(response(n, input) [0] != f(input))
+        if(response(n, input)[0] != f(input))
         {
         return false;
         };

@@ -36,7 +36,8 @@ bool operator== (const individual& lhs, const individual& rhs)
 
 double calc_sqr_distance(const individual& i, double env_value)
 {
-   return (response(i)[0] - env_value) * (response(i)[0] - env_value);
+   auto output = response(i);
+   return (output[0] - env_value) * (output[0] - env_value);
 }
 
 void individual::change_net(const network& n)

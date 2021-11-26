@@ -148,7 +148,8 @@ void select_new_pop(population& p,
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
-        p.get_new_inds()[i] = p.get_inds()[mut_dist(rng)];
+        auto selected_ind = p.get_inds()[mut_dist(rng)];
+        p.get_new_inds()[i] = selected_ind;
         p.get_new_inds()[i].mutate(p.get_mut_rate(),
                                    p.get_mut_step(),
                                    rng);
