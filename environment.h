@@ -7,11 +7,11 @@
 #include "utilities.h"
 
 static double env_func_1(std::vector<double> input){
-  return input[0];
+  return input[0] * input[0];
 }
 
 static double env_func_2(std::vector<double> input){
-  return input[0]+1;
+  return input[0]  * input[0] * input[0];
 }
 
 

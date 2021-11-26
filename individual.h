@@ -3,6 +3,13 @@
 
 #include "network.h"
 
+static std::map<std::string, mutation_type> string_to_mut_type_map
+{
+    {"weights", mutation_type::weights},
+    {"activation", mutation_type::activation},
+    {"weights_and_activation", mutation_type::weights_and_activation}
+};
+
 struct ind_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ind_param,
@@ -25,8 +32,48 @@ class individual
 public:
 
     individual(ind_param i_p = {});
+    individual(individual&&) = default;
+    individual(const individual& i) noexcept;
 
-    ///Changes the netowrk of an individual with another network
+    ///Overload of copy assignment where pointer to netowrk is not copied
+    /// but the pointee is copied and assigned
+    //copy assignment
+    individual& operator=(const individual& other)
+    {
+        // Guard self assignment
+           if (this == &other)
+           {
+               return *this;
+           }
+
+           m_fitness = other.get_fitness();
+           m_input_values = other.get_input_values();
+           if(m_network == nullptr || get_net() != other.get_net())
+           {
+               m_network = std::make_unique<network>(other.get_net());
+           }
+
+        return *this;
+    };
+
+    // move assignment
+    individual& operator=(individual&& other) noexcept
+    {
+        // Guard self assignment
+        if (this == &other)
+            return *this;
+
+        m_input_values = std::exchange(other.get_to_input_values(),
+                                       std::vector<double>{});
+        m_fitness = std::exchange(other.get_to_fitness(),0);
+
+        m_network = std::move(other.get_net_ptr());
+        other.get_net_ptr().reset();
+
+        return *this;
+    }
+
+    ///Changes the network of an individual with another network
     void change_net(const network& n);
 
     ///Returns copy of fitness
@@ -38,8 +85,9 @@ public:
     ///Returns const ref to network
     const network& get_net() const noexcept {return *m_network;}
 
-    ///Returns const ref to the pointer to network
-    const std::unique_ptr<network>& get_net_ptr() const noexcept {return m_network;}
+    ///Returns ref to the pointer to network
+    std::unique_ptr<network>& get_net_ptr() {return m_network;}
+
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
@@ -68,8 +116,9 @@ private:
     std::vector<double> m_input_values;
 
     ///The network of an individual
-    std::shared_ptr<network> m_network;
+    std::unique_ptr<network> m_network;
 };
+
 
 ///Functions required to save to json format
 using json = nlohmann::json;

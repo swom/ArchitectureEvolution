@@ -374,11 +374,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         auto potential_identity_net_param = net_param{{1,1}, linear};
         network potential_identity_net {potential_identity_net_param};
-        potential_identity_net = change_all_weights(potential_identity_net, 1);
+        auto potental_identity_ind = ind_param{potential_identity_net_param};
+        assert(!net_behaves_like_the_function(potential_identity_net, identity));
 
-        assert(net_behaves_like_the_function(potential_identity_net, identity));
+        auto identity_net = change_all_weights({potential_identity_net}, 1);
+        assert(net_behaves_like_the_function(identity_net, identity));
 
-        auto identity_ind = ind_param{potential_identity_net_param};
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
@@ -389,21 +390,29 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         simulation s{all_params{
                 identity_env,
-                identity_ind,
+                potental_identity_ind,
                 minimal_pop,
                 sim_p
             }};
 
+        //give simulation a simple input
+        //this will be used to calculate optimum
+        //and also fed to individuals
+        s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
+
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_nth_ind_net(s, best_ind, potential_identity_net);
+        change_nth_ind_net(s, best_ind, identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;
+        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
         auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
-
+        assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
         select_inds(s);
 
@@ -449,6 +458,12 @@ void test_simulation() noexcept//!OCLINT test may be many
                 minimal_pop,
                 sim_p
             }};
+        //give simulation a simple input
+        //this will be used to calculate optimum
+        //and also fed to individuals
+        s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
 
         size_t first_ind = 0;
         size_t second_ind = 1;
