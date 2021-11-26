@@ -29,8 +29,31 @@ public:
 
     ///Overload of copy assignment where pointer to netowrk is not copied
     /// but the pointee is copied and assigned
-    individual& operator=(const individual&);
+    //copy assignment
+    individual& operator=(const individual& other)
+    {
+        // Guard self assignment
+           if (this == &other)
+               return *this;
+           m_fitness = other.get_fitness();
+           m_input_values = other.get_input_values();
 
+           if(get_net() != other.get_net())
+           m_network = std::make_unique<network>(other.get_net());
+
+        return *this;
+    };
+
+    // move assignment
+    individual& operator=(individual&& other) noexcept
+    {
+        // Guard self assignment
+        if (this == &other)
+            return *this; // delete[]/size=0 would also be ok
+
+        m_network = std::move(other.get_net_ptr()); // leave other in valid state
+        return *this;
+    }
     ///Changes the netowrk of an individual with another network
     void change_net(const network& n);
 
@@ -42,6 +65,8 @@ public:
 
     ///Returns const ref to network
     const network& get_net() const noexcept {return *m_network;}
+
+    std::unique_ptr<network>& get_net_ptr() {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
