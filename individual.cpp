@@ -52,7 +52,7 @@ void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 
 std::vector<double> response(const individual& ind)
 {
-    return response(ind.get_net(),ind.get_input_values(), &sigmoid);
+    return response(ind.get_net(),ind.get_input_values());
 }
 
 using json = nlohmann::json;

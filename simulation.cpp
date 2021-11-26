@@ -399,6 +399,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         //this will be used to calculate optimum
         //and also fed to individuals
         s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;

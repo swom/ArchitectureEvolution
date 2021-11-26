@@ -65,6 +65,9 @@ public:
     ///Mutates the activation of the weights of the network - they get switched on and off
     void mutate_activation(const double &mut_rate, std::mt19937_64 &rng);
 
+    ///changes the pointer to another activation function
+    void  swap_activation_function(std::function<double(double)> new_func) {new_func.swap(m_activation_function);}
+
     double operator ()(double n) const {return m_activation_function(n);}
 
     ///Returns const ref to vector of weights
@@ -111,6 +114,24 @@ std::vector<weight> register_n_weight_mutations(network n, double mut_rate, doub
 
 std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats);
 
+std::vector<double> response(const network& n, std::vector<double> input);
+
+///Checks if a network and a function return the same output
+bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats = 1000);
+
+///Checks whether all connections of the network are active
+bool all_weigths_are_active(const network &n);
+
+///Checks that all weights have a certain value
+bool all_weigths_have_value(const network &n, double value);
+
+///Checks that the registered_mutations correspond to the given mutation rate
+bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
+                                                      const double &proportion, int repeats);
+
+///Returns the total number of connections in the network
+int get_number_weights(const network &n);
+
 template <typename Fun>
 inline std::vector<double> response(const network& n, std::vector<double> input, Fun fun = &linear)
 {
@@ -136,27 +157,6 @@ inline std::vector<double> response(const network& n, std::vector<double> input,
 
     return input;
 }
-
-
-std::vector<double> response(const network& n, std::vector<double> input);
-
-///Checks if a network and a function return the same output
-bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats = 1000);
-
-///Checks whether all connections of the network are active
-bool all_weigths_are_active(const network &n);
-
-///Checks that all weights have a certain value
-bool all_weigths_have_value(const network &n, double value);
-
-///Checks that the registered_mutations correspond to the given mutation rate
-bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
-                                                      const double &proportion, int repeats);
-
-///Returns the total number of connections in the network
-int get_number_weights(const network &n);
-
-
 
 void test_network();
 

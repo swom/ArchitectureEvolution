@@ -193,7 +193,6 @@ void network::mutate_activation(const double &mut_rate, std::mt19937_64 &rng)
           }
 }
 
-
 std::vector<double> response(const network& n, std::vector<double> input)
 {
     assert(input.size() == n.get_input_size());
@@ -234,7 +233,7 @@ bool net_behaves_like_the_function(const network &n, const std::function<double(
         input.push_back(i + j);
         }
         assert(response(n, input).size() == 1);
-        if(response(n, input)[0] != f(input))
+        if(response(n, input) [0] != f(input))
         {
         return false;
         };

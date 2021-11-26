@@ -74,7 +74,8 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
 
     for(auto& ind : inds)
     {
-        distance_from_target.push_back(calc_sqr_distance(ind, env_value));
+        auto sqr_distance = calc_sqr_distance(ind, env_value);
+        distance_from_target.push_back(sqr_distance);
     }
 
     return distance_from_target;
