@@ -117,7 +117,7 @@ void test_individual()
       net_param net_par;
       network n{net_par};
 
-      std::shared_ptr<network> n_ptr(new network(net_par));
+      std::unique_ptr<network> n_ptr(new network(net_par));
 
       ind_param i_p{net_par};
       individual i{i_p};
