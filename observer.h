@@ -5,7 +5,7 @@
 class observer
 {
 public:
-    observer();
+    observer(int top_proportion = 10);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -14,7 +14,8 @@ public:
                                    m_env_functions,
                                    m_params,
                                    m_input,
-                                   m_optimal)
+                                   m_optimal,
+                                   m_top_proportion)
 
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness() const noexcept{return m_avg_fitnesses;}
@@ -35,7 +36,7 @@ public:
     void store_var_fit(const simulation& s);
 
     ///Saves the 100 best individuals in the population
-    void store_top_n_inds(const simulation& s, int n);
+    void store_top_n_inds(const simulation& s);
 
     const all_params& get_params() const noexcept {return m_params;};
 
@@ -56,6 +57,7 @@ private:
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
+    int m_top_proportion;
     std::vector<std::vector<individual>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
