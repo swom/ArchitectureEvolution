@@ -75,6 +75,7 @@ load("all_simple_res.R")
 #### Plot ####
 
 ggplot(data = all_simple_res 
+       %>% filter(architecture == "1-2-1")
        # %>% slice_min(gen,n = 100)
        ) +
   geom_rect(aes(xmin = gen - 1, xmax = gen,
