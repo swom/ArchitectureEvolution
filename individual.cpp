@@ -11,7 +11,7 @@ individual::individual(ind_param i_p) :
  switch (i_p.mutation_type)
  {
  case mutation_type::activation :
-     m_network = std::make_shared<mutator_network<mutation_type::activation>>(i_p.net_par);
+     m_network = std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
      break;
  default:
      throw std::runtime_error("Unkwon mutation type");
@@ -19,9 +19,11 @@ individual::individual(ind_param i_p) :
 
 }
 
-
-
-
+individual::individual(const individual& i) noexcept :
+    m_fitness{i.get_fitness()},
+    m_input_values{i.get_input_values()},
+    m_network{std::make_unique<network>(i.get_net())}
+{}
 
 bool operator== (const individual& lhs, const individual& rhs)
 {
@@ -34,7 +36,8 @@ bool operator== (const individual& lhs, const individual& rhs)
 
 double calc_sqr_distance(const individual& i, double env_value)
 {
-   return (response(i)[0] - env_value) * (response(i)[0] - env_value);
+   auto output = response(i);
+   return (output[0] - env_value) * (output[0] - env_value);
 }
 
 void individual::change_net(const network& n)
@@ -49,7 +52,7 @@ void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 
 std::vector<double> response(const individual& ind)
 {
-    return response(ind.get_net(),ind.get_input_values(), &sigmoid);
+    return response(ind.get_net(),ind.get_input_values());
 }
 
 using json = nlohmann::json;
