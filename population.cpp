@@ -7,33 +7,21 @@ population::population(int init_nr_indiv,
                        double mut_step,
                        std::vector<int> net_arch
                        ):
-    m_vec_indiv(static_cast<unsigned int>(init_nr_indiv)),
-    m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv)),
+    m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
+                individual{ind_param{net_param{net_arch}}}),
+    m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
+                    individual{ind_param{net_param{net_arch}}}),
     m_mut_rate{mut_rate},
     m_mut_step{mut_step}
-{
-
-for(auto& ind : m_vec_indiv)
-{
-    ind = individual{ind_param{net_param{net_arch}}};
-}
-
-}
+{}
 
 
 population::population(pop_param p_p,ind_param i_p):
-    m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
-    m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
+    m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds), individual{i_p.net_par}),
+    m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds), individual{i_p.net_par}),
     m_mut_rate{p_p.mut_rate},
     m_mut_step{p_p.mut_step}
-{
-
-    for(auto& ind : m_vec_indiv)
-    {
-        ind = individual{i_p.net_par};
-    }
-
-}
+{}
 
 
 
