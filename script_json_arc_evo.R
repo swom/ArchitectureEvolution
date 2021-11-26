@@ -44,8 +44,8 @@ Timetochangecalc = function (threshold, simple_res){
 
 ####read data####
 
-dir = dirname(rstudioapi::getActiveDocumentContext()$path)
-dir = paste(dir,"/data_sim2",sep = "")
+# dir = dirname(rstudioapi::getActiveDocumentContext()$path)
+# dir = paste(dir,"/data_sim2",sep = "")
 dir = "X:/build-arc_evo-Desktop_Qt_6_1_1_MinGW_64_bit-Release"
 setwd(dir)
 all_simple_res = data.frame()
@@ -54,7 +54,7 @@ for (i in  list.files(path = '.', pattern = pattern))
 {
 results <- fromJSON(file = i)
 simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
-                                                 "m_env_values",
+                                                 "m_env_functions",
                                                  "m_var_fitnesses")]),
                              var = "gen")
 ID = data.frame(i) %>% 
@@ -76,7 +76,7 @@ load("all_simple_res.R")
 ggplot(data = all_simple_res %>% slice_min(gen,n = 100000))+
   geom_rect(aes(xmin = gen - 1, xmax = gen,
                 ymin = 0, ymax = 1.5,
-                fill = as.factor(m_env_values),
+                fill = as.factor(m_env_functions),
                 alpha = 0.5))+
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
   facet_grid(seed ~ architecture)
@@ -87,14 +87,14 @@ d = all_simple_res %>%
   group_by(architecture) %>% 
   mutate(
     change = case_when(
-      m_env_values != lag(m_env_values) ~ TRUE,
+      m_env_functions != lag(m_env_functions) ~ TRUE,
       TRUE ~ FALSE
     ),
     n_change = cumsum(change)
   ) %>%
   select(-change) %>% 
   group_by(architecture, n_change) %>% 
-  summarise(env = as.factor(unique(m_env_values)),
+  summarise(env = as.factor(unique(m_env_functions)),
     gen = min(gen),
     time = sum(m_avg_fitnesses < 0.9),
             time_in = sum(m_avg_fitnesses > 0.9)) %>% 
@@ -107,6 +107,7 @@ ggplot(d %>% slice_min(gen, n = 10000),
  geom_col() +
   facet_grid(architecture ~ . )
 
+#Timo's code
 output = Timetochangecalc(0.9,simple_res)
 
 barplot(output$time)
