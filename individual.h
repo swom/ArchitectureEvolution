@@ -35,12 +35,16 @@ public:
     {
         // Guard self assignment
            if (this == &other)
+           {
                return *this;
+           }
+
            m_fitness = other.get_fitness();
            m_input_values = other.get_input_values();
-
-           if(get_net() != other.get_net())
-           m_network = std::make_unique<network>(other.get_net());
+           if(m_network == nullptr || get_net() != other.get_net())
+           {
+               m_network = std::make_unique<network>(other.get_net());
+           }
 
         return *this;
     };
