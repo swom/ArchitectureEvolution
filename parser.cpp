@@ -7,7 +7,8 @@
 env_param convert_env_args(const cxxopts::ParseResult& results)
 {
     return env_param{
-                    string_env_function_map.find(results["env_func_A"].as<std::string>())->second
+        string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
+                string_env_function_map.find(results["env_func_B"].as<std::string>())->second,
     };
 }
 
@@ -84,7 +85,7 @@ cxxopts::Options create_parser(){
              "number of generations for which the simulation has to run",
              cxxopts::value<int>()->default_value("1000000"))
             ("m,mutation_type",
-"type ofg mutation that a network will undergo",
+             "type ofg mutation that a network will undergo",
              cxxopts::value<std::string>()->default_value("weights"))
             ("t,test",
              "run all tests")
