@@ -5,7 +5,7 @@
 class observer
 {
 public:
-    observer(int top_proportion = 10);
+    observer(int top_proportion = 1);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -35,8 +35,11 @@ public:
     ///Saves the variance of the fitness
     void store_var_fit(const simulation& s);
 
-    ///Saves the 100 best individuals in the population
+    ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const simulation& s);
+
+    ///Saves the nth best individuals in the population
+    void store_top_n_inds(const simulation& s, int proportion);
 
     const all_params& get_params() const noexcept {return m_params;};
 

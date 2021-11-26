@@ -68,6 +68,11 @@ void observer::store_top_n_inds(const simulation &s)
     m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
 }
 
+void observer::store_top_n_inds(const simulation &s, int proportion)
+{
+    m_top_inds.push_back(get_best_n_inds(s, proportion));
+}
+
 void save_json(const observer& o, const std::string& filename)
 {
     std::ofstream  f(filename);
