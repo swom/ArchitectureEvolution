@@ -29,7 +29,7 @@ simulation::simulation(int init_pop_size,
 }
 
 
-simulation::simulation(all_params params):
+simulation::simulation(const all_params& params):
     m_environment{params.e_p},
     m_population{params.p_p, params.i_p},
     m_n_generations{params.s_p.n_generations},

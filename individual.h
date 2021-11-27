@@ -31,7 +31,7 @@ class individual
 {
 public:
 
-    individual(ind_param i_p = {});
+    individual(const ind_param& i_p = {});
     individual(individual&&) = default;
     individual(const individual& i) noexcept;
 
@@ -50,7 +50,7 @@ public:
            m_input_values = other.get_input_values();
            if(m_network == nullptr || get_net() != other.get_net())
            {
-               m_network = std::make_unique<network>(other.get_net());
+               *m_network = other.get_net();
            }
 
         return *this;

@@ -16,12 +16,15 @@ population::population(int init_nr_indiv,
 {}
 
 
-population::population(pop_param p_p,ind_param i_p):
-    m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds), individual{i_p.net_par}),
-    m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds), individual{i_p.net_par}),
+population::population(pop_param p_p,const ind_param& i_p):
+    m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
+    m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_mut_rate{p_p.mut_rate},
     m_mut_step{p_p.mut_step}
-{}
+{
+    for(auto& ind : m_vec_indiv){ind = individual{i_p};}
+    for(auto& ind : m_vec_new_indiv){ind = individual{i_p};}
+}
 
 
 
@@ -69,7 +72,7 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
     return distance_from_target;
 }
 
-population calc_fitness(population p, const double& optimal_value,const double &sel_str)
+population& calc_fitness(population& p, const double& optimal_value,const double &sel_str)
 {
 
     std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);

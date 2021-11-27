@@ -35,11 +35,12 @@ struct net_param
 class network
 {
 public:
-    network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function = &linear);
+    network(std::vector<int> nodes_per_layer,
+            std::function<double(double)> activation_function = &linear);
     network (net_param n_p);
 
     virtual ~network() {}
-    void mutate(const double& ,
+    virtual void mutate(const double& ,
                         const double& ,
                         std::mt19937_64& )
     {};
@@ -95,9 +96,27 @@ class mutator_network : public network
 {
 public:
     mutator_network(const net_param& p) : network{p} {};
-    void mutate(const double& mut_rate,
-                const double& mut_step,
-                std::mt19937_64& rng);
+
+     virtual void mutate(const double& mut_rate,
+                                    const double& mut_step,
+                                    std::mt19937_64& rng) override
+    {
+      if constexpr (mutation_type == mutation_type::activation)
+      {
+              mutate_activation(mut_rate, rng);
+      }
+
+      else if constexpr(mutation_type == mutation_type::weights)
+      {
+          mutate_weights(mut_rate, mut_step, rng);
+      }
+
+      else if constexpr(mutation_type == mutation_type::weights_and_activation)
+      {
+          mutate_activation(mut_rate, rng);
+          mutate_weights(mut_rate, mut_step, rng);
+      }
+    };
 };
 
 bool operator==(const network& lhs, const network& rhs);

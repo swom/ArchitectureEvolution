@@ -4,7 +4,7 @@
 #include <cassert>
 
 
-individual::individual(ind_param i_p) :
+individual::individual(const ind_param &i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(i_p.net_par.net_arc[0], 1.0)
 {
@@ -12,6 +12,12 @@ individual::individual(ind_param i_p) :
  {
  case mutation_type::activation :
      m_network = std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
+     break;
+ case mutation_type::weights :
+     m_network = std::make_unique<mutator_network<mutation_type::weights>>(i_p.net_par);
+     break;
+ case mutation_type::weights_and_activation :
+     m_network = std::make_unique<mutator_network<mutation_type::weights_and_activation>>(i_p.net_par);
      break;
  default:
      throw std::runtime_error("Unkwon mutation type");
