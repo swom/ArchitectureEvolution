@@ -157,7 +157,6 @@ void mutator_network<M>::mutate(const double& mut_rate,
   }
 }
 
-
 std::vector<double> response(const network& n, std::vector<double> input)
 {
     assert(input.size() == n.get_input_size());
