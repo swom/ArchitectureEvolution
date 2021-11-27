@@ -69,13 +69,16 @@ simple_res = cbind(simple_res, ID)
 all_simple_res = rbind(all_simple_res, simple_res)
 }
 
+
 ####save load####
 save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
 
-ggplot(data = all_simple_res %>% 
-         slice_min(gen,n = 1000))+
+ggplot(data = all_simple_res %>%
+         filter(architecture == "1-2-1")  
+       # %>% slice_min(gen,n = 1000)
+       ) +
   geom_rect(aes(xmin = gen - 1, xmax = gen,
                 ymin = 0, ymax = 1.5,
                 fill = as.factor(m_env_functions),
