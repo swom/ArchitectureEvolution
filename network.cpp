@@ -135,29 +135,6 @@ double linear(double x)
     return x;
 }
 
-template<mutation_type M>
-void mutator_network<M>::mutate(const double& mut_rate,
-                                const double& mut_step,
-                                std::mt19937_64& rng)
-{
-  if constexpr (M == mutation_type::activation)
-  {
-          mutate_activation(*this, mut_rate, rng);
-  }
-
-  else if constexpr(M == mutation_type::weights)
-  {
-      mutate_weights(*this, mut_rate, mut_step, rng);
-  }
-
-  else if constexpr(M == mutation_type::weights_and_activation)
-  {
-      mutate_activation(*this, mut_rate, rng);
-      mutate_weights(*this, mut_rate, mut_step, rng);
-  }
-
-  change_biases(mutate_biases(mut_rate, mut_step, rng, get_biases()));
-}
 
 std::vector<double> response(const network& n, std::vector<double> input)
 {
