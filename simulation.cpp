@@ -748,5 +748,20 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+//#define FIX_ISSUE_138
+#ifdef FIX_ISSUE_138
+
+    ///There should be an input to signal whihc environment function is being used to calculate the optima
+    {
+      ///Checking that the environment indicator gets updated when the env function changes
+        simulation s;
+        environment& e = s.get_env();
+
+        assert(e.get_name_current_function() == 'A' && s.get_environment_indicator == -1);
+        switch_env_function(e);
+        assert(e.get_name_current_function() == 'B' && s.get_environment_indicator == 1);
+    }
+#endif
+
 }
 #endif
