@@ -24,7 +24,7 @@ public:
              double mut_rate = 0.01,
              double mut_step = 0.1,
              std::vector<int> net_arch = {1,2,1});
-   population(pop_param p_p, const ind_param &i_p);
+   population(const pop_param &p_p, const ind_param &i_p);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                m_vec_indiv,
