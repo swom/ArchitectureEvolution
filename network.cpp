@@ -521,5 +521,34 @@ void test_network() //!OCLINT
         assert(n == n_weights);
     }
 #endif
+
+//#define FIX_ISSUE_152
+#ifdef FIX_ISSUE_152
+  {
+    ///Creating a simple network. With the indicator at -1 (env A), response should be 0.
+    /// With indicator at 1 (env B), response should be 4.
+    /// With indicator at silly 123, response should be 248. With linear response function
+    auto very_simple_nodes = std::vector<int>{1,2,1};
+    network n{very_simple_nodes};
+    n = change_all_weights(n, 1);
+    auto input = std::vector<double>{1};
+
+    auto env_indicator = std::vector<double>{-1};
+    auto expected_output = std::vector<double>{0};
+    auto output = response(n, input, env_indicator, &linear);
+    assert(output == expected_output);
+
+    env_indicator = std::vector<double>{1};
+    expected_output = std::vector<double>{4};
+    output = response(n, input, env_indicator, &linear);
+    assert(output == expected_output);
+
+    env_indicator = std::vector<double>{123};
+    expected_output = std::vector<double>{248};
+    output = response(n, input, env_indicator, &linear);
+    assert(output == expected_output);
+
+  }
+#endif
 }
 #endif
