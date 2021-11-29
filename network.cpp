@@ -155,6 +155,8 @@ void mutator_network<M>::mutate(const double& mut_rate,
       mutate_activation(*this, mut_rate, rng);
       mutate_weights(*this, mut_rate, mut_step, rng);
   }
+
+  change_biases(mutate_biases(mut_rate, mut_step, rng, get_biases()));
 }
 
 std::vector<double> response(const network& n, std::vector<double> input)
@@ -282,7 +284,6 @@ void mutate_weights(network& n, const double& mut_rate,
                 if(mut_p(rng))
                 {weight.change_weight(weight.get_weight() + mut_st(rng));}
             }
-    n.change_biases(mutate_biases(mut_rate, mut_step, rng, n.get_biases()));
 
 }
 
