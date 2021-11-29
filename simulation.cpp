@@ -766,5 +766,28 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+#define FIX_ISSUE_152
+#ifdef FIX_ISSUE_152
+
+    ///Network response depends on the environmental indicator
+    {
+      ///This requires that networks be constructed with the environmental indicator added to the input
+        net_param n_p{{1,2,1}};
+        ind_param i_p{n_p};
+        all_params params{{},i_p, {}, {}};
+        simulation s{params};
+
+        network n = get_nth_ind_net(s, 0);
+        assert(n.get_net_weights()[0][0].size() == 2);
+
+        std::vector<double> responseA = response(get_nth_ind(s, 0));
+        switch_optimal_function(s);
+        std::vector<double> responseB = response(get_nth_ind(s, 0));
+
+        assert(responseA != responseB);
+
+    }
+#endif
+
 }
 #endif
