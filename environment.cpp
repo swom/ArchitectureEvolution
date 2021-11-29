@@ -17,7 +17,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 }
 
 environment::environment(env_param e_p):
-    m_cue_distribution{-1, 1.},
+    m_cue_distribution{-1., 1.},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
@@ -244,7 +244,7 @@ void test_environment() noexcept
 
     }
 #endif
-  
+
   #define FIX_ISSUE_11
   #ifdef FIX_ISSUE_11
       {
@@ -254,7 +254,7 @@ void test_environment() noexcept
           env_function(silly_argument);
       }
   #endif
-  
+
 
 
     #define FIX_ISSUE_28
