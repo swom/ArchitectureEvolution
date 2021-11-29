@@ -108,7 +108,10 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
+  ///Returns the indicator of what env function is in use: -1 for A, 1 for B.
+  std::vector<double> get_environment_indicator() {return m_env_indicator;}
 
+  void switch_env_indicator(){m_env_indicator[0] = -m_env_indicator[0];}
 
   const all_params& get_params() const noexcept {return m_params;}
 
@@ -127,6 +130,9 @@ public:
 
    ///The current inputs that the networks of individuals will recieve
    std::vector<double> m_input;
+
+   ///An indicator that tells the individuals which environment function is currently in use.
+   std::vector<double> m_env_indicator;
 
    ///The optimal output at a given moment; depends on inputs and environmental function
    double m_optimal_output;

@@ -19,6 +19,7 @@ simulation::simulation(int init_pop_size,
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
     m_input(net_arch[0], 0.5),
+    m_env_indicator{-1},
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
@@ -39,6 +40,7 @@ simulation::simulation(const all_params& params):
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
     m_params {params},
     m_input(params.i_p.net_par.net_arc[0], 0.5),
+    m_env_indicator{-1},
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
@@ -251,6 +253,7 @@ void assign_new_inputs(simulation &s)
 void switch_optimal_function(simulation &s)
 {
     switch_env_function(s.get_env());
+    s.switch_env_indicator();
 }
 
 size_t get_inds_input_size(const simulation &s)
@@ -748,7 +751,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_138
+#define FIX_ISSUE_138
 #ifdef FIX_ISSUE_138
 
     ///There should be an input to signal whihc environment function is being used to calculate the optima
@@ -757,9 +760,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s;
         environment& e = s.get_env();
 
-        assert(e.get_name_current_function() == 'A' && s.get_environment_indicator == -1);
-        switch_env_function(e);
-        assert(e.get_name_current_function() == 'B' && s.get_environment_indicator == 1);
+        assert(e.get_name_current_function() == 'A' && s.get_environment_indicator()[0] == -1);
+        switch_optimal_function(s);
+        assert(e.get_name_current_function() == 'B' && s.get_environment_indicator()[0] == 1);
     }
 #endif
 
