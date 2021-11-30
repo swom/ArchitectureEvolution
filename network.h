@@ -36,8 +36,8 @@ class network
 {
 public:
     network(std::vector<int> nodes_per_layer,
-            std::function<double(double)> activation_function = &linear);
-    network (net_param n_p);
+            std::function<double(double)> activation_function = &linear, bool use_indicator = false);
+    network (net_param n_p, bool use_indicator = false);
 
     virtual ~network() {}
     virtual void mutate(const double& ,
@@ -95,7 +95,7 @@ template <mutation_type mutation_type>
 class mutator_network : public network
 {
 public:
-    mutator_network(const net_param& p) : network{p} {};
+    mutator_network(const net_param& p, bool use_indicator = false) : network{p, use_indicator} {};
 
      virtual void mutate(const double& mut_rate,
                                     const double& mut_step,

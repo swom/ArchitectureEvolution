@@ -3,27 +3,28 @@
 #include <cassert>
 
 population::population(int init_nr_indiv,
+                       bool use_indicator,
                        double mut_rate,
                        double mut_step,
                        std::vector<int> net_arch
                        ):
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
-                individual{ind_param{net_param{net_arch}}}),
+                individual{ind_param{net_param{net_arch}}, use_indicator}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
-                    individual{ind_param{net_param{net_arch}}}),
+                    individual{ind_param{net_param{net_arch}}, use_indicator}),
     m_mut_rate{mut_rate},
     m_mut_step{mut_step}
 {}
 
 
-population::population(pop_param p_p,const ind_param& i_p):
+population::population(pop_param p_p,const ind_param& i_p, const bool &use_indicator):
     m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_mut_rate{p_p.mut_rate},
     m_mut_step{p_p.mut_step}
 {
-    for(auto& ind : m_vec_indiv){ind = individual{i_p};}
-    for(auto& ind : m_vec_new_indiv){ind = individual{i_p};}
+    for(auto& ind : m_vec_indiv){ind = individual{i_p, use_indicator};}
+    for(auto& ind : m_vec_new_indiv){ind = individual{i_p, use_indicator};}
 }
 
 
@@ -264,18 +265,18 @@ void test_population() noexcept
         assert(are_equal_with_tolerance(p.get_mut_step(), 0.1));
 
         auto mut_rate = 5.0;
-        population p2{0, mut_rate};
+        population p2{0, false, mut_rate};
         assert(are_equal_with_tolerance(p2.get_mut_rate(), mut_rate));
 
         auto mut_step = 5.0;
-        population p3{0 ,0, mut_step};
+        population p3{0, false, 0, mut_step};
         assert(are_equal_with_tolerance(p3.get_mut_step(), mut_step));
     }
 
     ///Population can be initialized with network architecture for inds
     {
         std::vector<int> net_arch{1,33,3,1};
-        population p{1, 0, 0, net_arch};
+        population p{1, false, 0, 0, net_arch};
         assert(get_nth_ind_net(p, 0) == network{net_arch});
     }
 

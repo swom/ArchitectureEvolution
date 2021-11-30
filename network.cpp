@@ -6,10 +6,15 @@
 #include <numeric>
 
 
-network::network(net_param n_p):
+network::network(net_param n_p, bool use_indicator):
     m_input_size{n_p.net_arc[0]},
     m_activation_function{n_p.function}
 {
+    if(use_indicator){
+      ++m_input_size;
+      ++n_p.net_arc[0];
+      }
+
     for (size_t i = 1; i != n_p.net_arc.size(); i++ )
     {
         std::vector<std::vector<weight>>temp_layer_vector;
@@ -29,10 +34,15 @@ network::network(net_param n_p):
 }
 
 
-network::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
+network::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function, bool use_indicator):
     m_input_size{nodes_per_layer[0]},
     m_activation_function{activation_function}
-{
+{ 
+    if(use_indicator){
+      ++m_input_size;
+      ++nodes_per_layer[0];
+      }
+
     for (size_t i = 1; i != nodes_per_layer.size(); i++ )
     {
         std::vector<std::vector<weight>>temp_layer_vector;

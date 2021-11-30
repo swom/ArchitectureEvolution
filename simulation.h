@@ -44,9 +44,9 @@ public:
              double t_change_interval = 0.1,
              std::vector<int> net_arch = {1,2,1},
              double sel_str = 2,
-             int number_of_generations = 1000
-          );
-  simulation (const all_params& params);
+             int number_of_generations = 1000,
+             bool use_indicator = false);
+  simulation (const all_params& params, const bool &use_indicator = false);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
 
@@ -148,7 +148,7 @@ bool all_individuals_have_same_input(const simulation &s);
 void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
 
 ///Assigns the input in simulation to individuals
-void assign_inputs(simulation &s);
+void assign_inputs(simulation &s, bool use_input = false);
 
 ///Assign inputs to a population
 void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
@@ -222,6 +222,12 @@ double calculate_optimal(const simulation &s);
 
 ///Switches the function of the environment used to calculate the optimal output
 void switch_optimal_function(simulation &s);
+
+///Updates the input with the current environmental indicator
+void update_env_indicator(simulation &s);
+
+///Wrapper function; does everything that needs doing when the environment changes
+void perform_environment_change(simulation &s);
 
 
 void test_simulation() noexcept;

@@ -31,7 +31,7 @@ class individual
 {
 public:
 
-    individual(const ind_param& i_p = {});
+    individual(const ind_param& i_p = {}, const bool &use_indicator = false);
     individual(individual&&) = default;
     individual(const individual& i) noexcept;
 
