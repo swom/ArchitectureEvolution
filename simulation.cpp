@@ -793,13 +793,15 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///There should be an input to signal whihc environment function is being used to calculate the optima
     {
-      ///Checking that the environment indicator gets updated when the env function changes
-        simulation s;
+        std::vector<int> net_arch{2,2,1};
+        all_params params{{},{{net_arch}}, {}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        simulation s{params};
+
         environment& e = s.get_env();
 
-        assert(e.get_name_current_function() == 'A' && s.get_environment_indicator()[0] == -1);
+        assert(e.get_name_current_function() == 'A' && s.get_input().back() == -1);
         perform_environment_change(s);
-        assert(e.get_name_current_function() == 'B' && s.get_environment_indicator()[0] == 1);
+        assert(e.get_name_current_function() == 'B' && s.get_input().back() == 1);
     }
 #endif
 
@@ -808,20 +810,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Network response depends on the environmental indicator
     {
-      ///This requires that networks be constructed with the environmental indicator added to the input
-        net_param n_p{{1,2,1}};
+        net_param n_p{{2,2,1}};
         ind_param i_p{n_p};
         all_params params{{},i_p, {1,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
-        simulation s{params, true};
+        simulation s{params};
 
         network n = get_nth_ind_net(s, 0);
-
-        ///So even though there's only one input in the architecture there are two in the network
-        assert(n.get_net_weights()[0][0].size() == 2);
-
-        ///Individuals also need the environment indicator added to their input
-        individual i = get_nth_ind(s , 0);
-        assert(i.get_input_values().size() == 2);
 
         ///The response should change when the environment changes.
 
@@ -830,6 +824,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         std::vector<double> responseB = response(get_nth_ind(s, 0));
 
         assert(responseA != responseB);
+
+        ///Checking actual values?
 
     }
 #endif
