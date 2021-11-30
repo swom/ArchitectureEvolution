@@ -6,7 +6,7 @@
 #include <numeric>
 
 
-network::network(net_param n_p):
+network::network(const net_param &n_p):
     m_input_size{n_p.net_arc[0]},
     m_activation_function{n_p.function}
 {

@@ -43,7 +43,7 @@ class network
 public:
     network(std::vector<int> nodes_per_layer,
             std::function<double(double)> activation_function = &linear);
-    network (net_param n_p);
+    network (const net_param &n_p);
 
     virtual ~network() {}
     virtual void mutate(const double& ,
