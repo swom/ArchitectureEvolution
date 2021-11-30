@@ -4,25 +4,30 @@ HEADERS +=  \
   Stopwatch.hpp \
   environment.h \
   individual.h \
+  json.hpp \
+  mutation_type.h \
   network.h \
   observer.h \
   parser.h \
   population.h \
   rndutils.hpp \
   simulation.h \
-  utilities.h
+  utilities.h \
+  weight.h
 
 
 SOURCES +=  \
   environment.cpp \
   individual.cpp \
   main.cpp \
+  mutation_type.cpp \
   network.cpp \
   observer.cpp \
   parser.cpp \
   population.cpp \
   simulation.cpp \
-  utilities.cpp
+  utilities.cpp \
+  weight.cpp
 
 
 CONFIG += c++17

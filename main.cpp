@@ -8,10 +8,12 @@
 void test() {
     test_environment();
     test_individual();
+    test_mutation_type();
     test_network();
     test_observer();
     test_population();
     test_simulation();
+    test_weight();
 }
 #endif
 
@@ -32,11 +34,13 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     assert(1 == 2);
 #endif
 
+    auto env = convert_env_args(results);
+    auto ind = convert_ind_args(results);
+    auto pop = convert_pop_args(results);
+    auto sim = convert_sim_args(results);
+
     all_params params{
-        convert_env_args(results),
-                convert_ind_args(results),
-                convert_pop_args(results),
-                convert_sim_args(results)
+        env, ind, pop, sim
     };
 
     simulation s{params};

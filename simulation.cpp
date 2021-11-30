@@ -5,14 +5,13 @@
 #include <fstream>
 
 
-simulation::simulation(double targetA, double targetB,
-                       int init_pop_size,
+simulation::simulation(int init_pop_size,
                        int seed,
                        double t_change_interval,
                        std::vector<int> net_arch,
                        double sel_str,
                        int number_of_generations):
-    m_environment{targetA, targetB},
+    m_environment{},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
     m_seed{seed},
@@ -25,12 +24,12 @@ simulation::simulation(double targetA, double targetB,
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
     {
-        ind.get_net() = net_arch;
+        ind = individual{net_param{net_arch}};
     }
 }
 
 
-simulation::simulation(all_params params):
+simulation::simulation(const all_params& params):
     m_environment{params.e_p},
     m_population{params.p_p, params.i_p},
     m_n_generations{params.s_p.n_generations},
@@ -43,10 +42,6 @@ simulation::simulation(all_params params):
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds())
-    {
-        ind.get_net() = params.i_p.net_par.net_arc;
-    }
 }
 
 std::vector<double> get_inds_input(const simulation &s)
@@ -73,8 +68,9 @@ double avg_fitness(const simulation& s)
 
 void calc_fitness(simulation& s)
 {
+    s.update_optimal(calculate_optimal(s)); //I realized we had forgotten that!!
     s.get_pop() = calc_fitness(s.get_pop(),
-                               calculate_optimal(s),
+                               s.get_optimal(),
                                s.get_sel_str());
 }
 
@@ -82,11 +78,6 @@ void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weig
 {
     auto new_net = change_all_weights(get_nth_ind_net(s, ind_index), new_weight);
     change_nth_ind_net(s, ind_index, new_net);
-}
-
-void change_current_target_value(simulation& s, double new_target_value)
-{
-    s.get_env().set_current_target_value(new_target_value);
 }
 
 void change_nth_ind_net(simulation& s, size_t ind_index, const network& n)
@@ -99,19 +90,14 @@ std::vector<individual> get_best_n_inds(const simulation& s, int n)
     return get_best_n_inds(s.get_pop(), n);
 }
 
-double get_current_env_value(const simulation&s)
-{
-    return s.get_env().get_current_target_value();
-}
-
-double get_current_env_value(simulation&s)
-{
-    return s.get_env().get_current_target_value();
-}
-
 const std::vector<individual>& get_inds(const simulation&s)
 {
     return s.get_pop().get_inds();
+}
+
+char get_name_current_function(const simulation& s) noexcept
+{
+ return s.get_env().get_name_current_function();
 }
 
 const individual& get_nth_ind(const simulation& s, size_t ind_index)
@@ -125,11 +111,6 @@ double get_nth_ind_fitness(const simulation& s, const size_t ind_index)
 }
 
 const network& get_nth_ind_net(const simulation& s, size_t ind_index)
-{
-    return get_nth_ind_net(s.get_pop(), ind_index);
-}
-
-network& get_nth_ind_net( simulation& s, size_t ind_index)
 {
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
@@ -315,13 +296,9 @@ void test_simulation() noexcept//!OCLINT test may be many
     ////A simulation should have a random engine, intialized with a seed that is fed to simulation
 
     {
-        double targetA = 1.0;
-        double targetB = 0;
         int pop_size = 1;
         int seed = 123456789;
-        simulation s{targetA,
-                    targetB,
-                    pop_size,
+        simulation s{pop_size,
                     seed};
         std::mt19937_64 copy_rng(seed);
         assert ( s.get_rng()() == copy_rng());
@@ -332,14 +309,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     /// that determines the interval of environmental change
     /// Default initialization value is 10
     {
-        double targetA = 1.0;
-        double targetB = 0;
         int pop_size = 1;
         int seed = 123456789;
         double t_change_interval = 0.2;
 
-        simulation s { targetA, targetB,
-                    pop_size, seed, t_change_interval};
+        simulation s {pop_size, seed, t_change_interval};
         std::bernoulli_distribution mockdistrotchange(static_cast<double>(t_change_interval));
         assert (s.get_t_change_env_distr() == mockdistrotchange);
 
@@ -375,13 +349,15 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulation can be initialized with network architecture for inds in pop
     {
-        std::vector<int> net_arch{1,33,2,1};
-        simulation s{0,0,1,0,0, net_arch};
+        std::vector<int> net_arch{1,1,2,1};
+        simulation s{1,0,0, net_arch};
 
-        assert(get_nth_ind_net(s, 0) == network{net_arch});
+        auto sim_1st_net = get_nth_ind_net(s, 0);
+        auto expected_net = network{net_arch};
+        assert(sim_1st_net == expected_net);
     }
 
-//#define FIX_ISSUE_68
+#define FIX_ISSUE_68
 #ifdef FIX_ISSUE_68
     ///Ex issue #30 test
     ///#define FIX_ISSUE_30
@@ -396,35 +372,47 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        auto potental_identity_ind = ind_param{potential_identity_net_param};
+        assert(!net_behaves_like_the_function(potential_identity_net, identity));
+
+        auto identity_net = change_all_weights({potential_identity_net}, 1);
         assert(net_behaves_like_the_function(identity_net, identity));
 
-        auto identity_ind = ind_param{identity_net};
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
 
+        auto sim_p = sim_param{};
+        sim_p.selection_strength = 2;
+
 
         simulation s{all_params{
                 identity_env,
-                identity_ind,
+                potental_identity_ind,
                 minimal_pop,
-                sim_param{}
+                sim_p
             }};
+
+        //give simulation a simple input
+        //this will be used to calculate optimum
+        //and also fed to individuals
+        s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
+        change_nth_ind_net(s, best_ind, identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
-        auto resp_best = response(get_nth_ind(s, best_ind))[0];
 
         size_t worst_ind = 1;
-        auto worst_net = change_all_weights(get_nth_ind_net(s,worst_ind), 100);
-        change_nth_ind_net(s, worst_ind, worst_net);
-        auto resp_worst = response(get_nth_ind(s, worst_ind))[0];
+        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
+        auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
         assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
-
 
         select_inds(s);
 
@@ -437,42 +425,54 @@ void test_simulation() noexcept//!OCLINT test may be many
 #endif
 
 
-//#define FIX_ISSUE_73
+#define FIX_ISSUE_73
 #ifdef FIX_ISSUE_73
 
     ///Fitness of individuals is calculated based on how close they are to the current optimal output
     {
 
         std::function<double(std::vector<double>)> identity{identity_first_element};
-        env_param identity_env {};
-        identity_env.env_function_A = identity;
-        assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto identity_net = net_param{{1,1}, linear};
+        env_param identity_env_par {};
+        identity_env_par.env_function_A = identity;
+
+        auto potential_identity_net_param = net_param{{1,1}, linear};
+        network potential_identity_net {potential_identity_net_param};
+        auto identity_net = change_all_weights(potential_identity_net, 1);
+
         assert(net_behaves_like_the_function(identity_net, identity));
 
-        auto identity_ind = ind_param{identity_net};
+        auto potential_identity_ind_par = ind_param{potential_identity_net_param};
 
 
         int pop_size = 2;
         auto minimal_pop = pop_param{pop_size, 0, 0};
 
+        auto sim_p = sim_param{};
+        sim_p.selection_strength = 2;
+
 
         simulation s{all_params{
-                identity_env,
-                identity_ind,
+                identity_env_par,
+                potential_identity_ind_par,
                 minimal_pop,
-                sim_param{}
+                sim_p
             }};
+        //give simulation a simple input
+        //this will be used to calculate optimum
+        //and also fed to individuals
+        s.update_inputs({1});
+        //give inputs to inds
+        assign_inputs(s);
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_all_weights_nth_ind(s, second_ind, 0.99);
+        change_nth_ind_net(s, first_ind, identity_net);
 
         calc_fitness(s);
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
-        auto first_ind_fit =  get_nth_ind_fitness(s,0) ;
+        auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
         ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
@@ -480,9 +480,10 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto second_response = response(get_nth_ind(s, 1))[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
-        auto second_ind_fit =  get_nth_ind_fitness(s,1) ;
+        auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
         auto min_fit = find_min_fitness(s);
 
+        assert(!are_equal_with_tolerance(first_ind_fit, second_ind_fit));
         assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
     }
@@ -529,11 +530,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 
 
-#define FIX_ISSUE_39
-#ifdef FIX_ISSUE_39
+//#define FIX_ISSUE_39
+//#ifdef FIX_ISSUE_39
 
     {
-        simulation s{0, 0.1, 0};
+        simulation s{0};
         environment &e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
@@ -550,17 +551,17 @@ void test_simulation() noexcept//!OCLINT test may be many
             }
         }
 
+
         auto expected_changes = s.get_change_freq() * repeats;
         assert( number_of_env_change - expected_changes < repeats / 1000 &&
                 number_of_env_change - expected_changes > -repeats / 1000);
     }
-#endif
 
 #define FIX_ISSUE_40
 #ifdef FIX_ISSUE_40
     {
         //create a non-default simulaiton
-        simulation s{13, 32, 2, 132, 548, {1,2,3,4,5,6}, 3.14};
+        simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
         auto name = "sim_save_test";
         save_json(s, name);
         auto loaded_s = load_json(name);
