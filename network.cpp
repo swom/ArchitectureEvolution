@@ -258,6 +258,8 @@ bool is_same_mutator_network(const network &lhs, const network &rhs)
   else{
     return false;
     }
+}
+
 void mutate_weights(network& n, const double& mut_rate,
                      const double& mut_step,
                      std::mt19937_64& rng)
