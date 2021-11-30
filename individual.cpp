@@ -133,6 +133,8 @@ void test_individual()
     assert(is_same_mutator_network(i.get_net(), mutator_net));
     assert(!is_same_mutator_network(i.get_net(), n));
   }
+  #endif
+  
   #define FIX_ISSUE_125
   #ifdef FIX_ISSUE_125
   ///individual stores a pointer to a base network
