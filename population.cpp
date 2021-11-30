@@ -16,7 +16,8 @@ population::population(int init_nr_indiv,
 {}
 
 
-population::population(pop_param p_p, const ind_param& i_p):
+
+population::population(const pop_param &p_p,const ind_param& i_p):
     m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_mut_rate{p_p.mut_rate},

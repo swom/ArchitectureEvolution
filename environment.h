@@ -44,7 +44,7 @@ public:
     environment(std::function<double(std::vector<double>)> env_functionA = &env_func_1,
                 std::function<double(std::vector<double>)> env_functionB = &env_func_2);
 
-    environment(env_param e_p);
+    environment(const env_param &e_p);
 
     std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
