@@ -10,47 +10,38 @@ simulation::simulation(int init_pop_size,
                        double t_change_interval,
                        std::vector<int> net_arch,
                        double sel_str,
-                       int number_of_generations,
-                       bool use_indicator):
+                       int number_of_generations):
     m_environment{},
-    m_population{init_pop_size, use_indicator},
+    m_population{init_pop_size},
     m_n_generations{number_of_generations},
     m_seed{seed},
     m_t_change_env_distr{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
-    m_input(net_arch[0], 0.5),
-    m_env_indicator{-1},
+    m_input(net_arch[0], 1),
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
     {
-        ind = individual{net_param{net_arch}, use_indicator};
+        ind = individual{net_param{net_arch}};
     }
-
-    if(use_indicator)
-      update_env_indicator(*this);
 }
 
 
-simulation::simulation(const all_params& params, const bool &use_indicator):
+simulation::simulation(const all_params& params):
     m_environment{params.e_p},
-    m_population{params.p_p, params.i_p, use_indicator},
+    m_population{params.p_p, params.i_p},
     m_n_generations{params.s_p.n_generations},
     m_seed{params.s_p.seed},
     m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
     m_sel_str{params.s_p.selection_strength},
     m_change_freq {static_cast<double>(params.s_p.change_freq)},
     m_params {params},
-    m_input(params.i_p.net_par.net_arc[0], 0.5),
-    m_env_indicator{-1},
+    m_input(params.i_p.net_par.net_arc[0], 1),
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
-
-    if(use_indicator)
-      update_env_indicator(*this);
 }
 
 std::vector<double> get_inds_input(const simulation &s)
@@ -211,26 +202,6 @@ void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
     }
 }
 
-void update_env_indicator(simulation &s)
-{
-  std::vector<double> input = s.get_input();
-  all_params params = s.get_params();
-  ind_param i_p = params.i_p;
-  net_param n_p = i_p.net_par;
-  std::vector<int> arc = n_p.net_arc;
-
-  if(!s.get_environment_indicator().empty()){
-    if((int)input.size() == arc[0]){
-        input.push_back(s.get_environment_indicator()[0]);
-      }
-    else{
-        input.back() = s.get_environment_indicator()[0];
-      }
-    assign_inputs(s);
-
-    }
-}
-
 void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
 {
     assign_new_inputs_to_inds(s.get_pop(), new_input);
@@ -267,17 +238,20 @@ std::vector<double> create_inputs(simulation s)
     return(create_n_inputs(e, s.get_input().size(), s.get_rng() ));
 }
 
-void assign_inputs(simulation &s, bool use_input)
+void assign_inputs(simulation &s)
 {
-    std::vector<double> inputs = s.get_input();
-    if(!s.get_environment_indicator().empty() && use_input == true)
-      inputs.push_back(s.get_environment_indicator()[0]);
-    assign_new_inputs_to_inds(s.get_pop(), inputs);
+    assign_new_inputs_to_inds(s.get_pop(), s.get_input());
 }
 
 void assign_new_inputs(simulation &s)
 {
-    s.update_inputs(create_inputs(s));
+    std::vector<double> new_inputs = create_inputs(s);
+
+    if(s.get_input().size() > 1){
+        new_inputs.back() = s.get_input().back();
+      }
+
+    s.update_inputs(new_inputs);
     assign_inputs(s);
 }
 
@@ -301,8 +275,10 @@ std::function<double(std::vector<double>)> get_current_env_function(const simula
 void perform_environment_change(simulation &s)
 {
   switch_optimal_function(s);
-  s.switch_env_indicator();
-  update_env_indicator(s);
+
+  if(s.get_input().size() > 1){
+    s.switch_env_indicator();
+    assign_inputs(s);}
 }
 
 
@@ -799,9 +775,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         environment& e = s.get_env();
 
-        assert(e.get_name_current_function() == 'A' && s.get_input().back() == -1);
+        assert(e.get_name_current_function() == 'A' && s.get_input().back() == 1);
         perform_environment_change(s);
-        assert(e.get_name_current_function() == 'B' && s.get_input().back() == 1);
+        assert(e.get_name_current_function() == 'B' && s.get_input().back() == -1);
     }
 #endif
 
@@ -815,7 +791,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         all_params params{{},i_p, {1,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
         simulation s{params};
 
-        network n = get_nth_ind_net(s, 0);
+        //Otherwise all weights are 0 and the response is always 0
+        change_all_weights_nth_ind(s, 0, 1);
 
         ///The response should change when the environment changes.
 
@@ -824,8 +801,6 @@ void test_simulation() noexcept//!OCLINT test may be many
         std::vector<double> responseB = response(get_nth_ind(s, 0));
 
         assert(responseA != responseB);
-
-        ///Checking actual values?
 
     }
 #endif

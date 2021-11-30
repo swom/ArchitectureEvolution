@@ -44,9 +44,8 @@ public:
              double t_change_interval = 0.1,
              std::vector<int> net_arch = {1,2,1},
              double sel_str = 2,
-             int number_of_generations = 1000,
-             bool use_indicator = false);
-  simulation (const all_params& params, const bool &use_indicator = false);
+             int number_of_generations = 1000);
+  simulation (const all_params& params);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
 
@@ -108,10 +107,7 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
-  ///Returns the indicator of what env function is in use: -1 for A, 1 for B.
-  std::vector<double> get_environment_indicator() {return m_env_indicator;}
-
-  void switch_env_indicator(){m_env_indicator[0] = -m_env_indicator[0];}
+  void switch_env_indicator(){m_input.back() = -m_input.back();}
 
   const all_params& get_params() const noexcept {return m_params;}
 
@@ -131,9 +127,6 @@ public:
    ///The current inputs that the networks of individuals will recieve
    std::vector<double> m_input;
 
-   ///An indicator that tells the individuals which environment function is currently in use.
-   std::vector<double> m_env_indicator;
-
    ///The optimal output at a given moment; depends on inputs and environmental function
    double m_optimal_output;
 
@@ -148,7 +141,7 @@ bool all_individuals_have_same_input(const simulation &s);
 void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
 
 ///Assigns the input in simulation to individuals
-void assign_inputs(simulation &s, bool use_input = false);
+void assign_inputs(simulation &s);
 
 ///Assign inputs to a population
 void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
