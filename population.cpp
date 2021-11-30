@@ -7,32 +7,23 @@ population::population(int init_nr_indiv,
                        double mut_step,
                        std::vector<int> net_arch
                        ):
-    m_vec_indiv(static_cast<unsigned int>(init_nr_indiv)),
-    m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv)),
+    m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
+                individual{ind_param{net_param{net_arch}}}),
+    m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
+                    individual{ind_param{net_param{net_arch}}}),
     m_mut_rate{mut_rate},
     m_mut_step{mut_step}
-{
-
-for(auto& ind : m_vec_indiv)
-{
-    ind = individual{ind_param{net_param{net_arch}}};
-}
-
-}
+{}
 
 
-population::population(pop_param p_p,ind_param i_p):
+population::population(pop_param p_p,const ind_param& i_p):
     m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_mut_rate{p_p.mut_rate},
     m_mut_step{p_p.mut_step}
 {
-
-    for(auto& ind : m_vec_indiv)
-    {
-        ind = individual{i_p.net_par};
-    }
-
+    for(auto& ind : m_vec_indiv){ind = individual{i_p};}
+    for(auto& ind : m_vec_new_indiv){ind = individual{i_p};}
 }
 
 
@@ -72,15 +63,16 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
 {
     std::vector<double> distance_from_target;
 
-    for(auto& ind : inds)
+    for(const auto& ind : inds)
     {
-        distance_from_target.push_back(calc_sqr_distance(ind, env_value));
+        auto sqr_distance = calc_sqr_distance(ind, env_value);
+        distance_from_target.push_back(sqr_distance);
     }
 
     return distance_from_target;
 }
 
-population calc_fitness(population p, const double& optimal_value,const double &sel_str)
+population& calc_fitness(population& p, const double& optimal_value,const double &sel_str)
 {
 
     std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
@@ -148,7 +140,9 @@ void select_new_pop(population& p,
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
-        p.get_new_inds()[i] = p.get_inds()[mut_dist(rng)];
+        auto selected_ind_index = mut_dist(rng);
+        auto selected_ind = p.get_inds()[selected_ind_index];
+        p.get_new_inds()[i] = selected_ind;
         p.get_new_inds()[i].mutate(p.get_mut_rate(),
                                    p.get_mut_step(),
                                    rng);

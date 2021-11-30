@@ -2,7 +2,8 @@
 #include <fstream>
 #include "Stopwatch.hpp"
 
-observer::observer()
+observer::observer(int top_proportion):
+    m_top_proportion{top_proportion}
 {
 }
 
@@ -62,9 +63,14 @@ void observer::store_var_fit(const simulation& s)
     m_var_fitnesses.push_back(var_fitness(s));
 }
 
-void observer::store_top_n_inds(const simulation &s, int n)
+void observer::store_top_n_inds(const simulation &s)
 {
-    m_top_inds.push_back(get_best_n_inds(s, n));
+    m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
+}
+
+void observer::store_top_n_inds(const simulation &s, int proportion)
+{
+    m_top_inds.push_back(get_best_n_inds(s, proportion));
 }
 
 void save_json(const observer& o, const std::string& filename)
@@ -93,10 +99,16 @@ void exec(simulation& s , observer& o)
     for (int i = 0; i < s.get_n_gen(); i++)
     {
         tick (s);
+
         o.store_avg_fit(s);
+        o.store_env_func(s);
+        o.store_var_fit(s);
+        o.store_input(s);
+        o.store_optimal(s);
+
         if(i % 1000 == 0)
         {
-            o.store_top_n_inds(s,10);
+            o.store_top_n_inds(s);
         }
         if(i % 1000 == 0)
         {

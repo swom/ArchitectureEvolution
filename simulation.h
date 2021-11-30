@@ -46,7 +46,7 @@ public:
              double sel_str = 2,
              int number_of_generations = 1000
           );
-  simulation (all_params params);
+  simulation (const all_params& params);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
 

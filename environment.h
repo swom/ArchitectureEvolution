@@ -7,11 +7,11 @@
 #include "utilities.h"
 
 static double env_func_1(std::vector<double> input){
-  return input[0];
+  return input[0] * input[0];
 }
 
 static double env_func_2(std::vector<double> input){
-  return input[0]+1;
+  return input[0]  * input[0] * input[0];
 }
 
 
@@ -27,8 +27,13 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 
 struct env_param
 {
-std::function<double(std::vector<double>)> env_function_A{env_func_1};
-std::function<double(std::vector<double>)> env_function_B{env_func_2};
+    env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
+              std::function<double(std::vector<double>)> fun_B = env_func_2) :
+        env_function_A{fun_A},
+        env_function_B{fun_B}
+    {}
+std::function<double(std::vector<double>)> env_function_A;
+std::function<double(std::vector<double>)> env_function_B;
 };
 
 
