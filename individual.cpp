@@ -4,14 +4,20 @@
 #include <cassert>
 
 
-individual::individual(ind_param i_p) :
+individual::individual(const ind_param &i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(i_p.net_par.net_arc[0], 1.0)
 {
  switch (i_p.mutation_type)
  {
  case mutation_type::activation :
-     m_network = std::make_shared<mutator_network<mutation_type::activation>>(i_p.net_par);
+     m_network = std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
+     break;
+ case mutation_type::weights :
+     m_network = std::make_unique<mutator_network<mutation_type::weights>>(i_p.net_par);
+     break;
+ case mutation_type::weights_and_activation :
+     m_network = std::make_unique<mutator_network<mutation_type::weights_and_activation>>(i_p.net_par);
      break;
  default:
      throw std::runtime_error("Unkwon mutation type");
@@ -19,9 +25,11 @@ individual::individual(ind_param i_p) :
 
 }
 
-
-
-
+individual::individual(const individual& i) noexcept :
+    m_fitness{i.get_fitness()},
+    m_input_values{i.get_input_values()},
+    m_network{std::make_unique<network>(i.get_net())}
+{}
 
 bool operator== (const individual& lhs, const individual& rhs)
 {
@@ -34,7 +42,8 @@ bool operator== (const individual& lhs, const individual& rhs)
 
 double calc_sqr_distance(const individual& i, double env_value)
 {
-   return (response(i)[0] - env_value) * (response(i)[0] - env_value);
+   auto output = response(i);
+   return (output[0] - env_value) * (output[0] - env_value);
 }
 
 void individual::change_net(const network& n)
@@ -49,7 +58,7 @@ void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 
 std::vector<double> response(const individual& ind)
 {
-    return response(ind.get_net(),ind.get_input_values(), &sigmoid);
+    return response(ind.get_net(),ind.get_input_values());
 }
 
 using json = nlohmann::json;
@@ -108,5 +117,53 @@ void test_individual()
     individual i{i_p};
     assert(i.get_net() == network{net_par});
   }
+
+#define FIX_ISSUE_124
+#ifdef FIX_ISSUE_124
+  //individaul constructs mutator_network and assigns it to its network pointer
+  {
+    net_param net_par;
+    ind_param i_p{net_par};
+    individual i{i_p};
+
+    network n {net_par};
+    mutator_network<mutation_type::activation> mutator_net(net_par);
+
+
+    assert(is_same_mutator_network(i.get_net(), mutator_net));
+    assert(!is_same_mutator_network(i.get_net(), n));
+  }
+  #endif
+  
+  #define FIX_ISSUE_125
+  #ifdef FIX_ISSUE_125
+  ///individual stores a pointer to a base network
+    {
+
+      net_param net_par;
+      network n{net_par};
+
+      std::unique_ptr<network> n_ptr(new network(net_par));
+
+      ind_param i_p{net_par};
+      individual i{i_p};
+
+
+      assert(i.get_net() == *n_ptr);
+      assert(!(i.get_net_ptr() == n_ptr));
+    }
+#endif
+
+#define FIX_ISSUE_120
+#ifdef FIX_ISSUE_120
+///ind_param contains a mutation_type member, with which network can be templated
+  {
+    ind_param i_p;
+    enum mutation_type mut_type = i_p.mutation_type;
+
+    assert(mut_type == mutation_type::activation);
+  }
+#endif
+
 }
 #endif

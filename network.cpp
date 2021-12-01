@@ -6,7 +6,7 @@
 #include <numeric>
 
 
-network::network(net_param n_p):
+network::network(const net_param &n_p):
     m_input_size{n_p.net_arc[0]},
     m_activation_function{n_p.function}
 {
@@ -120,7 +120,7 @@ std::vector<weight> register_n_weight_mutations(network n, double mut_rate, doub
     {
 
         auto n_new = n;
-        n_new.mutate_weights(mut_rate, mut_step, rng);
+        mutate_weights(n_new, mut_rate, mut_step, rng);
 
         for(auto& layer : n_new.get_net_weights())
             for(auto& node : layer)
@@ -139,7 +139,7 @@ std::vector<weight> register_n_activation_mutations(network n, double mut_rate, 
     for(int i = 0; i != repeats; i++)
     {
        auto n_new = n;
-        n_new.mutate_activation(mut_rate, rng);
+        mutate_activation(n_new, mut_rate, rng);
         auto weights = n_new.get_net_weights();
 
         for(size_t j=0; j != weights.size(); ++j)
@@ -161,64 +161,6 @@ double sigmoid(double x)
 double linear(double x)
 {
     return x;
-}
-
-template<mutation_type M>
-void mutator_network<M>::mutate(const double& mut_rate,
-                                const double& mut_step,
-                                std::mt19937_64& rng)
-{
-  if constexpr (M == mutation_type::activation)
-  {
-          mutate_activation(mut_rate, rng);
-  }
-
-  else if constexpr(M == mutation_type::weights)
-  {
-      mutate_weights(mut_rate, mut_step, rng);
-  }
-
-  else if constexpr(M == mutation_type::weights_and_activation)
-  {
-      mutate_activation(mut_rate, rng);
-      mutate_weights(mut_rate, mut_step, rng);
-  }
-}
-void network::mutate_weights(const double& mut_rate,
-                     const double& mut_step,
-                     std::mt19937_64& rng)
-{
-
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
-
-    for(auto& layer : m_network_weights)
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                if(mut_p(rng))
-                {weight.change_weight(weight.get_weight() + mut_st(rng));}
-            }
-
-    for(auto& layer : m_nodes_biases)
-        for(auto& bias : layer)
-        {
-            if(mut_p(rng))
-            {bias += mut_st(rng);}
-        }
-}
-
-void network::mutate_activation(const double &mut_rate, std::mt19937_64 &rng)
-{
-  std::bernoulli_distribution mut_p{mut_rate};
-
-  for(auto& layer : m_network_weights)
-      for(auto& node : layer)
-          for(auto& weight : node)
-          {
-              if(mut_p(rng))
-              {weight.change_activation(!weight.is_active());}
-          }
 }
 
 
@@ -346,6 +288,66 @@ bool is_same_mutator_network(const network &lhs, const network &rhs)
     }
 }
 
+<<<<<<< HEAD
+=======
+void mutate_weights(network& n, const double& mut_rate,
+                     const double& mut_step,
+                     std::mt19937_64& rng)
+{
+
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                if(mut_p(rng))
+                {weight.change_weight(weight.get_weight() + mut_st(rng));}
+            }
+
+}
+
+void mutate_activation(network &n, const double &mut_rate, std::mt19937_64 &rng)
+{
+  std::bernoulli_distribution mut_p{mut_rate};
+
+  for(auto& layer : n.get_net_weights())
+      for(auto& node : layer)
+          for(auto& weight : node)
+          {
+              if(mut_p(rng))
+              {weight.change_activation(!weight.is_active());}
+          }
+}
+
+std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
+                                               const double& mut_step,
+                                               std::mt19937_64& rng,
+                                               const std::vector<std::vector<double>>& biases)
+{
+  std::vector<std::vector<double>> new_biases;
+  std::bernoulli_distribution mut_p{mut_rate};
+  std::normal_distribution<double> mut_st{0,mut_step};
+
+  for(auto& layer : biases){
+    std::vector<double> new_layer;
+      for(auto& bias : layer)
+      {
+
+          if(mut_p(rng)){
+              new_layer.push_back(bias + mut_st(rng));
+            }
+          else{
+              new_layer.push_back(bias);
+            }
+      }
+     new_biases.push_back(new_layer);
+    }
+  return(new_biases);
+}
+
+>>>>>>> develop
 
 
 #ifndef NDEBUG
@@ -491,7 +493,7 @@ void test_network() //!OCLINT
         double mut_rate = 1;
 
         assert(all_weigths_are_active(n));
-        n.mutate_activation(mut_rate, rng);
+        mutate_activation(n, mut_rate, rng);
         assert(!all_weigths_are_active(n));
     }
 #endif

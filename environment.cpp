@@ -16,8 +16,8 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 
 }
 
-environment::environment(env_param e_p):
-    m_cue_distribution{0., 1.},
+environment::environment(const env_param& e_p):
+    m_cue_distribution{-1., 1.},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
@@ -152,7 +152,7 @@ void test_environment() noexcept
         environment e{env_param{}};
 
         ///Let's create a distribution that we can use to compare the distribution
-        std::uniform_real_distribution<double> test_dist(0,1);
+        std::uniform_real_distribution<double> test_dist(-1,1);
 
         ///this is a random engine it is the source of randomness that you can plug inside distribution to generate random numbers with certain characteristic
         std::mt19937_64 rng;
@@ -246,7 +246,7 @@ void test_environment() noexcept
 
     }
 #endif
-  
+
   #define FIX_ISSUE_11
   #ifdef FIX_ISSUE_11
       {
@@ -256,7 +256,7 @@ void test_environment() noexcept
           env_function(silly_argument);
       }
   #endif
-  
+
 
 
     #define FIX_ISSUE_28
