@@ -64,25 +64,13 @@ bool operator!=(const network& lhs, const network& rhs)
 
 network change_all_weights(network n, double new_weight)
 {
-  auto former_weights = n.get_net_weights();
-  std::vector<std::vector<std::vector<weight>>> new_weights;
+  auto new_weights = n.get_net_weights();
 
-    for(size_t i = 0; i != former_weights.size(); i++){
-      std::vector<std::vector<weight>> temp_layer;
-
-        for(size_t j = 0; j != former_weights[i].size(); j++){
-          std::vector<weight> temp_node;
-
-            for(size_t k = 0; k != former_weights[i][j].size(); k++)
-            {
-                weight w{new_weight, n.get_net_weights()[i][j][k].is_active()};
-                temp_node.push_back(w);
+  for(auto& layer : new_weights)
+      for(auto& node : layer)
+          for(auto& weight : node){
+            weight.change_weight(new_weight);
             }
-
-            temp_layer.push_back(temp_node);
-          }
-        new_weights.push_back(temp_layer);
-      }
 
    n.change_weights(new_weights);
    return n;
@@ -90,27 +78,17 @@ network change_all_weights(network n, double new_weight)
 
 network change_all_weights(network n, weight new_weight)
 {
-   auto former_weights = n.get_net_weights();
-   std::vector<std::vector<std::vector<weight>>> new_weights;
+  auto new_weights = n.get_net_weights();
 
-     for(size_t i = 0; i != former_weights.size(); i++){
-       std::vector<std::vector<weight>> temp_layer;
+  for(auto& layer : new_weights)
+      for(auto& node : layer)
+          for(auto& weight : node){
+            weight.change_weight(new_weight.get_weight());
+            weight.change_activation(new_weight.is_active());
+            }
 
-         for(size_t j = 0; j != former_weights[i].size(); j++){
-           std::vector<weight> temp_node;
-
-             for(size_t k = 0; k != former_weights[i][j].size(); k++)
-             {
-                 temp_node.push_back(new_weight);
-             }
-
-             temp_layer.push_back(temp_node);
-           }
-         new_weights.push_back(temp_layer);
-       }
-
-    n.change_weights(new_weights);
-    return n;
+   n.change_weights(new_weights);
+   return n;
 }
 
 std::vector<weight> register_n_weight_mutations(network n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
@@ -288,8 +266,7 @@ bool is_same_mutator_network(const network &lhs, const network &rhs)
     }
 }
 
-<<<<<<< HEAD
-=======
+
 void mutate_weights(network& n, const double& mut_rate,
                      const double& mut_step,
                      std::mt19937_64& rng)
@@ -346,8 +323,6 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
     }
   return(new_biases);
 }
-
->>>>>>> develop
 
 
 #ifndef NDEBUG

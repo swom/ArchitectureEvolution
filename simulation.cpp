@@ -23,12 +23,9 @@ simulation::simulation(int init_pop_size,
 {
     m_rng.seed(m_seed);
 
-    std::vector<individual> vec_inds;
     for(size_t i = 0; i != m_population.get_inds().size(); ++i){
-       individual ind = individual{net_param{net_arch}};
-       vec_inds.push_back(ind);
-    }
-    m_population.change_vector_individuals(vec_inds);
+          m_population.change_nth_individual(i, individual{net_param{net_arch}});
+        }
 }
 
 
