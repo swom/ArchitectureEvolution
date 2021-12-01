@@ -68,24 +68,14 @@ public:
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
 
-<<<<<<< HEAD
-    ///Mutates the weights of the network
-    void mutate_weights(const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
-
-    ///Changes the weights of the network (for tests)
-    void change_weights(std::vector<std::vector<std::vector<weight>>> new_weights)
-        {m_network_weights = new_weights;}
-
-    ///Mutates the activation of the weights of the network - they get switched on and off
-    void mutate_activation(const double &mut_rate, std::mt19937_64 &rng);
-
-=======
->>>>>>> develop
     double operator ()(double n) const {return m_activation_function(n);}
 
     ///Returns const ref to vector of weights
     const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
 
+    ///Changes the weights of the network (for tests)
+        void change_weights(std::vector<std::vector<std::vector<weight>>> new_weights)
+            {m_network_weights = new_weights;}
 
 private:
     ///Vector of of vectors, representing the weights coming into each node

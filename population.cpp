@@ -72,16 +72,18 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
     return distance_from_target;
 }
 
-population& calc_fitness(population& p, const double& optimal_value,const double &sel_str)
+population calc_fitness(const population& p, const double& optimal_value,const double &sel_str)
 {
 
     std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 
-    set_fitness_inds(p, fitness_vector);
+    population p_with_fitness = p;
 
-    return p;
+    set_fitness_inds(p_with_fitness, fitness_vector);
+
+    return p_with_fitness;
 }
 
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population& p)
@@ -141,22 +143,16 @@ void select_new_pop(population& p,
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
-<<<<<<< HEAD
-        p.change_nth_new_ind(i, p.get_inds()[mut_dist(rng)]);
+        auto selected_ind_index = mut_dist(rng);
+        auto selected_ind = p.get_inds()[selected_ind_index];
+        p.change_nth_new_ind(i, selected_ind);
         individual mutated_ind = p.get_new_inds()[i];
         mutated_ind.mutate(p.get_mut_rate(),
                             p.get_mut_step(),
                             rng);
 
         p.change_nth_new_ind(i, mutated_ind);
-=======
-        auto selected_ind_index = mut_dist(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
-        p.get_new_inds()[i].mutate(p.get_mut_rate(),
-                                   p.get_mut_step(),
-                                   rng);
->>>>>>> develop
+
     }
 }
 

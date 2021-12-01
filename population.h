@@ -76,7 +76,7 @@ bool operator== (const population& lhs, const population& rhs);
 double avg_fitness(const population& p);
 
 ///Calculates the fitness of inds in pop given a target env_value
-population& calc_fitness(population &p, const double &env_value, const double &sel_str);
+population calc_fitness(const population &p, const double &env_value, const double &sel_str);
 
 ///returns a pop with the net of the nth individual changed to a given net
 population change_nth_ind_net(population p, size_t ind_index, network n);

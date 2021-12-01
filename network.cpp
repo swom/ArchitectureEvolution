@@ -275,27 +275,31 @@ void mutate_weights(network& n, const double& mut_rate,
     std::bernoulli_distribution mut_p{mut_rate};
     std::normal_distribution<double> mut_st{0,mut_step};
 
-    for(auto& layer : n.get_net_weights())
+    auto weights = n.get_net_weights();
+
+    for(auto& layer : weights)
         for(auto& node : layer)
             for(auto& weight : node)
             {
                 if(mut_p(rng))
                 {weight.change_weight(weight.get_weight() + mut_st(rng));}
             }
-
+    n.change_weights(weights);
 }
 
 void mutate_activation(network &n, const double &mut_rate, std::mt19937_64 &rng)
 {
   std::bernoulli_distribution mut_p{mut_rate};
 
-  for(auto& layer : n.get_net_weights())
+  auto weights = n.get_net_weights();
+  for(auto& layer : weights)
       for(auto& node : layer)
           for(auto& weight : node)
           {
               if(mut_p(rng))
               {weight.change_activation(!weight.is_active());}
           }
+  n.change_weights(weights);
 }
 
 std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
