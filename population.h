@@ -66,6 +66,9 @@ public:
   ///Calculates the fitness of inds in pop given a target env_value
   void calc_fitness(const double &env_value, const double &sel_str);
 
+  ///Assigns the new inputs to the vector of individuals
+  void assign_inputs_to_inds(const std::vector<double> &inputs);
+
 private:
 
   std::vector<individual> m_vec_indiv;
@@ -80,9 +83,6 @@ bool operator== (const population& lhs, const population& rhs);
 
 ///Calculates the avg_fitness of the population
 double avg_fitness(const population& p);
-
-///returns a pop with the net of the nth individual changed to a given net
-population change_nth_ind_net(population p, size_t ind_index, network n);
 
 ///Creates a mutable distribution from whihc to draw inds based on fitness
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population& p);

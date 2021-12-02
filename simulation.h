@@ -119,6 +119,9 @@ public:
   ///Calculates fitness of inds in pop given current env values
   void calc_fitness();
 
+  ///Assign inputs to a population
+  void assign_new_inputs_to_inds(const std::vector<double> &inputs);
+
   const all_params& get_params() const noexcept {return m_params;}
 
   private:
@@ -147,14 +150,8 @@ bool operator ==(const simulation& lhs, const simulation& rhs);
 ///Checks if all the individuals in a simulated population have the same input
 bool all_individuals_have_same_input(const simulation &s);
 
-///Assigns the given new input to each individual in the simulation
-void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
-
 ///Assigns the input in simulation to individuals
 void assign_inputs(simulation &s);
-
-///Assign inputs to a population
-population assign_new_inputs_to_inds(population p, const std::vector<double> &inputs);
 
 ///Updates the inputs in simulation and assigns them to individuals
 void assign_new_inputs(simulation &s);
@@ -210,7 +207,7 @@ const std::vector<double> &get_current_input(const simulation &s);
 ///Returns the input of the nth individual in the population
 const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
 
-///Changes the inputs in the environment of the simulation
+///Generates new inputs based on the environment of the simulation
 std::vector<double> create_inputs(simulation s);
 
 ///Calculates the optimal output

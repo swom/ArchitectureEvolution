@@ -82,6 +82,13 @@ void population::calc_fitness(const double& optimal_value,const double &sel_str)
     set_fitness_inds(*this, fitness_vector);
 }
 
+void population::assign_inputs_to_inds(const std::vector<double> &inputs)
+{
+  for(auto& ind : m_vec_indiv){
+      ind.assign_input(inputs);
+  }
+}
+
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
