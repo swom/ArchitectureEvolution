@@ -44,6 +44,8 @@ simulation::simulation(const all_params& params):
     m_rng.seed(m_seed);
 }
 
+
+
 std::vector<double> get_inds_input(const simulation &s)
 {
     assert(all_individuals_have_same_input(s));
