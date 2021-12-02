@@ -275,10 +275,14 @@ std::function<double(std::vector<double>)> get_current_env_function(const simula
 void perform_environment_change(simulation &s)
 {
   switch_optimal_function(s);
+  s.switch_env_indicator();
+}
 
-  if(s.get_input().size() > 1){
-    s.switch_env_indicator();
-    assign_inputs(s);}
+void simulation::switch_env_indicator()
+{
+  if(get_input().size() > 1){
+      m_input.back() = -m_input.back();
+    }
 }
 
 
@@ -777,6 +781,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         assert(e.get_name_current_function() == 'A' && s.get_input().back() == 1);
         perform_environment_change(s);
+        assign_inputs(s);
         assert(e.get_name_current_function() == 'B' && s.get_input().back() == -1);
     }
 #endif
@@ -798,6 +803,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         std::vector<double> responseA = response(get_nth_ind(s, 0));
         perform_environment_change(s);
+        assign_inputs(s);
         std::vector<double> responseB = response(get_nth_ind(s, 0));
 
         assert(responseA != responseB);

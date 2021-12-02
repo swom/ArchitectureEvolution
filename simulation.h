@@ -107,7 +107,8 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
-  void switch_env_indicator(){m_input.back() = -m_input.back();}
+  ///Changes the last input (env function indicator) from 1 to -1 or vice versa
+  void switch_env_indicator();
 
   const all_params& get_params() const noexcept {return m_params;}
 
