@@ -48,7 +48,7 @@ public:
 
            m_fitness = other.get_fitness();
            m_input_values = other.get_input_values();
-           if(m_network == nullptr || get_net() != other.get_net())
+           if(m_network == nullptr || get_net() != other.get_net()) //probably silly condition
            {
                *m_network = other.get_net();
            }
