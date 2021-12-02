@@ -23,8 +23,9 @@ simulation::simulation(int init_pop_size,
 {
     m_rng.seed(m_seed);
 
-    for(size_t i = 0; i != m_population.get_inds().size(); ++i){
-          m_population.change_nth_individual(i, individual{net_param{net_arch}});
+    for(auto& ind : m_population.get_to_inds())
+        {
+            ind = individual{net_param{net_arch}};
         }
 }
 

@@ -37,6 +37,9 @@ public:
   ///Get const ref to vector of individuals
   const std::vector<individual>& get_inds() const noexcept{return m_vec_indiv;}
 
+  ///Get !!NON-const!! ref to vector of individuals. For simulation construction.
+  std::vector<individual>& get_to_inds() {return m_vec_indiv;}
+
   ///Returns the ref tot the mutable fitness distribution
   rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
   ///Get const ref to vector of individuals
@@ -55,7 +58,7 @@ public:
   void change_vector_new_inds(const std::vector<individual> &inds){m_vec_new_indiv = inds;}
 
   ///Modifies one individual in the vector of individuals
-  void change_nth_individual(size_t index, const individual &new_ind){m_vec_indiv[index] = new_ind;}
+  void change_nth_individual(size_t index, const individual& new_ind){m_vec_indiv[index] = new_ind;}
 
   ///Modifies one individual in the vector of new individuals
   void change_nth_new_ind(size_t index, const individual &new_ind){m_vec_new_indiv[index] = new_ind;}
