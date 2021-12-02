@@ -61,29 +61,32 @@ bool operator ==(const simulation& lhs, const simulation& rhs)
     return pop && env && time && sel_str && change_freq;
 }
 
+void simulation::switch_optimal_function()
+{
+    switch_env_function(m_environment);
+}
+
 double avg_fitness(const simulation& s)
 {
     return avg_fitness(s.get_pop());
 }
 
-void calc_fitness(simulation& s)
+void simulation::calc_fitness()
 {
-    s.update_optimal(calculate_optimal(s));
-    population pop_with_fitness = calc_fitness(s.get_pop(),
-                                               s.get_optimal(),
-                                               s.get_sel_str());
-    s.change_pop(pop_with_fitness);
+    update_optimal(calculate_optimal(*this));
+    m_population.calc_fitness(get_optimal(),
+                              get_sel_str());
 }
 
 void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight)
 {
     auto new_net = change_all_weights(get_nth_ind_net(s, ind_index), new_weight);
-    change_nth_ind_net(s, ind_index, new_net);
+    s.change_nth_ind_net(ind_index, new_net);
 }
 
-void change_nth_ind_net(simulation& s, size_t ind_index, const network& n)
+void simulation::change_nth_ind_net(size_t ind_index, const network& n)
 {
-    s.change_pop(change_nth_ind_net(s.get_pop(), ind_index, n)) ;
+    m_population.change_nth_ind_net(ind_index, n) ;
 }
 
 std::vector<individual> get_best_n_inds(const simulation& s, int n)
@@ -151,9 +154,9 @@ simulation load_json(
     return s = json_in;
 }
 
-void reproduce(simulation& s)
+void simulation::reproduce()
 {
-    s.change_pop(reproduce(s.get_pop(), s.get_rng()));
+    m_population.reproduce(get_rng());
 }
 
 void tick(simulation &s)
@@ -162,7 +165,7 @@ void tick(simulation &s)
 
     if(is_environment_changing(s)){
 
-        switch_optimal_function(s);
+        s.switch_optimal_function();
     }
 
     if(get_inds(s).size()){
@@ -186,8 +189,8 @@ void save_json(const simulation& s, const std::string& filename)
 
 void select_inds(simulation& s)
 {
-    calc_fitness(s);
-    reproduce(s);
+    s.calc_fitness();
+    s.reproduce();
 }
 
 double var_fitness(const simulation&s)
@@ -250,11 +253,6 @@ void assign_new_inputs(simulation &s)
 {
     s.update_inputs(create_inputs(s));
     assign_inputs(s);
-}
-
-void switch_optimal_function(simulation &s)
-{
-    s.change_env(switch_env_function(s.get_env()));
 }
 
 size_t get_inds_input_size(const simulation &s)
@@ -408,11 +406,11 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_nth_ind_net(s, best_ind, identity_net);
+        s.change_nth_ind_net(best_ind, identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;
-        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
+        s.change_nth_ind_net(worst_ind, change_all_weights(potential_identity_net,-1));
         auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
@@ -471,9 +469,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_nth_ind_net(s, first_ind, identity_net);
+        s.change_nth_ind_net(first_ind, identity_net);
 
-        calc_fitness(s);
+        s.calc_fitness();
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
         auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
@@ -744,10 +742,10 @@ void test_simulation() noexcept//!OCLINT test may be many
         s.update_inputs(silly_inputs);
 
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
-        switch_optimal_function(s);
+        s.switch_optimal_function();
         assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
-        switch_optimal_function(s);
+        s.switch_optimal_function();
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
     }

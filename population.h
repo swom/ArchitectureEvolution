@@ -60,6 +60,12 @@ public:
   ///Modifies one individual in the vector of new individuals
   void change_nth_new_ind(size_t index, const individual &new_ind){m_vec_new_indiv[index] = new_ind;}
 
+  ///Reproduces inds with a probability proportional to their fitness
+  void reproduce(std::mt19937_64& rng);
+
+  ///Calculates the fitness of inds in pop given a target env_value
+  void calc_fitness(const double &env_value, const double &sel_str);
+
 private:
 
   std::vector<individual> m_vec_indiv;
@@ -74,9 +80,6 @@ bool operator== (const population& lhs, const population& rhs);
 
 ///Calculates the avg_fitness of the population
 double avg_fitness(const population& p);
-
-///Calculates the fitness of inds in pop given a target env_value
-population calc_fitness(const population &p, const double &env_value, const double &sel_str);
 
 ///returns a pop with the net of the nth individual changed to a given net
 population change_nth_ind_net(population p, size_t ind_index, network n);
@@ -102,8 +105,6 @@ const network& get_nth_ind_net(const population& p, size_t ind_index);
 std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target,
                                         double selection_strength);
 
-///Reproduces inds with a probability proportional to their fitness
-population reproduce(population p, std::mt19937_64& rng);
 
 ///Select inds for new pop from old pop based on mutable dist
 /// and mutates them

@@ -108,7 +108,16 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
+  ///Switches the function of the environment used to calculate the optimal output
+  void switch_optimal_function();
 
+  ///Changes the network of the nth individual for a given network
+  void change_nth_ind_net(size_t ind_index, const network& n);
+
+  void reproduce();
+
+  ///Calculates fitness of inds in pop given current env values
+  void calc_fitness();
 
   const all_params& get_params() const noexcept {return m_params;}
 
@@ -153,14 +162,8 @@ void assign_new_inputs(simulation &s);
 ///Calculates the avg_fitness of the population
 double avg_fitness(const simulation& s);
 
-///Calculates fitness of inds in pop given current env values
-void calc_fitness(simulation& s);
-
 ///Changes all the weights of a given individual to a given value
 void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight);
-
-///Changes the network of the nth individual for a given network
-void change_nth_ind_net(simulation& s, size_t ind_index, const network& n);
 
 ///Gets the best n individuals in a pop
 std::vector<individual> get_best_n_inds(const simulation& s, int n);
@@ -214,8 +217,7 @@ std::vector<double> create_inputs(simulation s);
 double calculate_optimal(const simulation &s);
 
 
-///Switches the function of the environment used to calculate the optimal output
-void switch_optimal_function(simulation &s);
+
 
 
 void test_simulation() noexcept;
