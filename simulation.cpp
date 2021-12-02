@@ -235,7 +235,7 @@ double calculate_optimal(const simulation &s)
 std::vector<double> create_inputs(simulation s)
 {
     environment &e = s.get_env();
-    return(create_n_inputs(e, s.get_input().size(), s.get_rng() ));
+    return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
 }
 
 void assign_inputs(simulation &s)
