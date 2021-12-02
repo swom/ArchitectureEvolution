@@ -59,17 +59,11 @@ public:
   ///Returns const ref ot population memeber
   const population& get_pop() const noexcept {return m_population;}
 
-  /// Changes the population member
-  void change_pop(const population& new_p) {m_population = new_p;}
-
   ///Returns ref to rng
   std::mt19937_64& get_rng() noexcept {return m_rng;}
 
   ///Returns const ref to env_member
   const environment& get_env() const noexcept {return m_environment;}
-
-  /// Changes the environment member
-  void change_env(const environment& new_env) {m_environment = new_env;}
 
   ///Returns the number of generatiosn for which the simualtion has to run
   const int& get_n_gen() const noexcept {return m_n_generations;}
