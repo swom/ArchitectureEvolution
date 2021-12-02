@@ -144,7 +144,7 @@ void select_new_pop(population& p,
         auto selected_ind_index = mut_dist(rng);
         auto selected_ind = p.get_inds()[selected_ind_index];
         p.change_nth_new_ind(i, selected_ind);
-        individual mutated_ind = static_cast<individual>(p.get_new_inds()[i]) ;
+        individual mutated_ind = p.get_new_inds()[i] ;
         mutated_ind.mutate(p.get_mut_rate(),
                             p.get_mut_step(),
                             rng);
