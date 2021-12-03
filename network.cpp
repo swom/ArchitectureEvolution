@@ -556,5 +556,49 @@ void test_network() //!OCLINT
         assert(n == n_weights);
     }
 #endif
+
+#define FIX_ISSUE_159
+#ifdef FIX_ISSUE_159
+  ///Network has a (current) network architecture *and* a maximum architecture
+    {
+        std::vector<int> start_arc{1,2,2,1};
+        std::vector<int> max_arc_that_works{1,8,8,1};
+        std::vector<int> max_arc_too_few_nodes{1,1,1,1};
+        std::vector<int> max_arc_too_many_layers{1,8,8,8,1};
+        std::vector<int> max_arc_too_few_layers{1,8,1};
+        std::vector<int> max_arc_wrong_input{2,8,8,1};
+        std::vector<int> max_arc_wrong_output{1,8,8,2};
+
+        auto pars = net_param();
+        pars.net_arc = start_arc;
+        pars.max_arc = max_arc_that_works;
+
+        network n{pars};
+        assert(exception_thrown == false);
+        assert(n.get_current_arc() == start_arc);
+        assert(n.get_max_arc() == max_arc_that_works);
+
+        pars.max_arc = max_arc_too_few_nodes;
+        n = network{pars};
+        assert(exception_thrown == true);
+
+        pars.max_arc = max_arc_too_many_layers;
+        n = network{pars};
+        assert(exception_thrown == true);
+
+        pars.max_arc = max_arc_too_few_layers;
+        n = network{pars};
+        assert(exception_thrown == true);
+
+        pars.max_arc = max_arc_wrong_input;
+        n = network{pars};
+        assert(exception_thrown == true);
+
+        pars.max_arc = max_arc_wrong_output;
+        n = network{pars};
+        assert(exception_thrown == true);
+    }
+#endif
+
 }
 #endif
