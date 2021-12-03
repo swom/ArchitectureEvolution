@@ -573,29 +573,67 @@ void test_network() //!OCLINT
         pars.net_arc = start_arc;
         pars.max_arc = max_arc_that_works;
 
+        bool exception_thrown = false;
+
+        try{
         network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+
         assert(exception_thrown == false);
         assert(n.get_current_arc() == start_arc);
         assert(n.get_max_arc() == max_arc_that_works);
 
+        exception_thrown = false;
         pars.max_arc = max_arc_too_few_nodes;
-        n = network{pars};
+        try{
+        network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
         assert(exception_thrown == true);
 
+        exception_thrown = false;
         pars.max_arc = max_arc_too_many_layers;
-        n = network{pars};
+        try{
+        network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
         assert(exception_thrown == true);
 
+        exception_thrown = false;
         pars.max_arc = max_arc_too_few_layers;
-        n = network{pars};
+        try{
+        network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
         assert(exception_thrown == true);
 
+        exception_thrown = false;
         pars.max_arc = max_arc_wrong_input;
-        n = network{pars};
+        try{
+        network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
         assert(exception_thrown == true);
 
+        exception_thrown = false;
         pars.max_arc = max_arc_wrong_output;
-        n = network{pars};
+        try{
+        network n{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
         assert(exception_thrown == true);
     }
 #endif
