@@ -35,6 +35,7 @@ struct all_params
 
 };
 
+template<mutation_type = mutation_type::weights>
 class simulation
 {
 public:
@@ -133,89 +134,128 @@ public:
 
 };
 ///Checks if 2 simulations are equal
-bool operator ==(const simulation& lhs, const simulation& rhs);
+template<mutation_type M>
+bool operator ==(const simulation<M>& lhs, const simulation<M>& rhs);
 
 ///Checks if all the individuals in a simulated population have the same input
-bool all_individuals_have_same_input(const simulation &s);
+template<mutation_type M>
+bool all_individuals_have_same_input(const simulation<M> &s);
 
 ///Assigns the given new input to each individual in the simulation
-void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input);
+template<mutation_type M>
+void assign_new_inputs_to_inds(simulation<M> &s, std::vector<double> new_input);
 
-///Assigns the input in simulation to individuals
-void assign_inputs(simulation &s);
+///Assigns the input in simulation<M> to individuals
+template<mutation_type M>
+void assign_inputs(simulation<M> &s);
 
 ///Assign inputs to a population
+template<mutation_type M>
 void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
 
 ///Updates the inputs in simulation and assigns them to individuals
-void assign_new_inputs(simulation &s);
+template<mutation_type M>
+void assign_new_inputs(simulation<M> &s);
 
 ///Calculates the avg_fitness of the population
-double avg_fitness(const simulation& s);
+template<mutation_type M>
+double avg_fitness(const simulation<M>& s)
+{
+    return avg_fitness(s.get_pop());
+}
 
 ///Calculates fitness of inds in pop given current env values
-void calc_fitness(simulation& s);
+template<mutation_type M>
+void calc_fitness(simulation<M>& s);
 
 ///Changes all the weights of a given individual to a given value
-void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight);
+template<mutation_type M>
+void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_weight);
 
 ///Changes the network of the nth individual for a given network
-void change_nth_ind_net(simulation& s, size_t ind_index, const network& n);
+template<mutation_type M>
+void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n);
 
 ///Gets the best n individuals in a pop
-std::vector<individual> get_best_n_inds(const simulation& s, int n);
+template<mutation_type M>
+std::vector<individual> get_best_n_inds(const simulation<M>& s, int n)
+{
+    return get_best_n_inds(s.get_pop(), n);
+}
 
 ///Returns the input of the individuals
-std::vector<double> get_inds_input(const simulation &s);
+template<mutation_type M>
+std::vector<double> get_inds_input(const simulation<M> &s);
 
 ///Returns the size of the inputs of the individuals
-size_t get_inds_input_size(const simulation &s);
+template<mutation_type M>
+size_t get_inds_input_size(const simulation<M> &s);
 
 ///Returns the current optimal function of the environment
-std::function<double(std::vector<double>)> get_current_env_function(const simulation &s);
+template<mutation_type M>
+std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s);
 
 ///Gets the name of the current environmental function
-char get_name_current_function(const simulation& s) noexcept;
+template<class S>
+char get_name_current_function(const S& s) noexcept
+{
+    return s.get_env().get_name_current_function();
+}
 
 ///Returns the individuals in the simualtion
-const std::vector<individual>& get_inds(const simulation&s);
+template<mutation_type M>
+const std::vector<individual>& get_inds(const simulation<M>&s);
 
 ///Returns the fitness of the nth ind in pop
-double get_nth_ind_fitness(const simulation& s, const size_t ind_index);
+template<mutation_type M>
+double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index);
 
 ///Returns const or non-onst ref to the network of the nth individual in the
 /// popoulation member of a simulation
-const network& get_nth_ind_net(const simulation& s, size_t ind_index);
+template<mutation_type M>
+const network& get_nth_ind_net(const simulation<M>& s, size_t ind_index);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-void save_json(const simulation& s, const std::string& filename);
+template<mutation_type M>
+void save_json(const simulation<M>& s, const std::string& filename);
 
 ///Calculates fitness and selects a new population based on fitness
-void select_inds(simulation& s);
+template<mutation_type M>
+void select_inds(simulation<M>& s);
 
 ///Ticks time one generation into the future
-void tick(simulation &s);
+template<mutation_type M>
+void tick(simulation<M> &s);
 
 
 ///Calculates the standard devaition of the population fitness
-double var_fitness(const simulation&s);
+template<mutation_type M>
+double var_fitness(const simulation<M>&s)
+{
+    return var_fitness(s.get_pop());
+}
 
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
-const std::vector<double> &get_current_input(const simulation &s);
+template<mutation_type M>
+const std::vector<double> &get_current_input(const simulation<M> &s);
 
 ///Returns the input of the nth individual in the population
-const std::vector<double> &get_nth_individual_input(const simulation &s, const int n);
+template<mutation_type M>
+const std::vector<double> &get_nth_individual_input(const simulation<M> &s, const int n);
 
 ///Changes the inputs in the environment of the simulation
-std::vector<double> create_inputs(simulation s);
+template<mutation_type M>
+std::vector<double> create_inputs(simulation<M> s);
 
 ///Calculates the optimal output
-double calculate_optimal(const simulation &s);
+template<mutation_type M>
+double calculate_optimal(const simulation<M> &s);
 
 
 ///Switches the function of the environment used to calculate the optimal output
-void switch_optimal_function(simulation &s);
+template<mutation_type M>
+void switch_optimal_function(simulation<M> &s);
 
 
 void test_simulation() noexcept;
