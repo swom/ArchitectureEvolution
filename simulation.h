@@ -91,7 +91,7 @@ public:
   int get_seed() const noexcept {return m_seed;}
 
   ///Returns a reference to the vector of individuals
-  const std::vector<individual> &get_inds() const;
+  const std::vector<individual<M>> &get_inds() const;
 
   ///Returns the current inputs in the simulation
   const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -178,7 +178,7 @@ void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n);
 
 ///Gets the best n individuals in a pop
 template<mutation_type M>
-std::vector<individual> get_best_n_inds(const simulation<M>& s, int n)
+std::vector<individual<M>> get_best_n_inds(const simulation<M>& s, int n)
 {
     return get_best_n_inds(s.get_pop(), n);
 }
@@ -204,7 +204,7 @@ char get_name_current_function(const S& s) noexcept
 
 ///Returns the individuals in the simualtion
 template<mutation_type M>
-const std::vector<individual>& get_inds(const simulation<M>&s);
+const std::vector<individual<M>>& get_inds(const simulation<M>&s);
 
 ///Returns the fitness of the nth ind in pop
 template<mutation_type M>

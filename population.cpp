@@ -41,21 +41,8 @@ template<mutation_type M>
 bool all_nets_equals_to(const population<M>& p, const network& n)
 {
     return std::all_of(p.get_inds().begin(), p.get_inds().end(),
-                       [n](const individual& i)
+                       [n](const individual<M>& i)
     {return i.get_net() == n;});
-}
-
-std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, double env_value)
-{
-    std::vector<double> distance_from_target;
-
-    for(const auto& ind : inds)
-    {
-        auto sqr_distance = calc_sqr_distance(ind, env_value);
-        distance_from_target.push_back(sqr_distance);
-    }
-
-    return distance_from_target;
 }
 
 template<mutation_type M>
@@ -65,7 +52,7 @@ rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population<M>& p)
 
     mut_dist.mutate_transform(p.get_inds().begin(),
                               p.get_inds().end(),
-                              [](const individual& i){return i.get_fitness();});
+                              [](const individual<M>& i){return i.get_fitness();});
     return  mut_dist;
 }
 
@@ -100,16 +87,6 @@ void check_and_correct_dist(std::vector<double>& distance_from_target, double& m
     }
 }
 
-std::vector<double> extract_fitnesses(const std::vector<individual>& inds)
-{
-    std::vector<double> fitnesses;
-    for(const auto& ind : inds)
-    {
-        fitnesses.push_back(ind.get_fitness());
-    }
-    return fitnesses;
-}
-
 template<mutation_type M>
 void select_new_pop(population<M>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
@@ -133,13 +110,13 @@ void swap_new_with_old_pop(population<M>& p)
 }
 
 template< mutation_type M>
-const individual& get_nth_ind(const population<M>& p, size_t ind_index)
+const individual<M> &get_nth_ind(const population<M>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
 }
 
 template< mutation_type M>
-individual& get_nth_ind(population<M>& p, size_t ind_index)
+individual<M> &get_nth_ind(population<M>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
 }

@@ -89,14 +89,14 @@ void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n)
 
 
 template<mutation_type M>
-const std::vector<individual>& get_inds(const simulation<M>&s)
+const std::vector<individual<M> > &get_inds(const simulation<M>&s)
 {
     return s.get_pop().get_inds();
 }
 
 
 template<mutation_type M>
-const individual& get_nth_ind(const simulation<M>& s, size_t ind_index)
+const individual<M>& get_nth_ind(const simulation<M>& s, size_t ind_index)
 {
     return get_nth_ind(s.get_pop(), ind_index);
 }
@@ -113,17 +113,14 @@ const network& get_nth_ind_net(const simulation<M>& s, size_t ind_index)
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
 
-template<mutation_type M>
-double find_min_fitness(const simulation<M>&s)
+template<class S>
+double find_min_fitness(const S &s)
 {
-    auto inds = s.get_pop().get_inds();
+    std::vector<double> inds = extract_fitnesses( s.get_pop().get_inds());
 
-    auto min_ind =
-            std::min_element(inds.begin(), inds.end(), [](const individual& lhs, const individual& rhs){
-        return lhs.get_fitness() < rhs.get_fitness();});
+    auto min_inds_fitness = std::min_element(inds.begin(), inds.end());
 
-
-    return min_ind->get_fitness();
+    return *min_inds_fitness;
 }
 
 double identity_first_element(const std::vector<double> &vector)

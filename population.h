@@ -39,18 +39,18 @@ public:
 
 
     ///Get const ref to vector of individuals
-    const std::vector<individual>& get_inds() const noexcept{return m_vec_indiv;}
+    const std::vector<individual<M>>& get_inds() const noexcept{return m_vec_indiv;}
 
     ///Get ref to vector of individuals
-    std::vector<individual>& get_inds() noexcept{return m_vec_indiv;}
+    std::vector<individual<M>>& get_inds() noexcept{return m_vec_indiv;}
 
     ///Returns the ref tot the mutable fitness distribution
     rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
     ///Get const ref to vector of individuals
-    const std::vector<individual>& get_new_inds() const noexcept{return m_vec_new_indiv;}
+    const std::vector<individual<M>>& get_new_inds() const noexcept{return m_vec_new_indiv;}
 
     ///Get ref to vector of individuals
-    std::vector<individual>& get_new_inds() noexcept{return m_vec_new_indiv;}
+    std::vector<individual<M>>& get_new_inds() noexcept{return m_vec_new_indiv;}
 
     ///Return mutation rate
     double get_mut_rate() const noexcept {return m_mut_rate;}
@@ -60,8 +60,8 @@ public:
 
 private:
 
-    std::vector<individual> m_vec_indiv;
-    std::vector<individual> m_vec_new_indiv;
+    std::vector<individual<M>> m_vec_indiv;
+    std::vector<individual<M>> m_vec_new_indiv;
     double m_mut_rate;
     double m_mut_step;
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
@@ -89,7 +89,19 @@ double avg_fitness(const population<M>& p){
 
 ///Calculates the distance from the output of one individual's network
 /// to the optimal output given a series of inputs
-std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, double env_value);
+template<class Ind>
+std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double env_value)
+{
+    std::vector<double> distance_from_target;
+
+    for(const auto& ind : inds)
+    {
+        auto sqr_distance = calc_sqr_distance(ind, env_value);
+        distance_from_target.push_back(sqr_distance);
+    }
+
+    return distance_from_target;
+}
 
 ///to a fitness value between 0  and 1
 std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target,
@@ -129,26 +141,35 @@ template< mutation_type M>
 rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population<M>& p);
 
 ///Extracts a vector of the fitnesses of individuals into a double vectors
-std::vector<double> extract_fitnesses(const std::vector<individual>& inds);
+template<class Ind>
+std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
+{
+    std::vector<double> fitnesses;
+    for(const auto& ind : inds)
+    {
+        fitnesses.push_back(ind.get_fitness());
+    }
+    return fitnesses;
+}
 
 ///Gets the best n individuals in a pop
 template< mutation_type M>
-std::vector<individual> get_best_n_inds(const population<M>& p, int nth)
+std::vector<individual<M>> get_best_n_inds(const population<M>& p, int nth)
 {
     auto inds = p.get_inds();
     std::nth_element(inds.begin(), inds.begin() + nth, inds.end(),
-                     [](const individual& lhs, const individual& rhs)
+                     [](const individual<M>& lhs, const individual<M>& rhs)
     {return lhs.get_fitness() > rhs.get_fitness();});
 
-    return std::vector<individual>(inds.begin(), inds.begin() + nth);
+    return std::vector<individual<M>>(inds.begin(), inds.begin() + nth);
 }
 
 
 template< mutation_type M>
-const individual& get_nth_ind(const population<M>& p, size_t ind_index);
+const individual<M>& get_nth_ind(const population<M>& p, size_t ind_index);
 
 template< mutation_type M>
-individual& get_nth_ind(population<M>& p, size_t ind_index);
+individual<M>& get_nth_ind(population<M>& p, size_t ind_index);
 
 ///Returns the fitness of the nth individual
 template< mutation_type M>

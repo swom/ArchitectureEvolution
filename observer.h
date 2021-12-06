@@ -28,7 +28,7 @@ public:
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
     ///returns const ref to best_ind vector
-    const std::vector<std::vector<individual>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<individual<M>>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
     void store_avg_fit(const simulation<M> &s)
@@ -78,7 +78,7 @@ private:
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     int m_top_proportion;
-    std::vector<std::vector<individual>> m_top_inds;
+    std::vector<std::vector<individual<M>>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;

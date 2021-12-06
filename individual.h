@@ -26,14 +26,18 @@ struct ind_param
 };
 
 
-
+template<mutation_type M = mutation_type::weights>
 class individual
 {
 public:
 
     individual(const ind_param& i_p = {});
-    individual(individual&&) = default;
-    individual(const individual& i) noexcept;
+    individual(individual<M>&&) = default;
+    individual(const individual<M> &i) noexcept:
+        m_fitness{i.get_fitness()},
+        m_input_values{i.get_input_values()},
+        m_network{std::make_unique<network>(i.get_net())}
+    {}
 
     ///Overload of copy assignment where pointer to netowrk is not copied
     /// but the pointee is copied and assigned
@@ -41,17 +45,17 @@ public:
     individual& operator=(const individual& other)
     {
         // Guard self assignment
-           if (this == &other)
-           {
-               return *this;
-           }
+        if (this == &other)
+        {
+            return *this;
+        }
 
-           m_fitness = other.get_fitness();
-           m_input_values = other.get_input_values();
-           if(m_network == nullptr || get_net() != other.get_net())
-           {
-               *m_network = other.get_net();
-           }
+        m_fitness = other.get_fitness();
+        m_input_values = other.get_input_values();
+        if(m_network == nullptr || get_net() != other.get_net())
+        {
+            *m_network = other.get_net();
+        }
 
         return *this;
     };
@@ -74,7 +78,10 @@ public:
     }
 
     ///Changes the network of an individual with another network
-    void change_net(const network& n);
+    void change_net(const network& n)
+    {
+        *m_network = n;
+    }
 
     ///Returns copy of fitness
     const double& get_fitness() const noexcept {return m_fitness;}
@@ -99,7 +106,10 @@ public:
     network& get_to_net() noexcept {return *m_network;}
 
     ///Mutates the network of an individual
-    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng);
+    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng)
+    {
+        m_network->mutate(mut_rate, mut_step, rng);
+    }
 
     ///Sets the fitness of an ind
     void set_fitness(double fitness) {m_fitness = fitness;}
@@ -123,21 +133,49 @@ private:
 ///Functions required to save to json format
 using json = nlohmann::json;
 
-void to_json(json& j, const individual& ind);
+template<mutation_type M>
+void to_json(json& j, const individual<M>& ind)
+{
+    j = json{
+    {"fitness", ind.get_fitness()},
+    {"input_values", ind.get_input_values()},
+    {"network", ind.get_net()}
+};
+}
 
-void from_json(const json& j, individual& ind);
+template<mutation_type M>
+void from_json(const json& j, individual<M>& ind) {
+    j.at("fitness").get_to(ind.get_to_fitness());
+    j.at("input_values").get_to(ind.get_to_input_values());
+    j.at("network").get_to(ind.get_to_net());
+}
+
 
 
 /// Checks if 2 individuals are the same
-bool operator== (const individual& lhs, const individual& rhs);
+template<mutation_type M>
+bool operator== (const individual<M>& lhs, const individual<M>& rhs)
+{
+  bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
+  bool network = lhs.get_net() == rhs.get_net();
+  bool inputs = lhs.get_input_values() == rhs.get_input_values();
+
+  return fitness && network && inputs;
+}
 
 ///Calculates the distance of a response of a network
 /// and a given value
-double calc_sqr_distance(const individual& i, double env_value);
+template<class Ind>
+double calc_sqr_distance(const Ind &i, double env_value)
+{
+    auto output = response(i);
+    return (output[0] - env_value) * (output[0] - env_value);
+}
 
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
-std::vector<double> response(const individual& ind);
+template<mutation_type M>
+std::vector<double> response(const individual<M>& ind);
 
 void test_individual();
 #endif // INDIVIDUAL_H
