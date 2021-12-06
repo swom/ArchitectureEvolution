@@ -31,26 +31,36 @@ public:
     const std::vector<std::vector<individual>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
-    void store_avg_fit(const simulation<M>& s);
+    template<class S>
+    void store_avg_fit(const S &s){ m_avg_fitnesses.push_back(avg_fitness(s));}
 
     ///Saves the variance of the fitness
-    void store_var_fit(const simulation<M>& s);
+    template<class S>
+    void store_var_fit(const S& s){ m_var_fitnesses.push_back(var_fitness(s));}
 
     ///Saves the top_proportion nth best individuals in the population
-    void store_top_n_inds(const simulation<M>& s);
+    template<class S>
+    void store_top_n_inds(const S& s){
+        m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
+    }
 
     ///Saves the nth best individuals in the population
-    void store_top_n_inds(const simulation<M>& s, int proportion);
+    template<class S>
+    void store_top_n_inds(const S& s, int proportion){m_top_inds.push_back(get_best_n_inds(s, proportion));}
 
     const all_params& get_params() const noexcept {return m_params;};
 
-    void store_env_func (const simulation<M>& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
+    template<class S>
+    void store_env_func (const S& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
 
-    void store_par (const simulation<M>& s) noexcept {m_params = s.get_params();}
+    template<class S>
+    void store_par (const S& s) noexcept {m_params = s.get_params();}
 
-    void store_input(const simulation<M>& s) noexcept {m_input.push_back(s.get_input());}
+    template<class S>
+    void store_input(const S& s) noexcept {m_input.push_back(s.get_input());}
 
-    void store_optimal(const simulation<M>& s) noexcept {m_optimal.push_back(s.get_optimal());}
+    template<class S>
+    void store_optimal(const S& s) noexcept {m_optimal.push_back(s.get_optimal());}
 
     const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
 
@@ -77,8 +87,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 
 ///Executes a simulation for n generations
-template<mutation_type M>
-void exec(simulation<M>& s , observer<M>& o);
+template<class S, class O>
+void exec(S& s , O& o);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
 template<mutation_type M>

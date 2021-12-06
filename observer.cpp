@@ -56,30 +56,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 
 
 template<mutation_type M>
-void observer<M>::store_avg_fit(const simulation<M>& s)
-{
-    m_avg_fitnesses.push_back(avg_fitness(s));
-}
-
-template<mutation_type M>
-void observer<M>::store_var_fit(const simulation<M> &s)
-{
-    m_var_fitnesses.push_back(var_fitness(s));
-}
-
-template<mutation_type M>
-void observer<M>::store_top_n_inds(const simulation<M> &s)
-{
-    m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
-}
-
-template<mutation_type M>
-void observer<M>::store_top_n_inds(const simulation<M> &s, int proportion)
-{
-    m_top_inds.push_back(get_best_n_inds(s, proportion));
-}
-
-template<mutation_type M>
 void save_json(const observer<M>& o, const std::string& filename)
 {
     std::ofstream  f(filename);
