@@ -28,25 +28,6 @@ population<M>::population(const pop_param &p_p,const ind_param& i_p):
     for(auto& ind : m_vec_new_indiv){ind = individual{i_p};}
 }
 
-
-
-template< mutation_type M>
-bool operator== (const population<M>& lhs, const population<M>& rhs)
-{
-    bool inds = lhs.get_inds() == rhs.get_inds();
-    bool mut_rate = are_equal_with_tolerance(lhs.get_mut_rate(), rhs.get_mut_rate());
-    bool mut_step = are_equal_with_tolerance(lhs.get_mut_step(), rhs.get_mut_step());
-
-    return inds && mut_rate && mut_step;
-}
-
-template< mutation_type M>
-double avg_fitness(const population<M>& p)
-{
-    auto fitnesses = extract_fitnesses(p.get_inds());
-    return calc_mean(fitnesses);
-}
-
 std::vector<double> adjust_distances(std::vector<double> distances)
 {
     for(double& dist : distances)
@@ -75,19 +56,6 @@ std::vector<double> calc_dist_from_target(const std::vector<individual>& inds, d
     }
 
     return distance_from_target;
-}
-
-template<mutation_type M>
-population<M>& calc_fitness(population<M>& p, const double& optimal_value,const double &sel_str)
-{
-
-    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
-
-    auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
-
-    set_fitness_inds(p, fitness_vector);
-
-    return p;
 }
 
 template<mutation_type M>
@@ -165,17 +133,6 @@ void swap_new_with_old_pop(population<M>& p)
 }
 
 template< mutation_type M>
-std::vector<individual> get_best_n_inds(const population<M>& p, int nth)
-{
-    auto inds = p.get_inds();
-    std::nth_element(inds.begin(), inds.begin() + nth, inds.end(),
-                     [](const individual& lhs, const individual& rhs)
-    {return lhs.get_fitness() > rhs.get_fitness();});
-
-    return std::vector<individual>(inds.begin(), inds.begin() + nth);
-}
-
-template< mutation_type M>
 const individual& get_nth_ind(const population<M>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
@@ -185,12 +142,6 @@ template< mutation_type M>
 individual& get_nth_ind(population<M>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
-}
-
-template< mutation_type M>
-double get_nth_ind_fitness(const population<M> &p, const size_t& ind_index)
-{
-    return p.get_inds()[ind_index].get_fitness();
 }
 
 template<mutation_type M>
@@ -218,48 +169,10 @@ void reproduce(population<M>& p, std::mt19937_64& rng)
 }
 
 template<mutation_type M>
-void set_fitness_inds(population<M>& p, const std::vector<double>& fitness_vector)
-{
-    assert(p.get_inds().size() == fitness_vector.size());
-
-    for(size_t i = 0; i != fitness_vector.size(); i++)
-    {
-        set_nth_ind_fitness(p, i, fitness_vector[i]);
-    }
-}
-
-template<mutation_type M>
 void set_nth_ind_fitness (population<M>& p, size_t ind_index, double fitness)
 {
     auto& ind = p.get_inds()[ind_index];
     ind.set_fitness(fitness);
-}
-
-template<mutation_type M>
-double var_fitness(const population<M>& p)
-{
-    auto inds = p.get_inds();
-    auto fitnesses = extract_fitnesses(inds);
-    return calc_stdev(fitnesses);
-}
-
-template<mutation_type M>
-bool all_individuals_have_same_input(const population<M> &p)
-{
-  std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
-
-  for(auto& ind : p.get_inds()){
-      if(input_first_individual != ind.get_input_values()){
-          return false;
-        }
-    }
-  return true;
-}
-
-template<mutation_type M>
-const std::vector<double> &get_nth_individual_input(const population<M> &p, const int n)
-{
-  return get_nth_ind(p, n).get_input_values();
 }
 
 #ifndef NDEBUG

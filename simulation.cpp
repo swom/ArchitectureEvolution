@@ -196,7 +196,8 @@ void select_inds(simulation<M>& s)
     reproduce(s);
 }
 
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
+template<mutation_type M>
+void assign_new_inputs_to_inds(population<M> &p, const std::vector<double> &inputs)
 {
     for(auto& ind : p.get_inds()){
         ind.assign_input(inputs);
