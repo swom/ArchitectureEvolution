@@ -5,8 +5,8 @@
 #include <cmath>
 #include <numeric>
 
-template<mutation_type M>
-network<M>::network(const net_param &n_p):
+
+network::network(const net_param &n_p):
     m_input_size{n_p.net_arc[0]},
     m_activation_function{n_p.function}
 {
@@ -28,7 +28,7 @@ network<M>::network(const net_param &n_p):
     }
 }
 
-template<mutation_type M>
+
 network::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
     m_input_size{nodes_per_layer[0]},
     m_activation_function{activation_function}
@@ -219,7 +219,7 @@ bool all_weigths_have_value(const network &n, double value)
   return true;
 }
 
-bool on_average_an_nth_of_the_weights_are_inactive(const Net &n, const std::vector<weight>&registered_mutations,
+bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
                                                       const double &proportion, int repeats)
 {
   int number_of_weights = get_number_weights(n);
@@ -235,8 +235,7 @@ bool on_average_an_nth_of_the_weights_are_inactive(const Net &n, const std::vect
            inactive_weights < proportion * repeats * number_of_weights + error);
 }
 
-template<class Net>
-int get_number_weights(const Net &n)
+int get_number_weights(const network &n)
 {
   size_t number_weights = 0;
   for(const auto &layer : n.get_net_weights() ){
@@ -247,8 +246,7 @@ int get_number_weights(const Net &n)
     return (int) number_weights;
 }
 
-template<class Net>
-bool is_same_mutator_network(const Net &lhs, const Net &rhs)
+bool is_same_mutator_network(const network &lhs, const network &rhs)
 {
   if(lhs != rhs){
     return false;
