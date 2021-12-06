@@ -155,7 +155,7 @@ bool is_environment_changing (simulation<M> &s) {
 
 
 //looks buggy!!
-template<mutation_type M>
+template<mutation_type M = mutation_type::weights>
 simulation<M> load_json(
         const std::string& filename
         )

@@ -85,7 +85,7 @@ template<mutation_type M>
 void save_json(const observer<M> &o, const std::string& filename);
 
 ///Loads the observer back from json file.
-template<mutation_type M>
+template<mutation_type M = mutation_type::weights>
 observer<M> load_observer_json(const std::string& filename);
 
 void test_observer();
