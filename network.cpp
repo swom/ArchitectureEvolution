@@ -8,7 +8,9 @@
 
 network::network(const net_param &n_p):
     m_input_size{n_p.net_arc[0]},
-    m_activation_function{n_p.function}
+    m_activation_function{n_p.function},
+    m_current_arc{n_p.net_arc},
+    m_max_arc{n_p.max_arc}
 {
     for (size_t i = 1; i != n_p.net_arc.size(); i++ )
     {
@@ -26,6 +28,9 @@ network::network(const net_param &n_p):
         //A vector of the size of the nodes in the layer is pushed back;
         m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
     }
+    if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
+        throw 1;
+      }
 }
 
 
@@ -318,6 +323,50 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
 }
 
 
+bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc)
+{
+  if(net_arc.size() != max_arc.size()){
+   return false;
+    }
+
+  bool there_is_a_wrong_number_in_net_arc = false;
+  for(auto & layer : net_arc){
+      if(layer <= 0){
+        there_is_a_wrong_number_in_net_arc = true;
+        }
+    }
+
+  bool there_is_a_wrong_number_in_max_arc = false;
+  for(auto & layer : max_arc){
+      if(layer <= 0){
+        there_is_a_wrong_number_in_max_arc = true;
+        }
+    }
+
+  if(there_is_a_wrong_number_in_max_arc || there_is_a_wrong_number_in_net_arc){
+      return false;
+    }
+
+  bool net_arc_smaller_than_max_arc = true;
+  for(size_t i = 0; i != net_arc.size(); ++i){
+      if(net_arc[i] > max_arc[i]){
+          net_arc_smaller_than_max_arc = false;
+        }
+    }
+
+  if(!net_arc_smaller_than_max_arc){
+      return false;
+    }
+
+  if(net_arc[0] != max_arc[0] || net_arc.back() != max_arc.back()){
+      return false;
+    }
+  else
+    return true;
+}
+
+
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -575,8 +624,10 @@ void test_network() //!OCLINT
 
         bool exception_thrown = false;
 
+        network n{net_param{}};
+
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;
@@ -589,7 +640,7 @@ void test_network() //!OCLINT
         exception_thrown = false;
         pars.max_arc = max_arc_too_few_nodes;
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;
@@ -599,7 +650,7 @@ void test_network() //!OCLINT
         exception_thrown = false;
         pars.max_arc = max_arc_too_many_layers;
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;
@@ -609,7 +660,7 @@ void test_network() //!OCLINT
         exception_thrown = false;
         pars.max_arc = max_arc_too_few_layers;
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;
@@ -619,7 +670,7 @@ void test_network() //!OCLINT
         exception_thrown = false;
         pars.max_arc = max_arc_wrong_input;
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;
@@ -629,7 +680,7 @@ void test_network() //!OCLINT
         exception_thrown = false;
         pars.max_arc = max_arc_wrong_output;
         try{
-        network n{pars};
+        n = network{pars};
         }
         catch(int exc){
           exception_thrown = true;

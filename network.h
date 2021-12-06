@@ -19,16 +19,20 @@ static std::map<std::string, std::function<double(double)>> string_to_act_func_m
 struct net_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
-                                   net_arc
+                                   net_arc,
+                                   max_arc
                                    )
     net_param(const std::vector<int>& net_arch = {1,2,1},
-              std::function<double(double)> func = linear):
+              std::function<double(double)> func = linear,
+              const std::vector<int>& max_arch = {1,8,1}):
         net_arc{net_arch},
-        function{func}
+        function{func},
+        max_arc{max_arch}
     {};
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
+    std::vector<int> max_arc;
 };
 
 ///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
@@ -75,6 +79,13 @@ public:
 
     ///Returns not constant ref to vector of weights
     std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
+
+    ///Returns the current architecture
+    const std::vector<int>& get_current_arc() const noexcept{return m_current_arc;}
+
+    ///Returns the maximum architecture
+    const std::vector<int>& get_max_arc() const noexcept{return m_current_arc;}
+
 private:
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<std::vector<weight>>> m_network_weights;
@@ -87,6 +98,12 @@ private:
 
     ///The activation function of the nodes
     std::function<double(double)> m_activation_function;
+
+    ///The current architecture
+    std::vector<int> m_current_arc;
+
+    ///The maximum architecture
+    std::vector<int> m_max_arc;
 };
 
 
@@ -204,6 +221,8 @@ void mutate_weights(network &n, const double& mut_rate, const double& mut_step, 
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 void mutate_activation(network &n, const double &mut_rate, std::mt19937_64 &rng);
+
+bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc);
 
 void test_network();
 
