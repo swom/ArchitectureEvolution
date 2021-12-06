@@ -2,6 +2,7 @@
 #define OBSERVER_H
 #include "simulation.h"
 
+template<mutation_type M>
 class observer
 {
 public:
@@ -30,26 +31,26 @@ public:
     const std::vector<std::vector<individual>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
-    void store_avg_fit(const simulation& s);
+    void store_avg_fit(const simulation<M>& s);
 
     ///Saves the variance of the fitness
-    void store_var_fit(const simulation& s);
+    void store_var_fit(const simulation<M>& s);
 
     ///Saves the top_proportion nth best individuals in the population
-    void store_top_n_inds(const simulation& s);
+    void store_top_n_inds(const simulation<M>& s);
 
     ///Saves the nth best individuals in the population
-    void store_top_n_inds(const simulation& s, int proportion);
+    void store_top_n_inds(const simulation<M>& s, int proportion);
 
     const all_params& get_params() const noexcept {return m_params;};
 
-    void store_env_func (const simulation& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
+    void store_env_func (const simulation<M>& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
 
-    void store_par (const simulation& s) noexcept {m_params = s.get_params();}
+    void store_par (const simulation<M>& s) noexcept {m_params = s.get_params();}
 
-    void store_input(const simulation& s) noexcept {m_input.push_back(s.get_input());}
+    void store_input(const simulation<M>& s) noexcept {m_input.push_back(s.get_input());}
 
-    void store_optimal(const simulation& s) noexcept {m_optimal.push_back(s.get_optimal());}
+    void store_optimal(const simulation<M>& s) noexcept {m_optimal.push_back(s.get_optimal());}
 
     const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
 
@@ -67,7 +68,8 @@ private:
     std::vector<double> m_optimal;
 };
 
-bool operator==(const observer& lhs, const observer& rhs);
+template<mutation_type M>
+bool operator==(const observer<M>& lhs, const observer<M>& rhs);
 
 bool operator==(const all_params& lhs, const all_params& rhs);
 
@@ -75,13 +77,16 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 
 ///Executes a simulation for n generations
-void exec(simulation& s , observer& o);
+template<mutation_type M>
+void exec(simulation<M>& s , observer<M>& o);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-void save_json(const observer &o, const std::string& filename);
+template<mutation_type M>
+void save_json(const observer<M> &o, const std::string& filename);
 
 ///Loads the observer back from json file.
-observer load_observer_json(const std::string& filename);
+template<mutation_type M>
+observer<M> load_observer_json(const std::string& filename);
 
 void test_observer();
 

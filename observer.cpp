@@ -58,22 +58,26 @@ void observer::store_avg_fit(const simulation& s)
     m_avg_fitnesses.push_back(avg_fitness(s));
 }
 
-void observer::store_var_fit(const simulation& s)
+template<mutation_type M>
+void observer::store_var_fit(const simulation<M> &s)
 {
     m_var_fitnesses.push_back(var_fitness(s));
 }
 
-void observer::store_top_n_inds(const simulation &s)
+template<mutation_type M>
+void observer::store_top_n_inds(const simulation<M> &s)
 {
     m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
 }
 
-void observer::store_top_n_inds(const simulation &s, int proportion)
+template<mutation_type M>
+void observer::store_top_n_inds(const simulation<M> &s, int proportion)
 {
     m_top_inds.push_back(get_best_n_inds(s, proportion));
 }
 
-void save_json(const observer& o, const std::string& filename)
+template<mutation_type M>
+void save_json(const observer<M>& o, const std::string& filename)
 {
     std::ofstream  f(filename);
     nlohmann::json json_out;
@@ -81,11 +85,12 @@ void save_json(const observer& o, const std::string& filename)
     f << json_out;
 }
 
-observer load_observer_json(const std::string& filename)
+template<mutation_type M>
+observer<M> load_observer_json(const std::string& filename)
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    observer o;
+    observer<M> o;
     f >> json_in;
     return o = json_in;
 }
