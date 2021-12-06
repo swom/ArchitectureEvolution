@@ -50,7 +50,7 @@ std::vector<double> get_inds_input(const simulation &s)
     return get_inds(s)[0].get_input_values();
 }
 
-bool operator ==(const simulation& lhs, const simulation& rhs)
+bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
 {
     bool pop = lhs.get_pop() == rhs.get_pop();
     bool env = lhs.get_env() == rhs.get_env();
@@ -201,12 +201,12 @@ void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
     }
 }
 
-void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
+void assign_new_inputs_to_inds(simulation<M> &s, std::vector<double> new_input)
 {
     assign_new_inputs_to_inds(s.get_pop(), new_input);
 }
 
-bool all_individuals_have_same_input(const simulation &s)
+bool all_individuals_have_same_input(const simulation<M> &s)
 {
     population p = s.get_pop();
 
@@ -237,7 +237,7 @@ std::vector<double> create_inputs(simulation s)
     return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
 }
 
-void assign_inputs(simulation &s)
+void assign_inputs(simulation<M> &s)
 {
     assign_new_inputs_to_inds(s.get_pop(), s.get_input());
 }
