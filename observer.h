@@ -31,22 +31,28 @@ public:
     const std::vector<std::vector<individual>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
-    template<class S>
-    void store_avg_fit(const S &s){ m_avg_fitnesses.push_back(avg_fitness(s));}
+    void store_avg_fit(const simulation<M> &s)
+    {
+        m_avg_fitnesses.push_back(avg_fitness(s));
+    }
 
     ///Saves the variance of the fitness
-    template<class S>
-    void store_var_fit(const S& s){ m_var_fitnesses.push_back(var_fitness(s));}
+    void store_var_fit(const simulation<M>& s)
+    {
+        m_var_fitnesses.push_back(var_fitness(s));
+    }
 
     ///Saves the top_proportion nth best individuals in the population
-    template<class S>
-    void store_top_n_inds(const S& s){
+    void store_top_n_inds(const simulation<M>& s)
+    {
         m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
     }
 
     ///Saves the nth best individuals in the population
-    template<class S>
-    void store_top_n_inds(const S& s, int proportion){m_top_inds.push_back(get_best_n_inds(s, proportion));}
+    void store_top_n_inds(const simulation<M>& s, int proportion)
+    {
+        m_top_inds.push_back(get_best_n_inds(s, proportion));
+    }
 
     const all_params& get_params() const noexcept {return m_params;};
 
@@ -88,11 +94,33 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 ///Executes a simulation for n generations
 template<class S, class O>
-void exec(S& s , O& o);
+void exec(S& s , O& o)
+{
+    o.store_par(s);
+    for (int i = 0; i < s.get_n_gen(); i++)
+    {
+        tick (s);
+
+        o.store_avg_fit(s);
+        o.store_env_func(s);
+        o.store_var_fit(s);
+        o.store_input(s);
+        o.store_optimal(s);
+
+        if(i % 1000 == 0)
+        {
+            o.store_top_n_inds(s);
+        }
+        if(i % 1000 == 0)
+        {
+            std::cout << "Cycle " << i << std::endl;
+        }
+    }
+}
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-template<mutation_type M>
-void save_json(const observer<M> &o, const std::string& filename);
+template<class O>
+void save_json(const O &o, const std::string& filename);
 
 ///Loads the observer back from json file.
 template<mutation_type M = mutation_type::weights>

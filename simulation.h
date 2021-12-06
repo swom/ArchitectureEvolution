@@ -159,7 +159,10 @@ void assign_new_inputs(simulation<M> &s);
 
 ///Calculates the avg_fitness of the population
 template<mutation_type M>
-double avg_fitness(const simulation<M>& s);
+double avg_fitness(const simulation<M>& s)
+{
+    return avg_fitness(s.get_pop());
+}
 
 ///Calculates fitness of inds in pop given current env values
 template<mutation_type M>
@@ -175,7 +178,10 @@ void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n);
 
 ///Gets the best n individuals in a pop
 template<mutation_type M>
-std::vector<individual> get_best_n_inds(const simulation<M>& s, int n);
+std::vector<individual> get_best_n_inds(const simulation<M>& s, int n)
+{
+    return get_best_n_inds(s.get_pop(), n);
+}
 
 ///Returns the input of the individuals
 template<mutation_type M>
@@ -190,8 +196,11 @@ template<mutation_type M>
 std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s);
 
 ///Gets the name of the current environmental function
-template<mutation_type M>
-char get_name_current_function(const simulation<M>& s) noexcept;
+template<class S>
+char get_name_current_function(const S& s) noexcept
+{
+    return s.get_env().get_name_current_function();
+}
 
 ///Returns the individuals in the simualtion
 template<mutation_type M>
@@ -221,7 +230,10 @@ void tick(simulation<M> &s);
 
 ///Calculates the standard devaition of the population fitness
 template<mutation_type M>
-double var_fitness(const simulation<M>&s);
+double var_fitness(const simulation<M>&s)
+{
+    return var_fitness(s.get_pop());
+}
 
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.

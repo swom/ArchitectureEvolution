@@ -1,6 +1,5 @@
 #include "observer.h"
 #include <fstream>
-#include "Stopwatch.hpp"
 
 template<mutation_type M>
 observer<M>::observer(int top_proportion):
@@ -55,8 +54,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 }
 
 
-template<mutation_type M>
-void save_json(const observer<M>& o, const std::string& filename)
+template<class O>
+void save_json(const O &o, const std::string& filename)
 {
     std::ofstream  f(filename);
     nlohmann::json json_out;
@@ -75,32 +74,6 @@ observer<M> load_observer_json(const std::string& filename)
 }
 
 
-
-template<mutation_type M>
-void exec(simulation<M>& s , observer<M>& o)
-{
-    stopwatch::Stopwatch sw;
-    o.store_par(s);
-    for (int i = 0; i < s.get_n_gen(); i++)
-    {
-        tick (s);
-
-        o.store_avg_fit(s);
-        o.store_env_func(s);
-        o.store_var_fit(s);
-        o.store_input(s);
-        o.store_optimal(s);
-
-        if(i % 1000 == 0)
-        {
-            o.store_top_n_inds(s);
-        }
-        if(i % 1000 == 0)
-        {
-            std::cout << "Cycle " << i << ". Elapsed: " << sw.lap<stopwatch::s>() << " seconds." << std::endl;
-        }
-    }
-}
 
 #ifndef NDEBUG
 void test_observer()

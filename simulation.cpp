@@ -63,11 +63,7 @@ bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
     return pop && env && time && sel_str && change_freq;
 }
 
-template<mutation_type M>
-double avg_fitness(const simulation<M>& s)
-{
-    return avg_fitness(s.get_pop());
-}
+
 
 template<mutation_type M>
 void calc_fitness(simulation<M> &s)
@@ -91,11 +87,6 @@ void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n)
     change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
 
-template<mutation_type M>
-std::vector<individual> get_best_n_inds(const simulation<M>& s, int n)
-{
-    return get_best_n_inds(s.get_pop(), n);
-}
 
 template<mutation_type M>
 const std::vector<individual>& get_inds(const simulation<M>&s)
@@ -103,11 +94,6 @@ const std::vector<individual>& get_inds(const simulation<M>&s)
     return s.get_pop().get_inds();
 }
 
-template<mutation_type M>
-char get_name_current_function(const simulation<M>& s) noexcept
-{
- return s.get_env().get_name_current_function();
-}
 
 template<mutation_type M>
 const individual& get_nth_ind(const simulation<M>& s, size_t ind_index)
@@ -208,12 +194,6 @@ void select_inds(simulation<M>& s)
 {
     calc_fitness(s);
     reproduce(s);
-}
-
-template<mutation_type M>
-double var_fitness(const simulation<M>&s)
-{
-    return var_fitness(s.get_pop());
 }
 
 void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
