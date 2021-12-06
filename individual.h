@@ -33,7 +33,11 @@ public:
 
     individual(const ind_param& i_p = {});
     individual(individual<M>&&) = default;
-    individual(const individual<M> &i) noexcept;
+    individual(const individual<M> &i) noexcept:
+        m_fitness{i.get_fitness()},
+        m_input_values{i.get_input_values()},
+        m_network{std::make_unique<network>(i.get_net())}
+    {}
 
     ///Overload of copy assignment where pointer to netowrk is not copied
     /// but the pointee is copied and assigned
@@ -74,7 +78,10 @@ public:
     }
 
     ///Changes the network of an individual with another network
-    void change_net(const network& n);
+    void change_net(const network& n)
+    {
+        *m_network = n;
+    }
 
     ///Returns copy of fitness
     const double& get_fitness() const noexcept {return m_fitness;}
@@ -99,7 +106,10 @@ public:
     network& get_to_net() noexcept {return *m_network;}
 
     ///Mutates the network of an individual
-    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng);
+    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng)
+    {
+        m_network->mutate(mut_rate, mut_step, rng);
+    }
 
     ///Sets the fitness of an ind
     void set_fitness(double fitness) {m_fitness = fitness;}
@@ -144,12 +154,23 @@ void from_json(const json& j, individual<M>& ind) {
 
 /// Checks if 2 individuals are the same
 template<mutation_type M>
-bool operator== (const individual<M>& lhs, const individual<M>& rhs);
+bool operator== (const individual<M>& lhs, const individual<M>& rhs)
+{
+  bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
+  bool network = lhs.get_net() == rhs.get_net();
+  bool inputs = lhs.get_input_values() == rhs.get_input_values();
+
+  return fitness && network && inputs;
+}
 
 ///Calculates the distance of a response of a network
 /// and a given value
-template<mutation_type M>
-double calc_sqr_distance(const individual<M>& i, double env_value);
+template<class Ind>
+double calc_sqr_distance(const Ind &i, double env_value)
+{
+    auto output = response(i);
+    return (output[0] - env_value) * (output[0] - env_value);
+}
 
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided

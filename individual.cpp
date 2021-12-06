@@ -27,42 +27,6 @@ individual<M>::individual(const ind_param &i_p) :
 }
 
 template<mutation_type M>
-individual<M>::individual(const individual<M>& i) noexcept :
-    m_fitness{i.get_fitness()},
-    m_input_values{i.get_input_values()},
-    m_network{std::make_unique<network>(i.get_net())}
-{}
-
-template<mutation_type M>
-bool operator== (const individual<M>& lhs, const individual<M>& rhs)
-{
-  bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
-  bool network = lhs.get_net() == rhs.get_net();
-  bool inputs = lhs.get_input_values() == rhs.get_input_values();
-
-  return fitness && network && inputs;
-}
-
-template<mutation_type M>
-double calc_sqr_distance(const individual<M>& i, double env_value)
-{
-   auto output = response(i);
-   return (output[0] - env_value) * (output[0] - env_value);
-}
-
-template<mutation_type M>
-void individual<M>::change_net(const network& n)
-{
-    *m_network = n;
-}
-
-template<mutation_type M>
-void individual<M>::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
-{
-  m_network->mutate(mut_rate, mut_step, rng);
-}
-
-template<mutation_type M>
 std::vector<double> response(const individual<M>& ind)
 {
     return response(ind.get_net(),ind.get_input_values());
