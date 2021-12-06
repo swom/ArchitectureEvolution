@@ -35,7 +35,7 @@ struct all_params
 
 };
 
-template<mutation_type = mutation_type::weights>
+template<mutation_type M= mutation_type::weights>
 class simulation
 {
 public:
@@ -58,10 +58,10 @@ public:
                                  m_seed)
 
   ///Returns const ref ot population memeber
-  const population& get_pop() const noexcept {return m_population;}
+  const population<M>& get_pop() const noexcept {return m_population;}
 
   ///Returns const ref ot population memeber
-  population& get_pop() noexcept {return m_population;}
+  population<M>& get_pop() noexcept {return m_population;}
 
   ///Returns ref to rng
   std::mt19937_64& get_rng() noexcept {return m_rng;}
@@ -116,7 +116,7 @@ public:
   private:
 
    environment m_environment;
-   population m_population;
+   population<M> m_population;
    int m_n_generations;
    std::mt19937_64 m_rng;
    int m_seed;
@@ -151,7 +151,7 @@ void assign_inputs(simulation<M> &s);
 
 ///Assign inputs to a population
 template<mutation_type M>
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs);
+void assign_new_inputs_to_inds(population<M> &p, const std::vector<double> &inputs);
 
 ///Updates the inputs in simulation and assigns them to individuals
 template<mutation_type M>
