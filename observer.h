@@ -2,7 +2,7 @@
 #define OBSERVER_H
 #include "simulation.h"
 
-template<mutation_type M>
+template<mutation_type M = mutation_type::weights>
 class observer
 {
 public:

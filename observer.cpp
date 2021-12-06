@@ -2,7 +2,8 @@
 #include <fstream>
 #include "Stopwatch.hpp"
 
-observer::observer(int top_proportion):
+template<mutation_type M>
+observer<M>::observer(int top_proportion):
     m_top_proportion{top_proportion}
 {
 }
@@ -21,7 +22,8 @@ bool operator==(const all_params& lhs, const all_params& rhs)
             are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
 }
 
-bool operator==(const observer& lhs, const observer& rhs)
+template<mutation_type M>
+bool operator==(const observer<M>& lhs, const observer<M>& rhs)
 {
     auto same_par = lhs.get_params() ==  rhs.get_params();
     auto same_env_inputs = lhs.get_input() == rhs.get_input();
@@ -41,7 +43,8 @@ bool operator==(const observer& lhs, const observer& rhs)
 
 }
 
-bool operator!=(const observer& lhs, const observer& rhs)
+template<mutation_type M>
+bool operator!=(const observer<M>& lhs, const observer<M>& rhs)
 {
     return !(lhs == rhs);
 }
@@ -52,26 +55,26 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 }
 
 
-
-void observer::store_avg_fit(const simulation& s)
+template<mutation_type M>
+void observer<M>::store_avg_fit(const simulation<M>& s)
 {
     m_avg_fitnesses.push_back(avg_fitness(s));
 }
 
 template<mutation_type M>
-void observer::store_var_fit(const simulation<M> &s)
+void observer<M>::store_var_fit(const simulation<M> &s)
 {
     m_var_fitnesses.push_back(var_fitness(s));
 }
 
 template<mutation_type M>
-void observer::store_top_n_inds(const simulation<M> &s)
+void observer<M>::store_top_n_inds(const simulation<M> &s)
 {
     m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
 }
 
 template<mutation_type M>
-void observer::store_top_n_inds(const simulation<M> &s, int proportion)
+void observer<M>::store_top_n_inds(const simulation<M> &s, int proportion)
 {
     m_top_inds.push_back(get_best_n_inds(s, proportion));
 }
@@ -97,7 +100,8 @@ observer<M> load_observer_json(const std::string& filename)
 
 
 
-void exec(simulation& s , observer& o)
+template<mutation_type M>
+void exec(simulation<M>& s , observer<M>& o)
 {
     stopwatch::Stopwatch sw;
     o.store_par(s);
