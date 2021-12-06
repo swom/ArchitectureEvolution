@@ -26,14 +26,14 @@ struct ind_param
 };
 
 
-
+template<mutation_type M = mutation_type::weights>
 class individual
 {
 public:
 
     individual(const ind_param& i_p = {});
-    individual(individual&&) = default;
-    individual(const individual& i) noexcept;
+    individual(individual<M>&&) = default;
+    individual(const individual<M> &i) noexcept;
 
     ///Overload of copy assignment where pointer to netowrk is not copied
     /// but the pointee is copied and assigned
@@ -41,17 +41,17 @@ public:
     individual& operator=(const individual& other)
     {
         // Guard self assignment
-           if (this == &other)
-           {
-               return *this;
-           }
+        if (this == &other)
+        {
+            return *this;
+        }
 
-           m_fitness = other.get_fitness();
-           m_input_values = other.get_input_values();
-           if(m_network == nullptr || get_net() != other.get_net())
-           {
-               *m_network = other.get_net();
-           }
+        m_fitness = other.get_fitness();
+        m_input_values = other.get_input_values();
+        if(m_network == nullptr || get_net() != other.get_net())
+        {
+            *m_network = other.get_net();
+        }
 
         return *this;
     };
@@ -123,21 +123,38 @@ private:
 ///Functions required to save to json format
 using json = nlohmann::json;
 
-void to_json(json& j, const individual& ind);
+template<mutation_type M>
+void to_json(json& j, const individual<M>& ind)
+{
+    j = json{
+    {"fitness", ind.get_fitness()},
+    {"input_values", ind.get_input_values()},
+    {"network", ind.get_net()}
+};
+}
 
-void from_json(const json& j, individual& ind);
+template<mutation_type M>
+void from_json(const json& j, individual<M>& ind) {
+    j.at("fitness").get_to(ind.get_to_fitness());
+    j.at("input_values").get_to(ind.get_to_input_values());
+    j.at("network").get_to(ind.get_to_net());
+}
+
 
 
 /// Checks if 2 individuals are the same
-bool operator== (const individual& lhs, const individual& rhs);
+template<mutation_type M>
+bool operator== (const individual<M>& lhs, const individual<M>& rhs);
 
 ///Calculates the distance of a response of a network
 /// and a given value
-double calc_sqr_distance(const individual& i, double env_value);
+template<mutation_type M>
+double calc_sqr_distance(const individual<M>& i, double env_value);
 
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
-std::vector<double> response(const individual& ind);
+template<mutation_type M>
+std::vector<double> response(const individual<M>& ind);
 
 void test_individual();
 #endif // INDIVIDUAL_H

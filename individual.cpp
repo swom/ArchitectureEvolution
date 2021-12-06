@@ -4,7 +4,8 @@
 #include <cassert>
 
 
-individual::individual(const ind_param &i_p) :
+template<mutation_type M>
+individual<M>::individual(const ind_param &i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(i_p.net_par.net_arc[0], 1.0)
 {
@@ -25,13 +26,15 @@ individual::individual(const ind_param &i_p) :
 
 }
 
-individual::individual(const individual& i) noexcept :
+template<mutation_type M>
+individual<M>::individual(const individual<M>& i) noexcept :
     m_fitness{i.get_fitness()},
     m_input_values{i.get_input_values()},
     m_network{std::make_unique<network>(i.get_net())}
 {}
 
-bool operator== (const individual& lhs, const individual& rhs)
+template<mutation_type M>
+bool operator== (const individual<M>& lhs, const individual<M>& rhs)
 {
   bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
   bool network = lhs.get_net() == rhs.get_net();
@@ -40,40 +43,29 @@ bool operator== (const individual& lhs, const individual& rhs)
   return fitness && network && inputs;
 }
 
-double calc_sqr_distance(const individual& i, double env_value)
+template<mutation_type M>
+double calc_sqr_distance(const individual<M>& i, double env_value)
 {
    auto output = response(i);
    return (output[0] - env_value) * (output[0] - env_value);
 }
 
-void individual::change_net(const network& n)
+template<mutation_type M>
+void individual<M>::change_net(const network& n)
 {
     *m_network = n;
 }
 
-void individual::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
+template<mutation_type M>
+void individual<M>::mutate(double mut_rate, double mut_step, std::mt19937_64& rng)
 {
   m_network->mutate(mut_rate, mut_step, rng);
 }
 
-std::vector<double> response(const individual& ind)
+template<mutation_type M>
+std::vector<double> response(const individual<M>& ind)
 {
     return response(ind.get_net(),ind.get_input_values());
-}
-
-using json = nlohmann::json;
-
-void to_json(json& j, const individual& ind) {
-    j = json{    {"fitness", ind.get_fitness()},
-    {"input_values", ind.get_input_values()},
-    {"network", ind.get_net()}
-};
-}
-
-void from_json(const json& j, individual& ind) {
-    j.at("fitness").get_to(ind.get_to_fitness());
-    j.at("input_values").get_to(ind.get_to_input_values());
-    j.at("network").get_to(ind.get_to_net());
 }
 
 #ifndef NDEBUG
