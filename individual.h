@@ -78,7 +78,8 @@ public:
     }
 
     ///Changes the network of an individual with another network
-    void change_net(const network& n)
+    template<class Net>
+    void change_net(const Net& n)
     {
         *m_network = n;
     }

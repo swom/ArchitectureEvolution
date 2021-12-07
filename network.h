@@ -114,11 +114,11 @@ public:
     };
 };
 
-template<mutation_type M>
-bool operator==(const network<M>& lhs, const network<M>& rhs);
+template<mutation_type M_lhs, mutation_type M_rhs>
+bool operator==(const network<M_lhs>& lhs, const network<M_rhs>& rhs);
 
-template<mutation_type M>
-bool operator!=(const network<M>& lhs, const network<M>& rhs);
+template<mutation_type M_lhs, mutation_type M_rhs>
+bool operator!=(const network<M_lhs>& lhs, const network<M_rhs>& rhs);
 
 template<class Net>
 Net change_all_weights(Net n, double new_weight);
@@ -148,23 +148,23 @@ bool net_behaves_like_the_function(const Net &n,
                                    int n_repeats = 1000);
 
 ///Checks whether all connections of the network are active
-template<mutation_type M>
-bool all_weigths_are_active(const network<M> &n);
+template<class Net>
+bool all_weigths_are_active(const Net &n);
 
 ///Checks that all weights have a certain value
-template<mutation_type M>
-bool all_weigths_have_value(const network<M> &n, double value);
+template<class Net>
+bool all_weigths_have_value(const Net &n, double value);
 
 ///Checks that the registered_mutations correspond to the given mutation rate
-template<mutation_type M>
-bool on_average_an_nth_of_the_weights_are_inactive(const network<M> &n,
+template<class Net>
+bool on_average_an_nth_of_the_weights_are_inactive(const Net &n,
                                                    const std::vector<weight>& registered_mutations,
                                                    const double &proportion,
                                                    int repeats);
 
 ///Returns the total number of connections in the network
-template<mutation_type M>
-int get_number_weights(const network<M> &n);
+template<class Net>
+int get_number_weights(const Net &n);
 
 template <typename Fun, class Net>
 inline std::vector<double> response(const Net& n, std::vector<double> input, Fun fun = &linear)
