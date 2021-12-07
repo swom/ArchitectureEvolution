@@ -38,7 +38,7 @@ std::vector<double> adjust_distances(std::vector<double> distances)
 }
 
 template<mutation_type M>
-bool all_nets_equals_to(const population<M>& p, const network& n)
+bool all_nets_equals_to(const population<M>& p, const network<M>& n)
 {
     return std::all_of(p.get_inds().begin(), p.get_inds().end(),
                        [n](const individual<M>& i)
@@ -71,7 +71,7 @@ std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_fro
 }
 
 template<mutation_type M>
-void change_nth_ind_net(population<M>& p, size_t ind_index, network n)
+void change_nth_ind_net(population<M>& p, size_t ind_index, network<M> n)
 {
     p.change_nth_ind_net(ind_index, n);
 }
@@ -122,7 +122,7 @@ individual<M> &get_nth_ind(population<M>& p, size_t ind_index)
 }
 
 template<mutation_type M>
-const network& get_nth_ind_net(const population<M>& p, size_t ind_index)
+const network<M> &get_nth_ind_net(const population<M>& p, size_t ind_index)
 {
     return get_nth_ind(p, ind_index).get_net();
 }
@@ -202,7 +202,7 @@ void test_population() noexcept
         std::mt19937_64 rng;
 
         //make first ind net recognizable
-        auto new_net =  change_all_weights(get_nth_ind_net(p,first_ind), 123456);
+        auto new_net =  change_all_weights_values_and_activations(get_nth_ind_net(p,first_ind), 123456);
         change_nth_ind_net(p, first_ind, new_net);
 
         set_nth_ind_fitness(p, first_ind, 1);

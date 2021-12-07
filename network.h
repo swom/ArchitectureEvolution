@@ -84,6 +84,13 @@ private:
 };
 
 
+///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
+/// Not quite sure why this would have to be here, but it makes it run happily so let's go for it
+std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
+                                               const double& mut_step,
+                                               std::mt19937_64& rng,
+                                               const std::vector<std::vector<double>>& biases);
+
 template <mutation_type M>
 class mutator_network : public network<M>
 {
@@ -110,20 +117,55 @@ public:
             mutate_activation(*this, mut_rate, rng);
             mutate_weights(*this, mut_rate, mut_step, rng);
         }
-        change_biases(mutate_biases(mut_rate, mut_step, rng, *this->get_biases()));
+        this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
     };
 };
 
-template<mutation_type M_lhs, mutation_type M_rhs>
-bool operator==(const network<M_lhs>& lhs, const network<M_rhs>& rhs);
+template<mutation_type M>
+bool operator==(const network<M>& lhs, const network<M> &rhs)
+{
+    return lhs.get_input_size() == rhs.get_input_size() &&
+            lhs.get_net_weights() == rhs.get_net_weights();
+}
+
+template<mutation_type M>
+bool operator!=(const network<M>& lhs, const network<M>& rhs)
+{
+    return !(lhs == rhs);
+}
 
 template<mutation_type M_lhs, mutation_type M_rhs>
-bool operator!=(const network<M_lhs>& lhs, const network<M_rhs>& rhs);
+bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_rhs> &rhs)
+{
+    return lhs.get_input_size() == rhs.get_input_size() &&
+            lhs.get_net_weights() == rhs.get_net_weights();
+}
 
 template<class Net>
-Net change_all_weights(Net n, double new_weight);
+Net change_all_weights_values(Net n, double new_weight)
+{
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                weight.change_weight(new_weight);
+            }
+    return n;
+}
+
 template<class Net>
-Net change_all_weights(Net n, weight new_weight);
+Net change_all_weights_values_and_activations(Net n, weight new_weight)
+{
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                weight.change_weight(new_weight.get_weight());
+                weight.change_activation(new_weight.is_active());
+            }
+    return n;
+}
+
 
 ///Mutates a network n times with given mutation
 /// rate and step and returns vector all mutated weights
@@ -145,7 +187,28 @@ std::vector<weight> register_n_activation_mutations(Net n,
 template<class Net>
 bool net_behaves_like_the_function(const Net &n,
                                    const std::function<double(std::vector<double>)> &f,
-                                   int n_repeats = 1000);
+                                   int n_repeats = 1000)
+{
+    std::vector<std::vector<double>> input_series;
+    size_t input_size = n.get_input_size();
+    std::vector<double> n_output;
+    std::vector<double> f_output;
+
+    for(int i = 0; i != n_repeats; ++i)
+    {
+        std::vector<double> input;
+        for(size_t j = 0; j != input_size; ++j){
+            input.push_back(i + j);
+        }
+        assert(response(n, input).size() == 1);
+        if(response(n, input) [0] != f(input))
+        {
+            return false;
+        };
+    }
+
+    return true;
+}
 
 ///Checks whether all connections of the network are active
 template<class Net>
@@ -215,8 +278,20 @@ int get_number_weights(const Net &n);
 
 ///Checks that both networks are mutator_networks that have the same mutation function
 ///In addition to checking the normal equality
-template<class Net>
-bool is_same_mutator_network(const Net &lhs, const Net &rhs);
+template<class Net_lhs, class Net_rhs>
+bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
+{
+    if(!are_equal_except_mutation_type(lhs, rhs)){
+        return false;
+    }
+
+    if(typeid(lhs) == typeid(rhs)){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 
 ///Mutates the weights of a network
 template<class Net>
@@ -227,12 +302,6 @@ template<class Net>
 void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng);
 
 
-///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
-/// Not quite sure why this would have to be here, but it makes it run happily so let's go for it
-std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
-                                               const double& mut_step,
-                                               std::mt19937_64& rng,
-                                               const std::vector<std::vector<double>>& biases);
 void test_network();
 
 #endif // NETWORK_H

@@ -174,7 +174,7 @@ void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_w
 
 ///Changes the network of the nth individual for a given network
 template<mutation_type M>
-void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n);
+void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M>& n);
 
 ///Gets the best n individuals in a pop
 template<mutation_type M>
@@ -213,7 +213,7 @@ double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index);
 ///Returns const or non-onst ref to the network of the nth individual in the
 /// popoulation member of a simulation
 template<mutation_type M>
-const network& get_nth_ind_net(const simulation<M>& s, size_t ind_index);
+const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
 template<mutation_type M>
