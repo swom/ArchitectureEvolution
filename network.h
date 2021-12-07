@@ -281,16 +281,17 @@ int get_number_weights(const Net &n);
 template<class Net_lhs, class Net_rhs>
 bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 {
-    if(!are_equal_except_mutation_type(lhs, rhs)){
+    if(typeid(lhs) != typeid(rhs))
+    {
         return false;
     }
 
-    if(typeid(lhs) == typeid(rhs)){
-        return true;
-    }
-    else{
+    if(!are_equal_except_mutation_type(lhs, rhs))
+    {
         return false;
     }
+
+    return true;
 }
 
 ///Mutates the weights of a network
