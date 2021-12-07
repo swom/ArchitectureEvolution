@@ -361,24 +361,24 @@ void test_environment() noexcept
 #ifdef FIX_ISSUE_77
 
     ///The current function matches with the name of the current function
-    {
-        //Create an environment with non-default functions
-        env_param param{};
-        param.env_function_A = env_func_2;
-        param.env_function_B = env_func_1;
-        environment e{param};
+  {
+          //Create an environment with non-default functions
+          env_param param{};
+          param.env_function_A = env_func_2;
+          param.env_function_B = env_func_1;
+          environment e{param};
 
-        std::function<double(std::vector<double>)> current_function = e.get_current_function();
-        assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
+          std::function<double(std::vector<double>)> current_function = e.get_current_function();
+          assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
 
-        switch_env_function(e);
+          switch_env_function(e);
 
-        current_function = e.get_current_function();
-        assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));
+          current_function = e.get_current_function();
+          assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));
 
 
-    }
-#endif
+      }
+  #endif
 
 #define FIX_ISSUE_143
 #ifdef FIX_ISSUE_143
