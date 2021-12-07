@@ -77,12 +77,12 @@ void calc_fitness(simulation<M> &s)
 template<mutation_type M>
 void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_weight)
 {
-    auto new_net = change_all_weights(get_nth_ind_net(s, ind_index), new_weight);
+    auto new_net = change_all_weights_values_and_activations(get_nth_ind_net(s, ind_index), new_weight);
     change_nth_ind_net(s, ind_index, new_net);
 }
 
 template<mutation_type M>
-void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network& n)
+void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M> &n)
 {
     change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
@@ -108,7 +108,7 @@ double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index)
 }
 
 template<mutation_type M>
-const network& get_nth_ind_net(const simulation<M>& s, size_t ind_index)
+const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index)
 {
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
@@ -389,7 +389,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto potental_identity_ind = ind_param{potential_identity_net_param};
         assert(!net_behaves_like_the_function(potential_identity_net, identity));
 
-        auto identity_net = change_all_weights({potential_identity_net}, 1);
+        auto identity_net = change_all_weights_values(network{potential_identity_net}, 1);
         assert(net_behaves_like_the_function(identity_net, identity));
 
 
@@ -420,7 +420,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;
-        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
+        change_nth_ind_net(s, worst_ind, change_all_weights_values_and_activations(potential_identity_net,-1));
         auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
@@ -450,7 +450,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         auto potential_identity_net_param = net_param{{1,1}, linear};
         network potential_identity_net {potential_identity_net_param};
-        auto identity_net = change_all_weights(potential_identity_net, 1);
+        auto identity_net = change_all_weights_values_and_activations(potential_identity_net, 1);
 
         assert(net_behaves_like_the_function(identity_net, identity));
 

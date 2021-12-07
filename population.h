@@ -33,7 +33,8 @@ public:
                                    m_mut_step);
 
     ///Changes the network of the nth individual to a given network
-    void change_nth_ind_net(size_t ind_index, const network& n){
+    template<class Net>
+    void change_nth_ind_net(size_t ind_index, const Net& n){
         m_vec_indiv[ind_index].change_net(n);
     }
 
@@ -133,8 +134,8 @@ population<M>& calc_fitness(population<M>& p, const double& optimal_value,const 
     return p;
 }
 ///changes the net of the nth individual to a given net
-template< mutation_type M>
-void change_nth_ind_net(population<M>& p, size_t ind_index, network n);
+template< mutation_type M>//Should maybe template for a 'class Net'?
+void change_nth_ind_net(population<M>& p, size_t ind_index, network<M> n);
 
 ///Creates a mutable distribution from whihc to draw inds based on fitness
 template< mutation_type M>
@@ -179,7 +180,7 @@ double get_nth_ind_fitness(const population<M>& p, const size_t& ind_index)
 }
 
 template<mutation_type M>
-const network& get_nth_ind_net(const population<M>& p, size_t ind_index);
+const network<M>& get_nth_ind_net(const population<M>& p, size_t ind_index);
 
 ///Reproduces inds with a probability proportional to their fitness
 template<mutation_type M>

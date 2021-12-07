@@ -9,21 +9,7 @@ individual<M>::individual(const ind_param &i_p) :
   ///!!!!Attention!!!! input values are for now a fixed amount
   m_input_values(i_p.net_par.net_arc[0], 1.0)
 {
- switch (i_p.mutation_type)
- {
- case mutation_type::activation :
-     m_network = std::make_unique<mutator_network<mutation_type::activation>>(i_p.net_par);
-     break;
- case mutation_type::weights :
-     m_network = std::make_unique<mutator_network<mutation_type::weights>>(i_p.net_par);
-     break;
- case mutation_type::weights_and_activation :
-     m_network = std::make_unique<mutator_network<mutation_type::weights_and_activation>>(i_p.net_par);
-     break;
- default:
-     throw std::runtime_error("Unkwon mutation type");
- }
-
+     m_network = std::make_unique<mutator_network<M>>(i_p.net_par);
 }
 
 template<mutation_type M>
@@ -77,6 +63,7 @@ void test_individual()
 #define FIX_ISSUE_124
 #ifdef FIX_ISSUE_124
   //individaul constructs mutator_network and assigns it to its network pointer
+    //by default templated with mutation_type = mutation_type::weights
   {
     net_param net_par;
     ind_param i_p{net_par};
@@ -86,7 +73,9 @@ void test_individual()
     mutator_network<mutation_type::activation> mutator_net(net_par);
 
 
-    assert(is_same_mutator_network(i.get_net(), mutator_net));
+    //Not same template
+    assert(!is_same_mutator_network(i.get_net(), mutator_net));
+    //Not same base class
     assert(!is_same_mutator_network(i.get_net(), n));
   }
   #endif
@@ -99,7 +88,7 @@ void test_individual()
       net_param net_par;
       network n{net_par};
 
-      std::unique_ptr<network> n_ptr(new network(net_par));
+      std::unique_ptr<network<>> n_ptr(new network(net_par));
 
       ind_param i_p{net_par};
       individual i{i_p};
