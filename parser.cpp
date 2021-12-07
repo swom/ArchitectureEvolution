@@ -25,7 +25,8 @@ env_param convert_env_args(const cxxopts::ParseResult& results)
 {
     return env_param{
                     string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
-                            string_env_function_map.find(results["env_func_B"].as<std::string>())->second
+                    string_env_function_map.find(results["env_func_B"].as<std::string>())->second,
+                    results["cue_distrib"].as<std::vector<double>>()
 
     };
 }
@@ -105,6 +106,9 @@ cxxopts::Options create_parser(){
             ("m,mutation_type",
 "type ofg mutation that a network will undergo",
              cxxopts::value<std::string>()->default_value("weights"))
+            ("d,cue_distrib",
+             "the minimum and maximum of the distribution used to generate environmental cues",
+             cxxopts::value<std::vector<double>>()->default_value("-1,1"))
             ("t,test",
              "run all tests")
             ("h, help",
