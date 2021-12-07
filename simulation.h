@@ -5,6 +5,7 @@
 #include "population.h"
 #include <vector>
 
+
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -45,8 +46,7 @@ public:
              double t_change_interval = 0.1,
              std::vector<int> net_arch = {1,2,1},
              double sel_str = 2,
-             int number_of_generations = 1000
-          );
+             int number_of_generations = 1000);
   simulation (const all_params& params);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
@@ -109,7 +109,8 @@ public:
   ///Updates the inputs of the simulation with new calculated inputs
   void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
-
+  ///Changes the last input (env function indicator) from 1 to -1 or vice versa
+  void switch_env_indicator();
 
   const all_params& get_params() const noexcept {return m_params;}
 
@@ -133,6 +134,7 @@ public:
    double m_optimal_output;
 
 };
+
 ///Checks if 2 simulations are equal
 template<mutation_type M>
 bool operator ==(const simulation<M>& lhs, const simulation<M>& rhs);
@@ -256,6 +258,12 @@ double calculate_optimal(const simulation<M> &s);
 ///Switches the function of the environment used to calculate the optimal output
 template<mutation_type M>
 void switch_optimal_function(simulation<M> &s);
+
+///Updates the input with the current environmental indicator
+void update_env_indicator(simulation &s);
+
+///Wrapper function; does everything that needs doing when the environment changes
+void perform_environment_change(simulation &s);
 
 
 void test_simulation() noexcept;

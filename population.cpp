@@ -174,7 +174,7 @@ void test_population() noexcept
         assert(are_equal_with_tolerance(p2.get_mut_rate(), mut_rate));
 
         auto mut_step = 5.0;
-        population p3{0 ,0, mut_step};
+        population p3{0, 0, mut_step};
         assert(are_equal_with_tolerance(p3.get_mut_step(), mut_step));
     }
 
