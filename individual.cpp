@@ -118,6 +118,23 @@ void test_individual()
     assert(i.get_net() == network{net_par});
   }
 
+#define FIX_ISSUE_124
+#ifdef FIX_ISSUE_124
+  //individaul constructs mutator_network and assigns it to its network pointer
+  {
+    net_param net_par;
+    ind_param i_p{net_par};
+    individual i{i_p};
+
+    network n {net_par};
+    mutator_network<mutation_type::activation> mutator_net(net_par);
+
+
+    assert(is_same_mutator_network(i.get_net(), mutator_net));
+    assert(!is_same_mutator_network(i.get_net(), n));
+  }
+  #endif
+  
   #define FIX_ISSUE_125
   #ifdef FIX_ISSUE_125
   ///individual stores a pointer to a base network

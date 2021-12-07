@@ -3,12 +3,30 @@
 #include <cassert>
 #include <map>
 
+simulation create_simulation(const cxxopts::ParseResult& parameters)
+{
+  auto env = convert_env_args(parameters);
+  auto ind = convert_ind_args(parameters);
+  auto pop = convert_pop_args(parameters);
+  auto sim = convert_sim_args(parameters);
+
+  all_params params{
+      env, ind, pop, sim
+  };
+
+  simulation s{params};
+  return s;
+}
+
+
+
 ///NOT tested!!!
 env_param convert_env_args(const cxxopts::ParseResult& results)
 {
     return env_param{
                     string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
-                            string_env_function_map.find(results["env_func_B"].as<std::string>())->second
+                    string_env_function_map.find(results["env_func_B"].as<std::string>())->second,
+                    results["cue_distrib"].as<std::vector<double>>()
 
     };
 }
@@ -88,6 +106,9 @@ cxxopts::Options create_parser(){
             ("m,mutation_type",
 "type ofg mutation that a network will undergo",
              cxxopts::value<std::string>()->default_value("weights"))
+            ("d,cue_distrib",
+             "the minimum and maximum of the distribution used to generate environmental cues",
+             cxxopts::value<std::vector<double>>()->default_value("-1,1"))
             ("t,test",
              "run all tests")
             ("h, help",

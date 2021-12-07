@@ -5,6 +5,7 @@
 #include "population.h"
 #include <vector>
 
+
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -132,6 +133,7 @@ public:
    double m_optimal_output;
 
 };
+
 ///Checks if 2 simulations are equal
 bool operator ==(const simulation& lhs, const simulation& rhs);
 
