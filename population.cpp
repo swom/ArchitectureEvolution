@@ -16,6 +16,7 @@ population::population(int init_nr_indiv,
 {}
 
 
+
 population::population(const pop_param &p_p,const ind_param& i_p):
     m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
     m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
@@ -268,7 +269,7 @@ void test_population() noexcept
         assert(are_equal_with_tolerance(p2.get_mut_rate(), mut_rate));
 
         auto mut_step = 5.0;
-        population p3{0 ,0, mut_step};
+        population p3{0, 0, mut_step};
         assert(are_equal_with_tolerance(p3.get_mut_step(), mut_step));
     }
 

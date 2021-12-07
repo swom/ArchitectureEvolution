@@ -17,7 +17,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 }
 
 environment::environment(const env_param& e_p):
-    m_cue_distribution{-1., 1.},
+    m_cue_distribution{e_p.cue_distrib[0], e_p.cue_distrib[1]},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
@@ -361,21 +361,37 @@ void test_environment() noexcept
 #ifdef FIX_ISSUE_77
 
     ///The current function matches with the name of the current function
+  {
+          //Create an environment with non-default functions
+          env_param param{};
+          param.env_function_A = env_func_2;
+          param.env_function_B = env_func_1;
+          environment e{param};
+
+          std::function<double(std::vector<double>)> current_function = e.get_current_function();
+          assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
+
+          switch_env_function(e);
+
+          current_function = e.get_current_function();
+          assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));
+
+
+      }
+  #endif
+
+#define FIX_ISSUE_143
+#ifdef FIX_ISSUE_143
+
+    ///A cue distribution param in environmental parameters can be used to generate an environment with the given distribution
     {
-        //Create an environment with non-default functions
         env_param param{};
-        param.env_function_A = env_func_2;
-        param.env_function_B = env_func_1;
+        std::vector<double> distrib{-213,123};
+        param.cue_distrib = distrib;
         environment e{param};
 
-        std::function<double(std::vector<double>)> current_function = e.get_current_function();
-        assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
-
-        switch_env_function(e);
-
-        current_function = e.get_current_function();
-        assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));
-
+        std::uniform_real_distribution<double> test_distrib(distrib[0], distrib[1]);
+        assert(are_same_distribution(e.get_cue_distribtion(), test_distrib));
 
     }
 #endif
