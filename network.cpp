@@ -5,8 +5,8 @@
 #include <cmath>
 #include <numeric>
 
-template<mutation_type M>
-network<M>::network(const net_param &n_p):
+
+network::network(const net_param &n_p):
     m_input_size{n_p.net_arc[0]},
     m_activation_function{n_p.function}
 {
@@ -188,8 +188,7 @@ bool on_average_an_nth_of_the_weights_are_inactive(const Net &n,
             inactive_weights < proportion * repeats * number_of_weights + error);
 }
 
-template<class Net>
-int get_number_weights(const Net &n)
+int get_number_weights(const network &n)
 {
     size_t number_weights = 0;
     for(const auto &layer : n.get_net_weights() ){
