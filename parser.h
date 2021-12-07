@@ -24,6 +24,9 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results);
 
 sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
+///Given parameters, creates a simulation
+simulation create_simulation(const cxxopts::ParseResult &parameters);
+
 
 void test_parser();
 #endif // PARSER_H

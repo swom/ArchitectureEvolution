@@ -3,6 +3,23 @@
 #include <cassert>
 #include <map>
 
+simulation create_simulation(const cxxopts::ParseResult& parameters)
+{
+  auto env = convert_env_args(parameters);
+  auto ind = convert_ind_args(parameters);
+  auto pop = convert_pop_args(parameters);
+  auto sim = convert_sim_args(parameters);
+
+  all_params params{
+      env, ind, pop, sim
+  };
+
+  simulation s{params};
+  return s;
+}
+
+
+
 ///NOT tested!!!
 env_param convert_env_args(const cxxopts::ParseResult& results)
 {
