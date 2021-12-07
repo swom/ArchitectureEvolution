@@ -73,8 +73,10 @@ void test_individual()
     mutator_network<mutation_type::activation> mutator_net(net_par);
 
 
+    //Not same template
     assert(!is_same_mutator_network(i.get_net(), mutator_net));
-    assert(is_same_mutator_network(i.get_net(), n));
+    //Not same base class
+    assert(!is_same_mutator_network(i.get_net(), n));
   }
   #endif
   
