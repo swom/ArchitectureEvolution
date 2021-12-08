@@ -17,17 +17,6 @@ population<M>::population(int init_nr_indiv,
 {}
 
 
-template< mutation_type M>
-population<M>::population(const pop_param &p_p,const ind_param& i_p):
-    m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
-    m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
-    m_mut_rate{p_p.mut_rate},
-    m_mut_step{p_p.mut_step}
-{
-    for(auto& ind : m_vec_indiv){ind = individual{i_p};}
-    for(auto& ind : m_vec_new_indiv){ind = individual{i_p};}
-}
-
 std::vector<double> adjust_distances(std::vector<double> distances)
 {
     for(double& dist : distances)
@@ -43,17 +32,6 @@ bool all_nets_equals_to(const population<M>& p, const network<M>& n)
     return std::all_of(p.get_inds().begin(), p.get_inds().end(),
                        [n](const individual<M>& i)
     {return i.get_net() == n;});
-}
-
-template<mutation_type M>
-rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population<M>& p)
-{
-    rndutils::mutable_discrete_distribution<> mut_dist;
-
-    mut_dist.mutate_transform(p.get_inds().begin(),
-                              p.get_inds().end(),
-                              [](const individual<M>& i){return i.get_fitness();});
-    return  mut_dist;
 }
 
 std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_from_target,
@@ -87,28 +65,6 @@ void check_and_correct_dist(std::vector<double>& distance_from_target, double& m
     }
 }
 
-template<mutation_type M>
-void select_new_pop(population<M>& p,
-                    const rndutils::mutable_discrete_distribution<>& mut_dist,
-                    std::mt19937_64& rng)
-{
-    for( size_t i = 0; i != p.get_inds().size(); i++)
-    {
-        auto selected_ind_index = mut_dist(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
-        p.get_new_inds()[i].mutate(p.get_mut_rate(),
-                                   p.get_mut_step(),
-                                   rng);
-    }
-}
-
-template< mutation_type M>
-void swap_new_with_old_pop(population<M>& p)
-{
-    p.get_inds().swap(p.get_new_inds());
-}
-
 template< mutation_type M>
 const individual<M> &get_nth_ind(const population<M>& p, size_t ind_index)
 {
@@ -133,23 +89,6 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
     auto fitness_inds = create_rescaled_fitness_vec(distance_from_target, selection_strength);
 
     return fitness_inds;
-}
-
-template<mutation_type M>
-void reproduce(population<M>& p, std::mt19937_64& rng)
-{
-    auto mut_dist = create_mut_dist_fit(p);
-
-    select_new_pop(p, mut_dist, rng);
-
-    swap_new_with_old_pop(p);
-}
-
-template<mutation_type M>
-void set_nth_ind_fitness (population<M>& p, size_t ind_index, double fitness)
-{
-    auto& ind = p.get_inds()[ind_index];
-    ind.set_fitness(fitness);
 }
 
 #ifndef NDEBUG

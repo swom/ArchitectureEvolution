@@ -14,14 +14,14 @@ struct ind_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ind_param,
                                    net_par,
-                                   mutation_type)
+                                   m_mutation_type)
     net_param net_par;
-    enum mutation_type mutation_type;
+    enum mutation_type m_mutation_type;
 
     ind_param(net_param net_pars = net_param(),
               enum mutation_type mut = mutation_type::activation):
         net_par{net_pars},
-        mutation_type{mut}
+        m_mutation_type{mut}
     {}
 };
 
@@ -31,7 +31,13 @@ class individual
 {
 public:
 
-    individual(const ind_param& i_p = {});
+    individual(const ind_param &i_p = ind_param{}) :
+        ///!!!!Attention!!!! input values are for now a fixed amount
+        m_input_values(i_p.net_par.net_arc[0], 1.0)
+      {
+           m_network = std::make_unique<mutator_network<M>>(i_p.net_par);
+      }
+
     individual(individual<M>&&) = default;
     individual(const individual<M> &i) noexcept:
         m_fitness{i.get_fitness()},
@@ -163,6 +169,14 @@ bool operator== (const individual<M>& lhs, const individual<M>& rhs)
   return fitness && network && inputs;
 }
 
+///Lets a network send out an ouput signal
+///!!!!Attention!!! for now no input is provided
+template<mutation_type M>
+std::vector<double> response(const individual<M>& ind)
+{
+    return output(ind.get_net(),ind.get_input_values());
+}
+
 ///Calculates the distance of a response of a network
 /// and a given value
 template<class Ind>
@@ -171,11 +185,6 @@ double calc_sqr_distance(const Ind &i, double env_value)
     auto output = response(i);
     return (output[0] - env_value) * (output[0] - env_value);
 }
-
-///Lets a network send out an ouput signal
-///!!!!Attention!!! for now no input is provided
-template<mutation_type M>
-std::vector<double> response(const individual<M>& ind);
 
 void test_individual();
 #endif // INDIVIDUAL_H

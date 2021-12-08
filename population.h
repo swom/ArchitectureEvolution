@@ -25,7 +25,15 @@ public:
                double mut_rate = 0.01,
                double mut_step = 0.1,
                std::vector<int> net_arch = {1,2,1});
-    population(const pop_param &p_p, const ind_param &i_p);
+    population(const pop_param &p_p,const ind_param& i_p):
+        m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
+        m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
+        m_mut_rate{p_p.mut_rate},
+        m_mut_step{p_p.mut_step}
+    {
+        for(auto& ind : m_vec_indiv){ind = individual<M>{i_p};}
+        for(auto& ind : m_vec_new_indiv){ind = individual<M>{i_p};}
+    }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                    m_vec_indiv,
@@ -87,6 +95,23 @@ double avg_fitness(const population<M>& p){
 }
 
 ///Rescales the distance fro the target of an ind
+///to a fitness value between 0  and 1
+std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target,
+                                        double selection_strength);
+
+///Checks that all individuals in the pop have the same input
+template<mutation_type M>
+bool all_individuals_have_same_input(const population<M> &p)
+{
+    std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
+
+    for(auto& ind : p.get_inds()){
+        if(input_first_individual != ind.get_input_values()){
+            return false;
+        }
+    }
+    return true;
+}
 
 ///Calculates the distance from the output of one individual's network
 /// to the optimal output given a series of inputs
@@ -104,9 +129,13 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double e
     return distance_from_target;
 }
 
-///to a fitness value between 0  and 1
-std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target,
-                                        double selection_strength);
+///Sets the fitness of the nth ind in the population
+template<mutation_type M>
+void set_nth_ind_fitness (population<M>& p, size_t ind_index, double fitness)
+{
+    auto& ind = p.get_inds()[ind_index];
+    ind.set_fitness(fitness);
+}
 
 ///Sets the fitness of the individuals to the one contained in the fitness vector
 template<mutation_type M>
@@ -138,8 +167,16 @@ template< mutation_type M>//Should maybe template for a 'class Net'?
 void change_nth_ind_net(population<M>& p, size_t ind_index, network<M> n);
 
 ///Creates a mutable distribution from whihc to draw inds based on fitness
-template< mutation_type M>
-rndutils::mutable_discrete_distribution<>  create_mut_dist_fit(population<M>& p);
+template<mutation_type M>
+rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<M>& p)
+{
+    rndutils::mutable_discrete_distribution<> mut_dist;
+
+    mut_dist.mutate_transform(p.get_inds().begin(),
+                              p.get_inds().end(),
+                              [](const individual<M>& i){return i.get_fitness();});
+    return  mut_dist;
+}
 
 ///Extracts a vector of the fitnesses of individuals into a double vectors
 template<class Ind>
@@ -182,25 +219,41 @@ double get_nth_ind_fitness(const population<M>& p, const size_t& ind_index)
 template<mutation_type M>
 const network<M>& get_nth_ind_net(const population<M>& p, size_t ind_index);
 
-///Reproduces inds with a probability proportional to their fitness
-template<mutation_type M>
-void reproduce(population<M>& p, std::mt19937_64& rng);
-
 ///Select inds for new pop from old pop based on mutable dist
 /// and mutates them
 template<mutation_type M>
 void select_new_pop(population<M>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
-                    std::mt19937_64 &rng);
-
+                    std::mt19937_64& rng)
+{
+    for( size_t i = 0; i != p.get_inds().size(); i++)
+    {
+        auto selected_ind_index = mut_dist(rng);
+        auto selected_ind = p.get_inds()[selected_ind_index];
+        p.get_new_inds()[i] = selected_ind;
+        p.get_new_inds()[i].mutate(p.get_mut_rate(),
+                                   p.get_mut_step(),
+                                   rng);
+    }
+}
 
 ///Swaps a vector of new_inds with the vector of old inds
-template<mutation_type M>
-void swap_new_with_old_pop(population<M> &p);
+template< mutation_type M>
+void swap_new_with_old_pop(population<M>& p)
+{
+    p.get_inds().swap(p.get_new_inds());
+}
 
-///Sets the fitness of the nth ind in the population
+///Reproduces inds with a probability proportional to their fitness
 template<mutation_type M>
-void set_nth_ind_fitness (population<M>& p, size_t ind_index, double fitness);
+void reproduce(population<M>& p, std::mt19937_64& rng)
+{
+    auto mut_dist = create_mut_dist_fit(p);
+
+    select_new_pop(p, mut_dist, rng);
+
+    swap_new_with_old_pop(p);
+}
 
 ///Calculates the standard deviation
 template<mutation_type M>
@@ -208,20 +261,6 @@ double var_fitness(const population<M> &p){
     auto inds = p.get_inds();
     auto fitnesses = extract_fitnesses(inds);
     return calc_stdev(fitnesses);
-}
-
-///Checks that all individuals in the pop have the same input
-template<mutation_type M>
-bool all_individuals_have_same_input(const population<M> &p)
-{
-    std::vector<double> input_first_individual = p.get_inds()[0].get_input_values();
-
-    for(auto& ind : p.get_inds()){
-        if(input_first_individual != ind.get_input_values()){
-            return false;
-        }
-    }
-    return true;
 }
 
 ///Returns the input of the nth individual

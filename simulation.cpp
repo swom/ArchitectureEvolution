@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <vector>
-#include <fstream>
 
 template<mutation_type M>
 simulation<M>::simulation(int init_pop_size,
@@ -28,30 +27,6 @@ simulation<M>::simulation(int init_pop_size,
     }
 }
 
-
-template<mutation_type M>
-simulation<M>::simulation(const all_params& params):
-    m_environment{params.e_p},
-    m_population{params.p_p, params.i_p},
-    m_n_generations{params.s_p.n_generations},
-    m_seed{params.s_p.seed},
-    m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
-    m_sel_str{params.s_p.selection_strength},
-    m_change_freq {static_cast<double>(params.s_p.change_freq)},
-    m_params {params},
-    m_input(params.i_p.net_par.net_arc[0], 1),
-    m_optimal_output{1}
-{
-    m_rng.seed(m_seed);
-}
-
-template<mutation_type M>
-std::vector<double> get_inds_input(const simulation<M> &s)
-{
-    assert(all_individuals_have_same_input(s));
-    return get_inds(s)[0].get_input_values();
-}
-
 template<mutation_type M>
 bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
 {
@@ -62,17 +37,6 @@ bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
     bool change_freq = are_equal_with_tolerance(lhs.get_change_freq(), rhs.get_change_freq());
 
     return pop && env && time && sel_str && change_freq;
-}
-
-
-
-template<mutation_type M>
-void calc_fitness(simulation<M> &s)
-{
-    s.update_optimal(calculate_optimal(s)); //I realized we had forgotten that!!
-    s.get_pop() = calc_fitness(s.get_pop(),
-                               s.get_optimal(),
-                               s.get_sel_str());
 }
 
 template<mutation_type M>
@@ -87,14 +51,6 @@ void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M> &n)
 {
     change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
-
-
-template<mutation_type M>
-const std::vector<individual<M> > &get_inds(const simulation<M>&s)
-{
-    return s.get_pop().get_inds();
-}
-
 
 template<mutation_type M>
 const individual<M>& get_nth_ind(const simulation<M>& s, size_t ind_index)
@@ -129,16 +85,6 @@ double identity_first_element(const std::vector<double> &vector)
     return vector[0];
 }
 
-template<mutation_type M>
-bool is_environment_changing (simulation<M> &s) {
-
-    std::bernoulli_distribution distro = s.get_t_change_env_distr();
-    return distro (s.get_rng());
-
-}
-
-
-//looks buggy!!
 template<mutation_type M = mutation_type::weights>
 simulation<M> load_json(
         const std::string& filename
@@ -149,71 +95,6 @@ simulation<M> load_json(
     simulation<M> s;
     f >> json_in;
     return s = json_in;
-}
-
-template<mutation_type M>
-void reproduce(simulation<M>& s)
-{
-    reproduce(s.get_pop(), s.get_rng());
-}
-
-template<mutation_type M>
-void tick(simulation<M> &s)
-{
-    s.increase_time();
-
-    if(is_environment_changing(s)){
-
-        perform_environment_change(s);
-    }
-
-    if(get_inds(s).size()){
-
-        assign_new_inputs(s);
-
-    }
-
-    select_inds(s);
-
-
-}
-
-template<mutation_type M>
-void save_json(const simulation<M>& s, const std::string& filename)
-{
-    std::ofstream  f(filename);
-    nlohmann::json json_out;
-    json_out = s;
-    f << json_out;
-}
-
-template<mutation_type M>
-void select_inds(simulation<M>& s)
-{
-    calc_fitness(s);
-    reproduce(s);
-}
-
-template<mutation_type M>
-void assign_new_inputs_to_inds(population<M> &p, const std::vector<double> &inputs)
-{
-    for(auto& ind : p.get_inds()){
-        ind.assign_input(inputs);
-    }
-}
-
-template<mutation_type M>
-void assign_new_inputs_to_inds(simulation<M> &s, std::vector<double> new_input)
-{
-    assign_new_inputs_to_inds(s.get_pop(), new_input);
-}
-
-template<mutation_type M>
-bool all_individuals_have_same_input(const simulation<M> &s)
-{
-    population p = s.get_pop();
-
-    return all_individuals_have_same_input(p);
 }
 
 template<mutation_type M>
@@ -231,72 +112,11 @@ const std::vector<double> &get_current_input(const simulation<M> &s)
 }
 
 template<mutation_type M>
-double calculate_optimal(const simulation<M> &s)
-{
-    return(calculate_optimal(s.get_env(), s.get_input()));
-}
-
-
-template<mutation_type M>
-std::vector<double> create_inputs(simulation<M> s)
-{
-    environment &e = s.get_env();
-    return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
-}
-
-
-template<mutation_type M>
-void assign_inputs(simulation<M> &s)
-{
-    assign_new_inputs_to_inds(s.get_pop(), s.get_input());
-}
-
-template<mutation_type M>
-void assign_new_inputs(simulation<M> &s)
-{
-    std::vector<double> new_inputs = create_inputs(s);
-
-    if(s.get_input().size() > 1){
-        new_inputs.back() = s.get_input().back();
-      }
-
-    s.update_inputs(new_inputs);
-    assign_inputs(s);
-}
-
-template<mutation_type M>
-void switch_optimal_function(simulation<M> &s)
-{
-    switch_env_function(s.get_env());
-}
-
-template<mutation_type M>
-size_t get_inds_input_size(const simulation<M> &s)
-
-{
-    return get_inds_input(s).size();
-}
-
-template<mutation_type M>
 std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s)
 {
     auto e = s.get_env();
     return e.get_current_function();
 }
-
-void perform_environment_change(simulation &s)
-{
-  switch_optimal_function(s);
-  s.switch_env_indicator();
-}
-
-void simulation::switch_env_indicator()
-{
-  if(get_input().size() > 1){
-      m_input.back() = -m_input.back();
-    }
-}
-
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many

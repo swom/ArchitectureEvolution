@@ -37,7 +37,29 @@ class network
 public:
     network(std::vector<int> nodes_per_layer,
             std::function<double(double)> activation_function = &linear);
-    network (const net_param &n_p);
+
+    network(const net_param &n_p):
+        m_input_size{n_p.net_arc[0]},
+        m_activation_function{n_p.function}
+    {
+
+        for (size_t i = 1; i != n_p.net_arc.size(); i++ )
+        {
+            std::vector<std::vector<weight>>temp_layer_vector;
+            size_t n_nodes_prev_layer = n_p.net_arc[i-1];
+            for(int j = 0; j != n_p.net_arc[i]; j++)
+            {
+                std::vector<weight> temp_weights(n_nodes_prev_layer);
+                temp_layer_vector.push_back(temp_weights);
+            }
+
+            //A vector of the size of the number of connections is pushed back in the weight matrix
+            m_network_weights.push_back(temp_layer_vector);
+
+            //A vector of the size of the nodes in the layer is pushed back;
+            m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
+        }
+    }
 
     virtual ~network() {}
     virtual void mutate(const double& ,
@@ -90,36 +112,6 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
                                                const double& mut_step,
                                                std::mt19937_64& rng,
                                                const std::vector<std::vector<double>>& biases);
-
-template <mutation_type M>
-class mutator_network : public network<M>
-{
-public:
-    mutator_network(const net_param& p) : network<M>{p} {};
-
-    virtual void mutate(const double& mut_rate,
-                        const double& mut_step,
-                        std::mt19937_64& rng) override
-    {
-
-        if constexpr (M == mutation_type::activation)
-        {
-            mutate_activation(*this, mut_rate, rng);
-        }
-
-        else if constexpr(M == mutation_type::weights)
-        {
-            mutate_weights(*this, mut_rate, mut_step, rng);
-        }
-
-        else if constexpr(M == mutation_type::weights_and_activation)
-        {
-            mutate_activation(*this, mut_rate, rng);
-            mutate_weights(*this, mut_rate, mut_step, rng);
-        }
-        this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
-    };
-};
 
 template<mutation_type M>
 bool operator==(const network<M>& lhs, const network<M> &rhs)
@@ -200,8 +192,8 @@ bool net_behaves_like_the_function(const Net &n,
         for(size_t j = 0; j != input_size; ++j){
             input.push_back(i + j);
         }
-        assert(response(n, input).size() == 1);
-        if(response(n, input) [0] != f(input))
+        assert(output(n, input).size() == 1);
+        if(output(n, input) [0] != f(input))
         {
             return false;
         };
@@ -229,8 +221,37 @@ bool on_average_an_nth_of_the_weights_are_inactive(const Net &n,
 template<class Net>
 int get_number_weights(const Net &n);
 
-template <typename Fun, class Net>
-inline std::vector<double> response(const Net& n, std::vector<double> input, Fun fun = &linear)
+///Returns the output of a network for a given input
+template<class Net>
+std::vector<double> output(const Net& n, std::vector<double> input)
+{
+    assert(input.size() == n.get_input_size());
+
+    for(size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+    {
+        auto output = std::vector<double>(n.get_net_weights()[layer].size());
+
+        for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
+        {
+            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
+            double node_value = n.get_biases()[layer][node] +
+                    std::inner_product(input.begin(),
+                                       input.end(),
+                                       w.begin(),
+                                       0.0);
+
+            output[node] = n(node_value);
+        }
+
+        input = std::move(output);
+    }
+
+    return input;
+}
+
+///Returns the output of a network for a given input and a given activation function
+template <typename Fun, mutation_type M>
+inline std::vector<double> output(const network<M>& n, std::vector<double> input, Fun fun)
 {
     assert(input.size() == n.get_input_size());
 
@@ -255,9 +276,6 @@ inline std::vector<double> response(const Net& n, std::vector<double> input, Fun
     return input;
 }
 
-
-template<class Net>
-std::vector<double> response(const Net& n, std::vector<double> input);
 
 ///Checks whether all connections of the network are active
 template<class Net>
@@ -296,11 +314,68 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 
 ///Mutates the weights of a network
 template<class Net>
-void mutate_weights(Net &n, const double& mut_rate, const double& mut_step, std::mt19937_64 &rng);
+void mutate_weights(Net& n, const double& mut_rate,
+                    const double& mut_step,
+                    std::mt19937_64& rng)
+{
+
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                if(mut_p(rng))
+                {weight.change_weight(weight.get_weight() + mut_st(rng));}
+            }
+
+}
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>
-void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng);
+void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
+{
+    std::bernoulli_distribution mut_p{mut_rate};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                if(mut_p(rng))
+                {weight.change_activation(!weight.is_active());}
+            }
+}
+
+template <mutation_type M>
+class mutator_network : public network<M>
+{
+public:
+    mutator_network(const net_param& p) : network<M>{p} {};
+
+    virtual void mutate(const double& mut_rate,
+                        const double& mut_step,
+                        std::mt19937_64& rng) override
+    {
+
+        if constexpr (M == mutation_type::activation)
+        {
+            mutate_activation(*this, mut_rate, rng);
+        }
+
+        else if constexpr(M == mutation_type::weights)
+        {
+            mutate_weights(*this, mut_rate, mut_step, rng);
+        }
+
+        else if constexpr(M == mutation_type::weights_and_activation)
+        {
+            mutate_activation(*this, mut_rate, rng);
+            mutate_weights(*this, mut_rate, mut_step, rng);
+        }
+        this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
+    };
+};
 
 
 void test_network();

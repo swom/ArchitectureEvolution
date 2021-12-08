@@ -6,7 +6,11 @@ template<mutation_type M = mutation_type::weights>
 class observer
 {
 public:
-    observer(int top_proportion = 1);
+    observer(int top_proportion = 10):
+        m_top_proportion{top_proportion}
+    {
+    }
+;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -93,8 +97,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 
 ///Executes a simulation for n generations
-template<class S, class O>
-void exec(S& s , O& o)
+template<mutation_type M>
+void exec(simulation<M>& s , observer<M>& o)
 {
     o.store_par(s);
     for (int i = 0; i < s.get_n_gen(); i++)
@@ -120,7 +124,13 @@ void exec(S& s , O& o)
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
 template<class O>
-void save_json(const O &o, const std::string& filename);
+void save_json(const O &o, const std::string& filename)
+{
+    std::ofstream  f(filename);
+    nlohmann::json json_out;
+    json_out = o;
+    f << json_out;
+}
 
 ///Loads the observer back from json file.
 template<mutation_type M = mutation_type::weights>

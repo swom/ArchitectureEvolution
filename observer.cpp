@@ -1,12 +1,6 @@
 #include "observer.h"
 #include <fstream>
 
-template<mutation_type M>
-observer<M>::observer(int top_proportion):
-    m_top_proportion{top_proportion}
-{
-}
-
 
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
@@ -53,15 +47,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
-
-template<class O>
-void save_json(const O &o, const std::string& filename)
-{
-    std::ofstream  f(filename);
-    nlohmann::json json_out;
-    json_out = o;
-    f << json_out;
-}
 
 template<mutation_type M>
 observer<M> load_observer_json(const std::string& filename)

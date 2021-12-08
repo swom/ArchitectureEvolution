@@ -3,21 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-
-template<mutation_type M>
-individual<M>::individual(const ind_param &i_p) :
-  ///!!!!Attention!!!! input values are for now a fixed amount
-  m_input_values(i_p.net_par.net_arc[0], 1.0)
-{
-     m_network = std::make_unique<mutator_network<M>>(i_p.net_par);
-}
-
-template<mutation_type M>
-std::vector<double> response(const individual<M>& ind)
-{
-    return response(ind.get_net(),ind.get_input_values());
-}
-
 #ifndef NDEBUG
 void test_individual()
 {
@@ -49,7 +34,7 @@ void test_individual()
   ///When an individual responds to environment it uses its input values as input
   {
         individual i{ind_param{}};
-        assert( response(i) == response(i.get_net(),i.get_input_values(), &linear));
+        assert( response(i) == output(i.get_net(),i.get_input_values(), &linear));
   }
 
 //#define FIX_ISSUE_36
@@ -104,7 +89,7 @@ void test_individual()
 ///ind_param contains a mutation_type member, with which network can be templated
   {
     ind_param i_p;
-    enum mutation_type mut_type = i_p.mutation_type;
+    enum mutation_type mut_type = i_p.m_mutation_type;
 
     assert(mut_type == mutation_type::activation);
   }
