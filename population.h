@@ -25,15 +25,13 @@ public:
                double mut_rate = 0.01,
                double mut_step = 0.1,
                std::vector<int> net_arch = {1,2,1});
+
     population(const pop_param &p_p,const ind_param& i_p):
-        m_vec_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
-        m_vec_new_indiv(static_cast<unsigned int>(p_p.number_of_inds)),
+        m_vec_indiv(p_p.number_of_inds, individual<M>{i_p}),
+        m_vec_new_indiv(p_p.number_of_inds, individual<M>{i_p}),
         m_mut_rate{p_p.mut_rate},
         m_mut_step{p_p.mut_step}
-    {
-        for(auto& ind : m_vec_indiv){ind = individual<M>{i_p};}
-        for(auto& ind : m_vec_new_indiv){ind = individual<M>{i_p};}
-    }
+    {}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                    m_vec_indiv,

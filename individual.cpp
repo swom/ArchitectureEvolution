@@ -65,25 +65,6 @@ void test_individual()
   }
   #endif
   
-  #define FIX_ISSUE_125
-  #ifdef FIX_ISSUE_125
-  ///individual stores a pointer to a base network
-    {
-
-      net_param net_par;
-      network n{net_par};
-
-      std::unique_ptr<network<>> n_ptr(new network(net_par));
-
-      ind_param i_p{net_par};
-      individual i{i_p};
-
-
-      assert(i.get_net() == *n_ptr);
-      assert(!(i.get_net_ptr() == n_ptr));
-    }
-#endif
-
 #define FIX_ISSUE_120
 #ifdef FIX_ISSUE_120
 ///ind_param contains a mutation_type member, with which network can be templated
