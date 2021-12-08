@@ -31,6 +31,49 @@ struct net_param
     std::function<double(double)> function;
 };
 
+
+///Mutates the weights of a network
+template<class Net>
+void mutate_weights(Net& n, const double& mut_rate,
+                    const double& mut_step,
+                    std::mt19937_64& rng)
+{
+
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                if(mut_p(rng))
+                {weight.change_weight(weight.get_weight() + mut_st(rng));}
+            }
+
+}
+
+///Mutates the activation of the weights of the network - they get switched on and off
+template<class Net>
+void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
+{
+    std::bernoulli_distribution mut_p{mut_rate};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
+            for(auto& weight : node)
+            {
+                if(mut_p(rng))
+                {weight.change_activation(!weight.is_active());}
+            }
+}
+
+///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
+/// Not quite sure why this would have to be here, but it makes it run happily so let's go for it
+std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
+                                               const double& mut_step,
+                                               std::mt19937_64& rng,
+                                               const std::vector<std::vector<double>>& biases);
+
 template<mutation_type M = mutation_type::weights>
 class network
 {
@@ -61,11 +104,28 @@ public:
         }
     }
 
-    virtual ~network() {}
-    virtual void mutate(const double& ,
-                        const double& ,
-                        std::mt19937_64& )
-    {};
+    void mutate(const double& mut_rate,
+                           const double& mut_step,
+                           std::mt19937_64& rng)
+       {
+
+           if constexpr (M == mutation_type::activation)
+           {
+               mutate_activation(*this, mut_rate, rng);
+           }
+
+           else if constexpr(M == mutation_type::weights)
+           {
+               mutate_weights(*this, mut_rate, mut_step, rng);
+           }
+
+           else if constexpr(M == mutation_type::weights_and_activation)
+           {
+               mutate_activation(*this, mut_rate, rng);
+               mutate_weights(*this, mut_rate, mut_step, rng);
+           }
+           this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
+       };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
@@ -91,7 +151,9 @@ public:
 
     ///Returns not constant ref to vector of weights
     std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
+
 private:
+
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<std::vector<weight>>> m_network_weights;
 
@@ -104,14 +166,6 @@ private:
     ///The activation function of the nodes
     std::function<double(double)> m_activation_function;
 };
-
-
-///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
-/// Not quite sure why this would have to be here, but it makes it run happily so let's go for it
-std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
-                                               const double& mut_step,
-                                               std::mt19937_64& rng,
-                                               const std::vector<std::vector<double>>& biases);
 
 template<mutation_type M>
 bool operator==(const network<M>& lhs, const network<M> &rhs)
@@ -311,72 +365,6 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 
     return true;
 }
-
-///Mutates the weights of a network
-template<class Net>
-void mutate_weights(Net& n, const double& mut_rate,
-                    const double& mut_step,
-                    std::mt19937_64& rng)
-{
-
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
-
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                if(mut_p(rng))
-                {weight.change_weight(weight.get_weight() + mut_st(rng));}
-            }
-
-}
-
-///Mutates the activation of the weights of the network - they get switched on and off
-template<class Net>
-void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
-{
-    std::bernoulli_distribution mut_p{mut_rate};
-
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                if(mut_p(rng))
-                {weight.change_activation(!weight.is_active());}
-            }
-}
-
-template <mutation_type M>
-class mutator_network : public network<M>
-{
-public:
-    mutator_network(const net_param& p) : network<M>{p} {};
-
-    virtual void mutate(const double& mut_rate,
-                        const double& mut_step,
-                        std::mt19937_64& rng) override
-    {
-
-        if constexpr (M == mutation_type::activation)
-        {
-            mutate_activation(*this, mut_rate, rng);
-        }
-
-        else if constexpr(M == mutation_type::weights)
-        {
-            mutate_weights(*this, mut_rate, mut_step, rng);
-        }
-
-        else if constexpr(M == mutation_type::weights_and_activation)
-        {
-            mutate_activation(*this, mut_rate, rng);
-            mutate_weights(*this, mut_rate, mut_step, rng);
-        }
-        this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
-    };
-};
-
 
 void test_network();
 

@@ -35,10 +35,8 @@ public:
         ///!!!!Attention!!!! input values are for now a fixed amount
         m_input_values(i_p.net_par.net_arc[0], 1.0),
         m_network{i_p.net_par}
-      {
-      }
+      {}
 
-    individual(individual<M>&&) = default;
     individual(const individual<M> &i) noexcept:
         m_fitness{i.get_fitness()},
         m_input_values{i.get_input_values()},

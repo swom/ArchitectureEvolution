@@ -380,10 +380,10 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_112
 #ifdef FIX_ISSUE_112
     {
-        mutator_network<mutation_type::activation> n_activation{net_param()};
+        network<mutation_type::activation> n_activation{net_param()};
         assert(all_weigths_are_active(n_activation));
 
-        mutator_network<mutation_type::weights> n_weights{net_param()};
+        network<mutation_type::weights> n_weights{net_param()};
         assert(all_weigths_have_value(n_weights, 0));
 
         auto mutation_rate = 1;
@@ -407,8 +407,8 @@ void test_network() //!OCLINT
 #ifdef FIX_ISSUE_126
     {
         auto pars = net_param();
-        mutator_network<mutation_type::activation> n_activation{pars};
-        mutator_network<mutation_type::weights> n_weights{pars};
+        network<mutation_type::activation> n_activation{pars};
+        network<mutation_type::weights> n_weights{pars};
         network n{pars};
 
         assert(are_equal_except_mutation_type(n, n_activation));
