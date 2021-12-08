@@ -33,60 +33,20 @@ public:
 
     individual(const ind_param &i_p = ind_param{}) :
         ///!!!!Attention!!!! input values are for now a fixed amount
-        m_input_values(i_p.net_par.net_arc[0], 1.0)
-      {
-           m_network = std::make_unique<mutator_network<M>>(i_p.net_par);
-      }
+        m_input_values(i_p.net_par.net_arc[0], 1.0),
+        m_network{i_p.net_par}
+      {}
 
-    individual(individual<M>&&) = default;
     individual(const individual<M> &i) noexcept:
         m_fitness{i.get_fitness()},
         m_input_values{i.get_input_values()},
-        m_network{std::make_unique<network<M>>(i.get_net())}
+        m_network{i.get_net()}
     {}
-
-    ///Overload of copy assignment where pointer to netowrk is not copied
-    /// but the pointee is copied and assigned
-    //copy assignment
-    individual& operator=(const individual& other)
-    {
-        // Guard self assignment
-        if (this == &other)
-        {
-            return *this;
-        }
-
-        m_fitness = other.get_fitness();
-        m_input_values = other.get_input_values();
-        if(m_network == nullptr || get_net() != other.get_net())
-        {
-            *m_network = other.get_net();
-        }
-
-        return *this;
-    };
-
-    // move assignment
-    individual& operator=(individual&& other) noexcept
-    {
-        // Guard self assignment
-        if (this == &other)
-            return *this;
-
-        m_input_values = std::exchange(other.get_to_input_values(),
-                                       std::vector<double>{});
-        m_fitness = std::exchange(other.get_to_fitness(),0);
-
-        m_network = std::move(other.get_net_ptr());
-        other.get_net_ptr().reset();
-
-        return *this;
-    }
 
     ///Changes the network of an individual with another network
     void change_net(const network<M>& n)
     {
-        *m_network = n;
+        m_network = n;
     }
 
     ///Returns copy of fitness
@@ -96,11 +56,10 @@ public:
     const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
 
     ///Returns const ref to network
-    const network<M>& get_net() const noexcept {return *m_network;}
+    const network<M>& get_net() const noexcept {return m_network;}
 
     ///Returns ref to the pointer to network
-    std::unique_ptr<network<M>>& get_net_ptr() {return m_network;}
-
+    network<M>& get_net_ptr() {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
@@ -109,12 +68,12 @@ public:
     std::vector<double>& get_to_input_values() noexcept {return m_input_values;}
 
     ///Returns ref to network USED FOR JSON SAVING
-    network<M>& get_to_net() noexcept {return *m_network;}
+    network<M>& get_to_net() noexcept {return m_network;}
 
     ///Mutates the network of an individual
     void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng)
     {
-        m_network->mutate(mut_rate, mut_step, rng);
+        m_network.mutate(mut_rate, mut_step, rng);
     }
 
     ///Sets the fitness of an ind
@@ -132,7 +91,7 @@ private:
     std::vector<double> m_input_values;
 
     ///The network of an individual
-    std::unique_ptr<network<M>> m_network;
+    network<M> m_network;
 };
 
 
