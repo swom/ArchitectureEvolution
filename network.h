@@ -167,7 +167,7 @@ public:
     const std::vector<int>& get_current_arc() const noexcept{return m_current_arc;}
 
     ///Returns the maximum architecture
-    const std::vector<int>& get_max_arc() const noexcept{return m_current_arc;}
+    const std::vector<int>& get_max_arc() const noexcept{return m_max_arc;}
 
 private:
 

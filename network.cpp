@@ -220,7 +220,7 @@ void test_network() //!OCLINT
     {
         std::vector<int> net_arc{1, 2, 3, 1} ;
         std::function<double(double)> function = linear;
-        net_param n_p{net_arc, function};
+        net_param n_p{net_arc, function, net_arc};
         network n{n_p};
         //Set weigths to one
         n = change_all_weights_values_and_activations(n, 1);
@@ -332,7 +332,7 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
 
         std::vector<int> net_arch{5,5,5,5,5};
-        network n{net_param{net_arch, linear}};
+        network n{net_param{net_arch, linear, net_arch}};
 
         std::vector<double> mut_rates{0.5, 0.33, 0.25, 0.56789};
         int repeats = 10000;

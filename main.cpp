@@ -6,7 +6,6 @@
 
 #ifndef NDEBUG
 void test() {
-    try {
         test_environment();
         test_individual();
         test_mutation_type();
@@ -16,9 +15,7 @@ void test() {
         test_simulation();
         test_weight();
 
-    }  catch (int) {
 
-    }
 
 }
 #endif
@@ -28,6 +25,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
 
     auto results = create_parser().parse(argc,argv);
 
+    try {
 #ifndef NDEBUG
     if (results.count("test"))
     {
@@ -73,6 +71,12 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     else
     {
         throw std::runtime_error{"unknown mutation type"};
+    }
+
+    }  catch (int exc) {
+        if(exc==1)
+            throw std::runtime_error("The current and maximum architectures are not compatible");
+
     }
 
     return 0;
