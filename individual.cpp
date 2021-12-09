@@ -22,6 +22,7 @@ void test_individual()
     std::vector<int> net_arch{n_input};
     ind_param i_p{};
     i_p.net_par.net_arc = net_arch;
+    i_p.net_par.max_arc = net_arch;
     individual i{i_p};
 
     assert(i.get_input_values().size() == static_cast<size_t>(n_input));

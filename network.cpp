@@ -177,7 +177,6 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
 }
 
 
-
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {
@@ -221,7 +220,7 @@ void test_network() //!OCLINT
     {
         std::vector<int> net_arc{1, 2, 3, 1} ;
         std::function<double(double)> function = linear;
-        net_param n_p{net_arc, function};
+        net_param n_p{net_arc, function, net_arc};
         network n{n_p};
         //Set weigths to one
         n = change_all_weights_values_and_activations(n, 1);
@@ -333,7 +332,7 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
 
         std::vector<int> net_arch{5,5,5,5,5};
-        network n{net_param{net_arch, linear}};
+        network n{net_param{net_arch, linear, net_arch}};
 
         std::vector<double> mut_rates{0.5, 0.33, 0.25, 0.56789};
         int repeats = 10000;
@@ -416,6 +415,88 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_159
+#ifdef FIX_ISSUE_159
+  ///Network has a (current) network architecture *and* a maximum architecture
+    {
+        std::vector<int> start_arc{1,2,2,1};
+        std::vector<int> max_arc_that_works{1,8,8,1};
+        std::vector<int> max_arc_too_few_nodes{1,1,1,1};
+        std::vector<int> max_arc_too_many_layers{1,8,8,8,1};
+        std::vector<int> max_arc_too_few_layers{1,8,1};
+        std::vector<int> max_arc_wrong_input{2,8,8,1};
+        std::vector<int> max_arc_wrong_output{1,8,8,2};
+
+        auto pars = net_param();
+        pars.net_arc = start_arc;
+        pars.max_arc = max_arc_that_works;
+
+        bool exception_thrown = false;
+
+        network n{net_param{}};
+
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+
+        assert(exception_thrown == false);
+        assert(n.get_current_arc() == start_arc);
+        assert(n.get_max_arc() == max_arc_that_works);
+
+        exception_thrown = false;
+        pars.max_arc = max_arc_too_few_nodes;
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+        assert(exception_thrown == true);
+
+        exception_thrown = false;
+        pars.max_arc = max_arc_too_many_layers;
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+        assert(exception_thrown == true);
+
+        exception_thrown = false;
+        pars.max_arc = max_arc_too_few_layers;
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+        assert(exception_thrown == true);
+
+        exception_thrown = false;
+        pars.max_arc = max_arc_wrong_input;
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+        assert(exception_thrown == true);
+
+        exception_thrown = false;
+        pars.max_arc = max_arc_wrong_output;
+        try{
+        n = network{pars};
+        }
+        catch(int exc){
+          exception_thrown = true;
+        }
+        assert(exception_thrown == true);
+    }
+#endif
 
 }
 #endif

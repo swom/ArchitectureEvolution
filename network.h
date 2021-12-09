@@ -19,16 +19,20 @@ static std::map<std::string, std::function<double(double)>> string_to_act_func_m
 struct net_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
-                                   net_arc
+                                   net_arc,
+                                   max_arc
                                    )
     net_param(const std::vector<int>& net_arch = {1,2,1},
-              std::function<double(double)> func = linear):
+              std::function<double(double)> func = linear,
+              const std::vector<int>& max_arch = {1,8,1}):
         net_arc{net_arch},
-        function{func}
+        function{func},
+        max_arc{max_arch}
     {};
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
+    std::vector<int> max_arc;
 };
 
 
@@ -81,9 +85,12 @@ public:
     network(std::vector<int> nodes_per_layer,
             std::function<double(double)> activation_function = &linear);
 
-    network(const net_param &n_p):
+
+        network(const net_param &n_p):
         m_input_size{n_p.net_arc[0]},
-        m_activation_function{n_p.function}
+        m_activation_function{n_p.function},
+        m_current_arc{n_p.net_arc},
+        m_max_arc{n_p.max_arc}
     {
 
         for (size_t i = 1; i != n_p.net_arc.size(); i++ )
@@ -102,7 +109,11 @@ public:
             //A vector of the size of the nodes in the layer is pushed back;
             m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
         }
+        if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
+            throw 1;
+          }
     }
+
 
     void mutate(const double& mut_rate,
                            const double& mut_step,
@@ -152,6 +163,12 @@ public:
     ///Returns not constant ref to vector of weights
     std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
 
+    ///Returns the current architecture
+    const std::vector<int>& get_current_arc() const noexcept{return m_current_arc;}
+
+    ///Returns the maximum architecture
+    const std::vector<int>& get_max_arc() const noexcept{return m_max_arc;}
+
 private:
 
     ///Vector of of vectors, representing the weights coming into each node
@@ -165,6 +182,54 @@ private:
 
     ///The activation function of the nodes
     std::function<double(double)> m_activation_function;
+
+    ///The current architecture
+    std::vector<int> m_current_arc;
+
+    ///The maximum architecture
+    std::vector<int> m_max_arc;
+
+    inline bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc)
+    {
+      if(net_arc.size() != max_arc.size()){
+       return false;
+        }
+
+      bool there_is_a_wrong_number_in_net_arc = false;
+      for(auto & layer : net_arc){
+          if(layer <= 0){
+            there_is_a_wrong_number_in_net_arc = true;
+            }
+        }
+
+      bool there_is_a_wrong_number_in_max_arc = false;
+      for(auto & layer : max_arc){
+          if(layer <= 0){
+            there_is_a_wrong_number_in_max_arc = true;
+            }
+        }
+
+      if(there_is_a_wrong_number_in_max_arc || there_is_a_wrong_number_in_net_arc){
+          return false;
+        }
+
+      bool net_arc_smaller_than_max_arc = true;
+      for(size_t i = 0; i != net_arc.size(); ++i){
+          if(net_arc[i] > max_arc[i]){
+              net_arc_smaller_than_max_arc = false;
+            }
+        }
+
+      if(!net_arc_smaller_than_max_arc){
+          return false;
+        }
+
+      if(net_arc[0] != max_arc[0] || net_arc.back() != max_arc.back()){
+          return false;
+        }
+      else
+        return true;
+    }
 };
 
 template<mutation_type M>
@@ -365,6 +430,8 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 
     return true;
 }
+
+
 
 void test_network();
 
