@@ -2,7 +2,12 @@
 #define OBSERVER_H
 #include "simulation.h"
 #include "Stopwatch.hpp"
-
+template<class Ind, class Sim>
+class Trade
+{
+    Ind i;
+    Sim s;
+}
 template<class Trade>
 class observer
 {
@@ -12,8 +17,8 @@ private:
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     int m_top_proportion;
-    using Ind = Trade;.Ind;
-    using Sim = Trade;.Sim;
+    using Ind = Trade.i;
+    using Sim = Trade.i;
     std::vector<std::vector<Ind>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
