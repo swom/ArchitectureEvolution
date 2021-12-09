@@ -10,7 +10,7 @@ library(ggnetwork)
 library(networkD3)
 library(magick)
 
-dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release"
+dir = "X:/build-arc_evo-Desktop_Qt_6_1_3_MinGW_64_bit-Release"
 setwd(dir)
 
 results=list()
@@ -65,9 +65,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   #generate coordinates for positioning nodes correctly in plot
   x = vector()
   y = vector()
-  for(i in 1:length(architecture)){
-    x = c(x, rep(i, architecture[i]))
-    y = c(y, seq(1:architecture[i]) + ((max(architecture)-architecture[i])/2))
+  for(j in 1:length(architecture)){
+    x = c(x, rep(j, architecture[j]))
+    y = c(y, seq(1:architecture[j]) + ((max(architecture)-architecture[j])/2))
   }
   
   l =   cbind(x, y)
@@ -75,9 +75,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   #Make the list of nodes
   layer = vector()
   node = vector()
-  for(i in 1:length(architecture)){
-    layer = c(layer, rep(i, architecture[i]))
-    node = c(node, seq(1:architecture[i]))
+  for(j in 1:length(architecture)){
+    layer = c(layer, rep(j, architecture[j]))
+    node = c(node, seq(1:architecture[j]))
   }
   id = seq(1:length(layer))
   
@@ -88,9 +88,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   from = vector()
   to = vector()
   
-  for(i in 1:nrow(node_tibble)){
-    from = c(from, rep(node_tibble$id[i], nrow(filter(node_tibble, layer == (node_tibble$layer[i]+1)))))
-    to = c(to, filter(node_tibble, layer == (node_tibble$layer[i]+1))$id)
+  for(j in 1:nrow(node_tibble)){
+    from = c(from, rep(node_tibble$id[j], nrow(filter(node_tibble, layer == (node_tibble$layer[j]+1)))))
+    to = c(to, filter(node_tibble, layer == (node_tibble$layer[j]+1))$id)
   }
   
   #Now let's loop through generations
@@ -126,7 +126,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
        edge.arrow.height = 0.9,                          # Arrow width, defaults to 1
        edge.lty = c("solid"),
        edge.width = abs(E(network_d)$weight/max(E(network_d)$weight) * 10), 
-       main = title)
+       main = title,
+       vertex.label = NA
+       )
   dev.off()
   
   }  
