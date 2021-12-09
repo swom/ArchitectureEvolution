@@ -2,12 +2,15 @@
 #define OBSERVER_H
 #include "simulation.h"
 #include "Stopwatch.hpp"
-template<class Ind, class Sim>
-class Trade
+
+
+template<typename Ind, class Sim>
+struct Trade
 {
-    Ind i;
-    Sim s;
-}
+    using ind_t = Ind;
+    using sim_t = Sim;
+};
+
 template<class Trade>
 class observer
 {
@@ -17,8 +20,8 @@ private:
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     int m_top_proportion;
-    using Ind = Trade.i;
-    using Sim = Trade.i;
+    using Ind = typename Trade::ind_t;
+    using Sim = typename Trade::sim_t;
     std::vector<std::vector<Ind>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
@@ -50,7 +53,7 @@ public:
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
     ///returns const ref to best_ind vector
-    const std::vector<std::vector<Sim>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<Ind>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
