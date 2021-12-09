@@ -2,12 +2,13 @@
 // https://github.com/CrikeeIP/Stopwatch
 // Distributed under the MIT Software License (X11 license).
 // (See accompanying file LICENSE)
-
+#ifndef STOP_WATCH_HPP
+#define STOP_WATCH_HPP
 #pragma once
 
 #include <vector>
 #include <chrono>
-
+#include <string>
 
 namespace stopwatch{
 
@@ -89,7 +90,6 @@ private:
     }
 };
 
-
 constexpr Stopwatch::TimeFormat ns = Stopwatch::TimeFormat::NANOSECONDS;
 constexpr Stopwatch::TimeFormat mus = Stopwatch::TimeFormat::MICROSECONDS;
 constexpr Stopwatch::TimeFormat ms = Stopwatch::TimeFormat::MILLISECONDS;
@@ -100,14 +100,5 @@ constexpr Stopwatch::TimeFormat microseconds = Stopwatch::TimeFormat::MICROSECON
 constexpr Stopwatch::TimeFormat milliseconds = Stopwatch::TimeFormat::MILLISECONDS;
 constexpr Stopwatch::TimeFormat seconds = Stopwatch::TimeFormat::SECONDS;
 
-
-std::string show_times( const std::vector<std::uint64_t>& times ){
-    std::string result("{");
-    for( const auto& t : times ){
-        result += std::to_string(t) + ",";
-    }
-    result.back() = static_cast<char>('}');
-    return result;
-}
-
 } //namespace stopwatch
+#endif

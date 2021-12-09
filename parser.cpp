@@ -3,22 +3,42 @@
 #include <cassert>
 #include <map>
 
-simulation create_simulation(const cxxopts::ParseResult& parameters)
+void run_simulation_given_arguments(const cxxopts::ParseResult& results)
 {
-  auto env = convert_env_args(parameters);
-  auto ind = convert_ind_args(parameters);
-  auto pop = convert_pop_args(parameters);
-  auto sim = convert_sim_args(parameters);
+    auto mut_type = convert_ind_args(results).m_mutation_type;
 
-  all_params params{
-      env, ind, pop, sim
-  };
+    if(mut_type == mutation_type::weights)
+    {
 
-  simulation s{params};
-  return s;
+        observer<mutation_type::weights> o;
+        auto s = create_simulation<mutation_type::weights>(results);
+        exec<mutation_type::weights>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::activation) {
+
+        observer<mutation_type::activation> o;
+        auto s = create_simulation<mutation_type::activation>(results);
+        exec<mutation_type::activation>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::weights_and_activation) {
+        observer<mutation_type::weights_and_activation> o;
+        auto s = create_simulation<mutation_type::weights_and_activation>(results);
+        exec<mutation_type::weights_and_activation>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else
+    {
+        throw std::runtime_error{"unknown mutation type"};
+    }
 }
-
-
 
 ///NOT tested!!!
 env_param convert_env_args(const cxxopts::ParseResult& results)

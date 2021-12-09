@@ -34,13 +34,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     assert(1 == 2);
 #endif
 
-    simulation s = create_simulation(results);
-    observer o;
-    exec(s, o);
-
-    save_json(o,
-              convert_arc_to_string(s.get_params().i_p.net_par.net_arc) +
-              "_" + std::to_string(s.get_params().s_p.seed) + ".json");
+    run_simulation_given_arguments(results);
 
     return 0;
 }
