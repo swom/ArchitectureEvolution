@@ -177,51 +177,6 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
 }
 
 
-bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc)
-{
-  if(net_arc.size() != max_arc.size()){
-   return false;
-    }
-
-  bool there_is_a_wrong_number_in_net_arc = false;
-  for(auto & layer : net_arc){
-      if(layer <= 0){
-        there_is_a_wrong_number_in_net_arc = true;
-        }
-    }
-
-  bool there_is_a_wrong_number_in_max_arc = false;
-  for(auto & layer : max_arc){
-      if(layer <= 0){
-        there_is_a_wrong_number_in_max_arc = true;
-        }
-    }
-
-  if(there_is_a_wrong_number_in_max_arc || there_is_a_wrong_number_in_net_arc){
-      return false;
-    }
-
-  bool net_arc_smaller_than_max_arc = true;
-  for(size_t i = 0; i != net_arc.size(); ++i){
-      if(net_arc[i] > max_arc[i]){
-          net_arc_smaller_than_max_arc = false;
-        }
-    }
-
-  if(!net_arc_smaller_than_max_arc){
-      return false;
-    }
-
-  if(net_arc[0] != max_arc[0] || net_arc.back() != max_arc.back()){
-      return false;
-    }
-  else
-    return true;
-}
-
-
-
-
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {

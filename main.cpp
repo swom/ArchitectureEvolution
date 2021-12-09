@@ -6,14 +6,20 @@
 
 #ifndef NDEBUG
 void test() {
-    test_environment();
-    test_individual();
-    test_mutation_type();
-    test_network();
-    test_observer();
-    test_population();
-    test_simulation();
-    test_weight();
+    try {
+        test_environment();
+        test_individual();
+        test_mutation_type();
+        test_network();
+        test_observer();
+        test_population();
+        test_simulation();
+        test_weight();
+
+    }  catch (int) {
+
+    }
+
 }
 #endif
 
