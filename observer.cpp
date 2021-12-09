@@ -15,8 +15,8 @@ bool operator==(const all_params& lhs, const all_params& rhs)
             are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
 }
 
-template<mutation_type M>
-bool operator==(const observer<M>& lhs, const observer<M>& rhs)
+template<class Sim>
+bool operator==(const observer<Sim>& lhs, const observer<Sim>& rhs)
 {
     auto same_par = lhs.get_params() ==  rhs.get_params();
     auto same_env_inputs = lhs.get_input() == rhs.get_input();
@@ -36,8 +36,8 @@ bool operator==(const observer<M>& lhs, const observer<M>& rhs)
 
 }
 
-template<mutation_type M>
-bool operator!=(const observer<M>& lhs, const observer<M>& rhs)
+template<class Sim>
+bool operator!=(const observer<Sim>& lhs, const observer<Sim>& rhs)
 {
     return !(lhs == rhs);
 }
@@ -48,12 +48,12 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 }
 
 
-template<mutation_type M>
-observer<M> load_observer_json(const std::string& filename)
+template<class Ind>
+observer<Ind> load_observer_json(const std::string& filename)
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    observer<M> o;
+    observer<Ind> o;
     f >> json_in;
     return o = json_in;
 }

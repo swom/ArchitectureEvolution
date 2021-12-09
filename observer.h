@@ -3,9 +3,21 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
-template<mutation_type M = mutation_type::weights>
+template<class Trade>
 class observer
 {
+private:
+
+    std::vector<double> m_avg_fitnesses;
+    std::vector<double> m_var_fitnesses;
+    std::vector<char> m_env_functions;
+    int m_top_proportion;
+    using Ind = Trade;.Ind;
+    using Sim = Trade;.Sim;
+    std::vector<std::vector<Ind>> m_top_inds;
+    all_params m_params = {};
+    std::vector<std::vector<double>> m_input;
+    std::vector<double> m_optimal;
 public:
     observer(int top_proportion = 10):
         m_top_proportion{top_proportion}
@@ -33,64 +45,51 @@ public:
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
     ///returns const ref to best_ind vector
-    const std::vector<std::vector<individual<M>>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<Sim>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
-    void store_avg_fit(const simulation<M> &s)
+    void store_avg_fit(const Sim &s)
     {
         m_avg_fitnesses.push_back(avg_fitness(s));
     }
 
     ///Saves the variance of the fitness
-    void store_var_fit(const simulation<M>& s)
+    void store_var_fit(const Sim& s)
     {
         m_var_fitnesses.push_back(var_fitness(s));
     }
 
     ///Saves the top_proportion nth best individuals in the population
-    void store_top_n_inds(const simulation<M>& s)
+    void store_top_n_inds(const Sim& s)
     {
         m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
     }
 
     ///Saves the nth best individuals in the population
-    void store_top_n_inds(const simulation<M>& s, int proportion)
+    void store_top_n_inds(const Sim& s, int proportion)
     {
         m_top_inds.push_back(get_best_n_inds(s, proportion));
     }
 
     const all_params& get_params() const noexcept {return m_params;};
 
-    template<class S>
-    void store_env_func (const S& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
+    void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
 
-    template<class S>
-    void store_par (const S& s) noexcept {m_params = s.get_params();}
+    void store_par (const Sim& s) noexcept {m_params = s.get_params();}
 
-    template<class S>
-    void store_input(const S& s) noexcept {m_input.push_back(s.get_input());}
+    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_input());}
 
-    template<class S>
-    void store_optimal(const S& s) noexcept {m_optimal.push_back(s.get_optimal());}
+    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_optimal());}
 
     const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
 
     const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 
-private:
 
-    std::vector<double> m_avg_fitnesses;
-    std::vector<double> m_var_fitnesses;
-    std::vector<char> m_env_functions;
-    int m_top_proportion;
-    std::vector<std::vector<individual<M>>> m_top_inds;
-    all_params m_params = {};
-    std::vector<std::vector<double>> m_input;
-    std::vector<double> m_optimal;
 };
 
-template<mutation_type M>
-bool operator==(const observer<M>& lhs, const observer<M>& rhs);
+template<class Ind>
+bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 
 bool operator==(const all_params& lhs, const all_params& rhs);
 
@@ -98,8 +97,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 
 ///Executes a simulation for n generations
-template<mutation_type M>
-void exec(simulation<M>& s , observer<M>& o)
+template<class Sim>
+void exec(Sim& s , observer<Sim>& o)
 {
     o.store_par(s);
 
@@ -139,8 +138,8 @@ void save_json(const O &o, const std::string& filename)
 }
 
 ///Loads the observer back from json file.
-template<mutation_type M = mutation_type::weights>
-observer<M> load_observer_json(const std::string& filename);
+template<class O>
+observer<O> load_observer_json(const std::string& filename);
 
 void test_observer();
 
