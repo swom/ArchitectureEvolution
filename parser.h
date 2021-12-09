@@ -24,6 +24,10 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results);
 
 sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
+///runs a simulation given a parsed set of command line arguments
+/// that are read as parameters
+void run_simulation_given_arguments(const cxxopts::ParseResult& results);
+
 ///Given parameters, creates a simulation
 template<mutation_type M>
 simulation<M> create_simulation(const cxxopts::ParseResult& parameters)
