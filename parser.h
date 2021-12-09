@@ -25,7 +25,21 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results);
 sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
 ///Given parameters, creates a simulation
-simulation create_simulation(const cxxopts::ParseResult &parameters);
+template<mutation_type M>
+simulation<M> create_simulation(const cxxopts::ParseResult& parameters)
+{
+  auto env = convert_env_args(parameters);
+  auto ind = convert_ind_args(parameters);
+  auto pop = convert_pop_args(parameters);
+  auto sim = convert_sim_args(parameters);
+
+  all_params params{
+      env, ind, pop, sim
+  };
+
+  simulation<M> s{params};
+  return s;
+}
 
 
 void test_parser();

@@ -5,32 +5,8 @@
 #include <cmath>
 #include <numeric>
 
-
-network::network(const net_param &n_p):
-    m_input_size{n_p.net_arc[0]},
-    m_activation_function{n_p.function}
-{
-
-    for (size_t i = 1; i != n_p.net_arc.size(); i++ )
-    {
-        std::vector<std::vector<weight>>temp_layer_vector;
-        size_t n_nodes_prev_layer = n_p.net_arc[i-1];
-        for(int j = 0; j != n_p.net_arc[i]; j++)
-        {
-            std::vector<weight> temp_weights(n_nodes_prev_layer);
-            temp_layer_vector.push_back(temp_weights);
-        }
-
-        //A vector of the size of the number of connections is pushed back in the weight matrix
-        m_network_weights.push_back(temp_layer_vector);
-
-        //A vector of the size of the nodes in the layer is pushed back;
-        m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
-    }
-}
-
-
-network::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
+template<mutation_type M>
+network<M>::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
     m_input_size{nodes_per_layer[0]},
     m_activation_function{activation_function}
 { 
@@ -53,41 +29,11 @@ network::network(std::vector<int> nodes_per_layer, std::function<double(double)>
     }
 }
 
-bool operator==(const network& lhs, const network& rhs)
-{
-    return lhs.get_input_size() == rhs.get_input_size() &&
-            lhs.get_net_weights() == rhs.get_net_weights();
-}
 
-bool operator!=(const network& lhs, const network& rhs)
-{
-    return !(lhs == rhs);
-}
 
-network change_all_weights(network n, double new_weight)
-{
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                weight.change_weight(new_weight);
-            }
-    return n;
-}
 
-network change_all_weights(network n, weight new_weight)
-{
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                weight.change_weight(new_weight.get_weight());
-                weight.change_activation(new_weight.is_active());
-            }
-    return n;
-}
-
-std::vector<weight> register_n_weight_mutations(network n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
+template<class Net>
+std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
@@ -107,12 +53,13 @@ std::vector<weight> register_n_weight_mutations(network n, double mut_rate, doub
     return  networks_weights;
 }
 
-std::vector<weight> register_n_activation_mutations(network n, double mut_rate, std::mt19937_64 &rng, int repeats)
+template<class Net>
+std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, std::mt19937_64 &rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
     {
-       auto n_new = n;
+        auto n_new = n;
         mutate_activation(n_new, mut_rate, rng);
         auto weights = n_new.get_net_weights();
 
@@ -120,7 +67,7 @@ std::vector<weight> register_n_activation_mutations(network n, double mut_rate, 
             for(size_t k=0; k != weights[j].size(); ++k)
                 for(size_t l=0; l != weights[j][k].size(); ++l)
                 {
-                        networks_weights.push_back(weights[j][k][l]);
+                    networks_weights.push_back(weights[j][k][l]);
                 }
     }
     return  networks_weights;
@@ -137,160 +84,70 @@ double linear(double x)
     return x;
 }
 
-
-std::vector<double> response(const network& n, std::vector<double> input)
+template<class Net>
+bool all_weigths_are_active(const Net &n)
 {
-    assert(input.size() == n.get_input_size());
+    auto weights = n.get_net_weights();
 
-    for(size_t layer = 0; layer != n.get_net_weights().size(); layer++)
-    {
-        auto output = std::vector<double>(n.get_net_weights()[layer].size());
-
-        for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
-        {
-            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
-            double node_value = n.get_biases()[layer][node] +
-                    std::inner_product(input.begin(),
-                                       input.end(),
-                                       w.begin(),
-                                       0.0);
-
-            output[node] = n(node_value);
-        }
-
-        input = std::move(output);
-    }
-
-    return input;
-}
-
-bool net_behaves_like_the_function(const network &n, const std::function<double(std::vector<double>)> &f, int n_repeats)
-{
-    std::vector<std::vector<double>> input_series;
-    size_t input_size = n.get_input_size();
-    std::vector<double> n_output;
-    std::vector<double> f_output;
-
-    for(int i = 0; i != n_repeats; ++i)
-      {
-        std::vector<double> input;
-        for(size_t j = 0; j != input_size; ++j){
-        input.push_back(i + j);
-        }
-        assert(response(n, input).size() == 1);
-        if(response(n, input) [0] != f(input))
-        {
-        return false;
-        };
-      }
-
-    return true;
-
-}
-
-bool all_weigths_are_active(const network &n)
-{
- auto weights = n.get_net_weights();
-
-  for(auto &layer : weights ){
-      for(auto &node : layer){
-          for (auto &weight : node){
-              if(!weight.is_active()){
-                  return false;
+    for(auto &layer : weights ){
+        for(auto &node : layer){
+            for (auto &weight : node){
+                if(!weight.is_active()){
+                    return false;
                 }
             }
         }
     }
-  return true;
-}
-
-bool all_weigths_have_value(const network &n, double value)
-{
- auto weights = n.get_net_weights();
-
-  for(auto &layer : weights ){
-      for(auto &node : layer){
-          for (auto &weight : node){
-              if(weight.get_weight() != value)
-              {
-                  return false;
-              }
-            }
-        }
-    }
-  return true;
-}
-
-bool on_average_an_nth_of_the_weights_are_inactive(const network &n, const std::vector<weight>&registered_mutations,
-                                                      const double &proportion, int repeats)
-{
-  int number_of_weights = get_number_weights(n);
-  int inactive_weights = 0;
-
-  for (auto &weight : registered_mutations){
-      if(!weight.is_active())
-        ++inactive_weights;
-    }
-
-  double error = 0.1 * repeats;
-  return (inactive_weights > proportion * repeats * number_of_weights - error &&
-           inactive_weights < proportion * repeats * number_of_weights + error);
-}
-
-int get_number_weights(const network &n)
-{
-  size_t number_weights = 0;
-  for(const auto &layer : n.get_net_weights() ){
-      for(const auto &node : layer){
-          number_weights += node.size();
-            }
-        }
-    return (int) number_weights;
-}
-
-bool is_same_mutator_network(const network &lhs, const network &rhs)
-{
-  if(lhs != rhs){
-    return false;
-    }
-
-  if(typeid(lhs) == typeid(rhs)){
     return true;
-    }
-  else{
-    return false;
-    }
 }
 
-void mutate_weights(network& n, const double& mut_rate,
-                     const double& mut_step,
-                     std::mt19937_64& rng)
+template<class Net>
+bool all_weigths_have_value(const Net &n, double value)
 {
+    auto weights = n.get_net_weights();
 
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
-
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(auto& weight : node)
-            {
-                if(mut_p(rng))
-                {weight.change_weight(weight.get_weight() + mut_st(rng));}
+    for(auto &layer : weights ){
+        for(auto &node : layer){
+            for (auto &weight : node){
+                if(weight.get_weight() != value)
+                {
+                    return false;
+                }
             }
-
+        }
+    }
+    return true;
 }
 
-void mutate_activation(network &n, const double &mut_rate, std::mt19937_64 &rng)
+template<class Net>
+bool on_average_an_nth_of_the_weights_are_inactive(const Net &n,
+                                                   const std::vector<weight>&registered_mutations,
+                                                   const double &proportion,
+                                                   int repeats)
 {
-  std::bernoulli_distribution mut_p{mut_rate};
+    int number_of_weights = get_number_weights(n);
+    int inactive_weights = 0;
 
-  for(auto& layer : n.get_net_weights())
-      for(auto& node : layer)
-          for(auto& weight : node)
-          {
-              if(mut_p(rng))
-              {weight.change_activation(!weight.is_active());}
-          }
+    for (auto &weight : registered_mutations){
+        if(!weight.is_active())
+            ++inactive_weights;
+    }
+
+    double error = 0.1 * repeats;
+    return (inactive_weights > proportion * repeats * number_of_weights - error &&
+            inactive_weights < proportion * repeats * number_of_weights + error);
+}
+
+template<class Net>
+int get_number_weights(const Net &n)
+{
+    size_t number_weights = 0;
+    for(const auto &layer : n.get_net_weights() ){
+        for(const auto &node : layer){
+            number_weights += node.size();
+        }
+    }
+    return (int) number_weights;
 }
 
 std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
@@ -298,25 +155,25 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
                                                std::mt19937_64& rng,
                                                const std::vector<std::vector<double>>& biases)
 {
-  std::vector<std::vector<double>> new_biases;
-  std::bernoulli_distribution mut_p{mut_rate};
-  std::normal_distribution<double> mut_st{0,mut_step};
+    std::vector<std::vector<double>> new_biases;
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
 
-  for(auto& layer : biases){
-    std::vector<double> new_layer;
-      for(auto& bias : layer)
-      {
+    for(auto& layer : biases){
+        std::vector<double> new_layer;
+        for(auto& bias : layer)
+        {
 
-          if(mut_p(rng)){
-              new_layer.push_back(bias + mut_st(rng));
+            if(mut_p(rng)){
+                new_layer.push_back(bias + mut_st(rng));
             }
-          else{
-              new_layer.push_back(bias);
+            else{
+                new_layer.push_back(bias);
             }
-      }
-     new_biases.push_back(new_layer);
+        }
+        new_biases.push_back(new_layer);
     }
-  return(new_biases);
+    return(new_biases);
 }
 
 
@@ -350,11 +207,11 @@ void test_network() //!OCLINT
     ///A network can be initialized with a specific activation function
     {
         network n{{1,2,1}, linear};
-        n = change_all_weights(n,1);
+        n = change_all_weights_values_and_activations(n,1);
         std::vector<double> input{1};
-        auto using_member_function = response(n,{input});
-        auto using_given_function = response(n,input, &linear);
-        auto using_different_given_function = response(n, input, &sigmoid);
+        auto using_member_function = output(n,{input});
+        auto using_given_function = output(n,input, &linear);
+        auto using_different_given_function = output(n, input, &sigmoid);
         assert(using_given_function == using_member_function);
         assert(using_different_given_function != using_member_function);
     }
@@ -367,7 +224,7 @@ void test_network() //!OCLINT
         net_param n_p{net_arc, function};
         network n{n_p};
         //Set weigths to one
-        n = change_all_weights(n, 1);
+        n = change_all_weights_values_and_activations(n, 1);
         //Check architecture
         assert(n.get_net_weights().size() == net_arc.size() -1);
         for(size_t  i = 0; i != n.get_net_weights().size(); i++)
@@ -376,9 +233,9 @@ void test_network() //!OCLINT
         }
         //Check activation func
         std::vector<double> input{1};
-        auto using_member_function = response(n,{input});
-        auto using_given_function = response(n,input, &linear);
-        auto using_different_given_function = response(n, input, &sigmoid);
+        auto using_member_function = output(n,{input});
+        auto using_given_function = output(n,input, &linear);
+        auto using_different_given_function = output(n, input, &sigmoid);
         assert(using_given_function == using_member_function);
         assert(using_different_given_function != using_member_function);
     }
@@ -392,23 +249,23 @@ void test_network() //!OCLINT
         //For simple net with weights == 0
         auto expected_output = std::vector<double>{0};
         network n{very_simple_nodes};
-        auto output = response(n, input, &linear);
-        assert(output == expected_output);
+        auto net_output = output(n, input, &linear);
+        assert(net_output == expected_output);
 
         //Let's change the weights of the network to something else than 0(e.g 1)
         double new_weight_value = 1.0;
-        n = change_all_weights(n,new_weight_value);
+        n = change_all_weights_values_and_activations(n,new_weight_value);
         expected_output = std::vector<double>{2};
-        output = response(n,input, &linear);
-        assert(output == expected_output);
+        net_output = output(n,input, &linear);
+        assert(net_output == expected_output);
 
         //Testing a more complex arhitecture
         std::vector<int> not_too_simple_nodes{1,3,3,1};
         network not_too_simple{not_too_simple_nodes};
-        not_too_simple = change_all_weights(not_too_simple, new_weight_value);
+        not_too_simple = change_all_weights_values_and_activations(not_too_simple, new_weight_value);
         expected_output = {1 * 3 * 3};
-        output = response(not_too_simple, input, &linear);
-        assert(output == expected_output);
+        net_output = output(not_too_simple, input, &linear);
+        assert(net_output == expected_output);
 
     }
 
@@ -427,10 +284,10 @@ void test_network() //!OCLINT
         network n{very_simple_nodes};
 
         std::vector<weight> networks_weights = register_n_weight_mutations(n,
-                                                                    mut_rate,
-                                                                    mut_step,
-                                                                    rng,
-                                                                    repeats);
+                                                                           mut_rate,
+                                                                           mut_step,
+                                                                           rng,
+                                                                           repeats);
 
         std::vector<double> weights_as_doubles = convert_to_double(networks_weights);
 
@@ -503,18 +360,18 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_96
 #ifdef FIX_ISSUE_96
-    /// The response function works as intended when some connections are switched off
+    /// The output function works as intended when some connections are switched off
     {
         auto very_simple_nodes = std::vector<int>{1,2,1};
         auto input = std::vector<double>{1};
 
         //Comparing a default network with weights = 0 to a network with other weights, all switched off
         network n_default{very_simple_nodes};
-        auto output_default = response(n_default, input, &linear);
+        auto output_default = output(n_default, input, &linear);
 
         weight new_weight_value{1.0, false};
-        network n_changed = change_all_weights(n_default, new_weight_value);
-        auto output_changed = response(n_changed,input, &linear);
+        network n_changed = change_all_weights_values_and_activations(n_default, new_weight_value);
+        auto output_changed = output(n_changed,input, &linear);
 
         assert(output_default == output_changed);
     }
@@ -523,10 +380,10 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_112
 #ifdef FIX_ISSUE_112
     {
-        mutator_network<mutation_type::activation> n_activation{net_param()};
+        network<mutation_type::activation> n_activation{net_param()};
         assert(all_weigths_are_active(n_activation));
 
-        mutator_network<mutation_type::weights> n_weights{net_param()};
+        network<mutation_type::weights> n_weights{net_param()};
         assert(all_weigths_have_value(n_weights, 0));
 
         auto mutation_rate = 1;
@@ -550,11 +407,11 @@ void test_network() //!OCLINT
 #ifdef FIX_ISSUE_126
     {
         auto pars = net_param();
-        mutator_network<mutation_type::activation> n_activation{pars};
-        mutator_network<mutation_type::weights> n_weights{pars};
+        network<mutation_type::activation> n_activation{pars};
+        network<mutation_type::weights> n_weights{pars};
         network n{pars};
 
-        assert(n == n_activation);
+        assert(are_equal_except_mutation_type(n, n_activation));
         assert(n == n_weights);
     }
 #endif
