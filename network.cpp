@@ -176,6 +176,14 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
     return(new_biases);
 }
 
+template<mutation_type M>
+void network<M>::change_network_arc(std::vector<int> new_arc){
+    if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
+        m_current_arc = new_arc;
+    }
+    else throw 1;
+}
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -497,6 +505,37 @@ void test_network() //!OCLINT
         assert(exception_thrown == true);
     }
 #endif
+
+
+#define FIX_ISSUE_187
+#ifdef FIX_ISSUE_187
+  ///There is a way to change the current architecture to another architecture, as long as it is compatible with the max_architecture
+    {
+        network n{net_param{}};
+        bool exception_thrown = false;
+        std::vector<int> new_arc{1,5,1};
+        std::vector<int> invalid_new_arc{1,10,1}; //default max_arc is 1-8-1
+
+        try{
+        n.change_network_arc(new_arc);
+        }
+        catch(int exc){
+            exception_thrown = true;
+          }
+        assert(exception_thrown == false);
+        assert(n.get_current_arc() == new_arc);
+
+        try{
+        n.change_network_arc(invalid_new_arc);
+        }
+        catch(int exc){
+            exception_thrown = true;
+          }
+        assert(exception_thrown == true);
+    }
+#endif
+
+
 
 }
 #endif
