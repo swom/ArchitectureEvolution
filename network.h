@@ -169,6 +169,8 @@ public:
     ///Returns the maximum architecture
     const std::vector<int>& get_max_arc() const noexcept{return m_max_arc;}
 
+    void change_network_arc(std::vector<int> new_arc);
+
 private:
 
     ///Vector of of vectors, representing the weights coming into each node

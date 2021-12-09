@@ -176,6 +176,14 @@ std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
     return(new_biases);
 }
 
+template<mutation_type M>
+void network<M>::change_network_arc(std::vector<int> new_arc){
+    if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
+        m_current_arc = new_arc;
+    }
+    else throw 1;
+}
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -499,7 +507,7 @@ void test_network() //!OCLINT
 #endif
 
 
-//#define FIX_ISSUE_187
+#define FIX_ISSUE_187
 #ifdef FIX_ISSUE_187
   ///There is a way to change the current architecture to another architecture, as long as it is compatible with the max_architecture
     {
