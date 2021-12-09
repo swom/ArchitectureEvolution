@@ -2,10 +2,9 @@
 
 #include <cassert>
 #include <vector>
-#include <fstream>
 
-
-simulation::simulation(int init_pop_size,
+template<mutation_type M>
+simulation<M>::simulation(int init_pop_size,
                        int seed,
                        double t_change_interval,
                        std::vector<int> net_arch,
@@ -28,31 +27,8 @@ simulation::simulation(int init_pop_size,
     }
 }
 
-
-simulation::simulation(const all_params& params):
-    m_environment{params.e_p},
-    m_population{params.p_p, params.i_p},
-    m_n_generations{params.s_p.n_generations},
-    m_seed{params.s_p.seed},
-    m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
-    m_sel_str{params.s_p.selection_strength},
-    m_change_freq {static_cast<double>(params.s_p.change_freq)},
-    m_params {params},
-    m_input(params.i_p.net_par.net_arc[0], 1),
-    m_optimal_output{1}
-{
-    m_rng.seed(m_seed);
-}
-
-
-
-std::vector<double> get_inds_input(const simulation &s)
-{
-    assert(all_individuals_have_same_input(s));
-    return get_inds(s)[0].get_input_values();
-}
-
-bool operator ==(const simulation& lhs, const simulation& rhs)
+template<mutation_type M>
+bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
 {
     bool pop = lhs.get_pop() == rhs.get_pop();
     bool env = lhs.get_env() == rhs.get_env();
@@ -63,70 +39,45 @@ bool operator ==(const simulation& lhs, const simulation& rhs)
     return pop && env && time && sel_str && change_freq;
 }
 
-double avg_fitness(const simulation& s)
+template<mutation_type M>
+void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_weight)
 {
-    return avg_fitness(s.get_pop());
-}
-
-void calc_fitness(simulation& s)
-{
-    s.update_optimal(calculate_optimal(s)); //I realized we had forgotten that!!
-    s.get_pop() = calc_fitness(s.get_pop(),
-                               s.get_optimal(),
-                               s.get_sel_str());
-}
-
-void change_all_weights_nth_ind(simulation& s, size_t ind_index, double new_weight)
-{
-    auto new_net = change_all_weights(get_nth_ind_net(s, ind_index), new_weight);
+    auto new_net = change_all_weights_values_and_activations(get_nth_ind_net(s, ind_index), new_weight);
     change_nth_ind_net(s, ind_index, new_net);
 }
 
-void change_nth_ind_net(simulation& s, size_t ind_index, const network& n)
+template<mutation_type M>
+void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M> &n)
 {
     change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
 
-std::vector<individual> get_best_n_inds(const simulation& s, int n)
-{
-    return get_best_n_inds(s.get_pop(), n);
-}
-
-const std::vector<individual>& get_inds(const simulation&s)
-{
-    return s.get_pop().get_inds();
-}
-
-char get_name_current_function(const simulation& s) noexcept
-{
- return s.get_env().get_name_current_function();
-}
-
-const individual& get_nth_ind(const simulation& s, size_t ind_index)
+template<mutation_type M>
+const individual<M>& get_nth_ind(const simulation<M>& s, size_t ind_index)
 {
     return get_nth_ind(s.get_pop(), ind_index);
 }
 
-double get_nth_ind_fitness(const simulation& s, const size_t ind_index)
+template<mutation_type M>
+double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index)
 {
     return get_nth_ind_fitness(s.get_pop(), ind_index);
 }
 
-const network& get_nth_ind_net(const simulation& s, size_t ind_index)
+template<mutation_type M>
+const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index)
 {
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
 
-double find_min_fitness(const simulation&s)
+template<class S>
+double find_min_fitness(const S &s)
 {
-    auto inds = s.get_pop().get_inds();
+    std::vector<double> inds = extract_fitnesses( s.get_pop().get_inds());
 
-    auto min_ind =
-            std::min_element(inds.begin(), inds.end(), [](const individual& lhs, const individual& rhs){
-        return lhs.get_fitness() < rhs.get_fitness();});
+    auto min_inds_fitness = std::min_element(inds.begin(), inds.end());
 
-
-    return min_ind->get_fitness();
+    return *min_inds_fitness;
 }
 
 double identity_first_element(const std::vector<double> &vector)
@@ -134,159 +85,38 @@ double identity_first_element(const std::vector<double> &vector)
     return vector[0];
 }
 
-bool is_environment_changing (simulation &s) {
-
-    std::bernoulli_distribution distro = s.get_t_change_env_distr();
-    return distro (s.get_rng());
-
-}
-
-simulation load_json(
+template<mutation_type M = mutation_type::weights>
+simulation<M> load_json(
         const std::string& filename
         )
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    simulation s;
+    simulation<M> s;
     f >> json_in;
     return s = json_in;
 }
 
-void reproduce(simulation& s)
-{
-    reproduce(s.get_pop(), s.get_rng());
-}
-
-void tick(simulation &s)
-{
-    s.increase_time();
-
-    if(is_environment_changing(s)){
-
-        perform_environment_change(s);
-    }
-
-    if(get_inds(s).size()){
-
-        assign_new_inputs(s);
-
-    }
-
-    select_inds(s);
-
-
-}
-
-void save_json(const simulation& s, const std::string& filename)
-{
-    std::ofstream  f(filename);
-    nlohmann::json json_out;
-    json_out = s;
-    f << json_out;
-}
-
-void select_inds(simulation& s)
-{
-    calc_fitness(s);
-    reproduce(s);
-}
-
-double var_fitness(const simulation&s)
-{
-    return var_fitness(s.get_pop());
-}
-
-void assign_new_inputs_to_inds(population &p, const std::vector<double> &inputs)
-
-{
-    for(auto& ind : p.get_inds()){
-        ind.assign_input(inputs);
-    }
-}
-
-void assign_new_inputs_to_inds(simulation &s, std::vector<double> new_input)
-{
-    assign_new_inputs_to_inds(s.get_pop(), new_input);
-}
-
-bool all_individuals_have_same_input(const simulation &s)
-{
-    population p = s.get_pop();
-
-    return all_individuals_have_same_input(p);
-}
-
-const std::vector<double> &get_nth_individual_input(const simulation &s, const int n)
+template<mutation_type M>
+const std::vector<double> &get_nth_individual_input(const simulation<M> &s, const int n)
 {
 
     return get_nth_individual_input(s.get_pop(), n);
 }
 
-const std::vector<double> &get_current_input(const simulation &s)
+template<mutation_type M>
+const std::vector<double> &get_current_input(const simulation<M> &s)
 {
     assert(all_individuals_have_same_input(s));
     return get_nth_individual_input(s, 0);
 }
 
-double calculate_optimal(const simulation &s)
-{
-    return(calculate_optimal(s.get_env(), s.get_input()));
-}
-
-
-std::vector<double> create_inputs(simulation s)
-{
-    environment &e = s.get_env();
-    return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
-}
-
-void assign_inputs(simulation &s)
-{
-    assign_new_inputs_to_inds(s.get_pop(), s.get_input());
-}
-
-void assign_new_inputs(simulation &s)
-{
-    std::vector<double> new_inputs = create_inputs(s);
-
-    if(s.get_input().size() > 1){
-        new_inputs.back() = s.get_input().back();
-      }
-
-    s.update_inputs(new_inputs);
-    assign_inputs(s);
-}
-
-void switch_optimal_function(simulation &s)
-{
-    switch_env_function(s.get_env());
-}
-
-size_t get_inds_input_size(const simulation &s)
-
-{
-    return get_inds_input(s).size();
-}
-
-std::function<double(std::vector<double>)> get_current_env_function(const simulation &s)
+template<mutation_type M>
+std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s)
 {
     auto e = s.get_env();
     return e.get_current_function();
 }
-
-void perform_environment_change(simulation &s)
-{
-  switch_optimal_function(s);
-  s.switch_env_indicator();
-}
-
-void simulation::switch_env_indicator()
-{
-  if(get_input().size() > 1){
-      m_input.back() = -m_input.back();
-    }
-}
-
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -399,7 +229,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto potental_identity_ind = ind_param{potential_identity_net_param};
         assert(!net_behaves_like_the_function(potential_identity_net, identity));
 
-        auto identity_net = change_all_weights({potential_identity_net}, 1);
+        auto identity_net = change_all_weights_values(network{potential_identity_net}, 1);
         assert(net_behaves_like_the_function(identity_net, identity));
 
 
@@ -430,7 +260,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;
-        change_nth_ind_net(s, worst_ind, change_all_weights(potential_identity_net,-1));
+        change_nth_ind_net(s, worst_ind, change_all_weights_values_and_activations(potential_identity_net,-1));
         auto worst_net = get_nth_ind_net(s,worst_ind);
 
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
@@ -460,7 +290,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         auto potential_identity_net_param = net_param{{1,1}, linear};
         network potential_identity_net {potential_identity_net_param};
-        auto identity_net = change_all_weights(potential_identity_net, 1);
+        auto identity_net = change_all_weights_values_and_activations(potential_identity_net, 1);
 
         assert(net_behaves_like_the_function(identity_net, identity));
 
@@ -586,7 +416,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
         auto name = "sim_save_test";
         save_json(s, name);
-        auto loaded_s = load_json(name);
+        simulation loaded_s = load_json(name);
         assert(s == loaded_s);
     }
 #endif
