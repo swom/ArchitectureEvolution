@@ -34,7 +34,8 @@ public:
     population(const pop_param &p_p,const ind_param& i_p):
         m_vec_indiv(p_p.number_of_inds, Ind{i_p}),
         m_vec_new_indiv(p_p.number_of_inds, Ind{i_p}),
-        m_mut_rate{p_p.mut_rate},
+        m_mut_rate_act{p_p.mut_rate_activation},
+        m_mut_rate_weight{p_p.mut_rate_weight},
         m_mut_step{p_p.mut_step}
     {}
 
@@ -77,7 +78,8 @@ private:
 
     std::vector<Ind> m_vec_indiv;
     std::vector<Ind> m_vec_new_indiv;
-    double m_mut_rate;
+    double m_mut_rate_act;
+    double m_mut_rate_weight;
     double m_mut_step;
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
 
@@ -291,7 +293,7 @@ double var_fitness(const population<Ind> &p){
 template< class Ind>
 const std::vector<double> &get_nth_individual_input(const population<Ind> &p, const int n)
 {
-  return get_nth_ind(p, n).get_input_values();
+    return get_nth_ind(p, n).get_input_values();
 }
 
 }
