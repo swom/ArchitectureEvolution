@@ -4,7 +4,7 @@
 #include <iostream>
 #include <random>
 #include "json.hpp"
-#include "weight.h"
+#include "node.h"
 #include "mutation_type.h"
 
 double sigmoid(double x);
@@ -44,11 +44,26 @@ void mutate_weights(Net& n, const double& mut_rate,
 
     for(auto& layer : n.get_net_weights())
         for(auto& node : layer)
+
             for(auto& weight : node)
             {
                 if(mut_p(rng))
                 {weight.change_weight(weight.get_weight() + mut_st(rng));}
             }
+
+}
+
+///Mutates the weights of a network
+template<class Net>
+void mut_add_node(Net& n,
+                  const double& mut_rate,
+                    std::mt19937_64& rng)
+{
+
+    std::bernoulli_distribution mut_p{mut_rate};
+
+    for(auto& layer : n.get_net_weights())
+        for(auto& node : layer)
 
 }
 
@@ -148,7 +163,7 @@ public:
     double operator ()(double n) const {return m_activation_function(n);}
 
     ///Returns const ref to vector of weights
-    const std::vector<std::vector<std::vector<weight>>>& get_net_weights() const noexcept{return m_network_weights;}
+    const std::vector<std::vector<node>>& get_net_weights() const noexcept{return m_network_weights;}
 
     ///Returns not constant ref to vector of weights
     std::vector<std::vector<std::vector<weight>>>& get_net_weights() noexcept{return m_network_weights;}
@@ -156,7 +171,7 @@ public:
 private:
 
     ///Vector of of vectors, representing the weights coming into each node
-    std::vector<std::vector<std::vector<weight>>> m_network_weights;
+    std::vector<std::vector<node>> m_network_weights;
 
     ///Vector of vectors containing the nodes biases stored per layer per node
     std::vector<std::vector<double>> m_nodes_biases;
