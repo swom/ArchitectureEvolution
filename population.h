@@ -190,7 +190,10 @@ population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,co
 }
 ///changes the net of the nth individual to a given net
 template< class Ind>
-void change_nth_ind_net(population<Ind>& p, size_t ind_index, typename Ind::net_t n);
+void change_nth_ind_net(population<Ind>& p, size_t ind_index, const typename Ind::net_t& n)
+{
+    p.change_nth_ind_net(ind_index, n);
+}
 
 ///Creates a mutable distribution from whihc to draw inds based on fitness
 template< class Ind>

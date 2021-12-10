@@ -285,8 +285,11 @@ template<class Sim>
 void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight);
 
 ///Changes the network of the nth individual for a given network
-template<class Sim>
-void change_nth_ind_net(Sim& s, size_t ind_index, const typename Sim::pop_t::ind_t::net_t& n); //is this the correct way?
+template<class Pop>
+void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net_t &n)
+{
+    pop::change_nth_ind_net(s.get_pop(), ind_index, n) ;
+}
 
 ///Gets the best n individuals in a pop
 template<class Sim>

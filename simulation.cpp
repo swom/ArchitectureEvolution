@@ -48,12 +48,6 @@ void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight)
     change_nth_ind_net(s, ind_index, new_net);
 }
 
-template<class Pop>
-void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net &n)
-{
-    change_nth_ind_net(s.get_pop(), ind_index, n) ;
-}
-
 template<class Sim>
 const typename Sim::pop_t::ind_t & get_nth_ind(const Sim& s, size_t ind_index)
 {
@@ -249,7 +243,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         //change target value to match output of ind 0 net
         size_t best_ind = 0;
-        change_nth_ind_net(s, best_ind, identity_net);
+        sim::change_nth_ind_net(s, best_ind, identity_net);
         auto best_net = get_nth_ind_net(s, best_ind);
 
         size_t worst_ind = 1;

@@ -4,10 +4,10 @@
 
 template< class Ind>
 population<Ind>::population(int init_nr_indiv,
-                       double mut_rate,
-                       double mut_step,
-                       std::vector<int> net_arch
-                       ):
+                            double mut_rate,
+                            double mut_step,
+                            std::vector<int> net_arch
+                            ):
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
                 individual{ind_param{net_param{net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
@@ -16,7 +16,7 @@ population<Ind>::population(int init_nr_indiv,
     m_mut_step{mut_step}
 {}
 
-
+namespace pop {
 std::vector<double> adjust_distances(std::vector<double> distances)
 {
     for(double& dist : distances)
@@ -46,12 +46,6 @@ std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_fro
     }
 
     return fitness_inds;
-}
-
-template< class Ind>
-void change_nth_ind_net(population<Ind>& p, size_t ind_index, const typename Ind::net_t& n)
-{
-    p.change_nth_ind_net(ind_index, n);
 }
 
 void check_and_correct_dist(std::vector<double>& distance_from_target, double& min_distance)
@@ -90,6 +84,8 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
 
     return fitness_inds;
 }
+}
+
 
 #ifndef NDEBUG
 void test_population() noexcept
@@ -121,7 +117,7 @@ void test_population() noexcept
     {
         std::vector<int> net_arch{1,33,3,1};
         population p{1, 0, 0, net_arch};
-        assert(get_nth_ind_net(p, 0) == network{net_arch});
+        assert(pop::get_nth_ind_net(p, 0) == network{net_arch});
     }
 
     //Population has a buffer_vector for the new_population, with size equal to number of inds
@@ -141,15 +137,15 @@ void test_population() noexcept
         std::mt19937_64 rng;
 
         //make first ind net recognizable
-        auto new_net =  change_all_weights_values_and_activations(get_nth_ind_net(p,first_ind), 123456);
-        change_nth_ind_net(p, first_ind, new_net);
+        auto new_net =  change_all_weights_values_and_activations(pop::get_nth_ind_net(p,first_ind), 123456);
+        pop::change_nth_ind_net(p, first_ind, new_net);
 
         pop::set_nth_ind_fitness(p, first_ind, 1);
         pop::set_nth_ind_fitness(p, second_ind, 0);
 
         pop::reproduce(p, rng);
 
-        assert(all_nets_equals_to(p, new_net));
+        assert(pop::all_nets_equals_to(p, new_net));
     }
 #endif
 

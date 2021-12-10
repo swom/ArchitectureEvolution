@@ -106,8 +106,6 @@ bool operator== (const environment& lhs, const environment& rhs);
 
 namespace env {
 
-
-
 ///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
 
