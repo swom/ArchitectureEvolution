@@ -77,6 +77,9 @@ private:
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
 
 };
+
+namespace pop {
+
 ///Checks that 2 populations are equal
 template< class Ind>
 bool operator== (const population<Ind>& lhs, const population<Ind>& rhs)
@@ -112,6 +115,15 @@ bool all_individuals_have_same_input(const population<Ind> &p)
         }
     }
     return true;
+}
+
+///Assign inputs to a population
+template<class Pop>
+void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
+{
+    for(auto& ind : p.get_inds()){
+        ind.assign_input(inputs);
+    }
 }
 
 ///Calculates the distance from the output of one individual's network
@@ -274,4 +286,5 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
 
 void test_population() noexcept;
 
+}
 #endif // POPULATION_H

@@ -3,13 +3,13 @@
 #include <cassert>
 #include <vector>
 
-template<mutation_type M>
-simulation<M>::simulation(int init_pop_size,
-                       int seed,
-                       double t_change_interval,
-                       std::vector<int> net_arch,
-                       double sel_str,
-                       int number_of_generations):
+template<class Pop>
+simulation<Pop>::simulation(int init_pop_size,
+                            int seed,
+                            double t_change_interval,
+                            std::vector<int> net_arch,
+                            double sel_str,
+                            int number_of_generations):
     m_environment{},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
@@ -27,8 +27,10 @@ simulation<M>::simulation(int init_pop_size,
     }
 }
 
-template<mutation_type M>
-bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
+namespace sim {
+
+template<class Pop>
+bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
 {
     bool pop = lhs.get_pop() == rhs.get_pop();
     bool env = lhs.get_env() == rhs.get_env();
@@ -39,45 +41,80 @@ bool operator ==(const simulation<M> &lhs, const simulation<M> &rhs)
     return pop && env && time && sel_str && change_freq;
 }
 
-template<mutation_type M>
-void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_weight)
+template<class Sim>
+void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight)
 {
     auto new_net = change_all_weights_values_and_activations(get_nth_ind_net(s, ind_index), new_weight);
     change_nth_ind_net(s, ind_index, new_net);
 }
 
-template<mutation_type M>
-void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M> &n)
+template<class Pop>
+void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net &n)
 {
     change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
 
-template<mutation_type M>
-const individual<M>& get_nth_ind(const simulation<M>& s, size_t ind_index)
+template<class Sim>
+const typename Sim::pop_t::ind_t & get_nth_ind(const Sim& s, size_t ind_index)
 {
     return get_nth_ind(s.get_pop(), ind_index);
 }
 
-template<mutation_type M>
-double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index)
+template<class Sim>
+double get_nth_ind_fitness(const Sim& s, const size_t ind_index)
 {
-    return get_nth_ind_fitness(s.get_pop(), ind_index);
+    return pop::get_nth_ind_fitness(s.get_pop(), ind_index);
 }
 
-template<mutation_type M>
-const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index)
+template<class Sim>
+const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
 {
     return get_nth_ind_net(s.get_pop(), ind_index);
 }
 
-template<class S>
-double find_min_fitness(const S &s)
+template<class Sim>
+double find_min_fitness(const Sim &s)
 {
-    std::vector<double> inds = extract_fitnesses( s.get_pop().get_inds());
+    std::vector<double> inds = pop::extract_fitnesses( s.get_pop().get_inds());
 
     auto min_inds_fitness = std::min_element(inds.begin(), inds.end());
 
     return *min_inds_fitness;
+}
+
+template<class Sim>
+Sim load_json(
+        const std::string& filename
+        )
+{
+    std::ifstream f(filename);
+    nlohmann::json json_in;
+    Sim s;
+    f >> json_in;
+    return s = json_in;
+}
+
+template<class Sim>
+const std::vector<double> &get_nth_individual_input(const Sim &s, const int n)
+{
+
+    return pop::get_nth_individual_input(s.get_pop(), n);
+}
+
+template<class Sim>
+const std::vector<double> &get_current_input(const Sim &s)
+{
+    assert(sim::all_individuals_have_same_input(s));
+    return get_nth_individual_input(s, 0);
+}
+
+template<class Sim>
+std::function<double(std::vector<double>)> get_current_env_function(const Sim &s)
+{
+    auto e = s.get_env();
+    return e.get_current_function();
+}
+
 }
 
 double identity_first_element(const std::vector<double> &vector)
@@ -85,43 +122,11 @@ double identity_first_element(const std::vector<double> &vector)
     return vector[0];
 }
 
-template<mutation_type M = mutation_type::weights>
-simulation<M> load_json(
-        const std::string& filename
-        )
-{
-    std::ifstream f(filename);
-    nlohmann::json json_in;
-    simulation<M> s;
-    f >> json_in;
-    return s = json_in;
-}
-
-template<mutation_type M>
-const std::vector<double> &get_nth_individual_input(const simulation<M> &s, const int n)
-{
-
-    return get_nth_individual_input(s.get_pop(), n);
-}
-
-template<mutation_type M>
-const std::vector<double> &get_current_input(const simulation<M> &s)
-{
-    assert(all_individuals_have_same_input(s));
-    return get_nth_individual_input(s, 0);
-}
-
-template<mutation_type M>
-std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s)
-{
-    auto e = s.get_env();
-    return e.get_current_function();
-}
-
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
 {
 
+    using namespace sim;
     ///A simulation has a member of type population
     ///The population has a vector of individuals of size 1 by default
     {
@@ -242,9 +247,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         simulation s{all_params{
                 identity_env,
-                potental_identity_ind,
-                minimal_pop,
-                sim_p
+                        potental_identity_ind,
+                        minimal_pop,
+                        sim_p
             }};
 
         //give simulation a simple input
@@ -306,9 +311,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         simulation s{all_params{
                 identity_env_par,
-                potential_identity_ind_par,
-                minimal_pop,
-                sim_p
+                        potential_identity_ind_par,
+                        minimal_pop,
+                        sim_p
             }};
         //give simulation a simple input
         //this will be used to calculate optimum
@@ -339,7 +344,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_equal_with_tolerance(min_fit,second_ind_fit));
 
     }
-    #endif
+#endif
 
 
     //#define FIX_ISSUE_34
@@ -382,8 +387,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 
 
-//#define FIX_ISSUE_39
-//#ifdef FIX_ISSUE_39
+    //#define FIX_ISSUE_39
+    //#ifdef FIX_ISSUE_39
 
     {
         simulation s{0};
@@ -426,8 +431,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         population p;
         int n_inputs = 3;
-        auto inputs = create_n_inputs(n_inputs);
-        assign_new_inputs_to_inds(p,inputs);
+        auto inputs = env::create_n_inputs(n_inputs);
+        pop::assign_new_inputs_to_inds(p,inputs);
         for(const auto& ind : p.get_inds())
         {
             assert(ind.get_input_values() == inputs);
@@ -444,9 +449,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         int repeats = 5;
         while(repeats != 0)
         {
-            auto t1_inputs = get_current_input(s);
+            auto t1_inputs = sim::get_current_input(s);
             tick(s);
-            auto t2_inputs = get_current_input(s);
+            auto t2_inputs = sim::get_current_input(s);
             assert(t1_inputs != t2_inputs);
 
             repeats--;
@@ -573,7 +578,7 @@ void test_simulation() noexcept//!OCLINT test may be many
             sim_values.insert(sim_values.end(), sim_inputs_t2.begin(), sim_inputs_t2.end());
 
             environment e = s.get_env();
-            auto test_inputs = create_n_inputs(e, get_inds_input_size(s), s.get_rng());
+            auto test_inputs = env::create_n_inputs(e, get_inds_input_size(s), s.get_rng());
             test_values.insert(test_values.end(), test_inputs.begin(), test_inputs.end());
         }
 

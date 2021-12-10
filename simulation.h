@@ -39,7 +39,7 @@ struct all_params
 };
 
 
-template<mutation_type M= mutation_type::weights>
+template<class Pop = population<>>
 class simulation
 {
 public:
@@ -75,10 +75,10 @@ public:
                                  m_seed)
 
   ///Returns const ref ot population memeber
-  const population<M>& get_pop() const noexcept {return m_population;}
+  const Pop& get_pop() const noexcept {return m_population;}
 
   ///Returns const ref ot population memeber
-  population<M>& get_pop() noexcept {return m_population;}
+  Pop& get_pop() noexcept {return m_population;}
 
   ///Returns ref to rng
   std::mt19937_64& get_rng() noexcept {return m_rng;}
@@ -108,7 +108,7 @@ public:
   int get_seed() const noexcept {return m_seed;}
 
   ///Returns a reference to the vector of individuals
-  const std::vector<individual<M>> &get_inds() const;
+  const std::vector<typename Pop::ind_t> &get_inds() const;
 
   ///Returns the current inputs in the simulation
   const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -139,7 +139,7 @@ public:
   private:
 
    environment m_environment;
-   population<M> m_population;
+   Pop m_population;
    int m_n_generations;
    std::mt19937_64 m_rng;
    int m_seed;
@@ -157,69 +157,63 @@ public:
 
 };
 
+namespace sim {
+
+
 ///Checks if 2 simulations are equal
-template<mutation_type M>
-bool operator ==(const simulation<M>& lhs, const simulation<M>& rhs);
+template<class Pop>
+bool operator ==(const simulation<Pop>& lhs, const simulation<Pop>& rhs);
 
 ///Checks if all the individuals in a simulated population have the same input
-template<mutation_type M>
-bool all_individuals_have_same_input(const simulation<M> &s)
+template<class Sim>
+bool all_individuals_have_same_input(const Sim &s)
 {
-    population p = s.get_pop();
+    auto p = s.get_pop();
 
-    return all_individuals_have_same_input(p);
-}
-
-///Assign inputs to a population
-template<mutation_type M>
-void assign_new_inputs_to_inds(population<M> &p, const std::vector<double> &inputs)
-{
-    for(auto& ind : p.get_inds()){
-        ind.assign_input(inputs);
-    }
+    return pop::all_individuals_have_same_input(p);
 }
 
 ///Assigns the given new input to each individual in the simulation
-template<mutation_type M>
-void assign_new_inputs_to_inds(simulation<M> &s, std::vector<double> new_input)
+template<class Sim>
+void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
 {
-    assign_new_inputs_to_inds(s.get_pop(), new_input);
+    pop::assign_new_inputs_to_inds(s.get_pop(), new_input);
 }
 
 ///Assigns the input in simulation<M> to individuals
-template<mutation_type M>
-void assign_inputs(simulation<M> &s)
+template<class Sim>
+void assign_inputs(Sim &s)
 {
-    assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+    pop::assign_new_inputs_to_inds(s.get_pop(), s.get_input());
 }
 
 ///Returns the input of the individuals
-template<mutation_type M>
-std::vector<double> get_inds_input(const simulation<M> &s)
+template<class Sim>
+std::vector<double> get_inds_input(const Sim &s)
 {
     assert(all_individuals_have_same_input(s));
     return get_inds(s)[0].get_input_values();
 }
 
 ///Returns the size of the inputs of the individuals
-template<mutation_type M>
-size_t get_inds_input_size(const simulation<M> &s)
+template<class Sim>
+size_t get_inds_input_size(const Sim &s)
 
 {
     return get_inds_input(s).size();
 }
 
 ///Changes the inputs in the environment of the simulation
-template<mutation_type M>
-std::vector<double> create_inputs(simulation<M> s)
+template<class Sim>
+std::vector<double> create_inputs(Sim s)
 {
-    environment &e = s.get_env();
+    auto &e = s.get_env();
     return(create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
 }
 
 ///Updates the inputs in simulation and assigns them to individuals
-template<mutation_type M>
-void assign_new_inputs(simulation<M> &s)
+template<class Sim>
+void assign_new_inputs(Sim &s)
 {
     std::vector<double> new_inputs = create_inputs(s);
 
@@ -232,73 +226,73 @@ void assign_new_inputs(simulation<M> &s)
 }
 
 ///Calculates the optimal output
-template<mutation_type M>
-double calculate_optimal(const simulation<M> &s)
+template<class Sim>
+double calculate_optimal(const Sim &s)
 {
-    return(calculate_optimal(s.get_env(), s.get_input()));
+    return(env::calculate_optimal(s.get_env(), s.get_input()));
 }
 
 ///Calculates the avg_fitness of the population
-template<mutation_type M>
-double avg_fitness(const simulation<M>& s)
+template<class Sim>
+double avg_fitness(const Sim& s)
 {
-    return avg_fitness(s.get_pop());
+    return pop::avg_fitness(s.get_pop());
 }
 ///Calculates fitness of inds in pop given current env values
-template<mutation_type M>
-void calc_fitness(simulation<M> &s)
+template<class Sim>
+void calc_fitness(Sim &s)
 {
     s.update_optimal(calculate_optimal(s));
-    s.get_pop() = calc_fitness(s.get_pop(),
+    s.get_pop() = pop::calc_fitness(s.get_pop(),
                                s.get_optimal(),
                                s.get_sel_str());
 }
 
 ///Changes all the weights of a given individual to a given value
-template<mutation_type M>
-void change_all_weights_nth_ind(simulation<M>& s, size_t ind_index, double new_weight);
+template<class Sim>
+void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight);
 
 ///Changes the network of the nth individual for a given network
-template<mutation_type M>
-void change_nth_ind_net(simulation<M>& s, size_t ind_index, const network<M>& n);
+template<class Sim>
+void change_nth_ind_net(Sim& s, size_t ind_index, const typename Sim::pop_t::ind_t::net_t& n); //is this the correct way?
 
 ///Gets the best n individuals in a pop
-template<mutation_type M>
-std::vector<individual<M>> get_best_n_inds(const simulation<M>& s, int n)
+template<class Sim>
+std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 {
     return get_best_n_inds(s.get_pop(), n);
 }
 
 ///Returns the current optimal function of the environment
-template<mutation_type M>
-std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s);
+template<class Sim>
+std::function<double(std::vector<double>)> get_current_env_function(const Sim &s);
 
 ///Gets the name of the current environmental function
-template<class S>
-char get_name_current_function(const S& s) noexcept
+template<class Sim>
+char get_name_current_function(const Sim& s) noexcept
 {
     return s.get_env().get_name_current_function();
 }
 
 ///Returns the individuals in the simualtion
-template<mutation_type M>
-const std::vector<individual<M> > &get_inds(const simulation<M>&s)
+template<class Sim>
+const std::vector<typename Sim::pop_t::ind_t> &get_inds(const Sim&s)
 {
     return s.get_pop().get_inds();
 }
 
 ///Returns the fitness of the nth ind in pop
-template<mutation_type M>
-double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index);
+template<class Sim>
+double get_nth_ind_fitness(const Sim& s, const size_t ind_index);
 
 ///Returns const or non-onst ref to the network of the nth individual in the
 /// popoulation member of a simulation
-template<mutation_type M>
-const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index);
+template<class Sim>
+const typename Sim::pop_t::ind_t::net_t& get_nth_ind_net(const Sim& s, size_t ind_index);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-template<mutation_type M>
-void save_json(const simulation<M>& s, const std::string& filename)
+template<class Sim>
+void save_json(const Sim& s, const std::string& filename)
 {
     std::ofstream  f(filename);
     nlohmann::json json_out;
@@ -307,30 +301,30 @@ void save_json(const simulation<M>& s, const std::string& filename)
 }
 
 ///Reproduces inds to next gen based on their fitness
-template<mutation_type M>
-void reproduce(simulation<M>& s)
+template<class Sim>
+void reproduce(Sim& s)
 {
     reproduce(s.get_pop(), s.get_rng());
 }
 
 ///Calculates fitness and selects a new population based on fitness
-template<mutation_type M>
-void select_inds(simulation<M>& s)
+template<class Sim>
+void select_inds(Sim& s)
 {
     calc_fitness(s);
     reproduce(s);
 }
 
 ///Checks if environment should change
-template<mutation_type M>
-bool is_environment_changing(simulation<M> &s) {
+template<class Sim>
+bool is_environment_changing(Sim &s) {
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
     return distro (s.get_rng());
 }
 
 ///Switches the function of the environment used to calculate the optimal output
-template<mutation_type M>
-void switch_optimal_function(simulation<M> &s)
+template<class Sim>
+void switch_optimal_function(Sim &s)
 {
     switch_env_function(s.get_env());
 }
@@ -344,8 +338,8 @@ void perform_environment_change(Sim &s)
 }
 
 ///Ticks time one generation into the future
-template<mutation_type M>
-void tick(simulation<M> &s)
+template<class Sim>
+void tick(Sim &s)
 {
     s.increase_time();
 
@@ -364,20 +358,20 @@ void tick(simulation<M> &s)
 }
 
 ///Calculates the standard devaition of the population fitness
-template<mutation_type M>
-double var_fitness(const simulation<M>&s)
+template<class Sim>
+double var_fitness(const Sim&s)
 {
     return var_fitness(s.get_pop());
 }
 
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
-template<mutation_type M>
-const std::vector<double> &get_current_input(const simulation<M> &s);
+template<class Sim>
+const std::vector<double> &get_current_input(const Sim &s);
 
 ///Returns the input of the nth individual in the population
-template<mutation_type M>
-const std::vector<double> &get_nth_individual_input(const simulation<M> &s, const int n);
+template<class Sim>
+const std::vector<double> &get_nth_individual_input(const Sim &s, const int n);
 
 ///Updates the input with the current environmental indicator
 template<class Sim>
@@ -385,4 +379,5 @@ void update_env_indicator(Sim &s);
 
 void test_simulation() noexcept;
 
+}
 #endif // SIMULATION_H

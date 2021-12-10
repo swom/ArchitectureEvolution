@@ -11,8 +11,8 @@ void test() {
     test_mutation_type();
     test_network();
     test_observer();
-    test_population();
-    test_simulation();
+    pop::test_population();
+    sim::test_simulation();
     test_weight();
 }
 #endif

@@ -144,10 +144,10 @@ void test_population() noexcept
         auto new_net =  change_all_weights_values_and_activations(get_nth_ind_net(p,first_ind), 123456);
         change_nth_ind_net(p, first_ind, new_net);
 
-        set_nth_ind_fitness(p, first_ind, 1);
-        set_nth_ind_fitness(p, second_ind, 0);
+        pop::set_nth_ind_fitness(p, first_ind, 1);
+        pop::set_nth_ind_fitness(p, second_ind, 0);
 
-        reproduce(p, rng);
+        pop::reproduce(p, rng);
 
         assert(all_nets_equals_to(p, new_net));
     }
