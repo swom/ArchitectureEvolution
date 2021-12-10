@@ -4,14 +4,7 @@
 #include "Stopwatch.hpp"
 
 
-template<typename Ind, class Sim>
-struct Trade
-{
-    using ind_t = Ind;
-    using sim_t = Sim;
-};
-
-template<class Trade>
+template<class Sim = simulation<>>
 class observer
 {
 private:
@@ -20,12 +13,13 @@ private:
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     int m_top_proportion;
-    using Ind = typename Trade::ind_t;
-    using Sim = typename Trade::sim_t;
+    using Pop = typename Sim::pop_t;
+    using Ind = typename Pop::ind_t;
     std::vector<std::vector<Ind>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
+
 public:
     observer(int top_proportion = 10):
         m_top_proportion{top_proportion}
@@ -147,7 +141,15 @@ void save_json(const O &o, const std::string& filename)
 
 ///Loads the observer back from json file.
 template<class O>
-observer<O> load_observer_json(const std::string& filename);
+observer<O> load_observer_json(const std::string& filename)
+{
+    std::ifstream f(filename);
+    nlohmann::json json_in;
+    observer<O> o;
+    f >> json_in;
+    return o = json_in;
+}
+
 
 void test_observer();
 

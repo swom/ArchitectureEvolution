@@ -48,18 +48,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 }
 
 
-template<class Ind>
-observer<Ind> load_observer_json(const std::string& filename)
-{
-    std::ifstream f(filename);
-    nlohmann::json json_in;
-    observer<Ind> o;
-    f >> json_in;
-    return o = json_in;
-}
-
-
-
 #ifndef NDEBUG
 void test_observer()
 {
