@@ -392,8 +392,8 @@ void test_network() //!OCLINT
         auto rng_copy = rng;
 
         auto before_mutation = n_weights;
-        n_weights.mutate(mutation_rate, mutation_step, rng_copy);
-        n_activation.mutate(mutation_rate, mutation_step, rng);
+        n_weights.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
+        n_activation.mutate(mutation_rate, mutation_step, rng, mutation_rate);
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
         assert(!all_weigths_are_active(n_activation));

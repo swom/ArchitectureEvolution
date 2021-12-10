@@ -5,7 +5,7 @@
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
     return lhs.i_p.net_par.net_arc ==  rhs.i_p.net_par.net_arc &&
-            lhs.p_p.mut_rate == rhs.p_p.mut_rate &&
+            lhs.p_p.mut_rate_weight == rhs.p_p.mut_rate_weight &&
             lhs.p_p.mut_step == rhs.p_p.mut_step &&
             lhs.p_p.number_of_inds == rhs.p_p.number_of_inds &&
             lhs.s_p.change_freq == rhs.s_p.change_freq &&
