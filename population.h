@@ -10,11 +10,13 @@ struct pop_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(pop_param,
                                    number_of_inds,
-                                   mut_rate,
-                                   mut_step)
+                                   mut_rate_weight,
+                                   mut_step,
+                                   mut_rate_activation)
     int number_of_inds;
-    double mut_rate;
+    double mut_rate_weight;
     double mut_step;
+    double mut_rate_activation;
 };
 
 template <mutation_type M = mutation_type::weights>
@@ -29,13 +31,13 @@ public:
     population(const pop_param &p_p,const ind_param& i_p):
         m_vec_indiv(p_p.number_of_inds, individual<M>{i_p}),
         m_vec_new_indiv(p_p.number_of_inds, individual<M>{i_p}),
-        m_mut_rate{p_p.mut_rate},
+        m_mut_rate_weight{p_p.mut_rate_weight},
         m_mut_step{p_p.mut_step}
     {}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                    m_vec_indiv,
-                                   m_mut_rate,
+                                   m_mut_rate_weight,
                                    m_mut_step);
 
     ///Changes the network of the nth individual to a given network
@@ -59,8 +61,11 @@ public:
     ///Get ref to vector of individuals
     std::vector<individual<M>>& get_new_inds() noexcept{return m_vec_new_indiv;}
 
-    ///Return mutation rate
-    double get_mut_rate() const noexcept {return m_mut_rate;}
+    ///Return mutation rate of the weights
+    double get_mut_rate_weight() const noexcept {return m_mut_rate_weight;}
+
+    ///Return mutation rate of the weights
+    double get_mut_rate_act() const noexcept {return m_mut_rate_act;}
 
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
@@ -69,7 +74,8 @@ private:
 
     std::vector<individual<M>> m_vec_indiv;
     std::vector<individual<M>> m_vec_new_indiv;
-    double m_mut_rate;
+    double m_mut_rate_weight;
+    double m_mut_rate_act;
     double m_mut_step;
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
 
@@ -79,10 +85,11 @@ template< mutation_type M>
 bool operator== (const population<M>& lhs, const population<M>& rhs)
 {
     bool inds = lhs.get_inds() == rhs.get_inds();
-    bool mut_rate = are_equal_with_tolerance(lhs.get_mut_rate(), rhs.get_mut_rate());
+    bool mut_rate_weight = are_equal_with_tolerance(lhs.get_mut_rate_weight(), rhs.get_mut_rate_weight());
+    bool mut_rate_act = are_equal_with_tolerance(lhs.get_mut_rate_act(), rhs.get_mut_rate_act());
     bool mut_step = are_equal_with_tolerance(lhs.get_mut_step(), rhs.get_mut_step());
 
-    return inds && mut_rate && mut_step;
+    return inds && mut_rate_weight && mut_step && mut_rate_act;
 }
 
 ///Calculates the avg_fitness of the population
@@ -229,9 +236,10 @@ void select_new_pop(population<M>& p,
         auto selected_ind_index = mut_dist(rng);
         auto selected_ind = p.get_inds()[selected_ind_index];
         p.get_new_inds()[i] = selected_ind;
-        p.get_new_inds()[i].mutate(p.get_mut_rate(),
+        p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
-                                   rng);
+                                   rng,
+                                   p.get_mut_rate_act());
     }
 }
 

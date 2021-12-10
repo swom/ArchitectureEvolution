@@ -104,27 +104,28 @@ public:
         }
     }
 
-    void mutate(const double& mut_rate,
+    void mutate(const double& mut_rate_weight,
                            const double& mut_step,
-                           std::mt19937_64& rng)
+                           std::mt19937_64& rng,
+                const double& mut_rate_act)
        {
 
            if constexpr (M == mutation_type::activation)
            {
-               mutate_activation(*this, mut_rate, rng);
+               mutate_activation(*this, mut_rate_act, rng);
            }
 
            else if constexpr(M == mutation_type::weights)
            {
-               mutate_weights(*this, mut_rate, mut_step, rng);
+               mutate_weights(*this, mut_rate_weight, mut_step, rng);
            }
 
            else if constexpr(M == mutation_type::weights_and_activation)
            {
-               mutate_activation(*this, mut_rate, rng);
-               mutate_weights(*this, mut_rate, mut_step, rng);
+               mutate_activation(*this, mut_rate_act, rng);
+               mutate_weights(*this, mut_rate_weight, mut_step, rng);
            }
-           this->change_biases(mutate_biases(mut_rate, mut_step, rng, this->get_biases()));
+           this->change_biases(mutate_biases(mut_rate_weight, mut_step, rng, this->get_biases()));
        };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
