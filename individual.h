@@ -30,7 +30,7 @@ template<class Net = network<>>
 class individual
 {
 public:
-    using network_type = Net;
+    using net_t = Net;
 
     individual(const ind_param &i_p = ind_param{}) :
         ///!!!!Attention!!!! input values are for now a fixed amount

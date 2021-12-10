@@ -70,7 +70,7 @@ void test_individual()
   {
         using n = network<mutation_type::weights>;
         using i = individual<n>;
-        assert(typeid (i::network_type)  == typeid (n) );
+        assert(typeid (i::net_t)  == typeid (n) );
   }
 }
 #endif

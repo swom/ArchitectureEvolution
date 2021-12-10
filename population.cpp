@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-template< mutation_type M>
-population<M>::population(int init_nr_indiv,
+template< class Ind>
+population<Ind>::population(int init_nr_indiv,
                        double mut_rate,
                        double mut_step,
                        std::vector<int> net_arch
@@ -26,11 +26,11 @@ std::vector<double> adjust_distances(std::vector<double> distances)
     return distances;
 }
 
-template<mutation_type M>
-bool all_nets_equals_to(const population<M>& p, const network<M>& n)
+template< class Ind>
+bool all_nets_equals_to(const population<Ind>& p, const typename Ind::net_t& n)
 {
     return std::all_of(p.get_inds().begin(), p.get_inds().end(),
-                       [n](const individual<M>& i)
+                       [n](const Ind& i)
     {return i.get_net() == n;});
 }
 
@@ -48,8 +48,8 @@ std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_fro
     return fitness_inds;
 }
 
-template<mutation_type M>
-void change_nth_ind_net(population<M>& p, size_t ind_index, network<M> n)
+template< class Ind>
+void change_nth_ind_net(population<Ind>& p, size_t ind_index, const typename Ind::net_t& n)
 {
     p.change_nth_ind_net(ind_index, n);
 }
@@ -65,20 +65,20 @@ void check_and_correct_dist(std::vector<double>& distance_from_target, double& m
     }
 }
 
-template< mutation_type M>
-const individual<M> &get_nth_ind(const population<M>& p, size_t ind_index)
+template< class Ind>
+const Ind &get_nth_ind(const population<Ind>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
 }
 
-template< mutation_type M>
-individual<M> &get_nth_ind(population<M>& p, size_t ind_index)
+template< class Ind>
+Ind &get_nth_ind(population<Ind>& p, size_t ind_index)
 {
     return p.get_inds()[ind_index];
 }
 
-template<mutation_type M>
-const network<M> &get_nth_ind_net(const population<M>& p, size_t ind_index)
+template< class Ind>
+const typename Ind::net_t& get_nth_ind_net(const population<Ind>& p, size_t ind_index)
 {
     return get_nth_ind(p, ind_index).get_net();
 }
