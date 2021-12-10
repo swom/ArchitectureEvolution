@@ -9,10 +9,15 @@ population<M>::population(int init_nr_indiv,
                        std::vector<int> net_arch
                        ):
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
-                individual{ind_param{net_param{net_arch}}}),
+                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
+<<<<<<< HEAD
                     individual{ind_param{net_param{net_arch}}}),
     m_mut_rate_weight{mut_rate},
+=======
+                    individual{ind_param{net_param{net_arch, linear, net_arch}}}),
+    m_mut_rate{mut_rate},
+>>>>>>> origin/duplications
     m_mut_step{mut_step}
 {}
 

@@ -23,7 +23,7 @@ simulation<M>::simulation(int init_pop_size,
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
     {
-        ind = individual{net_param{net_arch}};
+        ind = individual{net_param{net_arch, linear, net_arch}};
     }
 }
 
@@ -224,7 +224,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto potential_identity_net_param = net_param{{1,1}, linear};
+        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto potental_identity_ind = ind_param{potential_identity_net_param};
         assert(!net_behaves_like_the_function(potential_identity_net, identity));
@@ -288,7 +288,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         env_param identity_env_par {};
         identity_env_par.env_function_A = identity;
 
-        auto potential_identity_net_param = net_param{{1,1}, linear};
+        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto identity_net = change_all_weights_values_and_activations(potential_identity_net, 1);
 
@@ -606,7 +606,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///There should be an input to signal whihc environment function is being used to calculate the optima
     {
         std::vector<int> net_arch{2,2,1};
-        all_params params{{},{{net_arch}}, {}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        all_params params{{},{{net_arch, linear, net_arch}}, {}, {}};
         simulation s{params};
 
         environment& e = s.get_env();
@@ -623,7 +623,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Network response depends on the environmental indicator
     {
-        net_param n_p{{2,2,1}};
+        net_param n_p{{2,2,1}, linear, {2,2,1}};
         ind_param i_p{n_p};
         all_params params{{},i_p, {1,0,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
         simulation s{params};
