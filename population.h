@@ -78,8 +78,6 @@ private:
 
 };
 
-namespace pop {
-
 ///Checks that 2 populations are equal
 template< class Ind>
 bool operator== (const population<Ind>& lhs, const population<Ind>& rhs)
@@ -90,6 +88,9 @@ bool operator== (const population<Ind>& lhs, const population<Ind>& rhs)
 
     return inds && mut_rate && mut_step;
 }
+namespace pop {
+
+
 
 ///Calculates the avg_fitness of the population
 template< class Ind>

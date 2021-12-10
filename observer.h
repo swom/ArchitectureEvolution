@@ -52,13 +52,13 @@ public:
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
     {
-        m_avg_fitnesses.push_back(avg_fitness(s));
+        m_avg_fitnesses.push_back(sim::avg_fitness(s));
     }
 
     ///Saves the variance of the fitness
     void store_var_fit(const Sim& s)
     {
-        m_var_fitnesses.push_back(var_fitness(s));
+        m_var_fitnesses.push_back(sim::var_fitness(s));
     }
 
     ///Saves the top_proportion nth best individuals in the population
@@ -70,7 +70,7 @@ public:
     ///Saves the nth best individuals in the population
     void store_top_n_inds(const Sim& s, int proportion)
     {
-        m_top_inds.push_back(get_best_n_inds(s, proportion));
+        m_top_inds.push_back(sim::get_best_n_inds(s, proportion));
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -128,28 +128,6 @@ void exec(Sim& s , observer<Sim>& o)
         }
     }
 }
-
-///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-template<class O>
-void save_json(const O &o, const std::string& filename)
-{
-    std::ofstream  f(filename);
-    nlohmann::json json_out;
-    json_out = o;
-    f << json_out;
-}
-
-///Loads the observer back from json file.
-template<class O>
-observer<O> load_observer_json(const std::string& filename)
-{
-    std::ifstream f(filename);
-    nlohmann::json json_in;
-    observer<O> o;
-    f >> json_in;
-    return o = json_in;
-}
-
 
 void test_observer();
 

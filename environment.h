@@ -100,10 +100,11 @@ private:
     char m_name_current_function;
 
 };
-namespace env {
 
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
+
+namespace env {
 
 
 void test_environment() noexcept;

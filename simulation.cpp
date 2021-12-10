@@ -57,7 +57,7 @@ void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop
 template<class Sim>
 const typename Sim::pop_t::ind_t & get_nth_ind(const Sim& s, size_t ind_index)
 {
-    return get_nth_ind(s.get_pop(), ind_index);
+    return pop::get_nth_ind(s.get_pop(), ind_index);
 }
 
 template<class Sim>
@@ -69,7 +69,7 @@ double get_nth_ind_fitness(const Sim& s, const size_t ind_index)
 template<class Sim>
 const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
 {
-    return get_nth_ind_net(s.get_pop(), ind_index);
+    return pop::get_nth_ind_net(s.get_pop(), ind_index);
 }
 
 template<class Sim>
@@ -80,18 +80,6 @@ double find_min_fitness(const Sim &s)
     auto min_inds_fitness = std::min_element(inds.begin(), inds.end());
 
     return *min_inds_fitness;
-}
-
-template<class Sim>
-Sim load_json(
-        const std::string& filename
-        )
-{
-    std::ifstream f(filename);
-    nlohmann::json json_in;
-    Sim s;
-    f >> json_in;
-    return s = json_in;
 }
 
 template<class Sim>
@@ -333,8 +321,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
         ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
-        auto first_response = response(get_nth_ind(s, 0))[0];
-        auto second_response = response(get_nth_ind(s, 1))[0];
+        auto first_response = ind::response(get_nth_ind(s, 0))[0];
+        auto second_response = ind::response(get_nth_ind(s, 1))[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
         auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
@@ -421,7 +409,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
         auto name = "sim_save_test";
         save_json(s, name);
-        simulation loaded_s = load_json(name);
+        simulation loaded_s = load_json<simulation<>>(name);
         assert(s == loaded_s);
     }
 #endif
@@ -638,10 +626,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         ///The response should change when the environment changes.
 
-        std::vector<double> responseA = response(get_nth_ind(s, 0));
+        std::vector<double> responseA = ind::response(get_nth_ind(s, 0));
         perform_environment_change(s);
         assign_inputs(s);
-        std::vector<double> responseB = response(get_nth_ind(s, 0));
+        std::vector<double> responseB = ind::response(get_nth_ind(s, 0));
 
         assert(responseA != responseB);
 

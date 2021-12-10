@@ -81,7 +81,7 @@ void test_observer()
         int n_repeats = 100;
 
         for(int i = 0; i != n_repeats; ++i){
-            tick(s);
+            sim::tick(s);
 
             if(!o.get_input().empty() && !o.get_optimal().empty())
             {
@@ -98,7 +98,7 @@ void test_observer()
 
         auto name = "obs_save_test";
         save_json(o, name);
-        auto loaded_o = load_observer_json(name);
+        auto loaded_o = load_json<observer<>>(name);
         assert(o == loaded_o);
 
         auto o1 = o;
@@ -129,7 +129,7 @@ void test_observer()
 
         simulation s{};
 
-        tick(s);
+        sim::tick(s);
 
         auto o1 = o;
         assert(o1.get_avg_fitness().empty());
