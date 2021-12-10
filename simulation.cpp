@@ -234,7 +234,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -298,7 +298,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -625,7 +625,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         net_param n_p{{2,2,1}};
         ind_param i_p{n_p};
-        all_params params{{},i_p, {1,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        all_params params{{},i_p, {1,0,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
         simulation s{params};
 
         //Otherwise all weights are 0 and the response is always 0
