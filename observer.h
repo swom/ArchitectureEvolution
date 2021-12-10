@@ -64,7 +64,7 @@ public:
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(get_best_n_inds(s, m_top_proportion));
+        m_top_inds.push_back(sim::get_best_n_inds(s, m_top_proportion));
     }
 
     ///Saves the nth best individuals in the population
@@ -75,7 +75,7 @@ public:
 
     const all_params& get_params() const noexcept {return m_params;};
 
-    void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(get_name_current_function(s));}
+    void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
     void store_par (const Sim& s) noexcept {m_params = s.get_params();}
 
@@ -109,7 +109,7 @@ void exec(Sim& s , observer<Sim>& o)
 
     for (int i = 0; i < s.get_n_gen(); i++)
     {
-        tick (s);
+        sim::tick (s);
 
         o.store_avg_fit(s);
         o.store_env_func(s);

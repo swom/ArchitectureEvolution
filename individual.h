@@ -38,6 +38,12 @@ public:
         m_network{i_p.net_par}
       {}
 
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
+                                   m_fitness,
+                                   m_input_values,
+                                   m_network);
+
     ///Changes the network of an individual with another network
     void change_net(const Net& n)
     {
@@ -102,29 +108,6 @@ bool operator== (const individual<Net>& lhs, const individual<Net>& rhs)
 
 namespace ind {
 
-
-///Functions required to save to json format
-using json = nlohmann::json;
-
-template<class Ind>
-void to_json(json& j, const Ind& ind)
-{
-    j = json{
-    {"fitness", ind.get_fitness()},
-    {"input_values", ind.get_input_values()},
-    {"network", ind.get_net()}
-};
-}
-
-template<class Ind>
-void from_json(const json& j, Ind& ind) {
-    j.at("fitness").get_to(ind.get_to_fitness());
-    j.at("input_values").get_to(ind.get_to_input_values());
-    j.at("network").get_to(ind.get_to_net());
-}
-
-
-
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
 template<class Ind>
@@ -142,6 +125,8 @@ double calc_sqr_distance(const Ind &i, double env_value)
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
-void test_individual();
 }
+
+void test_individual();
+
 #endif // INDIVIDUAL_H

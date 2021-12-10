@@ -92,6 +92,18 @@ namespace pop {
 
 
 
+///Extracts a vector of the fitnesses of individuals into a double vectors
+template<class Ind>
+std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
+{
+    std::vector<double> fitnesses;
+    for(const auto& ind : inds)
+    {
+        fitnesses.push_back(ind.get_fitness());
+    }
+    return fitnesses;
+}
+
 ///Calculates the avg_fitness of the population
 template< class Ind>
 double avg_fitness(const population<Ind>& p){
@@ -136,7 +148,7 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double e
 
     for(const auto& ind : inds)
     {
-        auto sqr_distance = calc_sqr_distance(ind, env_value);
+        auto sqr_distance = ind::calc_sqr_distance(ind, env_value);
         distance_from_target.push_back(sqr_distance);
     }
 
@@ -190,18 +202,6 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
                               p.get_inds().end(),
                               [](const Ind& i){return i.get_fitness();});
     return  mut_dist;
-}
-
-///Extracts a vector of the fitnesses of individuals into a double vectors
-template<class Ind>
-std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
-{
-    std::vector<double> fitnesses;
-    for(const auto& ind : inds)
-    {
-        fitnesses.push_back(ind.get_fitness());
-    }
-    return fitnesses;
 }
 
 ///Gets the best n individuals in a pop
@@ -284,8 +284,8 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
   return get_nth_ind(p, n).get_input_values();
 }
 
+}
 
 void test_population() noexcept;
 
-}
 #endif // POPULATION_H

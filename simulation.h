@@ -292,7 +292,7 @@ void change_nth_ind_net(Sim& s, size_t ind_index, const typename Sim::pop_t::ind
 template<class Sim>
 std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 {
-    return get_best_n_inds(s.get_pop(), n);
+    return pop::get_best_n_inds(s.get_pop(), n);
 }
 
 ///Returns the current optimal function of the environment
@@ -376,7 +376,7 @@ void tick(Sim &s)
 template<class Sim>
 double var_fitness(const Sim&s)
 {
-    return var_fitness(s.get_pop());
+    return pop::var_fitness(s.get_pop());
 }
 
 
@@ -392,7 +392,8 @@ const std::vector<double> &get_nth_individual_input(const Sim &s, const int n);
 template<class Sim>
 void update_env_indicator(Sim &s);
 
+}
+
 void test_simulation() noexcept;
 
-}
 #endif // SIMULATION_H

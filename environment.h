@@ -107,7 +107,6 @@ bool operator== (const environment& lhs, const environment& rhs);
 namespace env {
 
 
-void test_environment() noexcept;
 
 ///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
@@ -129,6 +128,8 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 void switch_env_function(environment &e);
 
 }
+
+void test_environment() noexcept;
 
 #endif // ENVIRONMENT_H
 
