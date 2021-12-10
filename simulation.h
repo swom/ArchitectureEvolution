@@ -39,7 +39,7 @@ struct all_params
 };
 
 
-template<class Pop>
+template<class Pop = population<>>
 class simulation
 {
 public:
@@ -108,7 +108,7 @@ public:
   int get_seed() const noexcept {return m_seed;}
 
   ///Returns a reference to the vector of individuals
-  const std::vector<individual<M>> &get_inds() const;
+  const std::vector<typename Pop::ind_t> &get_inds() const;
 
   ///Returns the current inputs in the simulation
   const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -257,42 +257,42 @@ template<class Sim>
 void change_nth_ind_net(Sim& s, size_t ind_index, const typename Sim::pop_t::ind_t::net_t& n); //is this the correct way?
 
 ///Gets the best n individuals in a pop
-template<class Sim, class Ind>
-std::vector<individual<M>> get_best_n_inds(const simulation<M>& s, int n)
+template<class Sim>
+std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 {
     return get_best_n_inds(s.get_pop(), n);
 }
 
 ///Returns the current optimal function of the environment
-template<mutation_type M>
-std::function<double(std::vector<double>)> get_current_env_function(const simulation<M> &s);
+template<class Sim>
+std::function<double(std::vector<double>)> get_current_env_function(const Sim &s);
 
 ///Gets the name of the current environmental function
-template<class S>
-char get_name_current_function(const S& s) noexcept
+template<class Sim>
+char get_name_current_function(const Sim& s) noexcept
 {
     return s.get_env().get_name_current_function();
 }
 
 ///Returns the individuals in the simualtion
-template<mutation_type M>
-const std::vector<individual<M> > &get_inds(const simulation<M>&s)
+template<class Sim>
+const std::vector<typename Sim::pop_t::ind_t> &get_inds(const Sim&s)
 {
     return s.get_pop().get_inds();
 }
 
 ///Returns the fitness of the nth ind in pop
-template<mutation_type M>
-double get_nth_ind_fitness(const simulation<M>& s, const size_t ind_index);
+template<class Sim>
+double get_nth_ind_fitness(const Sim& s, const size_t ind_index);
 
 ///Returns const or non-onst ref to the network of the nth individual in the
 /// popoulation member of a simulation
-template<mutation_type M>
-const network<M>& get_nth_ind_net(const simulation<M>& s, size_t ind_index);
+template<class Sim>
+const typename Sim::pop_t::ind_t::net_t& get_nth_ind_net(const Sim& s, size_t ind_index);
 
 ///Saves the enitre GODDDAM SIMULATIONNNN!!!!!!! WHOO NEEDS MEMORRYYYY
-template<mutation_type M>
-void save_json(const simulation<M>& s, const std::string& filename)
+template<class Sim>
+void save_json(const Sim& s, const std::string& filename)
 {
     std::ofstream  f(filename);
     nlohmann::json json_out;
@@ -301,30 +301,30 @@ void save_json(const simulation<M>& s, const std::string& filename)
 }
 
 ///Reproduces inds to next gen based on their fitness
-template<mutation_type M>
-void reproduce(simulation<M>& s)
+template<class Sim>
+void reproduce(Sim& s)
 {
     reproduce(s.get_pop(), s.get_rng());
 }
 
 ///Calculates fitness and selects a new population based on fitness
-template<mutation_type M>
-void select_inds(simulation<M>& s)
+template<class Sim>
+void select_inds(Sim& s)
 {
     calc_fitness(s);
     reproduce(s);
 }
 
 ///Checks if environment should change
-template<mutation_type M>
-bool is_environment_changing(simulation<M> &s) {
+template<class Sim>
+bool is_environment_changing(Sim &s) {
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
     return distro (s.get_rng());
 }
 
 ///Switches the function of the environment used to calculate the optimal output
-template<mutation_type M>
-void switch_optimal_function(simulation<M> &s)
+template<class Sim>
+void switch_optimal_function(Sim &s)
 {
     switch_env_function(s.get_env());
 }
@@ -338,8 +338,8 @@ void perform_environment_change(Sim &s)
 }
 
 ///Ticks time one generation into the future
-template<mutation_type M>
-void tick(simulation<M> &s)
+template<class Sim>
+void tick(Sim &s)
 {
     s.increase_time();
 
@@ -358,20 +358,20 @@ void tick(simulation<M> &s)
 }
 
 ///Calculates the standard devaition of the population fitness
-template<mutation_type M>
-double var_fitness(const simulation<M>&s)
+template<class Sim>
+double var_fitness(const Sim&s)
 {
     return var_fitness(s.get_pop());
 }
 
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
-template<mutation_type M>
-const std::vector<double> &get_current_input(const simulation<M> &s);
+template<class Sim>
+const std::vector<double> &get_current_input(const Sim &s);
 
 ///Returns the input of the nth individual in the population
-template<mutation_type M>
-const std::vector<double> &get_nth_individual_input(const simulation<M> &s, const int n);
+template<class Sim>
+const std::vector<double> &get_nth_individual_input(const Sim &s, const int n);
 
 ///Updates the input with the current environmental indicator
 template<class Sim>
