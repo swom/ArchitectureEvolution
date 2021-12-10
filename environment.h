@@ -100,6 +100,7 @@ private:
     char m_name_current_function;
 
 };
+namespace env {
 
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
@@ -126,7 +127,7 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);
 
-
+}
 
 #endif // ENVIRONMENT_H
 
