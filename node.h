@@ -6,7 +6,13 @@
 class node
 {
 public:
-    node(std::vector<weight> vector_weights, bool is_active = false);
+
+
+    node(std::vector<weight> vector_weights = {}, bool is_active = false);
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(node,
+                                   m_active,
+                                   m_weights)
 
     const bool &is_active() const noexcept {return m_active;}
     const std::vector<weight> &get_vec_weights() const noexcept {return m_weights;}
@@ -18,6 +24,8 @@ private:
 };
 
 bool operator== (const node& lhs, const node& rhs);
+
+bool operator!= (const node& lhs, const node& rhs);
 
 void test_node() noexcept;
 

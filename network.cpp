@@ -48,7 +48,7 @@ std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double m
             for(auto& node : layer)
                 for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    const weight &current_weight = node.get_vec_weights()[i];
+                    const weight &current_weight = node.get_vec_weights()[j];
                     if(current_weight.get_weight() < -0.0001 || current_weight.get_weight() > 0.0001)
                         networks_weights.push_back(current_weight);
                 }
@@ -96,7 +96,7 @@ bool all_weigths_are_active(const Net &n)
         for(auto &node : layer){
             for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
                 weight current_weight = node.get_vec_weights()[i];
-                if(current_weight.is_active()){
+                if(!current_weight.is_active()){
                     return false;
                 }
             }
@@ -539,6 +539,50 @@ void test_network() //!OCLINT
         assert(exception_thrown == true);
     }
 #endif
+
+//#define FIX_ISSUE_198
+#ifdef FIX_ISSUE_198
+  ///A node can be duplicated into an inactive node
+    {
+        net_param n_p{};
+        n_p.net_arc = {1,2,1};
+        n_p.max_arc = {1,3,1};
+
+        network n{n_p};
+
+        std::mt19937_64 rng;
+
+        mutate_weights(n, 1, 0.1, rng); //so the weights will be different
+
+        network n_before = n;
+
+        node &to_duplicate = n.get_net_weights()[0][0];
+
+        assert(*n.get_empty_node_in_layer(0) == *n.get_net_weights()[0][2]); //This should be in third position (index 2)
+        node &empty_node = n.get_empty_node_in_layer(0);
+
+        assert(to_duplicate != empty_node);
+
+        n.duplicate_node(&to_duplicate, &empty_node);
+
+        ///Checking that the node has been copied - but not everywhere!
+        assert(n != n_before);
+        assert(to_duplicate == empty_node);
+        assert(to_duplicate != n.get_net_weights()[0][1]);
+
+        ///Checking that outgoing weights have been copied as well
+        const node &second_l_node = n.get_net_weights()[1][0];
+        assert(second_l_node.get_vec_weights()[0] == second_l_node.get_vec_weights()[2]);
+        assert(second_l_node.get_vec_weights()[0] != second_l_node.get_vec_weights()[1]);
+
+        ///Current architecture has been updated; since it is the max arc, further duplication does nothing
+        assert(n.get_current_arc() == n.get_max_arc());
+        network n_after_one = n;
+        n.duplicate_node(&to_duplicate, n.get_empty_node_in_layer(0));
+        assert(n == n_after_one);
+    }
+#endif
+
 
 
 

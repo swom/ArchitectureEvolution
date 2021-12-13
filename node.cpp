@@ -13,6 +13,11 @@ bool operator== (const node& lhs, const node& rhs)
       lhs.is_active() == rhs.is_active();
 }
 
+bool operator!= (const node& lhs, const node& rhs)
+{
+    return !(lhs == rhs);
+}
+
 #ifndef NDEBUG
 void test_node() noexcept
 {

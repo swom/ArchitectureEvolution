@@ -22,6 +22,7 @@ struct net_param
                                    net_arc,
                                    max_arc
                                    )
+
     net_param(const std::vector<int>& net_arch = {1,2,1},
               std::function<double(double)> func = linear,
               const std::vector<int>& max_arch = {1,8,1}):
