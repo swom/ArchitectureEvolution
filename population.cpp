@@ -11,8 +11,8 @@ population<M>::population(int init_nr_indiv,
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
                 individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
-                    individual{ind_param{net_param{net_arch, linear, net_arch}}}),
-    m_mut_rate{mut_rate},
+                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
+    m_mut_rate_weight{mut_rate},
     m_mut_step{mut_step}
 {}
 
@@ -105,12 +105,12 @@ void test_population() noexcept
     // and 0.1 (mut_step)
     {
         population p;
-        assert(are_equal_with_tolerance(p.get_mut_rate(), 0.01));
+        assert(are_equal_with_tolerance(p.get_mut_rate_weight(), 0.01));
         assert(are_equal_with_tolerance(p.get_mut_step(), 0.1));
 
         auto mut_rate = 5.0;
         population p2{0, mut_rate};
-        assert(are_equal_with_tolerance(p2.get_mut_rate(), mut_rate));
+        assert(are_equal_with_tolerance(p2.get_mut_rate_weight(), mut_rate));
 
         auto mut_step = 5.0;
         population p3{0, 0, mut_step};
@@ -120,8 +120,9 @@ void test_population() noexcept
     ///Population can be initialized with network architecture for inds
     {
         std::vector<int> net_arch{1,33,3,1};
-        population p{1, 0, 0, net_arch};
-        assert(get_nth_ind_net(p, 0) == network{net_arch});
+        net_param n_p{net_arch, linear, net_arch};
+        population p{{1, 0, 0, 0}, {{n_p}}};
+        assert(get_nth_ind_net(p, 0) == network{n_p});
     }
 
     //Population has a buffer_vector for the new_population, with size equal to number of inds
@@ -164,7 +165,7 @@ void test_population() noexcept
         double mut_rate = 0.314;
         double mut_step = 0.1414;
 
-        pop_param p_p{number_of_inds, mut_rate, mut_step};
+        pop_param p_p{number_of_inds, mut_rate, mut_step, mut_rate};
 
         population p{p_p, i_p};
 
@@ -174,7 +175,7 @@ void test_population() noexcept
         }
 
         assert(are_equal_with_tolerance(p.get_inds().size(), number_of_inds) &
-               are_equal_with_tolerance(p.get_mut_rate(), mut_rate) &
+               are_equal_with_tolerance(p.get_mut_rate_weight(), mut_rate) &
                are_equal_with_tolerance(p.get_mut_step(), mut_step));
     }
 

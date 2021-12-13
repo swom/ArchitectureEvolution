@@ -46,7 +46,7 @@ Timetochangecalc = function (threshold, simple_res){
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "X:/build-arc_evo-Desktop_Qt_6_1_1_MinGW_64_bit-Release"
+dir = "X:/build-arc_evo-Desktop_Qt_6_1_3_MinGW_64_bit-Release"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = "*json$"
@@ -75,8 +75,8 @@ save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
 
-ggplot(data = all_simple_res %>%
-         filter(architecture == "1-2-1")  
+ggplot(data = all_simple_res #%>%
+         #filter(architecture == "1-2-1")  
        # %>% slice_min(gen,n = 1000)
        ) +
   geom_rect(aes(xmin = gen - 1, xmax = gen,

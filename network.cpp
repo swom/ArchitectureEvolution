@@ -13,13 +13,15 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
 
     for (size_t i = 1; i != nodes_per_layer.size(); i++ )
     {
-        std::vector<std::vector<weight>>temp_layer_vector;
+        std::vector<node>temp_layer_vector;
         size_t n_nodes_prev_layer = nodes_per_layer[i-1];
         for(int j = 0; j != nodes_per_layer[i]; j++)
         {
             std::vector<weight> temp_weights(n_nodes_prev_layer);
-            temp_layer_vector.push_back(temp_weights);
+            node temp_node(temp_weights);
+            temp_layer_vector.push_back(temp_node);
         }
+
 
         //A vector of the size of the number of connections is pushed back in the weight matrix
         m_network_weights.push_back(temp_layer_vector);
@@ -44,10 +46,11 @@ std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double m
 
         for(auto& layer : n_new.get_net_weights())
             for(auto& node : layer)
-                for(auto& weight : node)
+                for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    if(weight.get_weight() < -0.0001 || weight.get_weight() > 0.0001)
-                        networks_weights.push_back(weight);
+                    const weight &current_weight = node.get_vec_weights()[j];
+                    if(current_weight.get_weight() < -0.0001 || current_weight.get_weight() > 0.0001)
+                        networks_weights.push_back(current_weight);
                 }
     }
     return  networks_weights;
@@ -63,11 +66,11 @@ std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, std:
         mutate_activation(n_new, mut_rate, rng);
         auto weights = n_new.get_net_weights();
 
-        for(size_t j=0; j != weights.size(); ++j)
-            for(size_t k=0; k != weights[j].size(); ++k)
-                for(size_t l=0; l != weights[j][k].size(); ++l)
+        for(auto& layer : n_new.get_net_weights())
+            for(auto& node : layer)
+                for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    networks_weights.push_back(weights[j][k][l]);
+                    networks_weights.push_back(node.get_vec_weights()[j]);
                 }
     }
     return  networks_weights;
@@ -91,8 +94,9 @@ bool all_weigths_are_active(const Net &n)
 
     for(auto &layer : weights ){
         for(auto &node : layer){
-            for (auto &weight : node){
-                if(!weight.is_active()){
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                weight current_weight = node.get_vec_weights()[i];
+                if(!current_weight.is_active()){
                     return false;
                 }
             }
@@ -108,8 +112,9 @@ bool all_weigths_have_value(const Net &n, double value)
 
     for(auto &layer : weights ){
         for(auto &node : layer){
-            for (auto &weight : node){
-                if(weight.get_weight() != value)
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                weight current_weight = node.get_vec_weights()[i];
+                if(current_weight.get_weight() != value)
                 {
                     return false;
                 }
@@ -144,7 +149,7 @@ int get_number_weights(const Net &n)
     size_t number_weights = 0;
     for(const auto &layer : n.get_net_weights() ){
         for(const auto &node : layer){
-            number_weights += node.size();
+            number_weights += node.get_vec_weights().size();
         }
     }
     return (int) number_weights;
@@ -182,6 +187,30 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
         m_current_arc = new_arc;
     }
     else throw 1;
+}
+
+template<mutation_type M>
+std::vector<node>::iterator network<M>::get_empty_node_in_layer(size_t l)
+{
+ std::vector<node> &layer = get_net_weights()[l];
+ return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+}
+
+template<mutation_type M>
+void network<M>::duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+                                const std::vector<node>::iterator &empty_node_iterator)
+{
+    if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+        return;
+
+    size_t index = empty_node_iterator - get_net_weights()[0].begin();
+    m_network_weights[layer][index] = to_duplicate;
+
+    for(auto &node : m_network_weights[layer+1]){
+        weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+        node.change_nth_weight(weight_to_duplicate, index);
+    }
+    ++m_current_arc[layer + 1];
 }
 
 
@@ -356,12 +385,12 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_87
 #ifdef FIX_ISSUE_87
-    /// A network contains a vector of vectors of vectors of weight objects
+    /// A network contains a vector of vectors of nodes
     {
         net_param n_p{};
         network n{n_p};
 
-        std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
+        std::vector<std::vector<node>> nodes = n.get_net_weights();
     }
 #endif
 
@@ -399,8 +428,8 @@ void test_network() //!OCLINT
         auto rng_copy = rng;
 
         auto before_mutation = n_weights;
-        n_weights.mutate(mutation_rate, mutation_step, rng_copy);
-        n_activation.mutate(mutation_rate, mutation_step, rng);
+        n_weights.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
+        n_activation.mutate(mutation_rate, mutation_step, rng, mutation_rate);
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
         assert(!all_weigths_are_active(n_activation));
@@ -534,6 +563,50 @@ void test_network() //!OCLINT
         assert(exception_thrown == true);
     }
 #endif
+
+#define FIX_ISSUE_198
+#ifdef FIX_ISSUE_198
+  ///A node can be duplicated into an inactive node
+    {
+        net_param n_p{};
+        n_p.net_arc = {1,2,1};
+        n_p.max_arc = {1,3,1};
+
+        network n{n_p};
+
+        std::mt19937_64 rng;
+
+        mutate_weights(n, 1, 0.1, rng); //so the weights will be different
+
+        network n_before = n;
+
+        node &to_duplicate = n.get_net_weights()[0][0];
+
+        assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+        auto empty_node_iterator = n.get_empty_node_in_layer(0);
+
+        assert(to_duplicate != *empty_node_iterator);
+
+        n.duplicate_node(to_duplicate, 0, 0, empty_node_iterator);
+
+        ///Checking that the node has been copied - but not everywhere!
+        assert(n != n_before);
+        assert(to_duplicate == *empty_node_iterator);
+        assert(to_duplicate != n.get_net_weights()[0][1]);
+
+        ///Checking that outgoing weights have been copied as well
+        const node &second_l_node = n.get_net_weights()[1][0];
+        assert(second_l_node.get_vec_weights()[0] == second_l_node.get_vec_weights()[2]);
+        assert(second_l_node.get_vec_weights()[0] != second_l_node.get_vec_weights()[1]);
+
+        ///Current architecture has been updated; since it is the max arc, further duplication does nothing
+        assert(n.get_current_arc() == n.get_max_arc());
+        network n_after_one = n;
+        n.duplicate_node(to_duplicate, 0, 0, n.get_empty_node_in_layer(0));
+        assert(n == n_after_one);
+    }
+#endif
+
 
 
 

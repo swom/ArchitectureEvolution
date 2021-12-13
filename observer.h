@@ -1,16 +1,17 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 #include "simulation.h"
+#include "Stopwatch.hpp"
 
 template<mutation_type M = mutation_type::weights>
 class observer
 {
 public:
-    observer(int top_proportion = 10):
+    observer(int top_proportion = 1):
         m_top_proportion{top_proportion}
     {
     }
-;
+
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -101,6 +102,10 @@ template<mutation_type M>
 void exec(simulation<M>& s , observer<M>& o)
 {
     o.store_par(s);
+
+    namespace sw = stopwatch;
+    sw::Stopwatch my_watch;
+
     for (int i = 0; i < s.get_n_gen(); i++)
     {
         tick (s);
@@ -117,7 +122,8 @@ void exec(simulation<M>& s , observer<M>& o)
         }
         if(i % 1000 == 0)
         {
-            std::cout << "Cycle " << i << std::endl;
+            auto lap_ms = my_watch.lap<sw::ms>();
+            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;;
         }
     }
 }

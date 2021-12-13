@@ -202,10 +202,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///Simulation can be initialized with network architecture for inds in pop
     {
         std::vector<int> net_arch{1,1,2,1};
-        simulation s{1,0,0, net_arch};
+        net_param n_p{net_arch, linear, net_arch};
+        simulation s{all_params{{}, {n_p}, {1, 0, 0, 0}, {}}};
 
         auto sim_1st_net = get_nth_ind_net(s, 0);
-        auto expected_net = network{net_arch};
+        auto expected_net = network{n_p};
         assert(sim_1st_net == expected_net);
     }
 
@@ -234,7 +235,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -298,7 +299,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -625,7 +626,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         net_param n_p{{2,2,1}, linear, {2,2,1}};
         ind_param i_p{n_p};
-        all_params params{{},i_p, {1,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        all_params params{{},i_p, {1,0,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
         simulation s{params};
 
         //Otherwise all weights are 0 and the response is always 0

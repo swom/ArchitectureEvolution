@@ -58,8 +58,6 @@ public:
     ///Returns const ref to network
     const network<M>& get_net() const noexcept {return m_network;}
 
-    ///Returns ref to the pointer to network
-    network<M>& get_net_ptr() {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
@@ -71,9 +69,9 @@ public:
     network<M>& get_to_net() noexcept {return m_network;}
 
     ///Mutates the network of an individual
-    void mutate(double mut_rate, double mut_step, std::mt19937_64 &rng)
+    void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a)
     {
-        m_network.mutate(mut_rate, mut_step, rng);
+        m_network.mutate(mut_rate_w, mut_step, rng, mut_rate_a);
     }
 
     ///Sets the fitness of an ind

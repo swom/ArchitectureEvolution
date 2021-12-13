@@ -3,8 +3,42 @@
 #include <cassert>
 #include <map>
 
+void run_simulation_given_arguments(const cxxopts::ParseResult& results)
+{
+    auto mut_type = convert_ind_args(results).m_mutation_type;
 
+    if(mut_type == mutation_type::weights)
+    {
 
+        observer<mutation_type::weights> o;
+        auto s = create_simulation<mutation_type::weights>(results);
+        exec<mutation_type::weights>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::activation) {
+
+        observer<mutation_type::activation> o;
+        auto s = create_simulation<mutation_type::activation>(results);
+        exec<mutation_type::activation>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::weights_and_activation) {
+        observer<mutation_type::weights_and_activation> o;
+        auto s = create_simulation<mutation_type::weights_and_activation>(results);
+        exec<mutation_type::weights_and_activation>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else
+    {
+        throw std::runtime_error{"unknown mutation type"};
+    }
+}
 
 ///NOT tested!!!
 env_param convert_env_args(const cxxopts::ParseResult& results)
@@ -40,8 +74,9 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results)
 {
     return pop_param{
         results["pop_size"].as<int>(),
-                results["mut_rate"].as<double>(),
-                results["mut_step"].as<double>()
+                results["mut_rate_weight"].as<double>(),
+                results["mut_step"].as<double>(),
+                results["mut_rate_act"].as<double>(),
     };
 }
 
@@ -62,17 +97,18 @@ cxxopts::Options create_parser(){
                              "Insert the parameters for the simualtion and see if you can get a mutational switch to evolve");
     options.allow_unrecognised_options();
     options.add_options()
-            ("A,targetA", "the value fo env target A", cxxopts::value<double>()->default_value("0.1"))
-            ("B,targetB", "the value fo env target B", cxxopts::value<double>()->default_value("0.75"))
             ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("1"))
             ("b,env_func_B", "the starting env function B",cxxopts::value<std::string>()->default_value("2"))
             ("N,net_arc", "the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
             ("F,act_func",
              "the string representing the name of the activation function of the net",
              cxxopts::value<std::string>()->default_value("sigmoid"))
-            ("R,mut_rate",
-             "the probability with whihc a mutation can happen",
+            ("W,mut_rate_weight",
+             "the probability with whihc a weight mutation can happen",
              cxxopts::value<double>()->default_value("0.01"))
+            ("A,mut_rate_act",
+             "the probability with whihc an activation mutation can happen",
+             cxxopts::value<double>()->default_value("0.001"))
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
