@@ -57,43 +57,43 @@ void mutate_weights(Net& n, const double& mut_rate,
 
 }
 
-///Mutates the weights of a network
-template<class Net>
-void mut_dupl_node(Net& n,
-                  const double& mut_rate,
-                    std::mt19937_64& rng)
-{
+/////Mutates the weights of a network
+//template<class Net>
+//void mut_dupl_node(Net& n,
+//                  const double& mut_rate,
+//                    std::mt19937_64& rng)
+//{
 
-    std::bernoulli_distribution mut_p{mut_rate};
+//    std::bernoulli_distribution mut_p{mut_rate};
 
-    for(size_t layer = 0; layer != n.get_current_arc() - 1; layer++)
-    {
-        auto& current_layer = n.get_connection_weights()[layer];
+//    for(size_t layer = 0; layer != n.get_current_arc() - 1; layer++)
+//    {
+//        auto& current_layer = n.get_connection_weights()[layer];
 
-        for(size_t node = 0; node != current_layer.size(); node++)
-        {
+//        for(size_t node = 0; node != current_layer.size(); node++)
+//        {
 
-            const auto& current_node = current_layer[node];
+//            const auto& current_node = current_layer[node];
 
-            if(current_node.m_active && mut_p(rng))
-            {
-               //this returns an iterator if you use std::find()
-                auto free_node = find_first_free_nodes(current_layer);
+//            if(current_node.m_active && mut_p(rng))
+//            {
+//               //this returns an iterator if you use std::find()
+//                auto free_node = find_first_free_nodes(current_layer);
 
-                if(free_node != current_layer.end())
-                {
-                        *free_node = current_node;
+//                if(free_node != current_layer.end())
+//                {
+//                        *free_node = current_node;
 
-                  for(auto& next_node : n.get_connection_weights()[layer + 1])
-                  {
-                      next_node.m_weights[free_node] = next_node.m_weights[node];
-                  }
-                }
-            }
-        }
-    }
+//                  for(auto& next_node : n.get_connection_weights()[layer + 1])
+//                  {
+//                      next_node.m_weights[free_node] = next_node.m_weights[node];
+//                  }
+//                }
+//            }
+//        }
+//    }
 
-}
+//}
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>

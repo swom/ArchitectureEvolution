@@ -6,7 +6,12 @@
 class node
 {
 public:
-    node();
+    node(std::vector<weight> vector_weights, bool is_active);
+
+    const bool &is_active() const noexcept {return m_active;}
+    const std::vector<weight> &get_vec_weights() const noexcept {return m_weights;}
+
+private:
     bool m_active;
     std::vector<weight> m_weights;
 };
