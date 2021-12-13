@@ -13,13 +13,15 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
 
     for (size_t i = 1; i != nodes_per_layer.size(); i++ )
     {
-        std::vector<std::vector<weight>>temp_layer_vector;
+        std::vector<node>temp_layer_vector;
         size_t n_nodes_prev_layer = nodes_per_layer[i-1];
         for(int j = 0; j != nodes_per_layer[i]; j++)
         {
             std::vector<weight> temp_weights(n_nodes_prev_layer);
-            temp_layer_vector.push_back(temp_weights);
+            node temp_node(temp_weights);
+            temp_layer_vector.push_back(temp_node);
         }
+
 
         //A vector of the size of the number of connections is pushed back in the weight matrix
         m_network_weights.push_back(temp_layer_vector);
@@ -44,10 +46,11 @@ std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double m
 
         for(auto& layer : n_new.get_net_weights())
             for(auto& node : layer)
-                for(auto& weight : node)
+                for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    if(weight.get_weight() < -0.0001 || weight.get_weight() > 0.0001)
-                        networks_weights.push_back(weight);
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    if(current_weight.get_weight() < -0.0001 || current_weight.get_weight() > 0.0001)
+                        networks_weights.push_back(current_weight);
                 }
     }
     return  networks_weights;
@@ -63,11 +66,11 @@ std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, std:
         mutate_activation(n_new, mut_rate, rng);
         auto weights = n_new.get_net_weights();
 
-        for(size_t j=0; j != weights.size(); ++j)
-            for(size_t k=0; k != weights[j].size(); ++k)
-                for(size_t l=0; l != weights[j][k].size(); ++l)
+        for(auto& layer : n_new.get_net_weights())
+            for(auto& node : layer)
+                for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    networks_weights.push_back(weights[j][k][l]);
+                    networks_weights.push_back(node.get_vec_weights()[j]);
                 }
     }
     return  networks_weights;
@@ -91,8 +94,9 @@ bool all_weigths_are_active(const Net &n)
 
     for(auto &layer : weights ){
         for(auto &node : layer){
-            for (auto &weight : node){
-                if(!weight.is_active()){
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                weight current_weight = node.get_vec_weights()[i];
+                if(current_weight.is_active()){
                     return false;
                 }
             }
@@ -108,8 +112,9 @@ bool all_weigths_have_value(const Net &n, double value)
 
     for(auto &layer : weights ){
         for(auto &node : layer){
-            for (auto &weight : node){
-                if(weight.get_weight() != value)
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                weight current_weight = node.get_vec_weights()[i];
+                if(current_weight.get_weight() != value)
                 {
                     return false;
                 }
@@ -144,7 +149,7 @@ int get_number_weights(const Net &n)
     size_t number_weights = 0;
     for(const auto &layer : n.get_net_weights() ){
         for(const auto &node : layer){
-            number_weights += node.size();
+            number_weights += node.get_vec_weights().size();
         }
     }
     return (int) number_weights;
@@ -356,12 +361,12 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_87
 #ifdef FIX_ISSUE_87
-    /// A network contains a vector of vectors of vectors of weight objects
+    /// A network contains a vector of vectors of nodes
     {
         net_param n_p{};
         network n{n_p};
 
-        std::vector<std::vector<std::vector<weight>>> weights = n.get_net_weights();
+        std::vector<std::vector<node>> nodes = n.get_net_weights();
     }
 #endif
 

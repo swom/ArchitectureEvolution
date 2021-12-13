@@ -7,6 +7,12 @@ node::node(std::vector<weight> vector_weights, bool is_active):
 
 }
 
+bool operator== (const node& lhs, const node& rhs)
+{
+    return lhs.get_vec_weights() == rhs.get_vec_weights() &&
+      lhs.is_active() == rhs.is_active();
+}
+
 #ifndef NDEBUG
 void test_node() noexcept
 {

@@ -48,11 +48,14 @@ void mutate_weights(Net& n, const double& mut_rate,
 
     for(auto& layer : n.get_net_weights())
         for(auto& node : layer)
-
-            for(auto& weight : node)
+            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
             {
-                if(mut_p(rng))
-                {weight.change_weight(weight.get_weight() + mut_st(rng));}
+                if(mut_p(rng)){
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    weight mutated_weight(current_weight.get_weight() + mut_st(rng),
+                                          current_weight.is_active());
+                    node.change_nth_weight(mutated_weight, i);
+                }
             }
 
 }
@@ -103,10 +106,14 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 
     for(auto& layer : n.get_net_weights())
         for(auto& node : layer)
-            for(auto& weight : node)
+            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
             {
-                if(mut_p(rng))
-                {weight.change_activation(!weight.is_active());}
+                if(mut_p(rng)){
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    weight mutated_weight(current_weight.get_weight(),
+                                          !current_weight.is_active());
+                    node.change_nth_weight(mutated_weight, i);
+                }
             }
 }
 
@@ -134,12 +141,13 @@ public:
 
         for (size_t i = 1; i != n_p.net_arc.size(); i++ )
         {
-            std::vector<std::vector<weight>>temp_layer_vector;
+            std::vector<node>temp_layer_vector;
             size_t n_nodes_prev_layer = n_p.net_arc[i-1];
             for(int j = 0; j != n_p.net_arc[i]; j++)
             {
                 std::vector<weight> temp_weights(n_nodes_prev_layer);
-                temp_layer_vector.push_back(temp_weights);
+                node temp_node(temp_weights);
+                temp_layer_vector.push_back(temp_node);
             }
 
             //A vector of the size of the number of connections is pushed back in the weight matrix
@@ -298,10 +306,13 @@ Net change_all_weights_values(Net n, double new_weight)
 {
     for(auto& layer : n.get_net_weights())
         for(auto& node : layer)
-            for(auto& weight : node)
+            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
             {
-                weight.change_weight(new_weight);
+                const weight &current_weight = node.get_vec_weights()[i];
+                weight changed_weight(new_weight, current_weight.is_active());
+                node.change_nth_weight(changed_weight, i);
             }
+
     return n;
 }
 
@@ -310,11 +321,11 @@ Net change_all_weights_values_and_activations(Net n, weight new_weight)
 {
     for(auto& layer : n.get_net_weights())
         for(auto& node : layer)
-            for(auto& weight : node)
+            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
             {
-                weight.change_weight(new_weight.get_weight());
-                weight.change_activation(new_weight.is_active());
+                node.change_nth_weight(new_weight, i);
             }
+
     return n;
 }
 
@@ -393,7 +404,9 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
-            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
+            const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<weight> vec_w = current_node.get_vec_weights();
+            std::vector<double> w = convert_to_double_or_zero(vec_w);
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),
@@ -421,7 +434,9 @@ inline std::vector<double> output(const network<M>& n, std::vector<double> input
 
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
-            std::vector<double> w = convert_to_double_or_zero(n.get_net_weights()[layer][node]);
+            const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<weight> vec_w = current_node.get_vec_weights();
+            std::vector<double> w = convert_to_double_or_zero(vec_w);
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),
