@@ -607,7 +607,41 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_201
+#ifdef FIX_ISSUE_201
+    ///There is a new mutation mode where nodes can be duplicated by mutation
+    {
+        network<mutation_type::weights_and_activation> n_simple{net_param()};
+        std::vector<int> basic_arc{1,2,1};
+        assert(n_simple.get_current_arc() == basic_arc);
 
+        network<mutation_type::duplication> n_dup{net_param()};
+        assert(n_dup.get_current_arc() == basic_arc);
+
+        auto mutation_rate = 1;
+        auto mutation_step = 1;
+        std::mt19937_64 rng;
+        auto rng_copy = rng;
+
+        n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
+        n_dup.mutate(mutation_rate, mutation_step, rng, mutation_rate);
+
+        for(size_t i = 0; i != 2; ++i){
+            for(int j = 0; j != basic_arc[i+1]; ++j){
+                 assert(n_simple.get_net_weights()[i][j] == n_dup.get_net_weights()[i][j]);
+            }
+        }
+        assert(n_simple.get_net_weights() != n_dup.get_net_weights());
+        assert(n_simple.get_current_arc() != n_dup.get_current_arc());
+
+        assert(n_dup.get_net_weights[0][2] == n_dup.get_net_weights[0][0]);
+        assert(n_dup.get_net_weights[0][3] == n_dup.get_net_weights[0][1]);
+
+        std::vector<int> arc_theo{1,4,1};
+
+        assert(n_dup.get_current_arc() == arc_theo);
+    }
+#endif
 
 
 }
