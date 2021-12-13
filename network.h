@@ -143,11 +143,15 @@ public:
         for (size_t i = 1; i != n_p.net_arc.size(); i++ )
         {
             std::vector<node>temp_layer_vector;
-            size_t n_nodes_prev_layer = n_p.net_arc[i-1];
-            for(int j = 0; j != n_p.net_arc[i]; j++)
+            size_t n_nodes_prev_layer = n_p.max_arc[i-1];
+            for(int j = 0; j != n_p.max_arc[i]; j++)
             {
                 std::vector<weight> temp_weights(n_nodes_prev_layer);
+
                 node temp_node(temp_weights);
+                if((j+1) <= n_p.net_arc[i]){
+                    temp_node.activate();
+               }
                 temp_layer_vector.push_back(temp_node);
             }
 
@@ -218,6 +222,11 @@ public:
     const std::vector<int>& get_max_arc() const noexcept{return m_max_arc;}
 
     void change_network_arc(std::vector<int> new_arc);
+
+    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
+
+    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+                        const std::vector<node>::iterator &empty_node_iterator);
 
 private:
 

@@ -58,8 +58,6 @@ public:
     ///Returns const ref to network
     const network<M>& get_net() const noexcept {return m_network;}
 
-    ///Returns ref to the pointer to network
-    network<M>& get_net_ptr() {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}

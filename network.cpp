@@ -189,6 +189,30 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
+template<mutation_type M>
+std::vector<node>::iterator network<M>::get_empty_node_in_layer(size_t l)
+{
+ std::vector<node> &layer = get_net_weights()[l];
+ return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+}
+
+template<mutation_type M>
+void network<M>::duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+                                const std::vector<node>::iterator &empty_node_iterator)
+{
+    if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+        return;
+
+    size_t index = empty_node_iterator - get_net_weights()[0].begin();
+    m_network_weights[layer][index] = to_duplicate;
+
+    for(auto &node : m_network_weights[layer+1]){
+        weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+        node.change_nth_weight(weight_to_duplicate, index);
+    }
+    ++m_current_arc[layer + 1];
+}
+
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -540,7 +564,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_198
+#define FIX_ISSUE_198
 #ifdef FIX_ISSUE_198
   ///A node can be duplicated into an inactive node
     {
@@ -558,16 +582,16 @@ void test_network() //!OCLINT
 
         node &to_duplicate = n.get_net_weights()[0][0];
 
-        assert(*n.get_empty_node_in_layer(0) == *n.get_net_weights()[0][2]); //This should be in third position (index 2)
-        node &empty_node = n.get_empty_node_in_layer(0);
+        assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+        auto empty_node_iterator = n.get_empty_node_in_layer(0);
 
-        assert(to_duplicate != empty_node);
+        assert(to_duplicate != *empty_node_iterator);
 
-        n.duplicate_node(&to_duplicate, &empty_node);
+        n.duplicate_node(to_duplicate, 0, 0, empty_node_iterator);
 
         ///Checking that the node has been copied - but not everywhere!
         assert(n != n_before);
-        assert(to_duplicate == empty_node);
+        assert(to_duplicate == *empty_node_iterator);
         assert(to_duplicate != n.get_net_weights()[0][1]);
 
         ///Checking that outgoing weights have been copied as well
@@ -578,7 +602,7 @@ void test_network() //!OCLINT
         ///Current architecture has been updated; since it is the max arc, further duplication does nothing
         assert(n.get_current_arc() == n.get_max_arc());
         network n_after_one = n;
-        n.duplicate_node(&to_duplicate, n.get_empty_node_in_layer(0));
+        n.duplicate_node(to_duplicate, 0, 0, n.get_empty_node_in_layer(0));
         assert(n == n_after_one);
     }
 #endif

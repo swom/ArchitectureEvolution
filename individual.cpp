@@ -11,9 +11,11 @@ void test_individual()
   /// by default 1,2,1
   {
     std::vector<int> net_arch{1,2,1};
+    net_param n_p{net_arch};
     ind_param i_p{};
     individual i{i_p};
-    assert(i.get_net() == network{net_arch});
+    network n{net_arch};
+    assert(i.get_net() == network{n_p});
   }
 
   ///Individuals have a vector of fixed input values, always equal to 1, for their network

@@ -120,8 +120,9 @@ void test_population() noexcept
     ///Population can be initialized with network architecture for inds
     {
         std::vector<int> net_arch{1,33,3,1};
-        population p{1, 0, 0, net_arch};
-        assert(get_nth_ind_net(p, 0) == network{net_arch});
+        net_param n_p{net_arch, linear, net_arch};
+        population p{{1, 0, 0, 0}, {{n_p}}};
+        assert(get_nth_ind_net(p, 0) == network{n_p});
     }
 
     //Population has a buffer_vector for the new_population, with size equal to number of inds

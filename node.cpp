@@ -18,6 +18,11 @@ bool operator!= (const node& lhs, const node& rhs)
     return !(lhs == rhs);
 }
 
+bool node_is_inactive(node node)
+{
+    return !node.is_active();
+}
+
 #ifndef NDEBUG
 void test_node() noexcept
 {
