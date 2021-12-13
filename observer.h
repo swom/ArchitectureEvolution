@@ -7,7 +7,7 @@ template<mutation_type M = mutation_type::weights>
 class observer
 {
 public:
-    observer(int top_proportion = 10):
+    observer(int top_proportion = 1):
         m_top_proportion{top_proportion}
     {
     }

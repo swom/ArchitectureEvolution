@@ -14,9 +14,7 @@ void test() {
         test_population();
         test_simulation();
         test_weight();
-
-
-
+        test_node();
 }
 #endif
 

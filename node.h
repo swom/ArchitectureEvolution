@@ -11,4 +11,6 @@ public:
     std::vector<weight> m_weights;
 };
 
+void test_node() noexcept;
+
 #endif // NODE_H
