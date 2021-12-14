@@ -3,61 +3,25 @@
 #include <cassert>
 #include <map>
 
-void run_simulation_given_arguments(const cxxopts::ParseResult& results)
-{
-    auto mut_type = convert_ind_args(results).m_mutation_type;
-
-    if(mut_type == mutation_type::weights)
-    {
-
-        observer<mutation_type::weights> o;
-        auto s = create_simulation<mutation_type::weights>(results);
-        exec<mutation_type::weights>(s, o) ;
-        save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
-    }
-    else if (mut_type == mutation_type::activation) {
-
-        observer<mutation_type::activation> o;
-        auto s = create_simulation<mutation_type::activation>(results);
-        exec<mutation_type::activation>(s, o) ;
-        save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
-    }
-    else if (mut_type == mutation_type::weights_and_activation) {
-        observer<mutation_type::weights_and_activation> o;
-        auto s = create_simulation<mutation_type::weights_and_activation>(results);
-        exec<mutation_type::weights_and_activation>(s, o) ;
-        save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
-    }
-    else
-    {
-        throw std::runtime_error{"unknown mutation type"};
-    }
-}
 
 ///NOT tested!!!
 env_param convert_env_args(const cxxopts::ParseResult& results)
 {
     return env_param{
-                    string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
-                    string_env_function_map.find(results["env_func_B"].as<std::string>())->second,
-                    results["cue_distrib"].as<std::vector<double>>()
+        string_env_function_map.find(results["env_func_A"].as<std::string>())->second,
+                string_env_function_map.find(results["env_func_B"].as<std::string>())->second,
+                results["cue_distrib"].as<std::vector<double>>()
 
     };
-}
+    }
 
-///NOT tested!!!
-ind_param convert_ind_args(const cxxopts::ParseResult& results)
-{
+    ///NOT tested!!!
+    ind_param convert_ind_args(const cxxopts::ParseResult& results)
+    {
     return ind_param{
-        convert_net_args(results),
-                string_to_mut_type_map.find(results["mutation_type"].as<std::string>())->second
-    };
+    convert_net_args(results),
+    string_to_mut_type_map.find(results["mutation_type"].as<std::string>())->second
+};
 }
 
 ///NOT tested!!!
@@ -77,6 +41,8 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results)
                 results["mut_rate_weight"].as<double>(),
                 results["mut_step"].as<double>(),
                 results["mut_rate_act"].as<double>(),
+                0
+                //                results["mut_rate_dup"].as<double>()
     };
 }
 
@@ -109,6 +75,9 @@ cxxopts::Options create_parser(){
             ("A,mut_rate_act",
              "the probability with whihc an activation mutation can happen",
              cxxopts::value<double>()->default_value("0.001"))
+            ("D,mut_rate_dup",
+             "the probability with whihc a duplication mutation can happen",
+             cxxopts::value<double>()->default_value("0.0005"))
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
@@ -126,7 +95,7 @@ cxxopts::Options create_parser(){
              "number of generations for which the simulation has to run",
              cxxopts::value<int>()->default_value("1000000"))
             ("m,mutation_type",
-"type ofg mutation that a network will undergo",
+             "type ofg mutation that a network will undergo",
              cxxopts::value<std::string>()->default_value("weights"))
             ("d,cue_distrib",
              "the minimum and maximum of the distribution used to generate environmental cues",

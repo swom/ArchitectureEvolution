@@ -112,12 +112,27 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
             }
 }
 
-///Takes a vector of nodes, goes through them & mutates their biases, returns the mutated vector
-/// Not quite sure why this would have to be here, but it makes it run happily so let's go for it
-std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
-                                               const double& mut_step,
-                                               std::mt19937_64& rng,
-                                               const std::vector<std::vector<double>>& biases);
+///Mutates the biases of the nodes
+template<class Net>
+void mutate_biases(Net& n, const double& mut_rate,
+                   const double& mut_step,
+                   std::mt19937_64& rng)
+{
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
+
+    auto vector = n.get_net_weights();
+    for(auto& layer : vector){
+        for(auto& node : layer)
+        {
+
+            if(mut_p(rng)){
+                node.change_bias(node.get_bias() + mut_st(rng));
+            }
+        }
+    }
+}
+
 
 template<mutation_type M = mutation_type::weights>
 class network
@@ -151,9 +166,6 @@ public:
 
             //A vector of the size of the number of connections is pushed back in the weight matrix
             m_network_weights.push_back(temp_layer_vector);
-
-            //A vector of the size of the nodes in the layer is pushed back;
-            m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
         }
         if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
             throw 1;
@@ -161,9 +173,11 @@ public:
     }
 
     void mutate(const double& mut_rate_weight,
-                           const double& mut_step,
-                           std::mt19937_64& rng,
-                const double& mut_rate_act)
+                const double& mut_step,
+                std::mt19937_64& rng,
+                const double& mut_rate_act = 0.01,
+                const double& mut_rate_dup = 0.01
+                )
        {
 
            if constexpr (M == mutation_type::activation)
@@ -186,9 +200,10 @@ public:
            {
                mutate_activation(*this, mut_rate_act, rng);
                mutate_weights(*this, mut_rate_weight, mut_step, rng);
-               mut_dupl_node(*this, mut_rate_weight, rng);
+               mut_dupl_node(*this, mut_rate_dup, rng);
            }
-           this->change_biases(mutate_biases(mut_rate_weight, mut_step, rng, this->get_biases()));
+
+           mutate_biases(*this, mut_rate_weight, mut_step, rng);
        };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
@@ -198,12 +213,6 @@ public:
 
     ///Returns the activation function
     std::function<double(double)> get_activation_function() const noexcept{return m_activation_function;}
-
-    ///Returns the const ref to the node biases
-    const std::vector<std::vector<double>>& get_biases() const noexcept{return m_nodes_biases;}
-
-    ///Sets the value of the nodes to the given value
-    void change_biases(std::vector<std::vector<double>> new_biases) {m_nodes_biases = new_biases;}
 
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
@@ -233,9 +242,6 @@ private:
 
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<node>> m_network_weights;
-
-    ///Vector of vectors containing the nodes biases stored per layer per node
-    std::vector<std::vector<double>> m_nodes_biases;
 
     ///The size of the input vector the network will receive
     int m_input_size;
@@ -416,9 +422,14 @@ std::vector<double> output(const Net& n, std::vector<double> input)
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<double> w{0};
+
+            if(current_node.is_active()){
             std::vector<weight> vec_w = current_node.get_vec_weights();
-            std::vector<double> w = convert_to_double_or_zero(vec_w);
-            double node_value = n.get_biases()[layer][node] +
+            w = convert_to_double_or_zero(vec_w);
+            }
+
+            double node_value = current_node.get_bias() +
                     std::inner_product(input.begin(),
                                        input.end(),
                                        w.begin(),
@@ -446,9 +457,14 @@ inline std::vector<double> output(const network<M>& n, std::vector<double> input
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<double> w{0};
+
+            if(current_node.is_active()){
             std::vector<weight> vec_w = current_node.get_vec_weights();
-            std::vector<double> w = convert_to_double_or_zero(vec_w);
-            double node_value = n.get_biases()[layer][node] +
+            w = convert_to_double_or_zero(vec_w);
+            }
+
+            double node_value = current_node.get_bias() +
                     std::inner_product(input.begin(),
                                        input.end(),
                                        w.begin(),

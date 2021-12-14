@@ -121,7 +121,7 @@ void test_population() noexcept
     {
         std::vector<int> net_arch{1,33,3,1};
         net_param n_p{net_arch, linear, net_arch};
-        population p{{1, 0, 0, 0}, {{n_p}}};
+        population p{{1, 0, 0, 0, 0}, {{n_p}}};
         assert(get_nth_ind_net(p, 0) == network{n_p});
     }
 
@@ -165,7 +165,7 @@ void test_population() noexcept
         double mut_rate = 0.314;
         double mut_step = 0.1414;
 
-        pop_param p_p{number_of_inds, mut_rate, mut_step, mut_rate};
+        pop_param p_p{number_of_inds, mut_rate, mut_step, mut_rate, mut_rate};
 
         population p{p_p, i_p};
 

@@ -26,8 +26,6 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
         //A vector of the size of the number of connections is pushed back in the weight matrix
         m_network_weights.push_back(temp_layer_vector);
 
-        //A vector of the size of the nodes in the layer is pushed back;
-        m_nodes_biases.push_back(std::vector<double>(nodes_per_layer[i],0));
     }
 }
 
@@ -155,32 +153,6 @@ int get_number_weights(const Net &n)
     return (int) number_weights;
 }
 
-std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
-                                               const double& mut_step,
-                                               std::mt19937_64& rng,
-                                               const std::vector<std::vector<double>>& biases)
-{
-    std::vector<std::vector<double>> new_biases;
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
-
-    for(auto& layer : biases){
-        std::vector<double> new_layer;
-        for(auto& bias : layer)
-        {
-
-            if(mut_p(rng)){
-                new_layer.push_back(bias + mut_st(rng));
-            }
-            else{
-                new_layer.push_back(bias);
-            }
-        }
-        new_biases.push_back(new_layer);
-    }
-    return(new_biases);
-}
-
 template<mutation_type M>
 void network<M>::change_network_arc(std::vector<int> new_arc){
     if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
@@ -242,7 +214,8 @@ void test_network() //!OCLINT
     }
     ///A network can be initialized with a specific activation function
     {
-        network n{{1,2,1}, linear};
+        net_param n_p{{1,2,1}, linear};
+        network n{n_p};
         n = change_all_weights_values_and_activations(n,1);
         std::vector<double> input{1};
         auto using_member_function = output(n,{input});
@@ -284,7 +257,8 @@ void test_network() //!OCLINT
 
         //For simple net with weights == 0
         auto expected_output = std::vector<double>{0};
-        network n{very_simple_nodes};
+        net_param n_p{very_simple_nodes};
+        network n{n_p};
         auto net_output = output(n, input, &linear);
         assert(net_output == expected_output);
 
@@ -297,7 +271,8 @@ void test_network() //!OCLINT
 
         //Testing a more complex arhitecture
         std::vector<int> not_too_simple_nodes{1,3,3,1};
-        network not_too_simple{not_too_simple_nodes};
+        net_param n_p_complex{not_too_simple_nodes, linear, not_too_simple_nodes};
+        network not_too_simple{n_p_complex};
         not_too_simple = change_all_weights_values_and_activations(not_too_simple, new_weight_value);
         expected_output = {1 * 3 * 3};
         net_output = output(not_too_simple, input, &linear);
@@ -335,19 +310,20 @@ void test_network() //!OCLINT
 
     }
 
-    ///A network can be initialized with one bias per node
-    /// stored by layer and by node in a vector of vectors
-    {
-        std::vector<int> net_arch{1,2,2,3,1};
-        network n{net_arch};
-        for(size_t i = 1; i != net_arch.size(); i++)
-        {
-            auto n_biases = n.get_biases()[i - 1].size();
-            auto n_nodes = static_cast<size_t>(net_arch[i]);
-            assert(n_biases == n_nodes);
-        }
+//    ///A network can be initialized with one bias per node
+//    /// stored by layer and by node in a vector of vectors
+//    {
+//        std::vector<int> net_arch{1,2,2,3,1};
+//        network n{net_arch};
+//        for(size_t i = 1; i != net_arch.size(); i++)
+//        {
+//            auto n_biases = n.get_biases()[i - 1].size();
+//            auto n_nodes = static_cast<size_t>(net_arch[i]);
+//            assert(n_biases == n_nodes);
+//        }
 
-    }
+//    }
+    //This is no longer relevant as biases are stored in nodes
 
 #define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
@@ -428,7 +404,7 @@ void test_network() //!OCLINT
         auto rng_copy = rng;
 
         auto before_mutation = n_weights;
-        n_weights.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
+        n_weights.mutate(mutation_rate, mutation_step, rng_copy);
         n_activation.mutate(mutation_rate, mutation_step, rng, mutation_rate);
 
         assert(n_activation.get_net_weights() != n_weights.get_net_weights());
@@ -623,8 +599,8 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
         auto rng_copy = rng;
 
-        n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
-        n_dup.mutate(mutation_rate, mutation_step, rng, mutation_rate);
+        n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate, mutation_rate);
+        n_dup.mutate(mutation_rate, mutation_step, rng, mutation_rate, mutation_rate);
 
         for(size_t i = 0; i != 2; ++i){
             for(int j = 0; j != basic_arc[i+1]; ++j){
@@ -645,6 +621,21 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_202
+#ifdef FIX_ISSUE_202
+    ///Inactive nodes are not counted in the response function
+    {
+        network n1{net_param({1,2,1}, linear, {1,8,1})};
+        network n2{net_param({1,2,1}, linear, {1,2,1})};
+
+        n1 = change_all_weights_values(n1, 0.5);
+        n2 = change_all_weights_values(n2, 0.5);
+
+        std::vector<double> output1 = output(n1, {1});
+        std::vector<double> output2 = output(n2, {1});
+        assert(output1 == output2);
+    }
+#endif
 
 }
 #endif
