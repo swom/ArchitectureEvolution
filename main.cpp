@@ -34,22 +34,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     assert(1 == 2);
 #endif
 
-    auto env = convert_env_args(results);
-    auto ind = convert_ind_args(results);
-    auto pop = convert_pop_args(results);
-    auto sim = convert_sim_args(results);
-
-    all_params params{
-        env, ind, pop, sim
-    };
-
-    simulation s{params};
-    observer o;
-    exec(s, o);
-
-    save_json(o,
-              convert_arc_to_string(params.i_p.net_par.net_arc) +
-              "_" + std::to_string(params.s_p.seed) + ".json");
+    run_simulation_given_arguments(results);
 
     return 0;
 }

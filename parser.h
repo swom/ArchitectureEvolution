@@ -24,6 +24,27 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results);
 
 sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
+///runs a simulation given a parsed set of command line arguments
+/// that are read as parameters
+void run_simulation_given_arguments(const cxxopts::ParseResult& results);
+
+///Given parameters, creates a simulation
+template<class Pop>
+simulation<Pop> create_simulation(const cxxopts::ParseResult& parameters)
+{
+  auto env = convert_env_args(parameters);
+  auto ind = convert_ind_args(parameters);
+  auto pop = convert_pop_args(parameters);
+  auto sim = convert_sim_args(parameters);
+
+  all_params params{
+      env, ind, pop, sim
+  };
+
+  simulation<Pop> s{params};
+  return s;
+}
+
 
 void test_parser();
 #endif // PARSER_H
