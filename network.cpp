@@ -599,8 +599,8 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
         auto rng_copy = rng;
 
-        n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate);
-        n_dup.mutate(mutation_rate, mutation_step, rng, mutation_rate);
+        n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate, mutation_rate);
+        n_dup.mutate(mutation_rate, mutation_step, rng, mutation_rate, mutation_rate);
 
         for(size_t i = 0; i != 2; ++i){
             for(int j = 0; j != basic_arc[i+1]; ++j){
