@@ -6,7 +6,8 @@ enum class mutation_type
 {
  weights,
     activation,
-    weights_and_activation
+    weights_and_activation,
+    duplication
 };
 
 void test_mutation_type();

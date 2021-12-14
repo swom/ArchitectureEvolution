@@ -628,14 +628,16 @@ void test_network() //!OCLINT
 
         for(size_t i = 0; i != 2; ++i){
             for(int j = 0; j != basic_arc[i+1]; ++j){
-                 assert(n_simple.get_net_weights()[i][j] == n_dup.get_net_weights()[i][j]);
+                for(int k = 0; k != basic_arc[i]; ++k){
+                 assert(n_simple.get_net_weights()[i][j].get_vec_weights()[k] == n_dup.get_net_weights()[i][j].get_vec_weights()[k]);
+                }
             }
         }
         assert(n_simple.get_net_weights() != n_dup.get_net_weights());
         assert(n_simple.get_current_arc() != n_dup.get_current_arc());
 
-        assert(n_dup.get_net_weights[0][2] == n_dup.get_net_weights[0][0]);
-        assert(n_dup.get_net_weights[0][3] == n_dup.get_net_weights[0][1]);
+        assert(n_dup.get_net_weights()[0][2] == n_dup.get_net_weights()[0][1]);
+        assert(n_dup.get_net_weights()[0][3] == n_dup.get_net_weights()[0][0]);
 
         std::vector<int> arc_theo{1,4,1};
 
