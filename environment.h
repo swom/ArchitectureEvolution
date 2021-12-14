@@ -28,12 +28,15 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 struct env_param
 {
     env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
-              std::function<double(std::vector<double>)> fun_B = env_func_2) :
+              std::function<double(std::vector<double>)> fun_B = env_func_2,
+              std::vector<double> distrib = std::vector<double>{-1,1}) :
         env_function_A{fun_A},
-        env_function_B{fun_B}
+        env_function_B{fun_B},
+        cue_distrib{distrib}
     {}
 std::function<double(std::vector<double>)> env_function_A;
 std::function<double(std::vector<double>)> env_function_B;
+std::vector<double> cue_distrib;
 };
 
 
@@ -101,8 +104,7 @@ private:
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
 
-
-void test_environment() noexcept;
+namespace env {
 
 ///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
@@ -123,7 +125,9 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);
 
+}
 
+void test_environment() noexcept;
 
 #endif // ENVIRONMENT_H
 
