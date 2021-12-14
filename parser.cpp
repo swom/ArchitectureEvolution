@@ -10,26 +10,42 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
     if(mut_type == mutation_type::weights)
     {
 
-        observer<mutation_type::weights> o;
-        auto s = create_simulation<mutation_type::weights>(results);
-        exec<mutation_type::weights>(s, o) ;
+        using net_t = network<mutation_type::weights>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
         save_json(o,
                   convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else if (mut_type == mutation_type::activation) {
 
-        observer<mutation_type::activation> o;
-        auto s = create_simulation<mutation_type::activation>(results);
-        exec<mutation_type::activation>(s, o) ;
+        using net_t = network<mutation_type::activation>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
         save_json(o,
                   convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else if (mut_type == mutation_type::weights_and_activation) {
-        observer<mutation_type::weights_and_activation> o;
-        auto s = create_simulation<mutation_type::weights_and_activation>(results);
-        exec<mutation_type::weights_and_activation>(s, o) ;
+
+        using net_t = network<mutation_type::weights_and_activation>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
         save_json(o,
                   convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");

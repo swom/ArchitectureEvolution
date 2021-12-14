@@ -34,7 +34,7 @@ void test_individual()
   ///When an individual responds to environment it uses its input values as input
   {
         individual i{ind_param{}};
-        assert( response(i) == output(i.get_net(),i.get_input_values(), &linear));
+        assert( ind::response(i) == output(i.get_net(),i.get_input_values(), &linear));
   }
 
 //#define FIX_ISSUE_36
@@ -65,16 +65,12 @@ void test_individual()
   }
   #endif
   
-#define FIX_ISSUE_120
-#ifdef FIX_ISSUE_120
-///ind_param contains a mutation_type member, with which network can be templated
+///individual contains a type member that stores the typename
+/// of the network with which it is be templated
   {
-    ind_param i_p;
-    enum mutation_type mut_type = i_p.m_mutation_type;
-
-    assert(mut_type == mutation_type::activation);
+        using n = network<mutation_type::weights>;
+        using i = individual<n>;
+        assert(typeid (i::net_t)  == typeid (n) );
   }
-#endif
-
 }
 #endif

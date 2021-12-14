@@ -104,8 +104,7 @@ private:
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
 
-
-void test_environment() noexcept;
+namespace env {
 
 ///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
@@ -126,7 +125,9 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);
 
+}
 
+void test_environment() noexcept;
 
 #endif // ENVIRONMENT_H
 

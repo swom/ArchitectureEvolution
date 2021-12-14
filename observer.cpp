@@ -15,8 +15,8 @@ bool operator==(const all_params& lhs, const all_params& rhs)
             are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
 }
 
-template<mutation_type M>
-bool operator==(const observer<M>& lhs, const observer<M>& rhs)
+template<class Sim>
+bool operator==(const observer<Sim>& lhs, const observer<Sim>& rhs)
 {
     auto same_par = lhs.get_params() ==  rhs.get_params();
     auto same_env_inputs = lhs.get_input() == rhs.get_input();
@@ -36,8 +36,8 @@ bool operator==(const observer<M>& lhs, const observer<M>& rhs)
 
 }
 
-template<mutation_type M>
-bool operator!=(const observer<M>& lhs, const observer<M>& rhs)
+template<class Sim>
+bool operator!=(const observer<Sim>& lhs, const observer<Sim>& rhs)
 {
     return !(lhs == rhs);
 }
@@ -46,18 +46,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 {
     return !(lhs == rhs);
 }
-
-
-template<mutation_type M>
-observer<M> load_observer_json(const std::string& filename)
-{
-    std::ifstream f(filename);
-    nlohmann::json json_in;
-    observer<M> o;
-    f >> json_in;
-    return o = json_in;
-}
-
 
 
 #ifndef NDEBUG
@@ -93,7 +81,7 @@ void test_observer()
         int n_repeats = 100;
 
         for(int i = 0; i != n_repeats; ++i){
-            tick(s);
+            sim::tick(s);
 
             if(!o.get_input().empty() && !o.get_optimal().empty())
             {
@@ -110,7 +98,7 @@ void test_observer()
 
         auto name = "obs_save_test";
         save_json(o, name);
-        auto loaded_o = load_observer_json(name);
+        auto loaded_o = load_json<observer<>>(name);
         assert(o == loaded_o);
 
         auto o1 = o;
@@ -141,7 +129,7 @@ void test_observer()
 
         simulation s{};
 
-        tick(s);
+        sim::tick(s);
 
         auto o1 = o;
         assert(o1.get_avg_fitness().empty());
