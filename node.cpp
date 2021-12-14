@@ -39,5 +39,16 @@ void test_node() noexcept
   }
 #endif
 
+//#define FIX_ISSUE_199
+#ifdef FIX_ISSUE_199
+    ///biases are in the node class now
+  {
+     std::vector<weight> weights (1, weight{});
+     node test_node{weights, true};
+
+     assert(test_node.get_bias() == 0);
+  }
+#endif
+
 }
 #endif
