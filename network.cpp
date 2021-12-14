@@ -161,30 +161,6 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
-template<mutation_type M>
-std::vector<node>::iterator network<M>::get_empty_node_in_layer(size_t l)
-{
- std::vector<node> &layer = get_net_weights()[l];
- return std::find_if(layer.begin(), layer.end(), node_is_inactive);
-}
-
-template<mutation_type M>
-void network<M>::duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
-                                const std::vector<node>::iterator &empty_node_iterator)
-{
-    if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
-        return;
-
-    size_t index = empty_node_iterator - get_net_weights()[0].begin();
-    m_network_weights[layer][index] = to_duplicate;
-
-    for(auto &node : m_network_weights[layer+1]){
-        weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
-        node.change_nth_weight(weight_to_duplicate, index);
-    }
-    ++m_current_arc[layer + 1];
-}
-
 
 #ifndef NDEBUG
 void test_network() //!OCLINT

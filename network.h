@@ -206,6 +206,29 @@ public:
            mutate_biases(*this, mut_rate_weight, mut_step, rng);
        };
 
+    inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
+    {
+     std::vector<node> &layer = get_net_weights()[l];
+     return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+    }
+
+
+    inline void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+                                    const std::vector<node>::iterator &empty_node_iterator)
+    {
+        if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+            return;
+
+        size_t index = empty_node_iterator - get_net_weights()[0].begin();
+        m_network_weights[layer][index] = to_duplicate;
+
+        for(auto &node : m_network_weights[layer+1]){
+            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+            node.change_nth_weight(weight_to_duplicate, index);
+        }
+        ++m_current_arc[layer + 1];
+    }
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
                                    m_network_weights
@@ -233,10 +256,10 @@ public:
 
     void change_network_arc(std::vector<int> new_arc);
 
-    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
+//    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
 
-    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
-                        const std::vector<node>::iterator &empty_node_iterator);
+//    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+//                        const std::vector<node>::iterator &empty_node_iterator);
 
 private:
 
