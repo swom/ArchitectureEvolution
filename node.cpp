@@ -2,7 +2,8 @@
 
 node::node(std::vector<weight> vector_weights, bool is_active):
     m_active{is_active},
-    m_weights{vector_weights}
+    m_weights{vector_weights},
+    m_bias{0}
 {
 
 }
@@ -39,7 +40,7 @@ void test_node() noexcept
   }
 #endif
 
-//#define FIX_ISSUE_199
+#define FIX_ISSUE_199
 #ifdef FIX_ISSUE_199
     ///biases are in the node class now
   {

@@ -26,8 +26,6 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
         //A vector of the size of the number of connections is pushed back in the weight matrix
         m_network_weights.push_back(temp_layer_vector);
 
-        //A vector of the size of the nodes in the layer is pushed back;
-        m_nodes_biases.push_back(std::vector<double>(nodes_per_layer[i],0));
     }
 }
 
@@ -153,32 +151,6 @@ int get_number_weights(const Net &n)
         }
     }
     return (int) number_weights;
-}
-
-std::vector<std::vector<double>> mutate_biases(const double& mut_rate,
-                                               const double& mut_step,
-                                               std::mt19937_64& rng,
-                                               const std::vector<std::vector<double>>& biases)
-{
-    std::vector<std::vector<double>> new_biases;
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
-
-    for(auto& layer : biases){
-        std::vector<double> new_layer;
-        for(auto& bias : layer)
-        {
-
-            if(mut_p(rng)){
-                new_layer.push_back(bias + mut_st(rng));
-            }
-            else{
-                new_layer.push_back(bias);
-            }
-        }
-        new_biases.push_back(new_layer);
-    }
-    return(new_biases);
 }
 
 template<mutation_type M>
@@ -338,19 +310,20 @@ void test_network() //!OCLINT
 
     }
 
-    ///A network can be initialized with one bias per node
-    /// stored by layer and by node in a vector of vectors
-    {
-        std::vector<int> net_arch{1,2,2,3,1};
-        network n{net_arch};
-        for(size_t i = 1; i != net_arch.size(); i++)
-        {
-            auto n_biases = n.get_biases()[i - 1].size();
-            auto n_nodes = static_cast<size_t>(net_arch[i]);
-            assert(n_biases == n_nodes);
-        }
+//    ///A network can be initialized with one bias per node
+//    /// stored by layer and by node in a vector of vectors
+//    {
+//        std::vector<int> net_arch{1,2,2,3,1};
+//        network n{net_arch};
+//        for(size_t i = 1; i != net_arch.size(); i++)
+//        {
+//            auto n_biases = n.get_biases()[i - 1].size();
+//            auto n_nodes = static_cast<size_t>(net_arch[i]);
+//            assert(n_biases == n_nodes);
+//        }
 
-    }
+//    }
+    //This is no longer relevant as biases are stored in nodes
 
 #define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
