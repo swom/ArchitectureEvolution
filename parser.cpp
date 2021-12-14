@@ -34,6 +34,15 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
                   convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
+    else if (mut_type == mutation_type::duplication) {
+        observer<mutation_type::duplication> o;
+        auto s = create_simulation<mutation_type::duplication>(results);
+        exec<mutation_type::duplication>(s, o) ;
+        save_json(o,
+                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+
     else
     {
         throw std::runtime_error{"unknown mutation type"};
@@ -77,6 +86,7 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results)
                 results["mut_rate_weight"].as<double>(),
                 results["mut_step"].as<double>(),
                 results["mut_rate_act"].as<double>(),
+                results["mut_rate_dup"].as<double>()
     };
 }
 
@@ -109,6 +119,9 @@ cxxopts::Options create_parser(){
             ("A,mut_rate_act",
              "the probability with whihc an activation mutation can happen",
              cxxopts::value<double>()->default_value("0.001"))
+            ("D,mut_rate_dup",
+             "the probability with whihc a duplication mutation can happen",
+             cxxopts::value<double>()->default_value("0.0005"))
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))

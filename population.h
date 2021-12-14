@@ -12,11 +12,13 @@ struct pop_param
                                    number_of_inds,
                                    mut_rate_weight,
                                    mut_step,
-                                   mut_rate_activation)
+                                   mut_rate_activation,
+                                   mut_rate_duplication)
     int number_of_inds;
     double mut_rate_weight;
     double mut_step;
     double mut_rate_activation;
+    double mut_rate_duplication;
 };
 
 template <mutation_type M = mutation_type::weights>
@@ -64,8 +66,11 @@ public:
     ///Return mutation rate of the weights
     double get_mut_rate_weight() const noexcept {return m_mut_rate_weight;}
 
-    ///Return mutation rate of the weights
+    ///Return mutation rate of the activations
     double get_mut_rate_act() const noexcept {return m_mut_rate_act;}
+
+    ///Return mutation rate of the duplications
+    double get_mut_rate_dup() const noexcept {return m_mut_rate_dup;}
 
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
@@ -76,6 +81,7 @@ private:
     std::vector<individual<M>> m_vec_new_indiv;
     double m_mut_rate_weight;
     double m_mut_rate_act;
+    double m_mut_rate_dup;
     double m_mut_step;
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
 
@@ -239,7 +245,8 @@ void select_new_pop(population<M>& p,
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,
-                                   p.get_mut_rate_act());
+                                   p.get_mut_rate_act(),
+                                   p.get_mut_rate_dup());
     }
 }
 

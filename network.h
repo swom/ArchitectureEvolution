@@ -173,9 +173,11 @@ public:
     }
 
     void mutate(const double& mut_rate_weight,
-                           const double& mut_step,
-                           std::mt19937_64& rng,
-                const double& mut_rate_act)
+                const double& mut_step,
+                std::mt19937_64& rng,
+                const double& mut_rate_act = 0.01,
+                const double& mut_rate_dup = 0.01
+                )
        {
 
            if constexpr (M == mutation_type::activation)
@@ -198,7 +200,7 @@ public:
            {
                mutate_activation(*this, mut_rate_act, rng);
                mutate_weights(*this, mut_rate_weight, mut_step, rng);
-               mut_dupl_node(*this, mut_rate_weight, rng);
+               mut_dupl_node(*this, mut_rate_dup, rng);
            }
 
            mutate_biases(*this, mut_rate_weight, mut_step, rng);

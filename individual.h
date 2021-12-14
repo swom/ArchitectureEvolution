@@ -7,7 +7,8 @@ static std::map<std::string, mutation_type> string_to_mut_type_map
 {
     {"weights", mutation_type::weights},
     {"activation", mutation_type::activation},
-    {"weights_and_activation", mutation_type::weights_and_activation}
+    {"weights_and_activation", mutation_type::weights_and_activation},
+    {"duplication", mutation_type::duplication}
 };
 
 struct ind_param
@@ -69,9 +70,9 @@ public:
     network<M>& get_to_net() noexcept {return m_network;}
 
     ///Mutates the network of an individual
-    void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a)
+    void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
     {
-        m_network.mutate(mut_rate_w, mut_step, rng, mut_rate_a);
+        m_network.mutate(mut_rate_w, mut_step, rng, mut_rate_a, mut_rate_d);
     }
 
     ///Sets the fitness of an ind
