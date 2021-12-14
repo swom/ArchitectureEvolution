@@ -153,7 +153,7 @@ public:
             m_network_weights.push_back(temp_layer_vector);
 
             //A vector of the size of the nodes in the layer is pushed back;
-            m_nodes_biases.push_back(std::vector<double>(n_p.net_arc[i],0));
+            m_nodes_biases.push_back(std::vector<double>(n_p.max_arc[i],0));
         }
         if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
             throw 1;
@@ -416,8 +416,13 @@ std::vector<double> output(const Net& n, std::vector<double> input)
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<double> w{0};
+
+            if(current_node.is_active()){
             std::vector<weight> vec_w = current_node.get_vec_weights();
-            std::vector<double> w = convert_to_double_or_zero(vec_w);
+            w = convert_to_double_or_zero(vec_w);
+            }
+
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),
@@ -446,8 +451,13 @@ inline std::vector<double> output(const network<M>& n, std::vector<double> input
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
+            std::vector<double> w{0};
+
+            if(current_node.is_active()){
             std::vector<weight> vec_w = current_node.get_vec_weights();
-            std::vector<double> w = convert_to_double_or_zero(vec_w);
+            w = convert_to_double_or_zero(vec_w);
+            }
+
             double node_value = n.get_biases()[layer][node] +
                     std::inner_product(input.begin(),
                                        input.end(),

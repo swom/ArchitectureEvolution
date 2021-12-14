@@ -242,7 +242,8 @@ void test_network() //!OCLINT
     }
     ///A network can be initialized with a specific activation function
     {
-        network n{{1,2,1}, linear};
+        net_param n_p{{1,2,1}, linear};
+        network n{n_p};
         n = change_all_weights_values_and_activations(n,1);
         std::vector<double> input{1};
         auto using_member_function = output(n,{input});
@@ -284,7 +285,8 @@ void test_network() //!OCLINT
 
         //For simple net with weights == 0
         auto expected_output = std::vector<double>{0};
-        network n{very_simple_nodes};
+        net_param n_p{very_simple_nodes};
+        network n{n_p};
         auto net_output = output(n, input, &linear);
         assert(net_output == expected_output);
 
@@ -297,7 +299,8 @@ void test_network() //!OCLINT
 
         //Testing a more complex arhitecture
         std::vector<int> not_too_simple_nodes{1,3,3,1};
-        network not_too_simple{not_too_simple_nodes};
+        net_param n_p_complex{not_too_simple_nodes, linear, not_too_simple_nodes};
+        network not_too_simple{n_p_complex};
         not_too_simple = change_all_weights_values_and_activations(not_too_simple, new_weight_value);
         expected_output = {1 * 3 * 3};
         net_output = output(not_too_simple, input, &linear);
@@ -645,6 +648,21 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_202
+#ifdef FIX_ISSUE_202
+    ///Inactive nodes are not counted in the response function
+    {
+        network n1{net_param({1,2,1}, linear, {1,8,1})};
+        network n2{net_param({1,2,1}, linear, {1,2,1})};
+
+        n1 = change_all_weights_values(n1, 0.5);
+        n2 = change_all_weights_values(n2, 0.5);
+
+        std::vector<double> output1 = output(n1, {1});
+        std::vector<double> output2 = output(n2, {1});
+        assert(output1 == output2);
+    }
+#endif
 
 }
 #endif
