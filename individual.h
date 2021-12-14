@@ -20,17 +20,18 @@ struct ind_param
     enum mutation_type m_mutation_type;
 
     ind_param(net_param net_pars = net_param(),
-              enum mutation_type mut = mutation_type::activation):
+              enum mutation_type mut = mutation_type::weights):
         net_par{net_pars},
         m_mutation_type{mut}
     {}
 };
 
 
-template<mutation_type M = mutation_type::weights>
+template<class Net = network<>>
 class individual
 {
 public:
+    using net_t = Net;
 
     individual(const ind_param &i_p = ind_param{}) :
         ///!!!!Attention!!!! input values are for now a fixed amount
@@ -38,14 +39,14 @@ public:
         m_network{i_p.net_par}
       {}
 
-    individual(const individual<M> &i) noexcept:
-        m_fitness{i.get_fitness()},
-        m_input_values{i.get_input_values()},
-        m_network{i.get_net()}
-    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
+                                   m_fitness,
+                                   m_input_values,
+                                   m_network);
 
     ///Changes the network of an individual with another network
-    void change_net(const network<M>& n)
+    void change_net(const Net& n)
     {
         m_network = n;
     }
@@ -57,8 +58,7 @@ public:
     const std::vector<double>& get_input_values() const noexcept {return m_input_values;}
 
     ///Returns const ref to network
-    const network<M>& get_net() const noexcept {return m_network;}
-
+    const Net& get_net() const noexcept {return m_network;}
 
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
@@ -67,7 +67,7 @@ public:
     std::vector<double>& get_to_input_values() noexcept {return m_input_values;}
 
     ///Returns ref to network USED FOR JSON SAVING
-    network<M>& get_to_net() noexcept {return m_network;}
+    Net& get_to_net() noexcept {return m_network;}
 
     ///Mutates the network of an individual
     void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
@@ -90,35 +90,12 @@ private:
     std::vector<double> m_input_values;
 
     ///The network of an individual
-    network<M> m_network;
+    Net m_network;
 };
-
-
-///Functions required to save to json format
-using json = nlohmann::json;
-
-template<mutation_type M>
-void to_json(json& j, const individual<M>& ind)
-{
-    j = json{
-    {"fitness", ind.get_fitness()},
-    {"input_values", ind.get_input_values()},
-    {"network", ind.get_net()}
-};
-}
-
-template<mutation_type M>
-void from_json(const json& j, individual<M>& ind) {
-    j.at("fitness").get_to(ind.get_to_fitness());
-    j.at("input_values").get_to(ind.get_to_input_values());
-    j.at("network").get_to(ind.get_to_net());
-}
-
-
 
 /// Checks if 2 individuals are the same
-template<mutation_type M>
-bool operator== (const individual<M>& lhs, const individual<M>& rhs)
+template<class Net>
+bool operator== (const individual<Net>& lhs, const individual<Net>& rhs)
 {
   bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
   bool network = lhs.get_net() == rhs.get_net();
@@ -127,10 +104,12 @@ bool operator== (const individual<M>& lhs, const individual<M>& rhs)
   return fitness && network && inputs;
 }
 
+namespace ind {
+
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
-template<mutation_type M>
-std::vector<double> response(const individual<M>& ind)
+template<class Ind>
+std::vector<double> response(const Ind& ind)
 {
     return output(ind.get_net(),ind.get_input_values());
 }
@@ -144,5 +123,8 @@ double calc_sqr_distance(const Ind &i, double env_value)
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
+}
+
 void test_individual();
+
 #endif // INDIVIDUAL_H
