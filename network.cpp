@@ -613,5 +613,28 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_205
+#ifdef FIX_ISSUE_205
+    ///Connections linked to inactive nodes don't mutate
+    {
+        network n{net_param({1,1,1}, linear, {1,2,1})};
+        std::mt19937_64 rng;
+
+        assert(!n.get_net_weights()[0][1].is_active());
+
+        network n_before = n;
+        n.mutate(1, 0.1, rng);
+
+        assert(n.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+
+        assert(n.get_net_weights()[1][0].get_vec_weights()[0] !=
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n.get_net_weights()[1][1].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+    }
+#endif
+
+
 }
 #endif
