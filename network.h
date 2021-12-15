@@ -235,7 +235,7 @@ public:
                                    );
 
     ///Returns the activation function
-    std::function<double(double)> get_activation_function() const noexcept{return m_activation_function;}
+    const std::function<double(double)> get_activation_function() const noexcept{return m_activation_function;}
 
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}

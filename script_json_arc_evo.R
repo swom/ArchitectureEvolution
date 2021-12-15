@@ -75,6 +75,7 @@ save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
 
+
 ggplot(data = all_simple_res #%>%
          #filter(architecture == "1-2-1")  
        # %>% slice_min(gen,n = 1000)

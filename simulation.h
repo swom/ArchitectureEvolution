@@ -46,14 +46,7 @@ public:
 
     using pop_t = Pop;
 
-    simulation(int init_pop_size = 1,
-               int seed = 0,
-               double t_change_interval = 0.1,
-               std::vector<int> net_arch = {1,2,1},
-               double sel_str = 2,
-               int number_of_generations = 1000);
-
-    simulation(const all_params& params):
+    simulation(const all_params& params = all_params{}):
         m_environment{params.e_p},
         m_population{params.p_p, params.i_p},
         m_n_generations{params.s_p.n_generations},
@@ -69,8 +62,7 @@ public:
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
-
-                                   m_population,
+                                  m_population,
                                    m_time,
                                    m_change_freq,
                                    m_sel_str,
@@ -79,24 +71,18 @@ public:
     ///Returns const ref ot population memeber
     const Pop& get_pop() const noexcept {return m_population;}
 
-    ///Returns const ref ot population memeber
-    Pop& get_pop() noexcept {return m_population;}
-
     ///Returns ref to rng
     std::mt19937_64& get_rng() noexcept {return m_rng;}
 
     ///Returns const ref to env_member
     const environment& get_env() const noexcept {return m_environment;}
 
-    ///Returns const ref to env_member
-    environment& get_env() noexcept {return m_environment;}
-
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
     ///returns const ref to
     const std::bernoulli_distribution& get_t_change_env_distr() const noexcept {return m_t_change_env_distr;}
-    std::bernoulli_distribution& get_t_change_env_distr() noexcept {return m_t_change_env_distr;}
+
     const int& get_time() const noexcept {return m_time;}
     void increase_time() {++m_time;}
 
@@ -381,7 +367,6 @@ double var_fitness(const Sim&s)
 {
     return pop::var_fitness(s.get_pop());
 }
-
 
 ///Get the inputs of the individuals in the simulation. Requires all individuals to have the same input.
 template<class Sim>

@@ -84,9 +84,8 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
 
     return fitness_inds;
 }
+  
 }
-
-
 #ifndef NDEBUG
 void test_population() noexcept
 {
@@ -138,14 +137,13 @@ void test_population() noexcept
         std::mt19937_64 rng;
 
         //make first ind net recognizable
+
         auto new_net =  change_all_weights_values_and_activations(pop::get_nth_ind_net(p,first_ind), 123456);
         pop::change_nth_ind_net(p, first_ind, new_net);
-
         pop::set_nth_ind_fitness(p, first_ind, 1);
         pop::set_nth_ind_fitness(p, second_ind, 0);
 
         pop::reproduce(p, rng);
-
         assert(pop::all_nets_equals_to(p, new_net));
     }
 #endif

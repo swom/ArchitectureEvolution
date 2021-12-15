@@ -32,13 +32,11 @@ class individual
 {
 public:
     using net_t = Net;
-
     individual(const ind_param &i_p = ind_param{}) :
         ///!!!!Attention!!!! input values are for now a fixed amount
         m_input_values(i_p.net_par.net_arc[0], 1.0),
         m_network{i_p.net_par}
       {}
-
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
                                    m_fitness,
@@ -63,7 +61,7 @@ public:
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
 
-    ///Returns ref to inputs
+    ///Returns ref to inputs USED FOR JSON SAVING
     std::vector<double>& get_to_input_values() noexcept {return m_input_values;}
 
     ///Returns ref to network USED FOR JSON SAVING

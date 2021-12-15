@@ -3,30 +3,6 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop>
-simulation<Pop>::simulation(int init_pop_size,
-                            int seed,
-                            double t_change_interval,
-                            std::vector<int> net_arch,
-                            double sel_str,
-                            int number_of_generations):
-    m_environment{},
-    m_population{init_pop_size},
-    m_n_generations{number_of_generations},
-    m_seed{seed},
-    m_t_change_env_distr{static_cast<double>(t_change_interval)},
-    m_sel_str{sel_str},
-    m_change_freq {static_cast<double>(t_change_interval)},
-    m_input(net_arch[0], 1),
-    m_optimal_output{1}
-{
-    m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds())
-    {
-        ind = individual{net_param{net_arch, linear, net_arch}};
-    }
-}
-
 namespace sim {
 
 template<class Pop>
@@ -97,13 +73,13 @@ std::function<double(std::vector<double>)> get_current_env_function(const Sim &s
     return e.get_current_function();
 }
 
+
 }
 
 double identity_first_element(const std::vector<double> &vector)
 {
     return vector[0];
 }
-
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
 {
@@ -137,8 +113,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         int pop_size = 1;
         int seed = 123456789;
-        simulation s{pop_size,
-                    seed};
+        all_params a_p{};
+        a_p.p_p.number_of_inds = pop_size;
+        a_p.s_p.seed = seed;
+
+        simulation s{a_p};
         std::mt19937_64 copy_rng(seed);
         assert ( s.get_rng()() == copy_rng());
 
@@ -307,9 +286,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         size_t first_ind = 0;
         size_t second_ind = 1;
-        change_nth_ind_net(s, first_ind, identity_net);
+        s.change_nth_ind_net(first_ind, identity_net);
 
-        calc_fitness(s);
+        s.calc_fitness();
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
         auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
@@ -375,7 +354,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     {
         simulation s{0};
-        environment &e = s.get_env();
+        environment e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
 
@@ -384,6 +363,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         for( int i = 0; i != repeats; i++)
         {
             tick(s);
+            e = s.get_env();
             if(previous_env_function != e.get_name_current_function())
             {
                 previous_env_function = e.get_name_current_function();
@@ -452,7 +432,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         std::vector<double> new_input;
 
-        assign_new_inputs_to_inds(s, new_input);
+        s.assign_new_inputs_to_inds(new_input);
         assert(all_individuals_have_same_input(s));
         auto input_t2 = get_inds_input(s);
 
@@ -579,10 +559,10 @@ void test_simulation() noexcept//!OCLINT test may be many
         s.update_inputs(silly_inputs);
 
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
-        switch_optimal_function(s);
+        s.switch_optimal_function();
         assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
-        switch_optimal_function(s);
+        s.switch_optimal_function();
         assert(are_equal_with_tolerance(calculate_optimal(s), env_func_1(silly_inputs)));
         assert(!are_equal_with_tolerance(calculate_optimal(s), env_func_2(silly_inputs)));
     }

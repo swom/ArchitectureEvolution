@@ -124,7 +124,6 @@ void switch_env_function(environment &e)
         std::cerr << exc.what() << std::endl;
         abort();
     }
-
 }
 
 }

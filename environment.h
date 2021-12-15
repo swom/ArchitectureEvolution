@@ -49,7 +49,7 @@ public:
 
     environment(const env_param &e_p);
 
-    std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
+    std::uniform_real_distribution<double> get_dist() const noexcept {return m_cue_distribution;}
 
 
     ///Returns the cue distribution of the environment

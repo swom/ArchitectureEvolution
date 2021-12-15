@@ -41,6 +41,7 @@ public:
         m_mut_step{p_p.mut_step}
     {}
 
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                    m_vec_indiv,
                                    m_mut_rate_weight,
@@ -78,6 +79,27 @@ public:
 
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
+
+  ///Modifies the vector of individuals to the given vector
+  void change_vector_individuals(const std::vector<Ind> &inds){m_vec_indiv = inds;}
+
+  ///Modifies the vector of new individuals to the given vector
+  void change_vector_new_inds(const std::vector<Ind> &inds){m_vec_new_indiv = inds;}
+
+  ///Modifies one individual in the vector of individuals
+  void change_nth_individual(size_t index, const Ind& new_ind){m_vec_indiv[index] = new_ind;}
+
+  ///Modifies one individual in the vector of new individuals
+  void change_nth_new_ind(size_t index, const Ind& new_ind){m_vec_new_indiv[index] = new_ind;}
+
+  ///Reproduces inds with a probability proportional to their fitness
+  void reproduce(std::mt19937_64& rng);
+
+  ///Calculates the fitness of inds in pop given a target env_value
+  void calc_fitness(const double &env_value, const double &sel_str);
+
+  ///Assigns the new inputs to the vector of individuals
+  void assign_inputs_to_inds(const std::vector<double> &inputs);
 
 private:
 
@@ -189,6 +211,7 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
     }
 }
 
+
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
 population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,const double &sel_str)
@@ -270,7 +293,7 @@ void select_new_pop(population<Ind>& p,
     }
 }
 
-///Swaps a vector of new_inds with the vector of old inds
+
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
 {

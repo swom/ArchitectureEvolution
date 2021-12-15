@@ -29,9 +29,6 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
     }
 }
 
-
-
-
 template<class Net>
 std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
