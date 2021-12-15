@@ -653,6 +653,45 @@ void test_network() //!OCLINT
     }
 #endif
 
+//#define FIX_ISSUE_209
+#ifdef FIX_ISSUE_209
+    ///There is a function that randomy adds a node to the network with the correct number of connections
+    /// With a number of edges depending on the average degree
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,2,1};
+    n_p.max_arc = {1,3,1};
+
+    network n{n_p};
+
+    std::mt19937_64 rng;
+    network n_before = n;
+
+    assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+    auto empty_node_iterator = n.get_empty_node_in_layer(0);
+    auto empty_node = *empty_node_iterator;
+
+    n.add_node(0, empty_node_iterator);
+
+    ///Checking that the node is now active
+    assert(empty_node.is_active());
+
+    ///Checking that it has the right number of active incoming connections
+    size_t n_in_con = 0;
+    for(const auto &con : empty_node.get_vec_weights())
+      if(con.is_active()) ++n_in_con;
+
+    assert(n_in_con == std::round(average_number_incoming_weights(n.get_net_weights()[0])));
+
+    ///Checking that it has the right number of active outgoing connections
+    size_t n_out_con = 0;
+    for(const auto &node : n.get_net_weights()[1])
+      if(node.get_vec_weights()[2].is_active()) ++n_out_con;
+
+    assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
+
+    }
+#endif
 
 }
 #endif
