@@ -21,7 +21,7 @@ private:
     std::vector<double> m_optimal;
 
 public:
-    observer(int top_proportion = 10):
+    observer(int top_proportion = 1):
         m_top_proportion{top_proportion}
     {
     }

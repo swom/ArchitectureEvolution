@@ -23,7 +23,7 @@ simulation<Pop>::simulation(int init_pop_size,
     m_rng.seed(m_seed);
     for(auto& ind : m_population.get_inds())
     {
-        ind = individual{net_param{net_arch}};
+        ind = individual{net_param{net_arch, linear, net_arch}};
     }
 }
 
@@ -189,10 +189,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///Simulation can be initialized with network architecture for inds in pop
     {
         std::vector<int> net_arch{1,1,2,1};
-        simulation s{1,0,0, net_arch};
+        net_param n_p{net_arch, linear, net_arch};
+        simulation s{all_params{{}, {n_p}, {1, 0, 0, 0, 0}, {}}};
 
         auto sim_1st_net = get_nth_ind_net(s, 0);
-        auto expected_net = network{net_arch};
+        auto expected_net = network{n_p};
         assert(sim_1st_net == expected_net);
     }
 
@@ -211,7 +212,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto potential_identity_net_param = net_param{{1,1}, linear};
+        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto potental_identity_ind = ind_param{potential_identity_net_param};
         assert(!net_behaves_like_the_function(potential_identity_net, identity));
@@ -221,7 +222,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -275,7 +276,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         env_param identity_env_par {};
         identity_env_par.env_function_A = identity;
 
-        auto potential_identity_net_param = net_param{{1,1}, linear};
+        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto identity_net = change_all_weights_values_and_activations(potential_identity_net, 1);
 
@@ -285,7 +286,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;
@@ -593,7 +594,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///There should be an input to signal whihc environment function is being used to calculate the optima
     {
         std::vector<int> net_arch{2,2,1};
-        all_params params{{},{{net_arch}}, {}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        all_params params{{},{{net_arch, linear, net_arch}}, {}, {}};
         simulation s{params};
 
         environment& e = s.get_env();
@@ -610,9 +611,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Network response depends on the environmental indicator
     {
-        net_param n_p{{2,2,1}};
+        net_param n_p{{2,2,1}, linear, {2,2,1}};
         ind_param i_p{n_p};
-        all_params params{{},i_p, {1,0,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
+        all_params params{{},i_p, {1,0,0,0,0}, {}}; //without the constructed pop param, it initializes an empty pop :(
         simulation s{params};
 
         //Otherwise all weights are 0 and the response is always 0
@@ -629,6 +630,5 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     }
 #endif
-
 }
 #endif

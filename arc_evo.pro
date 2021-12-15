@@ -7,6 +7,7 @@ HEADERS +=  \
   json.hpp \
   mutation_type.h \
   network.h \
+  node.h \
   observer.h \
   parser.h \
   population.h \
@@ -22,6 +23,7 @@ SOURCES +=  \
   main.cpp \
   mutation_type.cpp \
   network.cpp \
+  node.cpp \
   observer.cpp \
   parser.cpp \
   population.cpp \

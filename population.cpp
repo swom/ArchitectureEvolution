@@ -9,9 +9,9 @@ population<Ind>::population(int init_nr_indiv,
                             std::vector<int> net_arch
                             ):
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
-                individual{ind_param{net_param{net_arch}}}),
+                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
-                    individual{ind_param{net_param{net_arch}}}),
+                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_mut_rate_weight{mut_rate},
     m_mut_step{mut_step}
 {}
@@ -116,8 +116,9 @@ void test_population() noexcept
     ///Population can be initialized with network architecture for inds
     {
         std::vector<int> net_arch{1,33,3,1};
-        population p{1, 0, 0, net_arch};
-        assert(pop::get_nth_ind_net(p, 0) == network{net_arch});
+        net_param n_p{net_arch, linear, net_arch};
+        population p{{1, 0, 0, 0, 0}, {{n_p}}};
+        assert(pop::get_nth_ind_net(p, 0) == network{n_p});
     }
 
     //Population has a buffer_vector for the new_population, with size equal to number of inds
@@ -160,7 +161,7 @@ void test_population() noexcept
         double mut_rate = 0.314;
         double mut_step = 0.1414;
 
-        pop_param p_p{number_of_inds, mut_rate, mut_step, mut_rate};
+        pop_param p_p{number_of_inds, mut_rate, mut_step, mut_rate, mut_rate};
 
         population p{p_p, i_p};
 
