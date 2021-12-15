@@ -268,7 +268,8 @@ void test_network() //!OCLINT
         int repeats = 100000;
 
         auto very_simple_nodes = std::vector<int>{1,2,1};
-        network n{very_simple_nodes};
+        net_param n_p{very_simple_nodes, linear, very_simple_nodes};
+        network n{n_p};
 
         std::vector<weight> networks_weights = register_n_weight_mutations(n,
                                                                            mut_rate,
@@ -613,55 +614,42 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_205
+#define FIX_ISSUE_205
 #ifdef FIX_ISSUE_205
     ///Connections linked to inactive nodes don't mutate
     {
-        network<mutation_type::weights> n_w{net_param({1,1,1}, linear, {1,2,1})};
-        network<mutation_type::activation> n_a{net_param({1,1,1}, linear, {1,2,1})};
-        network<mutation_type::duplication> n_d{net_param({1,1,1}, linear, {1,2,1})};
-        network<mutation_type::weights_and_activation> n_wa{net_param({1,1,1}, linear, {1,2,1})};
+        network n_before{net_param({1,1,1}, linear, {1,2,1})};
         std::mt19937_64 rng;
 
-        assert(!n_w.get_net_weights()[0][1].is_active());
+        assert(!n_before.get_net_weights()[0][1].is_active());
 
-        network n_w_before = n_w;
-        network n_wa_before = n_wa;
-        network n_a_before = n_a;
-        network n_d_before = n_d;
+        network n_w = n_before;
+        mutate_weights(n_w, 1, 0.1, rng);
 
-        n_w.mutate(1, 0.1, rng);
-        n_wa.mutate(1, 0.1, rng);
-        n_a.mutate(1, 0.1, rng);
-        n_d.mutate(1, 0.1, rng);
+        network n_a = n_before;
+        mutate_activation(n_a, 1, rng);
 
-        assert(n_w.get_net_weights()[0][0] != n_w_before.get_net_weights()[0][0]);
-        assert(n_w.get_net_weights()[0][1] == n_w_before.get_net_weights()[0][1]);
+        network n_b = n_before;
+        mutate_biases(n_b, 1, 0.1, rng);
+
+
+        assert(n_w.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_w.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
         assert(n_w.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_w_before.get_net_weights()[1][0].get_vec_weights()[0]);
-        assert(n_w.get_net_weights()[1][1].get_vec_weights()[1] ==
-               n_w_before.get_net_weights()[1][0].get_vec_weights()[1]);
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_w.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
 
-        assert(n_wa.get_net_weights()[0][0] != n_wa_before.get_net_weights()[0][0]);
-        assert(n_wa.get_net_weights()[0][1] == n_wa_before.get_net_weights()[0][1]);
-        assert(n_wa.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_wa_before.get_net_weights()[1][0].get_vec_weights()[0]);
-        assert(n_wa.get_net_weights()[1][1].get_vec_weights()[1] ==
-               n_wa_before.get_net_weights()[1][0].get_vec_weights()[1]);
+        assert(n_b.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_b.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
 
-        assert(n_a.get_net_weights()[0][0] != n_a_before.get_net_weights()[0][0]);
-        assert(n_a.get_net_weights()[0][1] == n_a_before.get_net_weights()[0][1]);
+        assert(n_a.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_a.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
         assert(n_a.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_a_before.get_net_weights()[1][0].get_vec_weights()[0]);
-        assert(n_a.get_net_weights()[1][1].get_vec_weights()[1] ==
-               n_a_before.get_net_weights()[1][0].get_vec_weights()[1]);
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_a.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
 
-        assert(n_d.get_net_weights()[0][0] != n_d_before.get_net_weights()[0][0]);
-        assert(n_d.get_net_weights()[0][1] == n_d_before.get_net_weights()[0][1]);
-        assert(n_d.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_d_before.get_net_weights()[1][0].get_vec_weights()[0]);
-        assert(n_d.get_net_weights()[1][1].get_vec_weights()[1] ==
-               n_d_before.get_net_weights()[1][0].get_vec_weights()[1]);
     }
 #endif
 
