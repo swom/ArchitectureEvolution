@@ -84,15 +84,9 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         save_json(o,
                   convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
                   "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-<<<<<<< HEAD
                   "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
                   "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
                   "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-=======
-                  "_Changefreq_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_Duprate_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5)+
-                  "_Maxarch_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
->>>>>>> 0c80b33c3f676d26d8dfb296d5a7587d1988f6f8
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else
