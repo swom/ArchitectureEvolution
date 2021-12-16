@@ -34,7 +34,9 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         auto s = create_simulation<pop_t>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_Changefreq_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else if (mut_type == mutation_type::activation) {
@@ -48,7 +50,9 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         auto s = create_simulation<pop_t>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_Changefreq_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else if (mut_type == mutation_type::weights_and_activation) {
@@ -62,7 +66,9 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         auto s = create_simulation<pop_t>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_Changefreq_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else if (mut_type == mutation_type::duplication) {
@@ -76,7 +82,10 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         auto s = create_simulation<pop_t>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_Changefreq_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
+                  "_Maxarch_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
     else
@@ -108,6 +117,8 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
     }  catch (int exc) {
         if(exc==1)
             throw std::runtime_error("The current and maximum architectures are not compatible");
+        if(exc==2)
+            throw std::runtime_error("A wrong mutation type has been entered");
 
     }
 
