@@ -37,6 +37,7 @@ public:
         m_vec_indiv(p_p.number_of_inds, Ind{i_p}),
         m_vec_new_indiv(p_p.number_of_inds, Ind{i_p}),
         m_mut_rate_act{p_p.mut_rate_activation},
+        m_mut_rate_dup{p_p.mut_rate_duplication},
         m_mut_rate_weight{p_p.mut_rate_weight},
         m_mut_step{p_p.mut_step}
     {}
