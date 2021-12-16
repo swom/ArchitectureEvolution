@@ -11,6 +11,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
     m_current_function{env_functionA},
     m_name_current_function{'A'}
 {
+    m_rng.seed(0);
 
 
 
@@ -24,7 +25,7 @@ environment::environment(const env_param& e_p):
     m_current_function{e_p.env_function_A},
     m_name_current_function{'A'}
 {
-
+    m_rng.seed(0);
 
 
 

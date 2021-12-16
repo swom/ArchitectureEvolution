@@ -80,6 +80,9 @@ public:
     ///Switches the name of the current function from A to B or B to A
     void switch_name_current_function();
 
+    ///Returns the environment's rng
+    std::mt19937_64 &get_rng() {return m_rng;}
+
 
 
 private:
@@ -98,6 +101,9 @@ private:
 
     /// The name of the current function
     char m_name_current_function;
+
+    /// The environment's rng
+    std::mt19937_64 m_rng;
 
 };
 
