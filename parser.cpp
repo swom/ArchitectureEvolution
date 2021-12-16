@@ -43,8 +43,7 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results)
                 results["mut_rate_weight"].as<double>(),
                 results["mut_step"].as<double>(),
                 results["mut_rate_act"].as<double>(),
-                0
-                //                results["mut_rate_dup"].as<double>()
+                results["mut_rate_dup"].as<double>()
     };
 }
 
