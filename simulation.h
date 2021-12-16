@@ -85,6 +85,9 @@ public:
     ///Returns ref to rng
     std::mt19937_64& get_rng() noexcept {return m_rng;}
 
+    ///Returns ref to environmental rng
+    std::mt19937_64 &get_env_rng() noexcept {return m_environment.get_rng();}
+
     ///Returns const ref to env_member
     const environment& get_env() const noexcept {return m_environment;}
 
@@ -337,7 +340,7 @@ void select_inds(Sim& s)
 template<class Sim>
 bool is_environment_changing(Sim &s) {
     std::bernoulli_distribution distro = s.get_t_change_env_distr();
-    return distro (s.get_rng());
+    return distro (s.get_env_rng());
 }
 
 ///Switches the function of the environment used to calculate the optimal output
