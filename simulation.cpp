@@ -631,7 +631,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-//#define FIX_ISSUE_158
+#define FIX_ISSUE_158
 #ifdef FIX_ISSUE_158
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
@@ -639,10 +639,12 @@ void test_simulation() noexcept//!OCLINT test may be many
         sim_param s_p{1, 0, 0, 0}; //Simulation rng is seeded with 1
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
+        std::mt19937_64 rng_before = s.get_rng();
 
-        environment e = s.get_env();
+        assert(s.get_rng() != s.get_env_rng());
 
-        assert(s.get_rng() != e.get_rng());
+        is_environment_changing(s);
+        assert(s.get_rng() == rng_before);
 
     }
 #endif
