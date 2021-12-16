@@ -44,20 +44,24 @@ void mutate_weights(Net& n, const double& mut_rate,
                     std::mt19937_64& rng)
 {
 
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
+  std::bernoulli_distribution mut_p{mut_rate};
+  std::normal_distribution<double> mut_st{0,mut_step};
 
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
-            {
-                if(mut_p(rng)){
-                    const weight &current_weight = node.get_vec_weights()[i];
+  for(size_t i = 0; i != n.get_net_weights().size(); ++i)
+    for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+        auto &current_node = n.get_net_weights()[i][j];
+        if(current_node.is_active()){
+            for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+              {
+                if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                    const weight &current_weight = current_node.get_vec_weights()[k];
                     weight mutated_weight(current_weight.get_weight() + mut_st(rng),
                                           current_weight.is_active());
-                    node.change_nth_weight(mutated_weight, i);
-                }
-            }
+                    current_node.change_nth_weight(mutated_weight, k);
+                  }
+              }
+          }
+      }
 
 }
 
@@ -99,17 +103,21 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 {
     std::bernoulli_distribution mut_p{mut_rate};
 
-    for(auto& layer : n.get_net_weights())
-        for(auto& node : layer)
-            for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
-            {
-                if(mut_p(rng)){
-                    const weight &current_weight = node.get_vec_weights()[i];
-                    weight mutated_weight(current_weight.get_weight(),
-                                          !current_weight.is_active());
-                    node.change_nth_weight(mutated_weight, i);
+    for(size_t i = 0; i != n.get_net_weights().size(); ++i)
+      for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+          auto &current_node = n.get_net_weights()[i][j];
+          if(current_node.is_active()){
+              for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+                {
+                  if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                      const weight &current_weight = current_node.get_vec_weights()[k];
+                      weight mutated_weight(current_weight.get_weight(),
+                                            !current_weight.is_active());
+                      current_node.change_nth_weight(mutated_weight, k);
+                    }
                 }
             }
+        }
 }
 
 ///Mutates the biases of the nodes
@@ -121,12 +129,11 @@ void mutate_biases(Net& n, const double& mut_rate,
     std::bernoulli_distribution mut_p{mut_rate};
     std::normal_distribution<double> mut_st{0,mut_step};
 
-    auto vector = n.get_net_weights();
+    auto& vector = n.get_net_weights();
     for(auto& layer : vector){
         for(auto& node : layer)
         {
-
-            if(mut_p(rng)){
+            if(mut_p(rng) && node.is_active()){
                 node.change_bias(node.get_bias() + mut_st(rng));
             }
         }
@@ -172,39 +179,41 @@ public:
           }
     }
 
-    void mutate(const double& mut_rate_weight,
-                const double& mut_step,
-                std::mt19937_64& rng,
-                const double& mut_rate_act = 0.01,
-                const double& mut_rate_dup = 0.01
-                )
-       {
+        void mutate(const double& mut_rate_weight,
+                    const double& mut_step,
+                    std::mt19937_64& rng,
+                    const double& mut_rate_act = 0.01,
+                    const double& mut_rate_dup = 0.01
+            )
+        {
 
-           if constexpr (M == mutation_type::activation)
-           {
-               mutate_activation(*this, mut_rate_act, rng);
-           }
+          if constexpr (M == mutation_type::activation)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+          }
 
-           else if constexpr(M == mutation_type::weights)
-           {
-               mutate_weights(*this, mut_rate_weight, mut_step, rng);
-           }
+          else if constexpr(M == mutation_type::weights)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+          }
 
-           else if constexpr(M == mutation_type::weights_and_activation)
-           {
-               mutate_activation(*this, mut_rate_act, rng);
-               mutate_weights(*this, mut_rate_weight, mut_step, rng);
-           }
+          else if constexpr(M == mutation_type::weights_and_activation)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+          }
 
-           else if constexpr(M == mutation_type::duplication)
-           {
-               mutate_activation(*this, mut_rate_act, rng);
-               mutate_weights(*this, mut_rate_weight, mut_step, rng);
-               mut_dupl_node(*this, mut_rate_dup, rng);
-           }
-
-           mutate_biases(*this, mut_rate_weight, mut_step, rng);
-       };
+          else if constexpr(M == mutation_type::duplication)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+            mut_dupl_node(*this, mut_rate_dup, rng);
+          }
+        };
 
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
     {

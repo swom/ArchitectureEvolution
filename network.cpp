@@ -268,7 +268,8 @@ void test_network() //!OCLINT
         int repeats = 100000;
 
         auto very_simple_nodes = std::vector<int>{1,2,1};
-        network n{very_simple_nodes};
+        net_param n_p{very_simple_nodes, linear, very_simple_nodes};
+        network n{n_p};
 
         std::vector<weight> networks_weights = register_n_weight_mutations(n,
                                                                            mut_rate,
@@ -612,6 +613,46 @@ void test_network() //!OCLINT
         assert(output1 == output2);
     }
 #endif
+
+#define FIX_ISSUE_205
+#ifdef FIX_ISSUE_205
+    ///Connections linked to inactive nodes don't mutate
+    {
+        network n_before{net_param({1,1,1}, linear, {1,2,1})};
+        std::mt19937_64 rng;
+
+        assert(!n_before.get_net_weights()[0][1].is_active());
+
+        network n_w = n_before;
+        mutate_weights(n_w, 1, 0.1, rng);
+
+        network n_a = n_before;
+        mutate_activation(n_a, 1, rng);
+
+        network n_b = n_before;
+        mutate_biases(n_b, 1, 0.1, rng);
+
+
+        assert(n_w.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_w.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+        assert(n_w.get_net_weights()[1][0].get_vec_weights()[0] !=
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_w.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+
+        assert(n_b.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_b.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+
+        assert(n_a.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_a.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+        assert(n_a.get_net_weights()[1][0].get_vec_weights()[0] !=
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_a.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+
+    }
+#endif
+
 
 }
 #endif
