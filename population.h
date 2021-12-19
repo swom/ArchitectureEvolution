@@ -224,14 +224,17 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
 
 ///Gets the best n individuals in a pop
 template< class Ind>
-std::vector<Ind> get_best_n_inds(const population<Ind>& p, int nth)
+const std::vector<Ind> get_best_n_inds(const population<Ind>& p, int nth)
 {
-    auto inds = p.get_inds();
-    std::nth_element(inds.begin(), inds.begin() + nth, inds.end(),
-                     [](const Ind& lhs, const Ind& rhs)
-    {return lhs.get_fitness() > rhs.get_fitness();});
 
-    return std::vector<Ind>(inds.begin(), inds.begin() + nth);
+    std::vector<Ind> top_inds;
+    top_inds.resize(nth);
+
+    std::partial_sort_copy(p.get_inds().begin(), p.get_inds().end(),
+                           top_inds.begin(), top_inds.end(),
+                           [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() < rhs.get_fitness();});
+
+    return top_inds;
 }
 
 

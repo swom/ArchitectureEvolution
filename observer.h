@@ -117,12 +117,13 @@ void exec(Sim& s , observer<Sim>& o)
 
         if(i % 1000 == 0)
         {
-            o.store_top_n_inds(s);
+            auto lap_ms = my_watch.lap<sw::ms>();
+            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;;
         }
         if(i % 1000 == 0)
         {
-            auto lap_ms = my_watch.lap<sw::ms>();
-            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;;
+            o.store_top_n_inds(s);
+            std::cout << "exiting store_top_inds()" << std::endl;
         }
 
         sim::tick (s);

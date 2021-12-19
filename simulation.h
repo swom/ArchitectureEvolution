@@ -296,7 +296,7 @@ void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop
 
 ///Gets the best n individuals in a pop
 template<class Sim>
-std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
+const std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 {
     return pop::get_best_n_inds(s.get_pop(), n);
 }
