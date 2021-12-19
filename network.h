@@ -228,7 +228,7 @@ public:
         if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
             return;
 
-        size_t index = empty_node_iterator - get_net_weights()[0].begin();
+        size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
         m_network_weights[layer][index] = to_duplicate;
 
         for(auto &node : m_network_weights[layer+1]){
