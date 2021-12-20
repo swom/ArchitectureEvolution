@@ -49,6 +49,9 @@ CONFIG(release, debug|release) {
   DEFINES += NDEBUG
 }
 
+#Displaying console when launchin .exe
+CONFIG += console
+
 # Qt5
 QT += core gui
 
