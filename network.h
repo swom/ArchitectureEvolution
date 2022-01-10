@@ -243,10 +243,12 @@ public:
       if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
         return;
 
+      //activating
       size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
       node &added_node = m_network_weights[layer][index];
       added_node.activate();
 
+      //adding incoming connections
       std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
       std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
 
@@ -266,12 +268,30 @@ public:
             }
         }
 
+      //adding outgoing connections
+
+      std::vector<size_t> vec_indexes_out(m_network_weights[layer + 1].size());
+      std::iota(std::begin(vec_indexes_out), std::end(vec_indexes_out), 0);
+
+      std::vector<size_t> indexes_to_activate_out;
+      int nb_outgoing_weights = std::round(average_number_outgoing_weights(*this, layer));
+      std::sample(vec_indexes_out.begin(), vec_indexes_out.end(), std::back_inserter(indexes_to_activate_out), nb_outgoing_weights, rng);
+
+      for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
+          weight w = m_network_weights[layer + 1][i].get_vec_weights()[index];
+          if(std::count(indexes_to_activate_out.begin(), indexes_to_activate_out.end(), i)){
+              w.change_activation(true);
+              m_network_weights[layer + 1][i].change_nth_weight(w, index);
+            }
+          else{
+              w.change_activation(false);
+              m_network_weights[layer + 1][i].change_nth_weight(w, index);
+            }
+        }
 
 
-      //        for(auto &node : m_network_weights[layer+1]){
-      //            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
-      //            node.change_nth_weight(weight_to_duplicate, index);
-      //        }
+
+
       ++m_current_arc[layer + 1];
     }
 

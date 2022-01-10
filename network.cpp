@@ -176,7 +176,7 @@ double average_number_incoming_weights(const Net &n, size_t layer_index){
 
 template<class Net>
 double average_number_outgoing_weights(const Net &n, size_t layer_index){
-  return average_number_incoming_weights(n, layer_index + 1);
+  return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
 }
 
 #ifndef NDEBUG
@@ -687,7 +687,7 @@ void test_network() //!OCLINT
     assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
     auto empty_node_iterator = n.get_empty_node_in_layer(0);
 
-    n.add_node(1, empty_node_iterator, rng);
+    n.add_node(0, empty_node_iterator, rng);
 
     auto added_node = *empty_node_iterator;
 
@@ -703,7 +703,7 @@ void test_network() //!OCLINT
 
     ///Checking that it has the right number of active outgoing connections
     size_t n_out_con = 0;
-    for(const auto &node : n.get_net_weights()[0])
+    for(const auto &node : n.get_net_weights()[1])
       if(node.get_vec_weights()[2].is_active()) ++n_out_con;
 
     assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
