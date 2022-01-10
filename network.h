@@ -247,22 +247,42 @@ public:
         node &added_node = m_network_weights[layer][index];
         added_node.activate();
 
-        int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
 
-        std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
-        std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
+        if(layer > 0){
+            std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
+            std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
 
-        std::vector<size_t> indexes_to_activate;
-        std::sample(vec_indexes.begin(), vec_indexes.end(), nb_incoming_weights, indexes_to_activate, rng);
+            for(size_t i = 0; i != m_network_weights[layer-1].size(); ++i){
+                if(node_is_inactive(m_network_weights[layer-1][i])){
+                    vec_indexes.erase(vec_indexes.begin() + i);
+                  }
+              }
 
-        for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
-            weight w = added_node.get_vec_weights()[i];
-            if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
-            w.change_activation(true);}
-            else{
-                w.change_activation(false);
+            std::vector<size_t> indexes_to_activate;
+            int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
+            std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
+
+            for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
+                weight w = added_node.get_vec_weights()[i];
+                if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+                    w.change_activation(true);
+                    added_node.change_nth_weight(w,i);
+                  }
+                else{
+                    w.change_activation(false);
+                    added_node.change_nth_weight(w,i);
+                  }
               }
           }
+
+        else{
+            for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
+                weight w = added_node.get_vec_weights()[i];
+                w.change_activation(true);
+                added_node.change_nth_weight(w,i);
+              }
+          }
+
 
 //        for(auto &node : m_network_weights[layer+1]){
 //            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
