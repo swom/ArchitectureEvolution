@@ -161,6 +161,23 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
+template<class Net>
+double average_number_incoming_weights(const Net &n, size_t layer_index){
+  std::vector<node> layer = n.get_net_weights()[layer_index];
+  double total = 0;
+
+  for(const auto &node : layer){
+      for(const auto &weight : node.get_vec_weights()){
+          if(weight.is_active()) ++total;
+        }
+    }
+  return total / layer.size();
+}
+
+template<class Net>
+double average_number_outgoing_weights(const Net &n, size_t layer_index){
+  return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
+}
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -268,7 +285,8 @@ void test_network() //!OCLINT
         int repeats = 100000;
 
         auto very_simple_nodes = std::vector<int>{1,2,1};
-        network n{very_simple_nodes};
+        net_param n_p{very_simple_nodes, linear, very_simple_nodes};
+        network n{n_p};
 
         std::vector<weight> networks_weights = register_n_weight_mutations(n,
                                                                            mut_rate,
@@ -610,6 +628,86 @@ void test_network() //!OCLINT
         std::vector<double> output1 = output(n1, {1});
         std::vector<double> output2 = output(n2, {1});
         assert(output1 == output2);
+    }
+#endif
+
+#define FIX_ISSUE_205
+#ifdef FIX_ISSUE_205
+    ///Connections linked to inactive nodes don't mutate
+    {
+        network n_before{net_param({1,1,1}, linear, {1,2,1})};
+        std::mt19937_64 rng;
+
+        assert(!n_before.get_net_weights()[0][1].is_active());
+
+        network n_w = n_before;
+        mutate_weights(n_w, 1, 0.1, rng);
+
+        network n_a = n_before;
+        mutate_activation(n_a, 1, rng);
+
+        network n_b = n_before;
+        mutate_biases(n_b, 1, 0.1, rng);
+
+
+        assert(n_w.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_w.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+        assert(n_w.get_net_weights()[1][0].get_vec_weights()[0] !=
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_w.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+
+        assert(n_b.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_b.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+
+        assert(n_a.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
+        assert(n_a.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
+        assert(n_a.get_net_weights()[1][0].get_vec_weights()[0] !=
+               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+        assert(n_a.get_net_weights()[1][0].get_vec_weights()[1] ==
+               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+
+    }
+#endif
+
+#define FIX_ISSUE_209
+#ifdef FIX_ISSUE_209
+    ///There is a function that randomy adds a node to the network with the correct number of connections
+    /// With a number of edges depending on the average degree
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,2,1};
+    n_p.max_arc = {1,3,1};
+
+    network n{n_p};
+
+    std::mt19937_64 rng;
+    network n_before = n;
+
+    assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+    auto empty_node_iterator = n.get_empty_node_in_layer(0);
+
+    n.add_node(0, empty_node_iterator, rng);
+
+    auto added_node = *empty_node_iterator;
+
+    ///Checking that the node is now active
+    assert(added_node.is_active());
+
+    ///Checking that it has the right number of active incoming connections
+    size_t n_in_con = 0;
+    for(const auto &con : added_node.get_vec_weights())
+      if(con.is_active()) ++n_in_con;
+
+    assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
+
+    ///Checking that it has the right number of active outgoing connections
+    size_t n_out_con = 0;
+    for(const auto &node : n.get_net_weights()[1])
+      if(node.get_vec_weights()[2].is_active()) ++n_out_con;
+
+    assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
+
     }
 #endif
 

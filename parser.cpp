@@ -30,7 +30,8 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
 {
     return net_param{
         results["net_arc"].as<std::vector<int>>(),
-                string_to_act_func_map.find(results["act_func"].as<std::string>())->second
+                string_to_act_func_map.find(results["act_func"].as<std::string>())->second,
+                results["max_arc"].as<std::vector<int>>()
     };
 }
 
@@ -42,8 +43,7 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results)
                 results["mut_rate_weight"].as<double>(),
                 results["mut_step"].as<double>(),
                 results["mut_rate_act"].as<double>(),
-                0
-                //                results["mut_rate_dup"].as<double>()
+                results["mut_rate_dup"].as<double>()
     };
 }
 
@@ -67,6 +67,7 @@ cxxopts::Options create_parser(){
             ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("1"))
             ("b,env_func_B", "the starting env function B",cxxopts::value<std::string>()->default_value("2"))
             ("N,net_arc", "the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
+            ("X,max_arc", "the maximum size of the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,8,1"))
             ("F,act_func",
              "the string representing the name of the activation function of the net",
              cxxopts::value<std::string>()->default_value("sigmoid"))
