@@ -240,55 +240,39 @@ public:
 
     inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 rng)
     {
-        if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
-            return;
+      if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+        return;
 
-        size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
-        node &added_node = m_network_weights[layer][index];
-        added_node.activate();
+      size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
+      node &added_node = m_network_weights[layer][index];
+      added_node.activate();
 
+      std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
+      std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
 
-        if(layer > 0){
-            std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
-            std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
+      std::vector<size_t> indexes_to_activate;
+      int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
+      std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
 
-            for(size_t i = 0; i != m_network_weights[layer-1].size(); ++i){
-                if(node_is_inactive(m_network_weights[layer-1][i])){
-                    vec_indexes.erase(vec_indexes.begin() + i);
-                  }
-              }
-
-            std::vector<size_t> indexes_to_activate;
-            int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
-            std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
-
-            for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
-                weight w = added_node.get_vec_weights()[i];
-                if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
-                    w.change_activation(true);
-                    added_node.change_nth_weight(w,i);
-                  }
-                else{
-                    w.change_activation(false);
-                    added_node.change_nth_weight(w,i);
-                  }
-              }
-          }
-
-        else{
-            for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
-                weight w = added_node.get_vec_weights()[i];
-                w.change_activation(true);
-                added_node.change_nth_weight(w,i);
-              }
-          }
+      for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
+          weight w = added_node.get_vec_weights()[i];
+          if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+              w.change_activation(true);
+              added_node.change_nth_weight(w,i);
+            }
+          else{
+              w.change_activation(false);
+              added_node.change_nth_weight(w,i);
+            }
+        }
 
 
-//        for(auto &node : m_network_weights[layer+1]){
-//            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
-//            node.change_nth_weight(weight_to_duplicate, index);
-//        }
-        ++m_current_arc[layer + 1];
+
+      //        for(auto &node : m_network_weights[layer+1]){
+      //            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+      //            node.change_nth_weight(weight_to_duplicate, index);
+      //        }
+      ++m_current_arc[layer + 1];
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,

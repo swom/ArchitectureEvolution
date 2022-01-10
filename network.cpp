@@ -676,16 +676,16 @@ void test_network() //!OCLINT
     /// With a number of edges depending on the average degree
     {
     net_param n_p{};
-    n_p.net_arc = {1,2,2,2,1};
-    n_p.max_arc = {1,3,3,3,1};
+    n_p.net_arc = {1,2,1};
+    n_p.max_arc = {1,3,1};
 
     network n{n_p};
 
     std::mt19937_64 rng;
     network n_before = n;
 
-    assert(*n.get_empty_node_in_layer(1) == n.get_net_weights()[1][2]); //This should be in third position (index 2)
-    auto empty_node_iterator = n.get_empty_node_in_layer(1);
+    assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+    auto empty_node_iterator = n.get_empty_node_in_layer(0);
 
     n.add_node(1, empty_node_iterator, rng);
 
@@ -703,14 +703,10 @@ void test_network() //!OCLINT
 
     ///Checking that it has the right number of active outgoing connections
     size_t n_out_con = 0;
-    for(const auto &node : n.get_net_weights()[1])
+    for(const auto &node : n.get_net_weights()[0])
       if(node.get_vec_weights()[2].is_active()) ++n_out_con;
 
     assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
-
-    ///Checking that it is not connected to any inactive node (here, to the third node in a layer)
-    assert(!added_node.get_vec_weights()[2].is_active());
-    assert(!n.get_net_weights()[2][2].get_vec_weights()[2].is_active());
 
     }
 #endif
