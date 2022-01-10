@@ -161,6 +161,23 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
+template<class Net>
+double average_number_incoming_weights(const Net &n, size_t layer_index){
+  std::vector<node> layer = n.get_net_weights()[layer_index];
+  double total = 0;
+
+  for(const auto &node : layer){
+      for(const auto &weight : node.get_vec_weights()){
+          if(weight.is_active()) ++total;
+        }
+    }
+  return total / layer.size();
+}
+
+template<class Net>
+double average_number_outgoing_weights(const Net &n, size_t layer_index){
+  return average_number_incoming_weights(n, layer_index + 1);
+}
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -653,7 +670,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_209
+#define FIX_ISSUE_209
 #ifdef FIX_ISSUE_209
     ///There is a function that randomy adds a node to the network with the correct number of connections
     /// With a number of edges depending on the average degree
@@ -669,19 +686,20 @@ void test_network() //!OCLINT
 
     assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
     auto empty_node_iterator = n.get_empty_node_in_layer(0);
-    auto empty_node = *empty_node_iterator;
 
-    n.add_node(0, empty_node_iterator);
+    n.add_node(0, empty_node_iterator, rng);
+
+    auto added_node = *empty_node_iterator;
 
     ///Checking that the node is now active
-    assert(empty_node.is_active());
+    assert(added_node.is_active());
 
     ///Checking that it has the right number of active incoming connections
     size_t n_in_con = 0;
-    for(const auto &con : empty_node.get_vec_weights())
+    for(const auto &con : added_node.get_vec_weights())
       if(con.is_active()) ++n_in_con;
 
-    assert(n_in_con == std::round(average_number_incoming_weights(n.get_net_weights()[0])));
+    assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
 
     ///Checking that it has the right number of active outgoing connections
     size_t n_out_con = 0;

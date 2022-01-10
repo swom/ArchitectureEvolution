@@ -238,6 +238,39 @@ public:
         ++m_current_arc[layer + 1];
     }
 
+    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 rng)
+    {
+        if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+            return;
+
+        size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
+        node &added_node = m_network_weights[layer][index];
+        added_node.activate();
+
+        int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
+
+        std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
+        std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
+
+        std::vector<size_t> indexes_to_activate;
+        std::sample(vec_indexes.begin(), vec_indexes.end(), nb_incoming_weights, indexes_to_activate, rng);
+
+        for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
+            weight w = added_node.get_vec_weights()[i];
+            if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+            w.change_activation(true);}
+            else{
+                w.change_activation(false);
+              }
+          }
+
+//        for(auto &node : m_network_weights[layer+1]){
+//            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+//            node.change_nth_weight(weight_to_duplicate, index);
+//        }
+        ++m_current_arc[layer + 1];
+    }
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
                                    m_network_weights
@@ -545,6 +578,14 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 
     return true;
 }
+
+///Calculates the average number of incoming weights in a layer
+template<class Net>
+double average_number_incoming_weights(const Net &n, size_t layer_index);
+
+///Calculates the average number of weights going out of a layer
+template<class Net>
+double average_number_outgoing_weights(const Net &n, size_t layer_index);
 
 
 
