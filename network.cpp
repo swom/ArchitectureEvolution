@@ -682,7 +682,6 @@ void test_network() //!OCLINT
     network n{n_p};
 
     std::mt19937_64 rng;
-    network n_before = n;
 
     assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
     auto empty_node_iterator = n.get_empty_node_in_layer(0);
@@ -707,6 +706,64 @@ void test_network() //!OCLINT
       if(node.get_vec_weights()[2].is_active()) ++n_out_con;
 
     assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
+
+    }
+#endif
+
+#define FIX_ISSUE_210
+#ifdef FIX_ISSUE_210
+    ///When adding a node to a network randomly, which nodes it is connected to is random
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,8,1,8,1};
+    n_p.max_arc = {1,8,2,8,1};
+
+    network n1{n_p};
+    std::mt19937_64 rng1(0);
+    std::mt19937_64 rng2(1);
+
+    for(int i=0; i!= 100; ++i){
+        mutate_activation(n1, 0.2, rng1);
+      }
+
+
+    network n2 = n1;
+
+    auto empty_node_iterator1 = n1.get_empty_node_in_layer(1);
+    auto empty_node_iterator2 = n2.get_empty_node_in_layer(1);
+
+    n1.add_node(1, empty_node_iterator1, rng1);
+    n2.add_node(1, empty_node_iterator2, rng2);
+
+    auto added_node1 = *empty_node_iterator1;
+    auto added_node2 = *empty_node_iterator2;
+
+    ///Checking that the node is now active in both cases
+    assert(added_node1.is_active() && added_node1.is_active());
+
+    ///Checking that the incoming connections are different
+    int dif = 0;
+    for(size_t i=0; i != added_node1.get_vec_weights().size(); ++i){
+        weight w1 = added_node1.get_vec_weights()[i];
+        weight w2 = added_node2.get_vec_weights()[i];
+        if(w1.is_active() != w2.is_active()){
+            ++dif;
+          }
+      }
+    assert(dif != 0);
+
+    ///Checking that the outgoing connections are different
+
+    dif = 0;
+    for(size_t i=0; i != n1.get_net_weights()[2].size(); ++i){
+        node node1 = n1.get_net_weights()[2][i];
+        node node2 = n2.get_net_weights()[2][i];
+
+        if(node1.get_vec_weights()[1].is_active() != node2.get_vec_weights()[1].is_active()){
+            ++dif;
+          }
+      }
+    assert(dif != 0);
 
     }
 #endif
