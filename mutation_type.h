@@ -8,7 +8,8 @@ enum class mutation_type
  weights,
     activation,
     weights_and_activation,
-    duplication
+    duplication,
+    addition
 };
 
 std::string convert_mut_type_to_string(mutation_type m);
