@@ -807,5 +807,29 @@ void test_network() //!OCLINT
     assert(added_node1.get_bias() != added_node2.get_bias());
     }
   #endif
+
+//#define FIX_ISSUE_212
+#ifdef FIX_ISSUE_212
+    ///There is a new mutation mode where nodes can randomly added by mutation
+    {
+        net_param n_p{{1,1,1}};
+        network<mutation_type::addition> n_mut{n_p};
+        network<mutation_type::duplication> n_dup{n_p};
+        network n_add{n_p};
+
+        auto mutation_rate = 1;
+        std::mt19937_64 rng;
+        auto rng_copy = rng;
+        auto rng_copy_2 = rng;
+
+        n_mut.mutate(0, 0, rng_copy, 0, mutation_rate);
+        n_add.add_node(0, n_add.get_empty_node_in_layer(0), rng);
+        n_dup.mutate(0, 0, rng_copy_2, 0, mutation_rate);
+
+        assert(n_mut == n_add);
+        assert(n_mut != n_dup);
+    }
+#endif
+
 }
 #endif
