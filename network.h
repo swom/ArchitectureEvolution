@@ -248,6 +248,10 @@ public:
       node &added_node = m_network_weights[layer][index];
       added_node.activate();
 
+      //Making the bias random within a given range
+      std::uniform_real_distribution<double> dist(-1, 1);
+      added_node.change_bias(dist(rng));
+
       //adding incoming connections
       std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
       std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
@@ -260,6 +264,7 @@ public:
           weight w = added_node.get_vec_weights()[i];
           if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
               w.change_activation(true);
+              w.change_weight(dist(rng));
               added_node.change_nth_weight(w,i);
             }
           else{
@@ -281,6 +286,7 @@ public:
           weight w = m_network_weights[layer + 1][i].get_vec_weights()[index];
           if(std::count(indexes_to_activate_out.begin(), indexes_to_activate_out.end(), i)){
               w.change_activation(true);
+              w.change_weight(dist(rng));
               m_network_weights[layer + 1][i].change_nth_weight(w, index);
             }
           else{

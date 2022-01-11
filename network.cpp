@@ -768,7 +768,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_211
+#define FIX_ISSUE_211
 #ifdef FIX_ISSUE_211
     ///When adding a new node to a network randomly, the value of the weights and of its bias are chosen randomly
     {
