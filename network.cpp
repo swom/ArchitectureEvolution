@@ -741,7 +741,7 @@ void test_network() //!OCLINT
     ///Checking that the node is now active in both cases
     assert(added_node1.is_active() && added_node1.is_active());
 
-    ///Checking that the incoming connections are different
+    ///Checking that the incoming connections are different in activation
     int dif = 0;
     for(size_t i=0; i != added_node1.get_vec_weights().size(); ++i){
         weight w1 = added_node1.get_vec_weights()[i];
@@ -752,7 +752,7 @@ void test_network() //!OCLINT
       }
     assert(dif != 0);
 
-    ///Checking that the outgoing connections are different
+    ///Checking that the outgoing connections are different in activation
 
     dif = 0;
     for(size_t i=0; i != n1.get_net_weights()[2].size(); ++i){
@@ -768,5 +768,44 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_211
+#ifdef FIX_ISSUE_211
+    ///When adding a new node to a network randomly, the value of the weights and of its bias are chosen randomly
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,2,1};
+    n_p.max_arc = {1,3,1};
+
+    network n1{n_p};
+    network n2 = n1;
+    std::mt19937_64 rng1(0);
+    std::mt19937_64 rng2(1);
+
+    auto empty_node_iterator1 = n1.get_empty_node_in_layer(0);
+    auto empty_node_iterator2 = n2.get_empty_node_in_layer(0);
+
+    n1.add_node(0, empty_node_iterator1, rng1);
+    n2.add_node(0, empty_node_iterator2, rng2);
+
+    auto added_node1 = *empty_node_iterator1;
+    auto added_node2 = *empty_node_iterator2;
+
+    ///Checking that the node is now active in both cases
+    assert(added_node1.is_active() && added_node1.is_active());
+
+    ///Checking that the incoming connections are different in weight value
+    weight w1 = added_node1.get_vec_weights()[0];
+    weight w2 = added_node2.get_vec_weights()[0];
+    assert(w1.get_weight() != w2.get_weight());
+
+    ///Checking that the outgoing connections are different in weight value
+    node node1 = n1.get_net_weights()[1][0];
+    node node2 = n2.get_net_weights()[1][0];
+    assert(node1.get_vec_weights()[2].get_weight() != node2.get_vec_weights()[2].get_weight());
+
+    ///Checking that the bias value of the nodes is different
+    assert(added_node1.get_bias() != added_node2.get_bias());
+    }
+  #endif
 }
 #endif
