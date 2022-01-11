@@ -808,7 +808,7 @@ void test_network() //!OCLINT
     }
   #endif
 
-//#define FIX_ISSUE_212
+#define FIX_ISSUE_212
 #ifdef FIX_ISSUE_212
     ///There is a new mutation mode where nodes can randomly added by mutation
     {
@@ -822,12 +822,14 @@ void test_network() //!OCLINT
         auto rng_copy = rng;
         auto rng_copy_2 = rng;
 
+        rng.discard(1); //to compensate for the rng being called to know if there is mutation in mutate
+
         n_mut.mutate(0, 0, rng_copy, 0, mutation_rate);
         n_add.add_node(0, n_add.get_empty_node_in_layer(0), rng);
         n_dup.mutate(0, 0, rng_copy_2, 0, mutation_rate);
 
-        assert(n_mut == n_add);
-        assert(n_mut != n_dup);
+        assert(are_equal_except_mutation_type(n_mut, n_add));
+        assert(!are_equal_except_mutation_type(n_mut, n_dup));
     }
 #endif
 
