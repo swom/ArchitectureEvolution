@@ -132,6 +132,34 @@ void mut_add_node(Net& n,
 
 }
 
+///Mutates a network by deleting some nodes
+template<class Net>
+void mut_del(Net& n,
+             const double& mut_rate,
+             std::mt19937_64& rng)
+{
+
+  std::bernoulli_distribution mut_p{mut_rate};
+
+  for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
+    {
+      auto& current_layer = n.get_net_weights()[layer];
+
+      for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
+        {
+
+          const auto& current_node = current_layer[node_index];
+
+          if(current_node.is_active() && mut_p(rng))
+            {
+              std::vector<node>::iterator node_iterator = n.get_net_weights()[layer].begin() + node_index;
+              n.delete_node(layer, node_iterator);
+            }
+        }
+    }
+}
+
+
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>
@@ -261,6 +289,25 @@ public:
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_add_node(*this, mut_rate_dup, rng);
           }
+
+          else if constexpr(M == mutation_type::NRduplication)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+            mut_dupl_node(*this, mut_rate_dup, rng);
+            mut_del(*this, mut_rate_dup, rng);
+          }
+
+          else if constexpr(M == mutation_type::NRaddition)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+            mut_add_node(*this, mut_rate_dup, rng);
+            mut_del(*this, mut_rate_dup, rng);
+          }
+
         };
 
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
@@ -343,10 +390,34 @@ public:
             }
         }
 
-
-
-
       ++m_current_arc[layer + 1];
+    }
+
+    inline void delete_node(size_t layer, const std::vector<node>::iterator &node_iterator)
+    {
+      if(m_current_arc[layer + 1] == 1)
+        return;
+
+      //de-activating
+      size_t index = node_iterator - get_net_weights()[layer].begin() ;
+      node &deleted_node = m_network_weights[layer][index];
+      deleted_node.deactivate();
+
+      //Resetting bias
+      deleted_node.change_bias(0);
+
+      //Resetting incoming connections
+      weight default_w{};
+      for(size_t i=0; i!= deleted_node.get_vec_weights().size(); ++i){
+              deleted_node.change_nth_weight(default_w,i);
+        }
+
+      //Resetting outgoing connections
+      for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
+          m_network_weights[layer + 1][i].change_nth_weight(default_w, index);
+        }
+
+      --m_current_arc[layer + 1];
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,

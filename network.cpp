@@ -833,5 +833,93 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_231
+#ifdef FIX_ISSUE_231
+  ///There is a function that deletes a given node
+  {
+  net_param n_p{};
+  n_p.net_arc = {1,2,1};
+
+  network n{n_p};
+
+  std::vector<node>::iterator node_iterator = n.get_net_weights()[0].begin(); //Deleting the first node of the middle layer
+
+  n.delete_node(0, node_iterator);
+
+  auto deleted_node = *node_iterator;
+
+  ///Checking that the node has been inactivated, its bias put back to 0 and all its weights reset
+  assert(!deleted_node.is_active());
+  assert(deleted_node.get_bias() == 0);
+  weight w_theo{};
+  for(const auto &weight: deleted_node.get_vec_weights()){
+      assert(weight == w_theo);
+    }
+
+
+  ///Checking that outgoing weights have also been reset
+  for(const auto &node : n.get_net_weights()[1]){
+      assert(node.get_vec_weights()[0] == w_theo);
+    }
+  }
+#endif
+
+#define FIX_ISSUE_234
+#ifdef FIX_ISSUE_234
+    ///There is a new mutation function where nodes can randomly be deleted by mutation
+    {
+        net_param n_p{{1,2,1}};
+        network n_mut{n_p};
+        network n_del{n_p};
+
+        auto mutation_rate = 1;
+        std::mt19937_64 rng;
+
+
+        mut_del(n_mut, mutation_rate, rng);
+        n_del.delete_node(0, n_del.get_net_weights()[0].begin());
+
+        assert(n_mut == n_del);
+    }
+#endif
+
+#define FIX_ISSUE_235
+#ifdef FIX_ISSUE_235
+    ///There is a non-ratchet duplication mutation mode
+    /// ///There is a non-ratchet addition mutation mode
+    {
+        net_param n_p{{1,3,1}};
+
+        network<mutation_type::NRduplication> n_nrd_mut{n_p};
+        network n_dupdel{n_p};
+
+        auto mutation_rate = 0.5;
+        std::mt19937_64 rng;
+        std::mt19937_64 rng_copy = rng;
+
+        n_nrd_mut.mutate(mutation_rate, 0.1, rng, mutation_rate, mutation_rate);
+
+        mutate_biases(n_dupdel, mutation_rate, 0.1, rng_copy);
+        mutate_activation(n_dupdel, mutation_rate, rng_copy);
+        mutate_weights(n_dupdel, mutation_rate, 0.1, rng_copy);
+        mut_dupl_node(n_dupdel, mutation_rate, rng_copy);
+        mut_del(n_dupdel, mutation_rate, rng_copy);
+
+        assert(are_equal_except_mutation_type(n_nrd_mut, n_dupdel));
+
+        network<mutation_type::NRaddition> n_nra_mut{n_p};
+        network n_addel{n_p};
+
+        n_nra_mut.mutate(mutation_rate, 0.1, rng, mutation_rate, mutation_rate);
+
+        mutate_biases(n_addel, mutation_rate, 0.1, rng_copy);
+        mutate_activation(n_addel, mutation_rate, rng_copy);
+        mutate_weights(n_addel, mutation_rate, 0.1, rng_copy);
+        mut_add_node(n_addel, mutation_rate, rng_copy);
+        mut_del(n_addel, mutation_rate, rng_copy);
+    }
+#endif
+
+
 }
 #endif

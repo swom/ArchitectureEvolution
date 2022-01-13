@@ -9,7 +9,9 @@ enum class mutation_type
     activation,
     weights_and_activation,
     duplication,
-    addition
+    addition,
+  NRduplication,
+  NRaddition
 };
 
 std::string convert_mut_type_to_string(mutation_type m);
