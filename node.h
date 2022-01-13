@@ -23,6 +23,7 @@ public:
     ///Sets the value of the nodes to the given value
     void change_bias(double new_bias) {m_bias = new_bias;}
     void activate() {m_active = true;}
+    void deactivate() {m_active = false;}
 
 private:
     bool m_active;

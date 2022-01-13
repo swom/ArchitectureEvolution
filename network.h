@@ -349,6 +349,33 @@ public:
       ++m_current_arc[layer + 1];
     }
 
+    inline void delete_node(size_t layer, const std::vector<node>::iterator &node_iterator)
+    {
+      if(m_current_arc[layer + 1] == 1)
+        return;
+
+      //de-activating
+      size_t index = node_iterator - get_net_weights()[layer].begin() ;
+      node &deleted_node = m_network_weights[layer][index];
+      deleted_node.deactivate();
+
+      //Resetting bias
+      deleted_node.change_bias(0);
+
+      //Resetting incoming connections
+      weight default_w{};
+      for(size_t i=0; i!= deleted_node.get_vec_weights().size(); ++i){
+              deleted_node.change_nth_weight(default_w,i);
+        }
+
+      //Resetting outgoing connections
+      for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
+          m_network_weights[layer + 1][i].change_nth_weight(default_w, index);
+        }
+
+      --m_current_arc[layer + 1];
+    }
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
                                    m_network_weights

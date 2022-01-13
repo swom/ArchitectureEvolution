@@ -833,7 +833,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_231
+#define FIX_ISSUE_231
 #ifdef FIX_ISSUE_231
   ///There is a function that deletes a given node
   {
