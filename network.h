@@ -132,6 +132,34 @@ void mut_add_node(Net& n,
 
 }
 
+///Mutates a network by deleting some nodes
+template<class Net>
+void mut_del(Net& n,
+             const double& mut_rate,
+             std::mt19937_64& rng)
+{
+
+  std::bernoulli_distribution mut_p{mut_rate};
+
+  for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
+    {
+      auto& current_layer = n.get_net_weights()[layer];
+
+      for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
+        {
+
+          const auto& current_node = current_layer[node_index];
+
+          if(current_node.is_active() && mut_p(rng))
+            {
+              std::vector<node>::iterator node_iterator = n.get_net_weights()[layer].begin() + node_index;
+              n.delete_node(layer, node_iterator);
+            }
+        }
+    }
+}
+
+
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>
@@ -371,24 +399,6 @@ public:
         }
 
       --m_current_arc[layer + 1];
-    }
-
-    inline void delete_random_node(size_t layer, std::mt19937_64 rng)
-    {
-      if(m_current_arc[layer + 1] == 1)
-        return;
-
-      //choosing a random active node
-      int index;
-      do{
-      std::uniform_int_distribution<int> dist(0,m_network_weights[layer].size());
-      index = dist(rng);
-        } while(!m_network_weights[layer][index].is_active());
-
-      std::vector<node>::iterator iterator = get_net_weights()[layer].begin() + index;
-
-      //deleting it
-      delete_node(layer, iterator);
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,

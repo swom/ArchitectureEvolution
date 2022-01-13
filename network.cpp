@@ -864,48 +864,23 @@ void test_network() //!OCLINT
   }
 #endif
 
-#define FIX_ISSUE_233
-#ifdef FIX_ISSUE_233
-  ///There is a function to unactivate a random active node
-  {
-  net_param n_p{};
-  n_p.net_arc = {1,20,1};
-  n_p.max_arc = {1,20,1};
+#define FIX_ISSUE_234
+#ifdef FIX_ISSUE_234
+    ///There is a new mutation function where nodes can randomly be deleted by mutation
+    {
+        net_param n_p{{1,2,1}};
+        network n_mut{n_p};
+        network n_del{n_p};
 
-  network n{n_p};
-  network n2 = n;
-  std::mt19937_64 rng1(0);
-  std::mt19937_64 rng2(1);
+        auto mutation_rate = 1;
+        std::mt19937_64 rng;
 
-  n.delete_random_node(0, rng1);
-  n2.delete_random_node(0, rng2);
 
-  ///Checking that they both have one inactivated node but that it's not the same one
-  int count = 0;
-  size_t index1;
-  size_t index2;
+        mut_del(n_mut, mutation_rate, rng);
+        n_del.delete_node(0, n_del.get_net_weights()[0].begin());
 
-  for(const auto &node : n.get_net_weights()[0]){
-      if(node_is_inactive(node)){
-          ++ count;
-          auto it = find(n.get_net_weights()[0].begin(), n.get_net_weights()[0].end(), node);
-          index1 = it - n.get_net_weights()[0].begin();
-        }
+        assert(n_mut == n_del);
     }
-  assert(count == 1);
-
-  count = 0;
-  for(const auto &node : n2.get_net_weights()[0]){
-      if(node_is_inactive(node)){
-          ++ count;
-          auto it = find(n2.get_net_weights()[0].begin(), n2.get_net_weights()[0].end(), node);
-          index2 = it - n2.get_net_weights()[0].begin();
-        }
-    }
-  assert(count == 1);
-
-  assert(index1 != index2);
-  }
 #endif
 
 }
