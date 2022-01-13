@@ -343,9 +343,6 @@ public:
             }
         }
 
-
-
-
       ++m_current_arc[layer + 1];
     }
 
@@ -374,6 +371,24 @@ public:
         }
 
       --m_current_arc[layer + 1];
+    }
+
+    inline void delete_random_node(size_t layer, std::mt19937_64 rng)
+    {
+      if(m_current_arc[layer + 1] == 1)
+        return;
+
+      //choosing a random active node
+      int index;
+      do{
+      std::uniform_int_distribution<int> dist(0,m_network_weights[layer].size());
+      index = dist(rng);
+        } while(!m_network_weights[layer][index].is_active());
+
+      std::vector<node>::iterator iterator = get_net_weights()[layer].begin() + index;
+
+      //deleting it
+      delete_node(layer, iterator);
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,

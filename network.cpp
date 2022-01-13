@@ -842,7 +842,7 @@ void test_network() //!OCLINT
 
   network n{n_p};
 
-  std::vector<node>::iterator node_iterator = n.get_net_weights()[0].begin()+1; //Deleting the first node of the middle layer
+  std::vector<node>::iterator node_iterator = n.get_net_weights()[0].begin(); //Deleting the first node of the middle layer
 
   n.delete_node(0, node_iterator);
 
@@ -864,20 +864,21 @@ void test_network() //!OCLINT
   }
 #endif
 
-//#define FIX_ISSUE_233
+#define FIX_ISSUE_233
 #ifdef FIX_ISSUE_233
   ///There is a function to unactivate a random active node
   {
   net_param n_p{};
-  n_p.net_arc = {1,10,1};
-  n_p.max_arc = {1,10,1};
+  n_p.net_arc = {1,20,1};
+  n_p.max_arc = {1,20,1};
 
   network n{n_p};
   network n2 = n;
-  std::mt19937_64 rng;
+  std::mt19937_64 rng1(0);
+  std::mt19937_64 rng2(1);
 
-  n.delete_random_node(0, rng);
-  n2.delete_random_node(0, rng);
+  n.delete_random_node(0, rng1);
+  n2.delete_random_node(0, rng2);
 
   ///Checking that they both have one inactivated node but that it's not the same one
   int count = 0;
