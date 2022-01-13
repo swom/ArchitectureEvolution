@@ -289,6 +289,25 @@ public:
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_add_node(*this, mut_rate_dup, rng);
           }
+
+          else if constexpr(M == mutation_type::NRduplication)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+            mut_dupl_node(*this, mut_rate_dup, rng);
+            mut_del(*this, mut_rate_dup, rng);
+          }
+
+          else if constexpr(M == mutation_type::NRaddition)
+          {
+            mutate_biases(*this, mut_rate_weight, mut_step, rng);
+            mutate_activation(*this, mut_rate_act, rng);
+            mutate_weights(*this, mut_rate_weight, mut_step, rng);
+            mut_add_node(*this, mut_rate_dup, rng);
+            mut_del(*this, mut_rate_dup, rng);
+          }
+
         };
 
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)

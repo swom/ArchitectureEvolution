@@ -883,7 +883,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_235
+#define FIX_ISSUE_235
 #ifdef FIX_ISSUE_235
     ///There is a non-ratchet duplication mutation mode
     /// ///There is a non-ratchet addition mutation mode
