@@ -864,5 +864,48 @@ void test_network() //!OCLINT
   }
 #endif
 
+//#define FIX_ISSUE_233
+#ifdef FIX_ISSUE_233
+  ///There is a function to unactivate a random active node
+  {
+  net_param n_p{};
+  n_p.net_arc = {1,10,1};
+  n_p.max_arc = {1,10,1};
+
+  network n{n_p};
+  network n2 = n;
+  std::mt19937_64 rng;
+
+  n.delete_random_node(0, rng);
+  n2.delete_random_node(0, rng);
+
+  ///Checking that they both have one inactivated node but that it's not the same one
+  int count = 0;
+  size_t index1;
+  size_t index2;
+
+  for(const auto &node : n.get_net_weights()[0]){
+      if(node_is_inactive(node)){
+          ++ count;
+          auto it = find(n.get_net_weights()[0].begin(), n.get_net_weights()[0].end(), node);
+          index1 = it - n.get_net_weights()[0].begin();
+        }
+    }
+  assert(count == 1);
+
+  count = 0;
+  for(const auto &node : n2.get_net_weights()[0]){
+      if(node_is_inactive(node)){
+          ++ count;
+          auto it = find(n2.get_net_weights()[0].begin(), n2.get_net_weights()[0].end(), node);
+          index2 = it - n2.get_net_weights()[0].begin();
+        }
+    }
+  assert(count == 1);
+
+  assert(index1 != index2);
+  }
+#endif
+
 }
 #endif
