@@ -833,5 +833,36 @@ void test_network() //!OCLINT
     }
 #endif
 
+//#define FIX_ISSUE_231
+#ifdef FIX_ISSUE_231
+  ///There is a function that deletes a given node
+  {
+  net_param n_p{};
+  n_p.net_arc = {1,2,1};
+
+  network n{n_p};
+
+  std::vector<node>::iterator node_iterator = n.get_net_weights()[0].begin()+1; //Deleting the first node of the middle layer
+
+  n.delete_node(0, node_iterator);
+
+  auto deleted_node = *node_iterator;
+
+  ///Checking that the node has been inactivated, its bias put back to 0 and all its weights reset
+  assert(!deleted_node.is_active());
+  assert(deleted_node.get_bias() == 0);
+  weight w_theo{};
+  for(const auto &weight: deleted_node.get_vec_weights()){
+      assert(weight == w_theo);
+    }
+
+
+  ///Checking that outgoing weights have also been reset
+  for(const auto &node : n.get_net_weights()[1]){
+      assert(node.get_vec_weights()[0] == w_theo);
+    }
+  }
+#endif
+
 }
 #endif

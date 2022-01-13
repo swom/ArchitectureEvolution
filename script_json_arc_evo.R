@@ -3,6 +3,7 @@ library(ggplot2)
 library(tibble)
 library(dplyr)
 library(tidyr)
+library(stringr)
 
 
 
@@ -46,7 +47,7 @@ Timetochangecalc = function (threshold, simple_res){
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "X:/build-arc_evo-Desktop_Qt_6_1_3_MinGW_64_bit-Release/release"
+dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = "*json$"
@@ -58,12 +59,19 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                                                  "m_var_fitnesses")]),
                              var = "gen")
 
+i = str_replace(i, "weights_and_activation", "weightsandactivation")
 ID = data.frame(i) %>% 
-  separate(i, c("mut_type","architecture","mut_rate_dup","change_freq", "max_arc","seed"), sep = '_')%>% 
+ separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq", "selection_strength", "max_arc","seed"), sep = '_')%>% 
   separate(seed, c("seed",NA))
 
 ID$architecture = as.factor(ID$architecture)
 ID$seed = as.factor(ID$seed)
+ID$max_arc = as.factor(ID$max_arc)
+ID$change_freq = as.factor(ID$change_freq)
+ID$mut_rate_act = as.factor(ID$mut_rate_act)
+ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
+ID$selection_strength = as.factor(ID$selection_strength)
+
 
 simple_res = cbind(simple_res, ID)
 all_simple_res = rbind(all_simple_res, simple_res)
@@ -76,7 +84,7 @@ load("all_simple_res.R")
 #### Plot ####
 
 ggplot(data = all_simple_res %>%
-         filter(architecture == "1-2-1")  
+         filter(change_freq == "0.005000")  
        # %>% slice_min(gen,n = 1000)
        ) +
   geom_rect(aes(xmin = gen - 1, xmax = gen,
@@ -84,7 +92,7 @@ ggplot(data = all_simple_res %>%
                 fill = as.factor(m_env_functions),
                 alpha = 0.5))+
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  facet_grid(seed ~ mut_rate_dup)
+  facet_grid(mut_rate_act ~ mut_rate_dup)
 
 
 
