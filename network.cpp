@@ -883,5 +883,43 @@ void test_network() //!OCLINT
     }
 #endif
 
+//#define FIX_ISSUE_235
+#ifdef FIX_ISSUE_235
+    ///There is a non-ratchet duplication mutation mode
+    /// ///There is a non-ratchet addition mutation mode
+    {
+        net_param n_p{{1,3,1}};
+
+        network<mutation_type::NRduplication> n_nrd_mut{n_p};
+        network n_dupdel{n_p};
+
+        auto mutation_rate = 0.5;
+        std::mt19937_64 rng;
+        std::mt19937_64 rng_copy = rng;
+
+        n_nrd_mut.mutate(mutation_rate, 0.1, rng, mutation_rate, mutation_rate);
+
+        mutate_biases(n_dupdel, mutation_rate, 0.1, rng_copy);
+        mutate_activation(n_dupdel, mutation_rate, rng_copy);
+        mutate_weights(n_dupdel, mutation_rate, 0.1, rng_copy);
+        mut_dupl_node(n_dupdel, mutation_rate, rng_copy);
+        mut_del(n_dupdel, mutation_rate, rng_copy);
+
+        assert(are_equal_except_mutation_type(n_nrd_mut, n_dupdel));
+
+        network<mutation_type::NRaddition> n_nra_mut{n_p};
+        network n_addel{n_p};
+
+        n_nra_mut.mutate(mutation_rate, 0.1, rng, mutation_rate, mutation_rate);
+
+        mutate_biases(n_addel, mutation_rate, 0.1, rng_copy);
+        mutate_activation(n_addel, mutation_rate, rng_copy);
+        mutate_weights(n_addel, mutation_rate, 0.1, rng_copy);
+        mut_add_node(n_addel, mutation_rate, rng_copy);
+        mut_del(n_addel, mutation_rate, rng_copy);
+    }
+#endif
+
+
 }
 #endif
