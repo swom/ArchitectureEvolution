@@ -161,24 +161,6 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
-template<class Net>
-double average_number_incoming_weights(const Net &n, size_t layer_index){
-  std::vector<node> layer = n.get_net_weights()[layer_index];
-  double total = 0;
-
-  for(const auto &node : layer){
-      for(const auto &weight : node.get_vec_weights()){
-          if(weight.is_active()) ++total;
-        }
-    }
-  return total / layer.size();
-}
-
-template<class Net>
-double average_number_outgoing_weights(const Net &n, size_t layer_index){
-  return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
-}
-
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {

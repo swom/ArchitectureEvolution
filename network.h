@@ -730,11 +730,25 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 
 ///Calculates the average number of incoming weights in a layer
 template<class Net>
-double average_number_incoming_weights(const Net &n, size_t layer_index);
+inline double average_number_incoming_weights(const Net &n, size_t layer_index){
+  std::vector<node> layer = n.get_net_weights()[layer_index];
+  double total = 0;
+
+  for(const auto &node : layer){
+      for(const auto &weight : node.get_vec_weights()){
+          if(weight.is_active()) ++total;
+        }
+    }
+  return total / layer.size();
+}
 
 ///Calculates the average number of weights going out of a layer
 template<class Net>
-double average_number_outgoing_weights(const Net &n, size_t layer_index);
+inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
+  return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
+}
+
+
 
 
 
