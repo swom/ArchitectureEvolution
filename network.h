@@ -117,6 +117,8 @@ void mut_add_node(Net& n,
 
               const auto& current_node = current_layer[node];
 
+              ///To keep it comparable with duplication, this is also per active node
+              /// Networks with more active nodes will have more mutations
               if(current_node.is_active() && mut_p(rng))
                 {
                   //this returns an iterator if you use std::find()

@@ -902,6 +902,65 @@ void test_network() //!OCLINT
     }
 #endif
 
+//#define FIX_ISSUE_226
+#ifdef FIX_ISSUE_226
+    ///The range from which new nodes bias and weights are drawn during random addition
+    /// depend on min and max of existing values
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,7,1};
+    network n{n_p};
+    std::mt19937_64 rng;
+    mutate_biases(n, 1, 0.5, rng);
+    mutate_weights(n, 1, 0.5, rng);
+    auto empty_node_iterator = n.get_empty_node_in_layer(0);
+
+    for(int i = 0; i != 100; ++i){
+        network n_copy = n;
+        std::mt19937_64 rng_2(i);
+
+        n_copy.add_node(0, empty_node_iterator, rng_2);
+
+        const auto &node = n_copy.get_net_weights()[0][7];
+        assert(node.get_bias() > min_bias_in_layer(n_copy, 0));
+        assert(node.get_bias() < max_bias_in_layer(n_copy, 0));
+
+        for(const auto &weight : node.get_vec_weights()){
+            assert(weight.get_weight() > min_weight_in_layer(n_copy, 0));
+            assert(weight.get_weight() < max_weight_in_layer(n_copy, 0));
+          }
+
+        const auto &node_next_l = n_copy.get_net_weights()[1][0];
+        const auto &outgoing_weight = node_next_l.get_vec_weights()[7];
+        assert(outgoing_weight.get_weight() > min_weight_in_layer(n_copy, 1));
+        assert(outgoing_weight.get_weight() < max_weight_in_layer(n_copy, 1));
+      }
+
+    n.add_node(0, empty_node_iterator, rng);
+
+    auto added_node = *empty_node_iterator;
+
+    ///Checking that the node is now active
+    assert(added_node.is_active());
+
+    ///Checking that it has the right number of active incoming connections
+    size_t n_in_con = 0;
+    for(const auto &con : added_node.get_vec_weights())
+      if(con.is_active()) ++n_in_con;
+
+    assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
+
+    ///Checking that it has the right number of active outgoing connections
+    size_t n_out_con = 0;
+    for(const auto &node : n.get_net_weights()[1])
+      if(node.get_vec_weights()[2].is_active()) ++n_out_con;
+
+    assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
+
+
+    }
+#endif
+
 
 }
 #endif
