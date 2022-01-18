@@ -757,8 +757,12 @@ void test_network() //!OCLINT
     net_param n_p{};
     n_p.net_arc = {1,2,1};
     n_p.max_arc = {1,3,1};
+    std::mt19937_64 rng;
 
     network n1{n_p};
+    mutate_biases(n1, 1, 0.5, rng);
+    mutate_weights(n1, 1, 0.5, rng);
+
     network n2 = n1;
     std::mt19937_64 rng1(0);
     std::mt19937_64 rng2(1);
@@ -803,6 +807,10 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
         auto rng_copy = rng;
         auto rng_copy_2 = rng;
+
+        n_mut.get_net_weights()[0][1].change_bias(1); //to have some randomness in the values generated
+        n_dup.get_net_weights()[0][1].change_bias(1);
+        n_add.get_net_weights()[0][1].change_bias(1);//so that there is difference between dup and add
 
         rng.discard(1); //to compensate for the rng being called to know if there is mutation in mutate
 
@@ -902,7 +910,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_226
+#define FIX_ISSUE_226
 #ifdef FIX_ISSUE_226
     ///The range from which new nodes bias and weights are drawn during random addition
     /// depend on min and max of existing values
@@ -913,12 +921,12 @@ void test_network() //!OCLINT
     std::mt19937_64 rng;
     mutate_biases(n, 1, 0.5, rng);
     mutate_weights(n, 1, 0.5, rng);
-    auto empty_node_iterator = n.get_empty_node_in_layer(0);
 
     for(int i = 0; i != 100; ++i){
         network n_copy = n;
         std::mt19937_64 rng_2(i);
 
+        auto empty_node_iterator = n_copy.get_empty_node_in_layer(0);
         n_copy.add_node(0, empty_node_iterator, rng_2);
 
         const auto &node = n_copy.get_net_weights()[0][7];
@@ -935,29 +943,6 @@ void test_network() //!OCLINT
         assert(outgoing_weight.get_weight() > min_weight_in_layer(n_copy, 1));
         assert(outgoing_weight.get_weight() < max_weight_in_layer(n_copy, 1));
       }
-
-    n.add_node(0, empty_node_iterator, rng);
-
-    auto added_node = *empty_node_iterator;
-
-    ///Checking that the node is now active
-    assert(added_node.is_active());
-
-    ///Checking that it has the right number of active incoming connections
-    size_t n_in_con = 0;
-    for(const auto &con : added_node.get_vec_weights())
-      if(con.is_active()) ++n_in_con;
-
-    assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
-
-    ///Checking that it has the right number of active outgoing connections
-    size_t n_out_con = 0;
-    for(const auto &node : n.get_net_weights()[1])
-      if(node.get_vec_weights()[2].is_active()) ++n_out_con;
-
-    assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
-
-
     }
 #endif
 

@@ -346,8 +346,9 @@ public:
       added_node.activate();
 
       //Making the bias random within a given range
-      std::uniform_real_distribution<double> dist(-1, 1);
-      added_node.change_bias(dist(rng));
+      std::uniform_real_distribution<double> dist_bias(min_bias_in_layer(*this, layer),
+                                                  max_bias_in_layer(*this, layer));
+      added_node.change_bias(dist_bias(rng));
 
       //adding incoming connections
       std::vector<size_t> vec_indexes(added_node.get_vec_weights().size());
@@ -357,11 +358,14 @@ public:
       int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
       std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
 
+      std::uniform_real_distribution<double> dist_in(min_weight_in_layer(*this, layer),
+                                                  max_weight_in_layer(*this, layer));
+
       for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
           weight w = added_node.get_vec_weights()[i];
           if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
               w.change_activation(true);
-              w.change_weight(dist(rng));
+              w.change_weight(dist_in(rng));
               added_node.change_nth_weight(w,i);
             }
           else{
@@ -379,11 +383,15 @@ public:
       int nb_outgoing_weights = std::round(average_number_outgoing_weights(*this, layer));
       std::sample(vec_indexes_out.begin(), vec_indexes_out.end(), std::back_inserter(indexes_to_activate_out), nb_outgoing_weights, rng);
 
+      std::uniform_real_distribution<double> dist_out(min_weight_in_layer(*this, layer + 1),
+                                                  max_weight_in_layer(*this, layer + 1));
+
+
       for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
           weight w = m_network_weights[layer + 1][i].get_vec_weights()[index];
           if(std::count(indexes_to_activate_out.begin(), indexes_to_activate_out.end(), i)){
               w.change_activation(true);
-              w.change_weight(dist(rng));
+              w.change_weight(dist_out(rng));
               m_network_weights[layer + 1][i].change_nth_weight(w, index);
             }
           else{
@@ -750,7 +758,49 @@ inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
   return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
 }
 
+///Returns the minimum bias of all the nodes in a layer
+template<class Net>
+inline double min_bias_in_layer(const Net &n, size_t layer){
+  std::vector<double> biases;
+  for(const node &node : n.get_net_weights()[layer]){
+      biases.push_back(node.get_bias());
+    }
+  return *std::min_element(biases.begin(), biases.end());
+}
 
+///Returns the maximum bias of all the nodes in a layer
+template<class Net>
+inline double max_bias_in_layer(const Net &n, size_t layer){
+  std::vector<double> biases;
+  for(const node &node : n.get_net_weights()[layer]){
+      biases.push_back(node.get_bias());
+    }
+  return *std::max_element(biases.begin(), biases.end());
+}
+
+///Returns the minimum weight of all the connections of all nodes in a layer
+template<class Net>
+inline double min_weight_in_layer(const Net &n, size_t layer){
+  std::vector<double> weights;
+  for(const node &node : n.get_net_weights()[layer]){
+      for(const weight &weight : node.get_vec_weights()){
+          weights.push_back(weight.get_weight());
+        }
+    }
+  return *std::min_element(weights.begin(), weights.end());
+}
+
+///Returns the maximum weight of all the connections of all nodes in a layer
+template<class Net>
+inline double max_weight_in_layer(const Net &n, size_t layer){
+  std::vector<double> weights;
+  for(const node &node : n.get_net_weights()[layer]){
+      for(const weight &weight : node.get_vec_weights()){
+          weights.push_back(weight.get_weight());
+        }
+    }
+  return *std::max_element(weights.begin(), weights.end());
+}
 
 
 
