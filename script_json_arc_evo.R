@@ -83,16 +83,16 @@ save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
 
-ggplot(data = all_simple_res %>%
-         filter(change_freq == "0.005000")  
+ggplot(data = all_simple_res #%>%
+         #filter(change_freq == "0.005000")  
        # %>% slice_min(gen,n = 1000)
        ) +
   geom_rect(aes(xmin = gen - 1, xmax = gen,
                 ymin = 0, ymax = 1.5,
                 fill = as.factor(m_env_functions),
                 alpha = 0.5))+
-  geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  facet_grid(mut_rate_act ~ mut_rate_dup)
+  geom_line(aes(x = gen, y = m_avg_fitnesses)) #+
+  #facet_grid(change_freq ~ architecture)
 
 
 

@@ -721,7 +721,7 @@ void test_network() //!OCLINT
     auto added_node2 = *empty_node_iterator2;
 
     ///Checking that the node is now active in both cases
-    assert(added_node1.is_active() && added_node1.is_active());
+    assert(added_node1.is_active() && added_node2.is_active());
 
     ///Checking that the incoming connections are different in activation
     int dif = 0;
@@ -946,6 +946,42 @@ void test_network() //!OCLINT
     }
 #endif
 
+#define FIX_ISSUE_239
+#ifdef FIX_ISSUE_239
+    ///Stochastic duplication should only change connections to and from active nodes
+    /// when calculating the average number of active ingoing/ outgoing connections,
+    /// this should only take into account those to and from active nodes.
+    {
+    net_param n_p{};
+    n_p.net_arc = {1,2,2,2,1};
+    n_p.max_arc = {1,3,3,3,1};
+    network n{n_p};
+    std::mt19937_64 rng;
+
+    //Set up so that the active nodes each have one deactivated connection
+
+    for(size_t i = 1; i != 3; ++i){
+        for(size_t j = 0; j !=2; ++j){
+            auto &node = n.get_net_weights()[i][j];
+            weight w(0, false);
+            node.change_nth_weight(w, 0);
+          }
+      }
+
+    for(int i = 0; i != 100; ++i){
+    auto n_copy = n;
+    auto empty_node_iterator = n_copy.get_empty_node_in_layer(1);
+    n_copy.add_node(1, empty_node_iterator, rng);
+    weight w{};
+
+    auto added_node = n_copy.get_net_weights()[1][2];
+    assert(added_node.get_vec_weights()[2] == w);
+
+    auto empty_node = n_copy.get_net_weights()[2][2];
+    assert(empty_node.get_vec_weights()[2] == w);
+      }
+    }
+#endif
 
 }
 #endif
