@@ -721,7 +721,7 @@ void test_network() //!OCLINT
     auto added_node2 = *empty_node_iterator2;
 
     ///Checking that the node is now active in both cases
-    assert(added_node1.is_active() && added_node1.is_active());
+    assert(added_node1.is_active() && added_node2.is_active());
 
     ///Checking that the incoming connections are different in activation
     int dif = 0;
@@ -946,7 +946,7 @@ void test_network() //!OCLINT
     }
 #endif
 
-//#define FIX_ISSUE_239
+#define FIX_ISSUE_239
 #ifdef FIX_ISSUE_239
     ///Stochastic duplication should only change connections to and from active nodes
     /// when calculating the average number of active ingoing/ outgoing connections,
