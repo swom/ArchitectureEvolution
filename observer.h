@@ -130,6 +130,18 @@ void exec(Sim& s , observer<Sim>& o)
     }
 }
 
+template<class Sim>
+std::string create_save_name_from_observer_data(const observer<Sim>& o)
+{
+
+   return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+    "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+    "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
+    "__" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
+    "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
+    "__" + std::to_string(o.get_params().s_p.seed) + ".json";
+}
+
 void test_observer();
 
 #endif // OBSERVER_H
