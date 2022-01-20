@@ -2,7 +2,6 @@
 #define POPULATION_H
 
 #include "individual.h"
-#include "rndutils.hpp"
 #include <vector>
 
 
@@ -259,7 +258,7 @@ const typename Ind::net_t& get_nth_ind_net(const population<Ind>& p, size_t ind_
 template< class Ind>
 void select_new_pop(population<Ind>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
-                    std::mt19937_64& rng)
+                    rndutils::xorshift128& rng)
 {
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
@@ -283,7 +282,7 @@ void swap_new_with_old_pop(population<Ind>& p)
 
 ///Reproduces inds with a probability proportional to their fitness
 template< class Ind>
-void reproduce(population<Ind>& p, std::mt19937_64& rng)
+void reproduce(population<Ind>& p, rndutils::xorshift128& rng)
 {
     auto mut_dist = create_mut_dist_fit(p);
 

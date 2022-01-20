@@ -4,7 +4,7 @@
 #include<sstream>
 #include <random>
 #include <functional>
-
+#include "rndutils.hpp"
 
 bool are_equal_with_tolerance(double lhs, double rhs);
 

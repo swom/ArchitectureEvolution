@@ -83,10 +83,10 @@ public:
     Pop& get_pop() noexcept {return m_population;}
 
     ///Returns ref to rng
-    std::mt19937_64& get_rng() noexcept {return m_rng;}
+    rndutils::xorshift128& get_rng() noexcept {return m_rng;}
 
     ///Returns ref to environmental rng
-    std::mt19937_64 &get_env_rng() noexcept {return m_environment.get_rng();}
+    rndutils::xorshift128 &get_env_rng() noexcept {return m_environment.get_rng();}
 
     ///Returns const ref to env_member
     const environment& get_env() const noexcept {return m_environment;}
@@ -146,7 +146,7 @@ private:
     environment m_environment;
     Pop m_population;
     int m_n_generations;
-    std::mt19937_64 m_rng;
+    rndutils::xorshift128 m_rng;
     int m_seed;
     std::bernoulli_distribution m_t_change_env_distr;
     int m_time = 0;

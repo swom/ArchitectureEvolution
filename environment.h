@@ -5,6 +5,7 @@
 #include <random>
 #include "json.hpp"
 #include "utilities.h"
+#include "rndutils.hpp"
 
 static double env_func_1(std::vector<double> input){
   return input[0] * input[0];
@@ -57,7 +58,7 @@ public:
         {return m_cue_distribution;}
 
     ///Updates the n first inputs by drawing random ones from the distribution
-    std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
+    std::vector<double> update_n_inputs(rndutils::xorshift128 &rng, const size_t n);
 
     ///Returns the environmental function A
     const std::function<double(std::vector<double>)> &get_env_function_A() const {return m_env_function_A;}
@@ -81,7 +82,7 @@ public:
     void switch_name_current_function();
 
     ///Returns the environment's rng
-    std::mt19937_64 &get_rng() {return m_rng;}
+    rndutils::xorshift128 &get_rng() {return m_rng;}
 
 
 
@@ -103,7 +104,7 @@ private:
     char m_name_current_function;
 
     /// The environment's rng
-    std::mt19937_64 m_rng;
+    rndutils::xorshift128 m_rng;
 
 };
 
@@ -116,14 +117,14 @@ namespace env {
 std::vector<double> create_n_inputs(int n_inputs);
 
 ///Create a vector of a given number of inputs from a distribution
-std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, std::mt19937_64 &rng);
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, rndutils::xorshift128 &rng);
 
 ///Create a vector of a given number of inputs from the distribution member of the environment
-std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng);
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, rndutils::xorshift128 &rng);
 
 ///Creates a vector of a given number of inputs for a distribution
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
-                                    const int &n_inputs, std::mt19937_64 &rng);
+                                    const int &n_inputs, rndutils::xorshift128 &rng);
 
 ///Calculates the optimal output, given input, using the env function
 double calculate_optimal(const environment &e, std::vector<double> input);

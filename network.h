@@ -41,7 +41,7 @@ struct net_param
 template<class Net>
 void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
-                    std::mt19937_64& rng)
+                    rndutils::xorshift128& rng)
 {
   if(mut_rate){
 
@@ -71,7 +71,7 @@ void mutate_weights(Net& n, const double& mut_rate,
 template<class Net>
 void mut_dupl_node(Net& n,
                   const double& mut_rate,
-                    std::mt19937_64& rng)
+                    rndutils::xorshift128& rng)
 {
 
     std::bernoulli_distribution mut_p{mut_rate};
@@ -103,7 +103,7 @@ void mut_dupl_node(Net& n,
 template<class Net>
 void mut_add_node(Net& n,
                   const double& mut_rate,
-                  std::mt19937_64& rng)
+                  rndutils::xorshift128& rng)
 {
   if(mut_rate){
       std::bernoulli_distribution mut_p{mut_rate};
@@ -136,7 +136,7 @@ void mut_add_node(Net& n,
 template<class Net>
 void mut_del(Net& n,
              const double& mut_rate,
-             std::mt19937_64& rng)
+             rndutils::xorshift128& rng)
 {
 
   std::bernoulli_distribution mut_p{mut_rate};
@@ -163,7 +163,7 @@ void mut_del(Net& n,
 
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>
-void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
+void mutate_activation(Net &n, const double &mut_rate, rndutils::xorshift128 &rng)
 {
   if(mut_rate){
     std::bernoulli_distribution mut_p{mut_rate};
@@ -190,7 +190,7 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 template<class Net>
 void mutate_biases(Net& n, const double& mut_rate,
                    const double& mut_step,
-                   std::mt19937_64& rng)
+                   rndutils::xorshift128& rng)
 {
   if(mut_rate){
       std::bernoulli_distribution mut_p{mut_rate};
@@ -249,7 +249,7 @@ public:
 
         void mutate(const double& mut_rate_weight,
                     const double& mut_step,
-                    std::mt19937_64& rng,
+                    rndutils::xorshift128& rng,
                     const double& mut_rate_act = 0.01,
                     const double& mut_rate_dup = 0.01
             )
@@ -333,7 +333,7 @@ public:
         ++m_current_arc[layer + 1];
     }
 
-    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 rng)
+    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, rndutils::xorshift128 rng)
     {
       if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
         return;
@@ -568,12 +568,12 @@ template<class Net>
 std::vector<weight> register_n_weight_mutations(Net n,
                                                 double mut_rate,
                                                 double mut_step,
-                                                std::mt19937_64 &rng,
+                                                rndutils::xorshift128 &rng,
                                                 int repeats);
 template<class Net>
 std::vector<weight> register_n_activation_mutations(Net n,
                                                     double mut_rate,
-                                                    std::mt19937_64 &rng,
+                                                    rndutils::xorshift128 &rng,
                                                     int repeats);
 
 

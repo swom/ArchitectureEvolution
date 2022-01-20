@@ -73,7 +73,7 @@ public:
     Net& get_to_net() noexcept {return m_network;}
 
     ///Mutates the network of an individual
-    void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
+    void mutate(double mut_rate_w, double mut_step, rndutils::xorshift128 &rng, double mut_rate_a, double mut_rate_d)
     {
         m_network.mutate(mut_rate_w, mut_step, rng, mut_rate_a, mut_rate_d);
     }

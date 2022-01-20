@@ -2,7 +2,7 @@
 #define WEIGHT_H
 #include "json.hpp"
 #include <vector>
-
+#include "rndutils.hpp"
 
 class weight
 {
