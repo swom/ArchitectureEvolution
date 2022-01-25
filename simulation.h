@@ -1,6 +1,7 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include "env_change_type.h"
 #include "environment.h"
 #include "population.h"
 
@@ -39,7 +40,7 @@ struct all_params
 };
 
 
-template<class Pop = population<>>
+template<class Pop = population<>, enum env_change_type = env_change_type::symmetrical>
 class simulation
 {
 public:

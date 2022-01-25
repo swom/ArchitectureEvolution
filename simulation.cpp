@@ -649,5 +649,36 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+#define FIX_ISSUE_249
+#ifdef FIX_ISSUE_249
+    {
+        simulation<population<>, env_change_type::asymmetrical> s;
+        int repeats = 100000;
+        int n_switches_A = 0;
+        int n_switches_B = 0;
+        for(int i = 0; i != repeats; i++)
+        {
+            if(is_environment_changing(s))
+            {
+                if(get_name_current_function(s) == 'A')
+                {
+                    n_switches_A++;
+                }
+                else
+                {
+                    n_switches_B++;
+                }
+            }
+        }
+
+        auto expected_repeats_A = s.get_change_freq_A() * repeats;
+        assert(n_switches_A - expected_repeats_B < 20 &&
+               n_switches_A - expected_repeats_A > -20);
+
+        auto expected_repeats_B = s.get_change_freq_B() * repeats;
+        assert(n_switches_A - expected_repeats_B < 20 &&
+               n_switches_A - expected_repeats_A > -20);
+    }
+#endif
 }
 #endif
