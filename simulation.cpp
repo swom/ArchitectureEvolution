@@ -14,7 +14,7 @@ simulation<Pop>::simulation(int init_pop_size,
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
     m_seed{seed},
-    m_t_change_env_distr{static_cast<double>(t_change_interval)},
+    m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq {static_cast<double>(t_change_interval)},
     m_input(net_arch[0], 1),
@@ -652,7 +652,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 #define FIX_ISSUE_249
 #ifdef FIX_ISSUE_249
     {
-        simulation<population<>, env_change_type::asymmetrical> s;
+        sim_param s_p{};
+        s_p.change_freq_A = 0.1;
+        s_p.change_freq_B = 0.01;
+        all_params a_p{{},{}, {}, s_p};
+
+        simulation<population<>, env_change_type::asymmetrical> s{a_p};
         int repeats = 100000;
         int n_switches_A = 0;
         int n_switches_B = 0;
@@ -672,12 +677,14 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
 
         auto expected_repeats_A = s.get_change_freq_A() * repeats;
-        assert(n_switches_A - expected_repeats_B < 20 &&
+        assert(n_switches_A - expected_repeats_A< 20 &&
                n_switches_A - expected_repeats_A > -20);
 
         auto expected_repeats_B = s.get_change_freq_B() * repeats;
         assert(n_switches_A - expected_repeats_B < 20 &&
-               n_switches_A - expected_repeats_A > -20);
+               n_switches_A - expected_repeats_B > -20);
+
+        assert(!are_equal_with_tolerance(expected_repeats_A, expected_repeats_B));
     }
 #endif
 }

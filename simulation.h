@@ -15,13 +15,16 @@ struct sim_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
                                    seed,
-                                   change_freq,
+                                   change_freq_A,
+                                   change_freq_B,
                                    selection_strength,
                                    n_generations)
     int seed;
-    double change_freq;
+    double change_freq_A;
+    double change_freq_B;
     double selection_strength;
     int n_generations;
+    env_change_type change_type;
 
 };
 
@@ -40,7 +43,7 @@ struct all_params
 };
 
 
-template<class Pop = population<>, enum env_change_type = env_change_type::symmetrical>
+template<class Pop = population<>, enum env_change_type Env_change = env_change_type::symmetrical>
 class simulation
 {
 public:
@@ -59,9 +62,11 @@ public:
         m_population{params.p_p, params.i_p},
         m_n_generations{params.s_p.n_generations},
         m_seed{params.s_p.seed},
-        m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
+        m_t_change_env_distr_A{static_cast<double>(params.s_p.change_freq_A)},
+        m_t_change_env_distr_B{static_cast<double>(params.s_p.change_freq_B)},
         m_sel_str{params.s_p.selection_strength},
-        m_change_freq {static_cast<double>(params.s_p.change_freq)},
+        m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
+        m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1),
         m_optimal_output{1}
@@ -73,7 +78,8 @@ public:
 
                                    m_population,
                                    m_time,
-                                   m_change_freq,
+                                   m_change_freq_A,
+                                   m_change_freq_B,
                                    m_sel_str,
                                    m_seed)
 
@@ -99,16 +105,19 @@ public:
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
     ///returns const ref to
-    const std::bernoulli_distribution& get_t_change_env_distr() const noexcept {return m_t_change_env_distr;}
-    std::bernoulli_distribution& get_t_change_env_distr() noexcept {return m_t_change_env_distr;}
+    const std::bernoulli_distribution& get_t_change_env_distr() const noexcept {return m_t_change_env_distr_A;}
+    std::bernoulli_distribution& get_t_change_env_distr() noexcept {return m_t_change_env_distr_A;}
     const int& get_time() const noexcept {return m_time;}
     void increase_time() {++m_time;}
 
     ///Returns the strength of selection
     double get_sel_str() const noexcept {return m_sel_str;}
 
-    ///Returns change frequency
-    double get_change_freq() const noexcept {return m_change_freq;}
+    ///Returns change frequency of environment/function A
+    double get_change_freq_A() const noexcept {return m_change_freq_A;}
+
+    ///Returns change frequency of environment/function B
+    double get_change_freq_B() const noexcept {return m_change_freq_B;}
 
     ///Returns seed
     int get_seed() const noexcept {return m_seed;}
@@ -149,10 +158,12 @@ private:
     int m_n_generations;
     std::mt19937_64 m_rng;
     int m_seed;
-    std::bernoulli_distribution m_t_change_env_distr;
+    std::bernoulli_distribution m_t_change_env_distr_A;
+    std::bernoulli_distribution m_t_change_env_distr_B;
     int m_time = 0;
     double m_sel_str;
-    double m_change_freq;
+    double m_change_freq_A;
+    double m_change_freq_B;
     all_params m_params;
 
     ///The current inputs that the networks of individuals will recieve
