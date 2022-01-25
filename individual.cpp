@@ -11,9 +11,11 @@ void test_individual()
   /// by default 1,2,1
   {
     std::vector<int> net_arch{1,2,1};
+    net_param n_p{net_arch};
     ind_param i_p{};
     individual i{i_p};
-    assert(i.get_net() == network{net_arch});
+    network n{net_arch};
+    assert(i.get_net() == network{n_p});
   }
 
   ///Individuals have a vector of fixed input values, always equal to 1, for their network
@@ -22,6 +24,7 @@ void test_individual()
     std::vector<int> net_arch{n_input};
     ind_param i_p{};
     i_p.net_par.net_arc = net_arch;
+    i_p.net_par.max_arc = net_arch;
     individual i{i_p};
 
     assert(i.get_input_values().size() == static_cast<size_t>(n_input));
@@ -34,7 +37,7 @@ void test_individual()
   ///When an individual responds to environment it uses its input values as input
   {
         individual i{ind_param{}};
-        assert( response(i) == output(i.get_net(),i.get_input_values(), &linear));
+        assert( ind::response(i) == output(i.get_net(),i.get_input_values(), &linear));
   }
 
 //#define FIX_ISSUE_36
@@ -65,16 +68,12 @@ void test_individual()
   }
   #endif
   
-#define FIX_ISSUE_120
-#ifdef FIX_ISSUE_120
-///ind_param contains a mutation_type member, with which network can be templated
+///individual contains a type member that stores the typename
+/// of the network with which it is be templated
   {
-    ind_param i_p;
-    enum mutation_type mut_type = i_p.m_mutation_type;
-
-    assert(mut_type == mutation_type::activation);
+        using n = network<mutation_type::weights>;
+        using i = individual<n>;
+        assert(typeid (i::net_t)  == typeid (n) );
   }
-#endif
-
 }
 #endif

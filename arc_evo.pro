@@ -1,5 +1,6 @@
 # Entry point for user
 
+
 HEADERS +=  \
   Stopwatch.hpp \
   environment.h \
@@ -7,6 +8,7 @@ HEADERS +=  \
   json.hpp \
   mutation_type.h \
   network.h \
+  node.h \
   observer.h \
   parser.h \
   population.h \
@@ -22,6 +24,7 @@ SOURCES +=  \
   main.cpp \
   mutation_type.cpp \
   network.cpp \
+  node.cpp \
   observer.cpp \
   parser.cpp \
   population.cpp \
@@ -32,7 +35,10 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
+QMAKE_CXXFLAGS += -g
+CONFIG += force_debug_info
 CONFIG += resources_big
+
 
 # High warning levels
 # SFML goes bad with -Weffc++
@@ -41,11 +47,16 @@ QMAKE_CXXFLAGS += -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
 # A warning is an error
 QMAKE_CXXFLAGS += -Werror
 
+
+
 # Debug and release settings
 CONFIG += debug_and_release
 CONFIG(release, debug|release) {
   DEFINES += NDEBUG
 }
+
+#Displaying console when launchin .exe
+CONFIG += console
 
 # Qt5
 QT += core gui

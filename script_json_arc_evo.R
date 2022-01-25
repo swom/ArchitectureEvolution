@@ -46,7 +46,7 @@ Timetochangecalc = function (threshold, simple_res){
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "X:/build-arc_evo-Desktop_Qt_6_1_1_MinGW_64_bit-Release"
+dir = "X:/build-arc_evo-Desktop_Qt_6_1_3_MinGW_64_bit-Release/release"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = "*json$"
@@ -59,7 +59,7 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                              var = "gen")
 
 ID = data.frame(i) %>% 
-  separate(i, c("architecture", "seed"), sep = '_')%>% 
+  separate(i, c("mut_type","architecture","mut_rate_dup","change_freq", "max_arc","seed"), sep = '_')%>% 
   separate(seed, c("seed",NA))
 
 ID$architecture = as.factor(ID$architecture)
@@ -84,7 +84,7 @@ ggplot(data = all_simple_res %>%
                 fill = as.factor(m_env_functions),
                 alpha = 0.5))+
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  facet_grid(seed ~ architecture)
+  facet_grid(seed ~ mut_rate_dup)
 
 
 

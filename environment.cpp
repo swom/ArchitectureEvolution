@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 
+
 environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
     m_env_function_A{env_functionA},
@@ -10,6 +11,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
     m_current_function{env_functionA},
     m_name_current_function{'A'}
 {
+    m_rng.seed(0);
 
 
 
@@ -23,7 +25,7 @@ environment::environment(const env_param& e_p):
     m_current_function{e_p.env_function_A},
     m_name_current_function{'A'}
 {
-
+    m_rng.seed(0);
 
 
 
@@ -62,6 +64,7 @@ void environment::switch_name_current_function()
 
 }
 
+namespace env {
 
 
 double calculate_optimal(const environment &e, std::vector<double> input)
@@ -125,7 +128,7 @@ void switch_env_function(environment &e)
 
 }
 
-
+}
 
 
 #ifndef NDEBUG
@@ -138,7 +141,7 @@ void test_environment() noexcept
         ///It is possible to create an arbitrary number of inputs #5
         {
             int n_inputs = 3;
-            auto inputs = create_n_inputs(n_inputs);
+            auto inputs = env::create_n_inputs(n_inputs);
             assert(size_t(n_inputs) == inputs.size());
         }
     #endif
@@ -199,7 +202,7 @@ void test_environment() noexcept
         int repeats = 10000;
         for(int i = 0; i != repeats; i++)
         {
-            env_series.push_back(create_n_inputs(e, n_inputs, rng1));
+            env_series.push_back(env::create_n_inputs(e, n_inputs, rng1));
 
             auto tester_cues = std::vector<double>(n_inputs);
             for(auto& cue : tester_cues){ cue = tester_dist(rng2);}
@@ -231,7 +234,7 @@ void test_environment() noexcept
         int repeats = 30000;
         for(int i = 0; i != repeats; i++)
         {
-            const auto new_inputs = create_n_inputs(e, n_of_inputs_requested, rng);
+            const auto new_inputs = env::create_n_inputs(e, n_of_inputs_requested, rng);
             store_new_inputs.insert(store_new_inputs.end(), new_inputs.begin(), new_inputs.end());
 
             for(int j = 0; j != n_of_inputs_requested; j++)
@@ -299,7 +302,7 @@ void test_environment() noexcept
               int repeats = 10000;
               for(int i = 0; i != repeats; i++)
               {
-                  env_t0_series.push_back(create_n_inputs(e, n_inputs, rng1)[0]);
+                  env_t0_series.push_back(env::create_n_inputs(e, n_inputs, rng1)[0]);
               }
 
               std::uniform_real_distribution<double> new_dist{1.23, 4.56};
@@ -307,8 +310,8 @@ void test_environment() noexcept
 
               for(int i = 0; i != repeats; i++)
               {
-                  env_t1_series.push_back(create_n_inputs(e, n_inputs, rng2)[0]);
-                  tester_t1_series.push_back(create_n_inputs(new_dist, n_inputs, rng3)[0]); //This function working from a distribution is on a newer branch
+                  env_t1_series.push_back(env::create_n_inputs(e, n_inputs, rng2)[0]);
+                  tester_t1_series.push_back(env::create_n_inputs(new_dist, n_inputs, rng3)[0]); //This function working from a distribution is on a newer branch
               }
 
               auto env_t0_mean = calc_mean(env_t0_series);
@@ -335,10 +338,10 @@ void test_environment() noexcept
     {
       environment e{env_param{}};
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
-      switch_env_function(e); //Changed the name to match what we've been using
+      env::switch_env_function(e); //Changed the name to match what we've been using
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
       assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
-      switch_env_function(e);
+      env::switch_env_function(e);
       assert(are_same_env_functions(e.get_current_function(), e.get_env_function_A()));
       assert(!are_same_env_functions(e.get_current_function(), e.get_env_function_B()));
     }
@@ -371,7 +374,7 @@ void test_environment() noexcept
           std::function<double(std::vector<double>)> current_function = e.get_current_function();
           assert(e.get_name_current_function() == 'A' && are_same_env_functions(current_function, env_func_2));
 
-          switch_env_function(e);
+          env::switch_env_function(e);
 
           current_function = e.get_current_function();
           assert(e.get_name_current_function() == 'B' && are_same_env_functions(current_function, env_func_1));

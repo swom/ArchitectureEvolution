@@ -29,8 +29,8 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results);
 void run_simulation_given_arguments(const cxxopts::ParseResult& results);
 
 ///Given parameters, creates a simulation
-template<mutation_type M>
-simulation<M> create_simulation(const cxxopts::ParseResult& parameters)
+template<class Pop>
+simulation<Pop> create_simulation(const cxxopts::ParseResult& parameters)
 {
   auto env = convert_env_args(parameters);
   auto ind = convert_ind_args(parameters);
@@ -41,7 +41,7 @@ simulation<M> create_simulation(const cxxopts::ParseResult& parameters)
       env, ind, pop, sim
   };
 
-  simulation<M> s{params};
+  simulation<Pop> s{params};
   return s;
 }
 

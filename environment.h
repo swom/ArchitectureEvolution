@@ -80,6 +80,9 @@ public:
     ///Switches the name of the current function from A to B or B to A
     void switch_name_current_function();
 
+    ///Returns the environment's rng
+    std::mt19937_64 &get_rng() {return m_rng;}
+
 
 
 private:
@@ -99,13 +102,15 @@ private:
     /// The name of the current function
     char m_name_current_function;
 
+    /// The environment's rng
+    std::mt19937_64 m_rng;
+
 };
 
 ///checks if 2 environments are equal
 bool operator== (const environment& lhs, const environment& rhs);
 
-
-void test_environment() noexcept;
+namespace env {
 
 ///Create a vector of a given number of inputs with value fixed to 1
 std::vector<double> create_n_inputs(int n_inputs);
@@ -126,7 +131,9 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);
 
+}
 
+void test_environment() noexcept;
 
 #endif // ENVIRONMENT_H
 
