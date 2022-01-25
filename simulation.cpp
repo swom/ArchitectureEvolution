@@ -410,7 +410,18 @@ void test_simulation() noexcept//!OCLINT test may be many
 #ifdef FIX_ISSUE_40
     {
         //create a non-default simulaiton
-        simulation s{2, 132, 548, {1,2,3,4,5,6}, 3.14};
+        env_param e_p{};
+        e_p.cue_distrib = {-123,123};
+        net_param n_p;
+        n_p.net_arc = {1,2,3,4,5,6};
+        ind_param i_p{};
+        i_p.net_par = n_p;
+        pop_param p_p{};
+        p_p.mut_rate_activation = 1234;
+        sim_param s_p;
+        s_p.change_freq_A = 0.12345;
+
+        simulation s{all_params{e_p, i_p, p_p, s_p}};
         auto name = "sim_save_test";
         save_json(s, name);
         simulation loaded_s = load_json<simulation<>>(name);
