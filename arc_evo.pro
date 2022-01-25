@@ -1,5 +1,6 @@
 # Entry point for user
 
+
 HEADERS +=  \
   Stopwatch.hpp \
   env_change_type.h \
@@ -36,7 +37,10 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
+QMAKE_CXXFLAGS += -g
+CONFIG += force_debug_info
 CONFIG += resources_big
+
 
 # High warning levels
 # SFML goes bad with -Weffc++
@@ -44,6 +48,8 @@ QMAKE_CXXFLAGS += -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
 
 # A warning is an error
 QMAKE_CXXFLAGS += -Werror
+
+
 
 # Debug and release settings
 CONFIG += debug_and_release
