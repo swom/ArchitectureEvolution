@@ -2,6 +2,7 @@
 
 HEADERS +=  \
   Stopwatch.hpp \
+  env_change_type.h \
   environment.h \
   individual.h \
   json.hpp \
@@ -18,6 +19,7 @@ HEADERS +=  \
 
 
 SOURCES +=  \
+  env_change_type.cpp \
   environment.cpp \
   individual.cpp \
   main.cpp \
