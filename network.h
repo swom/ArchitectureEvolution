@@ -489,19 +489,19 @@ inline std::vector<double> output(const network<M>& n, std::vector<double> input
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
-            std::vector<double> w{0};
+
+            double node_value = 0;
 
             if(current_node.is_active()){
-            std::vector<weight> vec_w = current_node.get_vec_weights();
-            w = convert_to_double_or_zero(vec_w);
+                node_value = current_node.get_bias() +
+                        std::inner_product(input.begin(),
+                                           input.end(),
+                                           current_node.get_vec_weights().begin(),
+                                           0.0,
+                                           std::plus<>(),
+                                           [](const double& lhs, const weight& rhs)
+                {return lhs * rhs.is_active() * rhs.get_weight();});
             }
-
-            double node_value = current_node.get_bias() +
-                    std::inner_product(input.begin(),
-                                       input.end(),
-                                       w.begin(),
-                                       0.0);
-
             output[node] = fun(node_value);
         }
         input = std::move(output);
