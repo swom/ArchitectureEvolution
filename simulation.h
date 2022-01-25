@@ -43,12 +43,13 @@ struct all_params
 };
 
 
-template<class Pop = population<>, enum env_change_type Env_change = env_change_type::symmetrical>
+template<class Pop = population<>, enum env_change_type = env_change_type::symmetrical>
 class simulation
 {
 public:
 
     using pop_t = Pop;
+    using env_ch_t = env_change_type;
 
     simulation(int init_pop_size = 1,
                int seed = 0,

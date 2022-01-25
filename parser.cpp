@@ -33,18 +33,18 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
                 string_to_act_func_map.find(results["act_func"].as<std::string>())->second,
                 results["max_arc"].as<std::vector<int>>()
     };
-}
+    }
 
-///NOT tested!!!
-pop_param convert_pop_args(const cxxopts::ParseResult& results)
-{
+    ///NOT tested!!!
+    pop_param convert_pop_args(const cxxopts::ParseResult& results)
+    {
     return pop_param{
-        results["pop_size"].as<int>(),
-                results["mut_rate_weight"].as<double>(),
-                results["mut_step"].as<double>(),
-                results["mut_rate_act"].as<double>(),
-                results["mut_rate_dup"].as<double>()
-    };
+    results["pop_size"].as<int>(),
+    results["mut_rate_weight"].as<double>(),
+    results["mut_step"].as<double>(),
+    results["mut_rate_act"].as<double>(),
+    results["mut_rate_dup"].as<double>()
+};
 }
 
 ///NOT tested!!!
@@ -52,9 +52,11 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
 {
     return sim_param{
         results["seed"].as<int>(),
-                results["change_freq"].as<double>(),
+                results["change_freq_A"].as<double>(),
+                results["change_freq_B"].as<double>(),
                 results["sel_str"].as<double>(),
-                results["num_gens"].as<int>()
+                results["num_gens"].as<int>(),
+                string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
     };
 }
 ///NOT tested!!!
@@ -84,8 +86,11 @@ cxxopts::Options create_parser(){
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
             ("P,pop_size","the numebr of individuals in the simulation",cxxopts::value<int>()->default_value("1000"))
-            ("C,change_freq",
-             "the probability with which the target value will change",
+            ("C,change_freq_A",
+             "the probability with which the target function A will change",
+             cxxopts::value<double>()->default_value("0.01"))
+            ("c,change_freq_B",
+             "the probability with which the target function B will change",
              cxxopts::value<double>()->default_value("0.01"))
             ("S,seed",
              "the seed of the rng",

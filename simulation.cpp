@@ -3,8 +3,8 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop>
-simulation<Pop>::simulation(int init_pop_size,
+template<class Pop, enum env_change_type Env_change_t>
+simulation<Pop, Env_change_t>::simulation(int init_pop_size,
                             int seed,
                             double t_change_interval,
                             std::vector<int> net_arch,
@@ -16,7 +16,7 @@ simulation<Pop>::simulation(int init_pop_size,
     m_seed{seed},
     m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
-    m_change_freq {static_cast<double>(t_change_interval)},
+    m_change_freq_A{static_cast<double>(t_change_interval)},
     m_input(net_arch[0], 1),
     m_optimal_output{1}
 {
@@ -36,9 +36,10 @@ bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
     bool env = lhs.get_env() == rhs.get_env();
     bool time = lhs.get_time() == rhs.get_time();
     bool sel_str = are_equal_with_tolerance(lhs.get_sel_str(), rhs.get_sel_str());
-    bool change_freq = are_equal_with_tolerance(lhs.get_change_freq(), rhs.get_change_freq());
+    bool change_freq_A = are_equal_with_tolerance(lhs.get_change_freq_A(), rhs.get_change_freq_A());
+    bool change_freq_B = are_equal_with_tolerance(lhs.get_change_freq_B(), rhs.get_change_freq_B());
 
-    return pop && env && time && sel_str && change_freq;
+    return pop && env && time && sel_str && change_freq_A && change_freq_B;
 }
 
 template<class Sim>
@@ -343,7 +344,7 @@ void test_simulation() noexcept//!OCLINT test may be many
             }
         }
 
-        auto expected_repeats = s.get_change_freq() * repeats;
+        auto expected_repeats = s.get_change_freq_A() * repeats;
         assert(n_switches - expected_repeats < 20 &&
                n_switches - expected_repeats > -20);
     }
@@ -354,16 +355,24 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         //sim_par
         int seed = 10126789;
-        double change_freq = 123789;
+        double change_freq_A = 123789;
+        double change_freq_B = 87654321;
         double selection_strength = 0.321546;
         int n_generations = 123465;
 
-        sim_param  s_p{seed, change_freq, selection_strength, n_generations};
+        sim_param  s_p{seed,
+                    change_freq_A,
+                    change_freq_B,
+                    selection_strength,
+                    n_generations,
+                    env_change_type::symmetrical};
+
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
 
         //test sim
-        assert(are_equal_with_tolerance(s.get_change_freq(), change_freq) &&
+        assert(are_equal_with_tolerance(s.get_change_freq_A(), change_freq_A) &&
+               are_equal_with_tolerance(s.get_change_freq_B(), change_freq_B) &&
                are_equal_with_tolerance(s.get_sel_str(), selection_strength) &&
                s.get_seed() == seed &&
                s.get_n_gen() == n_generations);
@@ -392,7 +401,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
 
 
-        auto expected_changes = s.get_change_freq() * repeats;
+        auto expected_changes = s.get_change_freq_A() * repeats;
         assert( number_of_env_change - expected_changes < repeats / 1000 &&
                 number_of_env_change - expected_changes > -repeats / 1000);
     }
@@ -636,7 +645,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0}; //Simulation rng is seeded with 1
+        sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
