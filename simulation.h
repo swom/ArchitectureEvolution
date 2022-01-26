@@ -76,7 +76,7 @@ public:
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
-
+                                   m_environment,
                                    m_population,
                                    m_time,
                                    m_change_freq_A,

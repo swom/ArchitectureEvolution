@@ -13,6 +13,7 @@ HEADERS +=  \
   observer.h \
   parser.h \
   population.h \
+  range.h \
   rndutils.hpp \
   simulation.h \
   utilities.h \
@@ -30,6 +31,7 @@ SOURCES +=  \
   observer.cpp \
   parser.cpp \
   population.cpp \
+  range.cpp \
   simulation.cpp \
   utilities.cpp \
   weight.cpp
