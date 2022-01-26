@@ -97,6 +97,66 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
                   "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
                   "_" + std::to_string(o.get_params().s_p.seed) + ".json");
     }
+    else if (mut_type == mutation_type::NRduplication) {
+
+        using net_t = network<mutation_type::NRduplication>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
+        save_json(o,
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::addition) {
+
+        using net_t = network<mutation_type::addition>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
+        save_json(o,
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
+    else if (mut_type == mutation_type::NRaddition) {
+
+        using net_t = network<mutation_type::NRaddition>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t>;
+
+        observer<sim_t> o;
+        auto s = create_simulation<pop_t>(results);
+        exec<sim_t>(s, o) ;
+        save_json(o,
+                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
+                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
+                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+    }
     else
     {
         throw std::runtime_error{"unknown mutation type"};
