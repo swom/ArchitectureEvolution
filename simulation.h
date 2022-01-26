@@ -105,9 +105,12 @@ public:
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
-    ///returns const ref to
-    const std::bernoulli_distribution& get_t_change_env_distr() const noexcept {return m_t_change_env_distr_A;}
-    std::bernoulli_distribution& get_t_change_env_distr() noexcept {return m_t_change_env_distr_A;}
+    ///returns const ref to Bernoulli distribution for change freq of A
+    const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
+
+    ///returns const ref to Bernoulli distribution for change freq of A
+    const std::bernoulli_distribution& get_t_change_env_distr_B() const noexcept {return m_t_change_env_distr_B;}
+
     const int& get_time() const noexcept {return m_time;}
     void increase_time() {++m_time;}
 
@@ -352,8 +355,18 @@ void select_inds(Sim& s)
 ///Checks if environment should change
 template<class Sim>
 bool is_environment_changing(Sim &s) {
-    std::bernoulli_distribution distro = s.get_t_change_env_distr();
+    if(get_name_current_function(s) == 'A' )
+    {
+    std::bernoulli_distribution distro = s.get_t_change_env_distr_A();
     return distro (s.get_env_rng());
+    }
+    else if (get_name_current_function(s) == 'B')
+    {
+    std::bernoulli_distribution distro = s.get_t_change_env_distr_B();
+    return distro (s.get_env_rng());
+    }
+    else
+    throw std::runtime_error{"invalid current function name"};
 }
 
 ///Switches the function of the environment used to calculate the optimal output

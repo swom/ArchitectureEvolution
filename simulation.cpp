@@ -15,8 +15,10 @@ simulation<Pop, Env_change_t>::simulation(int init_pop_size,
     m_n_generations{number_of_generations},
     m_seed{seed},
     m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
+    m_t_change_env_distr_B{static_cast<double>(t_change_interval)},
     m_sel_str{sel_str},
     m_change_freq_A{static_cast<double>(t_change_interval)},
+    m_change_freq_B{static_cast<double>(t_change_interval)},
     m_input(net_arch[0], 1),
     m_optimal_output{1}
 {
@@ -155,7 +157,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         simulation s {pop_size, seed, t_change_interval};
         std::bernoulli_distribution mockdistrotchange(static_cast<double>(t_change_interval));
-        assert (s.get_t_change_env_distr() == mockdistrotchange);
+        assert (s.get_t_change_env_distr_A() == mockdistrotchange);
 
     }
 
@@ -680,33 +682,34 @@ void test_simulation() noexcept//!OCLINT test may be many
         all_params a_p{{},{}, {}, s_p};
 
         simulation<population<>, env_change_type::asymmetrical> s{a_p};
-        int repeats = 100000;
+        int repeats = 1000000;
         int n_switches_A = 0;
         int n_switches_B = 0;
+
         for(int i = 0; i != repeats; i++)
         {
             if(is_environment_changing(s))
             {
-                if(get_name_current_function(s) == 'A')
-                {
-                    n_switches_A++;
-                }
-                else
-                {
-                    n_switches_B++;
-                }
+                n_switches_A++;
             }
         }
-
         auto expected_repeats_A = s.get_change_freq_A() * repeats;
-        assert(n_switches_A - expected_repeats_A< 20 &&
-               n_switches_A - expected_repeats_A > -20);
+        assert(n_switches_A - expected_repeats_A < 200 &&
+               n_switches_A - expected_repeats_A > -200);
 
+        switch_optimal_function(s);
+
+        for(int i = 0; i != repeats; i++)
+        {
+            if(is_environment_changing(s))
+            {
+                n_switches_B++;
+            }
+        }
         auto expected_repeats_B = s.get_change_freq_B() * repeats;
-        assert(n_switches_A - expected_repeats_B < 20 &&
-               n_switches_A - expected_repeats_B > -20);
-
-        assert(!are_equal_with_tolerance(expected_repeats_A, expected_repeats_B));
+        assert(n_switches_B - expected_repeats_B < 200 &&
+               n_switches_B - expected_repeats_B > -200);
+        assert(!are_equal_with_tolerance(n_switches_A, n_switches_B));
     }
 #endif
 }
