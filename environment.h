@@ -51,8 +51,6 @@ public:
 
     std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
-NLOHMANN_DEFINE_TYPE_INTRUSIVE(environment,
-                               m_cue_distribution)
 ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
         {return m_cue_distribution;}
@@ -139,8 +137,8 @@ void switch_env_function(environment &e);
 
 
 ///homebrew version of json loading and saving to load and save cue distributions for environment
-void to_json(nlohmann::json& j, const environment& d);
-void from_json(const nlohmann::json& j, std::uniform_real_distribution<double>& d);
+void to_json(nlohmann::json& j, const environment& e);
+void from_json(const nlohmann::json& j, environment& e);
 
 void test_environment() noexcept;
 
