@@ -21,7 +21,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 
 environment::environment(const env_param& e_p):
     m_cue_range{e_p.cue_distrib},
-    m_cue_distribution{e_p.cue_distrib.m_start, e_p.cue_distrib.m_end},
+    m_cue_distribution{m_cue_range.m_start, m_cue_range.m_end},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
@@ -129,6 +129,17 @@ void switch_env_function(environment &e)
 
 }
 
+
+void to_json(nlohmann::json& j, const environment& e)
+{
+    j = nlohmann::json{{"start", e.get_cue_distribtion().min()}, {"end", e.get_cue_distribtion().max()}};
+}
+void from_json(const nlohmann::json& j, environment& e)
+{
+    env_param e_p;
+    e_p.cue_distrib = {j.at("start"), j.at("end")};
+    e = {e_p};
+}
 
 #ifndef NDEBUG
 void test_environment() noexcept
