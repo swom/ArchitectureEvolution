@@ -43,31 +43,29 @@ void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
                     std::mt19937_64& rng)
 {
-  if(mut_rate){
 
-      std::bernoulli_distribution mut_p{mut_rate};
-      std::normal_distribution<double> mut_st{0,mut_step};
+  std::bernoulli_distribution mut_p{mut_rate};
+  std::normal_distribution<double> mut_st{0,mut_step};
 
-      for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-        for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-            auto &current_node = n.get_net_weights()[i][j];
-            if(current_node.is_active()){
-                for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
-                  {
-                    if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                        const weight &current_weight = current_node.get_vec_weights()[k];
-                        weight mutated_weight(current_weight.get_weight() + mut_st(rng),
-                                              current_weight.is_active());
-                        current_node.change_nth_weight(mutated_weight, k);
-                      }
+  for(size_t i = 0; i != n.get_net_weights().size(); ++i)
+    for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+        auto &current_node = n.get_net_weights()[i][j];
+        if(current_node.is_active()){
+            for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+              {
+                if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                    const weight &current_weight = current_node.get_vec_weights()[k];
+                    weight mutated_weight(current_weight.get_weight() + mut_st(rng),
+                                          current_weight.is_active());
+                    current_node.change_nth_weight(mutated_weight, k);
                   }
               }
           }
-    }
+      }
 
 }
 
-///Mutates a network via node duplication
+///Mutates the weights of a network
 template<class Net>
 void mut_dupl_node(Net& n,
                   const double& mut_rate,
@@ -159,13 +157,10 @@ void mut_del(Net& n,
     }
 }
 
-
-
 ///Mutates the activation of the weights of the network - they get switched on and off
 template<class Net>
 void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 {
-  if(mut_rate){
     std::bernoulli_distribution mut_p{mut_rate};
 
     for(size_t i = 0; i != n.get_net_weights().size(); ++i)
@@ -183,7 +178,6 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
                 }
             }
         }
-    }
 }
 
 ///Mutates the biases of the nodes
@@ -192,17 +186,15 @@ void mutate_biases(Net& n, const double& mut_rate,
                    const double& mut_step,
                    std::mt19937_64& rng)
 {
-  if(mut_rate){
-      std::bernoulli_distribution mut_p{mut_rate};
-      std::normal_distribution<double> mut_st{0,mut_step};
+    std::bernoulli_distribution mut_p{mut_rate};
+    std::normal_distribution<double> mut_st{0,mut_step};
 
-      auto& vector = n.get_net_weights();
-      for(auto& layer : vector){
-          for(auto& node : layer)
-            {
-              if(mut_p(rng) && node.is_active()){
-                  node.change_bias(node.get_bias() + mut_st(rng));
-                }
+    auto& vector = n.get_net_weights();
+    for(auto& layer : vector){
+        for(auto& node : layer)
+        {
+            if(mut_p(rng) && node.is_active()){
+                node.change_bias(node.get_bias() + mut_st(rng));
             }
         }
     }
@@ -419,6 +411,7 @@ public:
 
       --m_current_arc[layer + 1];
     }
+
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
@@ -671,19 +664,19 @@ inline std::vector<double> output(const network<M>& n, std::vector<double> input
         for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
         {
             const class node &current_node = n.get_net_weights()[layer][node];
-            std::vector<double> w{0};
+
+            double node_value = 0;
 
             if(current_node.is_active()){
-            std::vector<weight> vec_w = current_node.get_vec_weights();
-            w = convert_to_double_or_zero(vec_w);
+                node_value = current_node.get_bias() +
+                        std::inner_product(input.begin(),
+                                           input.end(),
+                                           current_node.get_vec_weights().begin(),
+                                           0.0,
+                                           std::plus<>(),
+                                           [](const double& lhs, const weight& rhs)
+                {return lhs * rhs.is_active() * rhs.get_weight();});
             }
-
-            double node_value = current_node.get_bias() +
-                    std::inner_product(input.begin(),
-                                       input.end(),
-                                       w.begin(),
-                                       0.0);
-
             output[node] = fun(node_value);
         }
         input = std::move(output);
@@ -747,8 +740,6 @@ template<class Net>
 inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
   return (average_number_incoming_weights(n, layer_index + 1) * n.get_net_weights()[layer_index + 1].size()) / n.get_net_weights()[layer_index].size();
 }
-
-
 
 
 
