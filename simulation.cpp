@@ -21,7 +21,7 @@ simulation<Pop>::simulation(int init_pop_size,
     m_optimal_output{1}
 {
     m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds())
+    for(auto& ind : m_population.get_inds_nonconst())
     {
         ind = individual{net_param{net_arch, linear, net_arch}};
     }
