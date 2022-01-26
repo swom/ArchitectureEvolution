@@ -411,7 +411,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         //create a non-default simulaiton
         env_param e_p{};
-        e_p.cue_distrib = std::vector<double>{-0.123,0.123};
+        e_p.cue_distrib = range{-0.123,0.123};
         net_param n_p;
         n_p.net_arc = {1,2,3,4,5,6};
         n_p.max_arc = {1,2,3,4,5,6};
