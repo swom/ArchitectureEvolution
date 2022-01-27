@@ -108,7 +108,7 @@ public:
     ///returns const ref to Bernoulli distribution for change freq of A
     const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
 
-    ///returns const ref to Bernoulli distribution for change freq of A
+    ///returns const ref to Bernoulli distribution for change freq of B
     const std::bernoulli_distribution& get_t_change_env_distr_B() const noexcept {return m_t_change_env_distr_B;}
 
     const int& get_time() const noexcept {return m_time;}
