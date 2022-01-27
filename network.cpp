@@ -161,6 +161,7 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     else throw 1;
 }
 
+
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {
@@ -651,6 +652,7 @@ void test_network() //!OCLINT
 
     }
 #endif
+
 
 #define FIX_ISSUE_209
 #ifdef FIX_ISSUE_209

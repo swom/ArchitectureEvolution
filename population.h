@@ -58,7 +58,7 @@ public:
     const std::vector<Ind>& get_inds() const noexcept{return m_vec_indiv;}
 
     ///Get ref to vector of individuals
-    std::vector<Ind>& get_inds() noexcept{return m_vec_indiv;}
+    std::vector<Ind>& get_inds_nonconst() noexcept{return m_vec_indiv;}
 
     ///Returns the ref tot the mutable fitness distribution
     rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
@@ -149,7 +149,7 @@ bool all_individuals_have_same_input(const population<Ind> &p)
 template<class Pop>
 void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
 {
-    for(auto& ind : p.get_inds()){
+    for(auto& ind : p.get_inds_nonconst()){
         ind.assign_input(inputs);
     }
 }
@@ -174,7 +174,7 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double e
 template< class Ind>
 void set_nth_ind_fitness (population<Ind>& p, size_t ind_index, double fitness)
 {
-    auto& ind = p.get_inds()[ind_index];
+    auto& ind = p.get_inds_nonconst()[ind_index];
     ind.set_fitness(fitness);
 }
 
@@ -278,7 +278,7 @@ void select_new_pop(population<Ind>& p,
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
 {
-    p.get_inds().swap(p.get_new_inds());
+    p.get_inds_nonconst().swap(p.get_new_inds());
 }
 
 ///Reproduces inds with a probability proportional to their fitness
