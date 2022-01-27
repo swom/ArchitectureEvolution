@@ -108,12 +108,12 @@ void exec(Sim& s , observer<Sim>& o)
     sw::Stopwatch my_watch;
 
     for (int i = 0; i < s.get_n_gen(); i++)
-    {
-        o.store_avg_fit(s);
+    {      
         o.store_env_func(s);
         o.store_var_fit(s);
         o.store_input(s);
         o.store_optimal(s);
+        o.store_avg_fit(s);
 
         if(i % 1000 == 0)
         {

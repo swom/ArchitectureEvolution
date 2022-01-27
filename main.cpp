@@ -35,6 +35,7 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
+
     }
     else if (mut_type == mutation_type::activation) {
 
@@ -61,6 +62,7 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
+
     }
     else if (mut_type == mutation_type::duplication) {
 
