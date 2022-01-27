@@ -47,7 +47,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
-
 #ifndef NDEBUG
 void test_observer()
 {

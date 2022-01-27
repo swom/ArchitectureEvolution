@@ -130,6 +130,34 @@ void exec(Sim& s , observer<Sim>& o)
     }
 }
 
+template<class Sim>
+std::string create_save_name_from_observer_data(const observer<Sim>& o)
+{
+  mutation_type mut_type = o.get_params().i_p.m_mutation_type;
+
+  if(mut_type == mutation_type::duplication ||
+    mut_type == mutation_type::addition ||
+    mut_type == mutation_type::NRduplication||
+    mut_type == mutation_type::NRaddition)
+
+   return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+   "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+   "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+   "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
+   "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 8) +
+   "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+   "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+   "_" + std::to_string(o.get_params().s_p.seed) + ".json";
+
+
+   else return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+    "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+    "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+    "__" + std::to_string(o.get_params().s_p.change_freq).substr(0, 8) +
+    "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+    "__" + std::to_string(o.get_params().s_p.seed) + ".json";
+}
+
 void test_observer();
 
 #endif // OBSERVER_H
