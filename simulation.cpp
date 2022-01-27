@@ -675,6 +675,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 #define FIX_ISSUE_249
 #ifdef FIX_ISSUE_249
+///Simulation changes environment/function according to the specific change frequency of each function
     {
         sim_param s_p{};
         s_p.change_freq_A = 0.1;
