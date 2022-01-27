@@ -43,25 +43,26 @@ void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
                     std::mt19937_64& rng)
 {
+  if(mut_rate != 0){
+      std::bernoulli_distribution mut_p{mut_rate};
+      std::normal_distribution<double> mut_st{0,mut_step};
 
-  std::bernoulli_distribution mut_p{mut_rate};
-  std::normal_distribution<double> mut_st{0,mut_step};
-
-  for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-    for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-        auto &current_node = n.get_net_weights()[i][j];
-        if(current_node.is_active()){
-            for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
-              {
-                if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                    const weight &current_weight = current_node.get_vec_weights()[k];
-                    weight mutated_weight(current_weight.get_weight() + mut_st(rng),
-                                          current_weight.is_active());
-                    current_node.change_nth_weight(mutated_weight, k);
+      for(size_t i = 0; i != n.get_net_weights().size(); ++i)
+        for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+            auto &current_node = n.get_net_weights()[i][j];
+            if(current_node.is_active()){
+                for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+                  {
+                    if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                        const weight &current_weight = current_node.get_vec_weights()[k];
+                        weight mutated_weight(current_weight.get_weight() + mut_st(rng),
+                                              current_weight.is_active());
+                        current_node.change_nth_weight(mutated_weight, k);
+                      }
                   }
               }
           }
-      }
+    }
 
 }
 
@@ -163,6 +164,7 @@ void mut_del(Net& n,
 template<class Net>
 void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 {
+  if(mut_rate != 0){
     std::bernoulli_distribution mut_p{mut_rate};
 
     for(size_t i = 0; i != n.get_net_weights().size(); ++i)
@@ -180,6 +182,7 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
                 }
             }
         }
+    }
 }
 
 ///Mutates the biases of the nodes
@@ -188,15 +191,17 @@ void mutate_biases(Net& n, const double& mut_rate,
                    const double& mut_step,
                    std::mt19937_64& rng)
 {
-    std::bernoulli_distribution mut_p{mut_rate};
-    std::normal_distribution<double> mut_st{0,mut_step};
+  if(mut_rate != 0){
+      std::bernoulli_distribution mut_p{mut_rate};
+      std::normal_distribution<double> mut_st{0,mut_step};
 
-    auto& vector = n.get_net_weights();
-    for(auto& layer : vector){
-        for(auto& node : layer)
-        {
-            if(mut_p(rng) && node.is_active()){
-                node.change_bias(node.get_bias() + mut_st(rng));
+      auto& vector = n.get_net_weights();
+      for(auto& layer : vector){
+          for(auto& node : layer)
+            {
+              if(mut_p(rng) && node.is_active()){
+                  node.change_bias(node.get_bias() + mut_st(rng));
+                }
             }
         }
     }
@@ -217,6 +222,9 @@ public:
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
+          if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
+              throw std::runtime_error{"starting and maximum architecture are not compatible"};
+            }
 
         for (size_t i = 1; i != n_p.net_arc.size(); i++ )
         {
@@ -236,9 +244,6 @@ public:
             //A vector of the size of the number of connections is pushed back in the weight matrix
             m_network_weights.push_back(temp_layer_vector);
         }
-        if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
-            throw 1;
-          }
     }
 
         void mutate(const double& mut_rate_weight,
@@ -327,7 +332,7 @@ public:
         ++m_current_arc[layer + 1];
     }
 
-    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 rng)
+    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 &rng)
     {
       if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
         return;

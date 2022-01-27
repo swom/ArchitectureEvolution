@@ -410,81 +410,17 @@ void test_network() //!OCLINT
   ///Network has a (current) network architecture *and* a maximum architecture
     {
         std::vector<int> start_arc{1,2,2,1};
-        std::vector<int> max_arc_that_works{1,8,8,1};
-        std::vector<int> max_arc_too_few_nodes{1,1,1,1};
-        std::vector<int> max_arc_too_many_layers{1,8,8,8,1};
-        std::vector<int> max_arc_too_few_layers{1,8,1};
-        std::vector<int> max_arc_wrong_input{2,8,8,1};
-        std::vector<int> max_arc_wrong_output{1,8,8,2};
+        std::vector<int> max_arc{1,8,8,1};
 
         auto pars = net_param();
         pars.net_arc = start_arc;
-        pars.max_arc = max_arc_that_works;
+        pars.max_arc = max_arc;
 
-        bool exception_thrown = false;
+        network n{pars};
 
-        network n{net_param{}};
 
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-
-        assert(exception_thrown == false);
         assert(n.get_current_arc() == start_arc);
-        assert(n.get_max_arc() == max_arc_that_works);
-
-        exception_thrown = false;
-        pars.max_arc = max_arc_too_few_nodes;
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-        assert(exception_thrown == true);
-
-        exception_thrown = false;
-        pars.max_arc = max_arc_too_many_layers;
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-        assert(exception_thrown == true);
-
-        exception_thrown = false;
-        pars.max_arc = max_arc_too_few_layers;
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-        assert(exception_thrown == true);
-
-        exception_thrown = false;
-        pars.max_arc = max_arc_wrong_input;
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-        assert(exception_thrown == true);
-
-        exception_thrown = false;
-        pars.max_arc = max_arc_wrong_output;
-        try{
-        n = network{pars};
-        }
-        catch(int exc){
-          exception_thrown = true;
-        }
-        assert(exception_thrown == true);
+        assert(n.get_max_arc() == max_arc);
     }
 #endif
 
@@ -810,9 +746,9 @@ void test_network() //!OCLINT
         auto rng_copy = rng;
         auto rng_copy_2 = rng;
 
-        n_mut.get_net_weights()[0][1].change_bias(1); //to have some randomness in the values generated
-        n_dup.get_net_weights()[0][1].change_bias(1);
-        n_add.get_net_weights()[0][1].change_bias(1);//so that there is difference between dup and add
+        n_mut.get_net_weights()[0][2].change_bias(1); //to have some randomness in the values generated
+        n_dup.get_net_weights()[0][2].change_bias(1);
+        n_add.get_net_weights()[0][2].change_bias(1);//so that there is difference between dup and add
 
         rng.discard(1); //to compensate for the rng being called to know if there is mutation in mutate
 
