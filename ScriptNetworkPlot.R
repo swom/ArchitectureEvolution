@@ -10,27 +10,24 @@ library(ggnetwork)
 library(networkD3)
 library(magick)
 
-dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release/store/Non-ratchet duplication"
+dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release/store/Mutation rate"
 setwd(dir)
 
 results=list()
 pattern = "*json$"
-
-#Looping through all the json files in the wd
 for (i in  list.files(path = '.', pattern = pattern)){
   
   ###Making a data tibble with all top individuals' data 
+  
   results <- fromJSON(file = i)
   names(results$m_top_inds) = seq(from=0, by=1000, length.out=length(results$m_top_inds))
-  
   results_df = results$m_top_inds %>% 
-  unlist(recursive=FALSE)
+  unlist(recursive=FALSE)#%>%
   results_df = as_tibble(results_df)%>%
   add_column(var = c("fitness", "input_values", "network"))%>%
   gather(key = gen, value = value, 1:length(results$m_top_inds)) %>% 
   pivot_wider(names_from = var, values_from = value)
   
-  #Extracting information out of the file name
   i = str_replace(i, "weights_and_activation", "weightsandactivation")
   ID = data.frame(i) %>% 
     separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq", "selection_strength", "max_arc","seed"), sep = '_')%>% 
@@ -44,11 +41,10 @@ for (i in  list.files(path = '.', pattern = pattern)){
   ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
   ID$selection_strength = as.factor(ID$selection_strength)
   
-  #Creating a name for the data frame & binding ID and individual data
   name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
   assign(name1, cbind(results_df, ID))
   
-  ###Making a integer vector out of the architecture
+  ###Making a number vector out of the architecture
   if(levels(get(name1)$max_arc)[1] == ""){
     architecture = strsplit(levels(get(name1)$architecture)[1], "-")[[1]]
   } else {
@@ -57,7 +53,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
    architecture = as.integer(architecture)
   
   
-  ###Expanding to have each connection as a row
+  ###Keeping only network architecture, expanding to have each connection as a row
   
   top_inds_net = unnest_wider(get(name1), col = "network")%>%
     unnest_wider(col = "m_network_weights", names_sep = "_layer_")%>%
@@ -75,12 +71,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   top_inds_net$gen = as.factor(top_inds_net$gen)
   top_inds_net$w_sign = as.factor(top_inds_net$w_sign)
   
-  #Creating a name for that
   name2 = paste("top_inds_net", str_replace(i, ".json", ""), sep = "_")
   assign(name2, top_inds_net)
   
-  
-  ###Beginning plotting
   #generate coordinates for positioning nodes correctly in plot
   x = vector()
   y = vector()
