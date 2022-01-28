@@ -32,8 +32,8 @@ make
 declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,8,8,8,1")
 declare -a change_freq=(0 0.005)
-declare -a gen=(50000)
-declare -a mut_type=("NRduplication" "NRaddition" "addition" "weights_and_activation")
+declare -a gen=(500000)
+declare -a mut_type=("NRduplication" "NRaddition")
 
 for seed in $(seq 1 10)
 do
