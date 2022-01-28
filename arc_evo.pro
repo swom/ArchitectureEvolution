@@ -35,8 +35,6 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
-QMAKE_CXXFLAGS += -g
-CONFIG += force_debug_info
 CONFIG += resources_big
 
 
@@ -54,9 +52,6 @@ CONFIG += debug_and_release
 CONFIG(release, debug|release) {
   DEFINES += NDEBUG
 }
-
-#Displaying console when launchin .exe
-CONFIG += console
 
 # Qt5
 QT += core gui
@@ -78,6 +73,11 @@ win32{
   LIBS += -lopengl32              #Dependency
   LIBS += -lgdi32                 #Dependency
   LIBS += -lwinmm                 #Dependency
+  #Displaying console when launchin .exe
+  CONFIG += console
+#allowing info for profiling
+QMAKE_CXXFLAGS += -g
+  CONFIG += force_debug_info
 }
 
 
