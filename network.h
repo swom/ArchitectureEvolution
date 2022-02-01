@@ -345,9 +345,10 @@ public:
       if(layer != 0){
       for(size_t i = 0; i != m_network_weights[layer-1].size(); ++i){
         if(!m_network_weights[layer-1][i].is_active()){
-            vec_indexes.erase(vec_indexes.begin()+i);
+            vec_indexes[i] = 999;
             }
           }
+      vec_indexes.erase(std::remove(vec_indexes.begin(), vec_indexes.end(), 999), vec_indexes.end());
         }
 
       std::vector<size_t> indexes_to_activate;
@@ -363,8 +364,10 @@ public:
 
       for(size_t i = 0; i != m_network_weights[layer+1].size(); ++i){
         if(!m_network_weights[layer+1][i].is_active()){
-            vec_indexes_out.erase(vec_indexes_out.begin()+i);
+            vec_indexes_out[i] = 999;
             }
+        vec_indexes_out.erase(std::remove(vec_indexes_out.begin(), vec_indexes_out.end(), 999), vec_indexes_out.end());
+
           }
 
       std::vector<size_t> indexes_to_activate_out;
