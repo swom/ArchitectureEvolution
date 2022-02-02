@@ -5,7 +5,7 @@
 
 enum class mutation_type
 {
- weights,
+    weights,
     activation,
     weights_and_activation,
     duplication,

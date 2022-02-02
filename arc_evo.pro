@@ -3,6 +3,7 @@
 
 HEADERS +=  \
   Stopwatch.hpp \
+  env_change_type.h \
   environment.h \
   individual.h \
   json.hpp \
@@ -12,6 +13,7 @@ HEADERS +=  \
   observer.h \
   parser.h \
   population.h \
+  range.h \
   rndutils.hpp \
   simulation.h \
   utilities.h \
@@ -19,6 +21,7 @@ HEADERS +=  \
 
 
 SOURCES +=  \
+  env_change_type.cpp \
   environment.cpp \
   individual.cpp \
   main.cpp \
@@ -28,6 +31,7 @@ SOURCES +=  \
   observer.cpp \
   parser.cpp \
   population.cpp \
+  range.cpp \
   simulation.cpp \
   utilities.cpp \
   weight.cpp

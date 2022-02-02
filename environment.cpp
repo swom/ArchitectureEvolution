@@ -6,6 +6,7 @@
 
 environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
+    m_cue_range{-1,1},
     m_env_function_A{env_functionA},
     m_env_function_B{env_functionB},
     m_current_function{env_functionA},
@@ -19,16 +20,14 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 }
 
 environment::environment(const env_param& e_p):
-    m_cue_distribution{e_p.cue_distrib[0], e_p.cue_distrib[1]},
+    m_cue_range{e_p.cue_distrib},
+    m_cue_distribution{m_cue_range.m_start, m_cue_range.m_end},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
     m_name_current_function{'A'}
 {
     m_rng.seed(0);
-
-
-
 }
 
 
@@ -130,6 +129,17 @@ void switch_env_function(environment &e)
 
 }
 
+
+void to_json(nlohmann::json& j, const environment& e)
+{
+    j = nlohmann::json{{"start", e.get_cue_distribtion().min()}, {"end", e.get_cue_distribtion().max()}};
+}
+void from_json(const nlohmann::json& j, environment& e)
+{
+    env_param e_p;
+    e_p.cue_distrib = {j.at("start"), j.at("end")};
+    e = {e_p};
+}
 
 #ifndef NDEBUG
 void test_environment() noexcept
@@ -389,11 +399,11 @@ void test_environment() noexcept
     ///A cue distribution param in environmental parameters can be used to generate an environment with the given distribution
     {
         env_param param{};
-        std::vector<double> distrib{-213,123};
+        range distrib{-213,123};
         param.cue_distrib = distrib;
         environment e{param};
 
-        std::uniform_real_distribution<double> test_distrib(distrib[0], distrib[1]);
+        std::uniform_real_distribution<double> test_distrib(distrib.m_start, distrib.m_end);
         assert(are_same_distribution(e.get_cue_distribtion(), test_distrib));
 
     }
