@@ -43,7 +43,8 @@ struct all_params
 };
 
 
-template<class Pop = population<>, enum env_change_type = env_change_type::symmetrical>
+template<class Pop = population<>,
+         enum env_change_type Env_change = env_change_type::symmetrical>
 class simulation
 {
 public:
@@ -134,6 +135,30 @@ public:
 
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
+
+    ///Checks if environment needs to change
+    bool is_environment_changing(){
+        if( m_environment.get_name_current_function() == 'A' )
+        {
+            std::bernoulli_distribution distro = get_t_change_env_distr_A();
+            return distro (get_env_rng());
+        }
+        else if (m_environment.get_name_current_function() == 'B')
+        {
+            std::bernoulli_distribution distro;
+            if constexpr( Env_change == env_change_type::asymmetrical)
+            {
+                distro = get_t_change_env_distr_B();
+            }
+            else if(Env_change == env_change_type::symmetrical)
+            {
+                distro = get_t_change_env_distr_A();
+            }
+            return distro (get_env_rng());
+        }
+        else
+            throw std::runtime_error{"invalid current function name"};
+    }
 
     ///Returns the function A of the environment
     const std::function<double(std::vector<double>)> &get_env_function_A() const noexcept
@@ -352,23 +377,6 @@ void select_inds(Sim& s)
     reproduce(s);
 }
 
-///Checks if environment should change
-template<class Sim>
-bool is_environment_changing(Sim &s) {
-    if(get_name_current_function(s) == 'A' )
-    {
-    std::bernoulli_distribution distro = s.get_t_change_env_distr_A();
-    return distro (s.get_env_rng());
-    }
-    else if (get_name_current_function(s) == 'B')
-    {
-    std::bernoulli_distribution distro = s.get_t_change_env_distr_B();
-    return distro (s.get_env_rng());
-    }
-    else
-    throw std::runtime_error{"invalid current function name"};
-}
-
 ///Switches the function of the environment used to calculate the optimal output
 template<class Sim>
 void switch_optimal_function(Sim &s)
@@ -390,7 +398,7 @@ void tick(Sim &s)
 {
     s.increase_time();
 
-    if(is_environment_changing(s)){
+    if(s.is_environment_changing()){
 
         perform_environment_change(s);
     }

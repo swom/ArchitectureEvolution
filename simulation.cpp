@@ -340,7 +340,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches = 0;
         for(int i = 0; i != repeats; i++)
         {
-            if(is_environment_changing(s))
+            if(s.is_environment_changing())
             {
                 n_switches++;
             }
@@ -667,7 +667,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         assert(s.get_rng() != s.get_env_rng());
 
-        is_environment_changing(s);
+        s.is_environment_changing();
         assert(s.get_rng() == rng_before);
 
     }
@@ -689,7 +689,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         for(int i = 0; i != repeats; i++)
         {
-            if(is_environment_changing(s))
+            if(s.is_environment_changing())
             {
                 n_switches_A++;
             }
@@ -702,7 +702,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         for(int i = 0; i != repeats; i++)
         {
-            if(is_environment_changing(s))
+            if(s.is_environment_changing())
             {
                 n_switches_B++;
             }
