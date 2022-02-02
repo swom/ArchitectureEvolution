@@ -9,6 +9,7 @@ bool operator==(const all_params& lhs, const all_params& rhs)
             lhs.p_p.mut_step == rhs.p_p.mut_step &&
             lhs.p_p.number_of_inds == rhs.p_p.number_of_inds &&
             lhs.s_p.change_freq_A == rhs.s_p.change_freq_A &&
+            lhs.s_p.change_freq_B == rhs.s_p.change_freq_B &&
             lhs.s_p.seed == rhs.s_p.seed &&
             lhs.s_p.selection_strength == rhs.s_p.selection_strength &&
             are_same_env_functions(lhs.e_p.env_function_A, rhs.e_p.env_function_A)&&
