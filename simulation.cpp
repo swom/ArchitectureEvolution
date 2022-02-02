@@ -649,5 +649,26 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
+    ///Selection can happen sporadically every n generations
+    {
+        using change_type = asymmetrical;
+        using Pop = population<>;
+
+        using sel_type = selection_type::sporadic;
+        using templates =  train_class<Pop, change_type, sel_type>;
+
+        simulation<templates> s;
+
+        int repeats = 100;
+        for (int i = 0; i != repeats; i++)
+        {
+            tick(s);
+            if(i % s.get_selection_frequency() == 0)
+            {
+                assert(pop::var_fitness(s.get_pop()) < pop::var_fitness(s.get_pop().get_new_pop()));
+                assert(pop::avg_fitness(s.get_pop()) < pop::avg_fitness(s.get_pop().get_new_pop()));
+            }
+        }
+    }
 }
 #endif
