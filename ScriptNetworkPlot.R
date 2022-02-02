@@ -10,12 +10,13 @@ library(ggnetwork)
 library(networkD3)
 library(magick)
 
-dir = "X:/build-arc_evo-Desktop_Qt_6_1_3_MinGW_64_bit-Release/release"
+dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release/store/Mutation rate"
 setwd(dir)
 
 results=list()
 pattern = "*json$"
 for (i in  list.files(path = '.', pattern = pattern)){
+  
   ###Making a data tibble with all top individuals' data 
   
   results <- fromJSON(file = i)
@@ -27,20 +28,29 @@ for (i in  list.files(path = '.', pattern = pattern)){
   gather(key = gen, value = value, 1:length(results$m_top_inds)) %>% 
   pivot_wider(names_from = var, values_from = value)
   
+  i = str_replace(i, "weights_and_activation", "weightsandactivation")
   ID = data.frame(i) %>% 
-    separate(i, c("mut_type","architecture","mut_rate_dup","change_freq", "max_arc","seed"), sep = '_')%>% 
+    separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq", "selection_strength", "max_arc","seed"), sep = '_')%>% 
     separate(seed, c("seed",NA))
   
   ID$architecture = as.factor(ID$architecture)
   ID$seed = as.factor(ID$seed)
   ID$max_arc = as.factor(ID$max_arc)
+  ID$change_freq = as.factor(ID$change_freq)
+  ID$mut_rate_act = as.factor(ID$mut_rate_act)
+  ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
+  ID$selection_strength = as.factor(ID$selection_strength)
   
   name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
   assign(name1, cbind(results_df, ID))
   
   ###Making a number vector out of the architecture
-  architecture = strsplit(levels(get(name1)$max_arc)[1], "-")[[1]]%>%
-    as.integer()
+  if(levels(get(name1)$max_arc)[1] == ""){
+    architecture = strsplit(levels(get(name1)$architecture)[1], "-")[[1]]
+  } else {
+    architecture = strsplit(levels(get(name1)$max_arc)[1], "-")[[1]]
+  }
+   architecture = as.integer(architecture)
   
   
   ###Keeping only network architecture, expanding to have each connection as a row
@@ -92,9 +102,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   
   
-  for(j in 1:nrow(node_tibble)){
-    from = c(from, rep(node_tibble$id[j], nrow(filter(node_tibble, layer == (node_tibble$layer[j]+1)))))
-    to = c(to, filter(node_tibble, layer == (node_tibble$layer[j]+1))$id)
+  for(j in 1:length(levels(as.factor(node_tibble$layer)))){
+    from = c(from, rep(filter(node_tibble, layer == j)$id, nrow(filter(node_tibble, layer == j+1))))
+    to = c(to, sort(rep(filter(node_tibble, layer == j+1)$id, nrow(filter(node_tibble, layer == j))), decreasing = F))
   }
   
   #Now let's loop through generations
@@ -119,12 +129,12 @@ for (i in  list.files(path = '.', pattern = pattern)){
   E(network_d)$color = as.factor(edge_tibble$`ind$w_sign`)
   E(network_d)$weight = if_else(edge_tibble$`ind$m_is_active` == T,  edge_tibble$`ind$m_weight`, 0)
   network_d = network_d - E(network_d)[E(network_d)$weight == 0]
-  V(network_d)$color = as.factor(node_tibble$node_active)
+  V(network_d)$color = factor(node_tibble$node_active, levels=c("FALSE", "TRUE"))
   
 
-  jpeg(paste("Plot","s",ind$seed,"arch",ind$architecture,
+  jpeg(paste("Plot",ind$mut_type, "s",ind$seed,"arch",ind$architecture,
              "cycle", paste(rep("0",max(nchar(levels(ind$gen)))-(nchar(j))),j, sep=""),"changefreq", 
-             ind$change_freq,"duprate",ind$mut_rate_dup,".png", sep = "_")
+             ind$change_freq,"duprate",ind$mut_rate_dup,"actrate", ind$mut_rate_act, ".png", sep = "_")
        ,width = 700,
        height = 700)
   
@@ -135,7 +145,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
        edge.arrow.width = 0.7,                          # Arrow width, defaults to 1
        edge.arrow.height = 0.9,                          # Arrow width, defaults to 1
        edge.lty = c("solid"),
-       edge.width = abs(E(network_d)$weight/max(E(network_d)$weight) * 10), 
+       edge.width = abs(E(network_d)$weight/max(abs(E(network_d)$weight)) * 10), 
        main = title,
        vertex.label = NA
        )
@@ -145,10 +155,11 @@ for (i in  list.files(path = '.', pattern = pattern)){
 
   ####Create gif
   ## list file names and read in
-  imgs = intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-                   list.files(pattern = levels(get(name1)$mut_rate_dup)[1], full.names =  T)),
-                   list.files(pattern = levels(get(name1)$change_freq)[1], full.names =  T)
-                   ) 
+  imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
+                   list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
+                   list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
+                   list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
+                   list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
   img_list = lapply(imgs, image_read)
   
   ## join the images together
@@ -158,7 +169,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
   img_animated <- image_animate(img_joined, fps = 2)
   
   ## save to disk
-  path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
+  path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
   image_write(image = img_animated,
               path = path)
   
