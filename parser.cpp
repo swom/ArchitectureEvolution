@@ -102,7 +102,7 @@ cxxopts::Options create_parser(){
              "number of generations for which the simulation has to run",
              cxxopts::value<int>()->default_value("1000000"))
             ("m,mutation_type",
-             "type ofg mutation that a network will undergo",
+             "type of mutation that a network will undergo",
              cxxopts::value<std::string>()->default_value("weights"))
             ("d,cue_distrib",
              "the minimum and maximum of the distribution used to generate environmental cues",
