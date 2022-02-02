@@ -126,7 +126,7 @@ void exec(Sim& s , observer<Sim>& o)
             std::cout << "exiting store_top_inds()" << std::endl;
         }
 
-        sim::tick (s);
+        sim::tick(s);
     }
 }
 
