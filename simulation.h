@@ -112,7 +112,10 @@ public:
     ///returns const ref to Bernoulli distribution for change freq of B
     const std::bernoulli_distribution& get_t_change_env_distr_B() const noexcept {return m_t_change_env_distr_B;}
 
+    ///returns the number of generations the simualtion has run for
     const int& get_time() const noexcept {return m_time;}
+
+    ///increases the number of genration the simulations has run for
     void increase_time() {++m_time;}
 
     ///Returns the strength of selection

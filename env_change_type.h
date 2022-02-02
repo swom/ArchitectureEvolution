@@ -5,13 +5,15 @@
 enum class env_change_type
 {
     symmetrical,
-    asymmetrical
+    asymmetrical,
+    regular
 };
 
 static std::map<std::string, env_change_type> string_to_env_change_map
 {
     {"symmetrical", env_change_type::symmetrical},
-    {"asymmetrical", env_change_type::asymmetrical}
+    {"asymmetrical", env_change_type::asymmetrical},
+    {"regular", env_change_type::regular}
 };
 
 #endif // ENV_CHANGE_TYPE_H
