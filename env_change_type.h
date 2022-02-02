@@ -16,4 +16,7 @@ static std::map<std::string, env_change_type> string_to_env_change_map
     {"regular", env_change_type::regular}
 };
 
+std::string convert_change_type_to_string(env_change_type e);
+
+
 #endif // ENV_CHANGE_TYPE_H

@@ -130,6 +130,10 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
     {
         run_simulation_given_mut_type<env_change_type::asymmetrical>(results);
     }
+    else if(env_change_type == env_change_type::regular)
+    {
+        run_simulation_given_mut_type<env_change_type::regular>(results);
+    }
     else{
         throw std::runtime_error{"unknown change type"};
     }
