@@ -92,6 +92,9 @@ cxxopts::Options create_parser(){
             ("c,change_freq_B",
              "the probability with which the target function B will change",
              cxxopts::value<double>()->default_value("0.01"))
+            ("e,env_change_type",
+             "type of environmental change that a simulation will undergo",
+             cxxopts::value<std::string>()->default_value("symmetrical"))
             ("S,seed",
              "the seed of the rng",
              cxxopts::value<int>()->default_value("0"))
