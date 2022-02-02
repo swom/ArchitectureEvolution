@@ -141,6 +141,11 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
+        if constexpr( Env_change == env_change_type::regular)
+        {
+            return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+        }
+
         if( m_environment.get_name_current_function() == 'A' )
         {
             std::bernoulli_distribution distro = get_t_change_env_distr_A();

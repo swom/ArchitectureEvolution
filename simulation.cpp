@@ -753,6 +753,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         sim_param s_p{};
         s_p.change_freq_A = 0.1;
         s_p.change_freq_B = 0.01;
+        s_p.n_generations = 10000;
         all_params a_p{{},{}, {}, s_p};
 
         simulation<population<>, env_change_type::regular> regular_sim{a_p};
