@@ -112,7 +112,10 @@ public:
     ///returns const ref to Bernoulli distribution for change freq of B
     const std::bernoulli_distribution& get_t_change_env_distr_B() const noexcept {return m_t_change_env_distr_B;}
 
+    ///returns the number of generations the simualtion has run for
     const int& get_time() const noexcept {return m_time;}
+
+    ///increases the number of genration the simulations has run for
     void increase_time() {++m_time;}
 
     ///Returns the strength of selection
@@ -138,6 +141,11 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
+        if constexpr( Env_change == env_change_type::regular)
+        {
+            return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+        }
+
         if( m_environment.get_name_current_function() == 'A' )
         {
             std::bernoulli_distribution distro = get_t_change_env_distr_A();

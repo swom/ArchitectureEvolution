@@ -5,11 +5,11 @@
 
 template<class Pop, enum env_change_type Env_change_t>
 simulation<Pop, Env_change_t>::simulation(int init_pop_size,
-                            int seed,
-                            double t_change_interval,
-                            std::vector<int> net_arch,
-                            double sel_str,
-                            int number_of_generations):
+                                          int seed,
+                                          double t_change_interval,
+                                          std::vector<int> net_arch,
+                                          double sel_str,
+                                          int number_of_generations):
     m_environment{},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
@@ -675,7 +675,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 #define FIX_ISSUE_249
 #ifdef FIX_ISSUE_249
-///Simulation changes environment/function according to the specific change frequency of each function
+    ///Simulation changes environment/function according to the specific change frequency of each function
     {
         sim_param s_p{};
         s_p.change_freq_A = 0.1;
@@ -744,6 +744,32 @@ void test_simulation() noexcept//!OCLINT test may be many
         //check they are more or less the same number
         assert(n_switches_A - n_switches_B < 300 &&
                n_switches_A - n_switches_B > -300 );
+    }
+#endif
+
+#define FIX_ISSUE_261
+#ifdef FIX_ISSUE_261
+    {
+        sim_param s_p{};
+        s_p.change_freq_A = 0.1;
+        s_p.change_freq_B = 0.01;
+        s_p.n_generations = 10000;
+        all_params a_p{{},{}, {}, s_p};
+
+        simulation<population<>, env_change_type::regular> regular_sim{a_p};
+        int repeats = 1000000;
+
+        auto current_function_name = get_name_current_function(regular_sim);
+        for(int i = 0; i != repeats; i++)
+        {
+            tick(regular_sim);
+            if(std::fmod(regular_sim.get_time(), 1.0/s_p.change_freq_A)  == 0)
+            {
+                assert(current_function_name != get_name_current_function(regular_sim));
+                current_function_name = get_name_current_function(regular_sim);
+            }
+
+        }
     }
 #endif
 }
