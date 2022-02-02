@@ -21,16 +21,16 @@ void test() {
 void run_simulation_given_arguments(const cxxopts::ParseResult& results)
 {
     auto mut_type = convert_ind_args(results).m_mutation_type;
+//    auto env_change_type = convert_sim_args(results).change_type ;
 
     if(mut_type == mutation_type::weights)
     {
-
         using net_t = network<mutation_type::weights>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t>;
-
         observer<sim_t> o;
+
         auto s = create_simulation<pop_t>(results);
         exec<sim_t>(s, o) ;
         save_json(o,

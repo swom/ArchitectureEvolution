@@ -682,35 +682,68 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.change_freq_B = 0.01;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_type::asymmetrical> s{a_p};
+        simulation<population<>, env_change_type::asymmetrical> s_asym{a_p};
         int repeats = 1000000;
-        int n_switches_A = 0;
-        int n_switches_B = 0;
 
+        int n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
         {
-            if(s.is_environment_changing())
+            if(s_asym.is_environment_changing())
             {
                 n_switches_A++;
             }
         }
-        auto expected_repeats_A = s.get_change_freq_A() * repeats;
+        auto expected_repeats_A = s_asym.get_change_freq_A() * repeats;
         assert(n_switches_A - expected_repeats_A < 200 &&
                n_switches_A - expected_repeats_A > -200);
 
-        switch_optimal_function(s);
+        switch_optimal_function(s_asym);
 
+        int n_switches_B = 0;
         for(int i = 0; i != repeats; i++)
         {
-            if(s.is_environment_changing())
+            if(s_asym.is_environment_changing())
             {
                 n_switches_B++;
             }
         }
-        auto expected_repeats_B = s.get_change_freq_B() * repeats;
+        auto expected_repeats_B = s_asym.get_change_freq_B() * repeats;
         assert(n_switches_B - expected_repeats_B < 200 &&
                n_switches_B - expected_repeats_B > -200);
-        assert(!are_equal_with_tolerance(n_switches_A, n_switches_B));
+
+        ///Test that in symmetrical mode changes from one env to the other
+        /// happen with same frequency for both environments
+
+        simulation<population<>, env_change_type::symmetrical> s_sym{a_p};
+
+        n_switches_A = 0;
+        for(int i = 0; i != repeats; i++)
+        {
+            if(s_sym.is_environment_changing())
+            {
+                n_switches_A++;
+            }
+        }
+        expected_repeats_A = s_sym.get_change_freq_A() * repeats;
+        assert(n_switches_A - expected_repeats_A < 200 &&
+               n_switches_A - expected_repeats_A > -200);
+
+        switch_optimal_function(s_sym);
+
+        n_switches_B = 0;
+        for(int i = 0; i != repeats; i++)
+        {
+            if(s_sym.is_environment_changing())
+            {
+                n_switches_B++;
+            }
+        }
+        expected_repeats_B = s_sym.get_change_freq_A() * repeats;
+        assert(n_switches_B - expected_repeats_B < 200 &&
+               n_switches_B - expected_repeats_B > -200);
+        //check they are more or less the same number
+        assert(n_switches_A - n_switches_B < 300 &&
+               n_switches_A - n_switches_B > -300 );
     }
 #endif
 }
