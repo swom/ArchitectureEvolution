@@ -3,8 +3,8 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop, enum env_change_type Env_change_t>
-simulation<Pop, Env_change_t>::simulation(int init_pop_size,
+template<class Pop, enum env_change_type E, enum selection_type S>
+simulation<Pop, E, S>::simulation(int init_pop_size,
                                           int seed,
                                           double t_change_interval,
                                           std::vector<int> net_arch,
@@ -675,15 +675,16 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Selection can happen sporadically every n generations
     {
-        using change_type = environmental::asymmetrical;
-        using Pop = population<>;
+int selection_freq = 5;
+int repeats = 100;
+all_params a_p;
+a_p.s_p.n_generations = repeats;
+a_p.s_p.sel_freq = selection_freq;
 
-        using sel_type = selection_type::sporadic;
-        using templates =  train_class<Pop, change_type, sel_type>;
+        simulation<population<>,
+                env_change_type::symmetrical,
+                selection_type::sporadic> s;
 
-        simulation<templates> s;
-
-        int repeats = 100;
         for (int i = 0; i != repeats; i++)
         {
             tick(s);

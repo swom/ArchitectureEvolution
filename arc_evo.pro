@@ -15,6 +15,7 @@ HEADERS +=  \
   population.h \
   range.h \
   rndutils.hpp \
+  selection_type.h \
   simulation.h \
   utilities.h \
   weight.h
@@ -32,6 +33,7 @@ SOURCES +=  \
   parser.cpp \
   population.cpp \
   range.cpp \
+  selection_type.cpp \
   simulation.cpp \
   utilities.cpp \
   weight.cpp
