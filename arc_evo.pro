@@ -42,7 +42,6 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
-QMAKE_CXXFLAGS += -Wa,-mbig
 CONFIG += resources_big
 
 
@@ -85,6 +84,7 @@ win32{
   CONFIG += console
 #allowing info for profiling
 QMAKE_CXXFLAGS += -g
+QMAKE_CXXFLAGS += -Wa,-mbig
   CONFIG += force_debug_info
 }
 
