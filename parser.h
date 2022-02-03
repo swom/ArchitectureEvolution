@@ -26,11 +26,11 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
 ///runs a simulation given a parsed set of command line arguments
 /// that are read as parameters
-void run_simulation_given_arguments(const cxxopts::ParseResult& results);
+void run_simulation_given_env_change_type(const cxxopts::ParseResult& results);
 
 ///Given parameters, creates a simulation
-template<class Pop, env_change_type E>
-simulation<Pop, E> create_simulation(const cxxopts::ParseResult& parameters)
+template<class Pop, env_change_type E, selection_type S>
+simulation<Pop, E, S> create_simulation(const cxxopts::ParseResult& parameters)
 {
   auto env = convert_env_args(parameters);
   auto ind = convert_ind_args(parameters);
@@ -41,7 +41,7 @@ simulation<Pop, E> create_simulation(const cxxopts::ParseResult& parameters)
       env, ind, pop, sim
   };
 
-  simulation<Pop, E> s{params};
+  simulation<Pop, E, S> s{params};
   return s;
 }
 

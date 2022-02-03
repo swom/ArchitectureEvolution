@@ -7,6 +7,9 @@ HEADERS +=  \
   environment.h \
   individual.h \
   json.hpp \
+  launch_env_change.h \
+  launch_mut_type.h \
+  launcher_functions.h \
   mutation_type.h \
   network.h \
   node.h \
