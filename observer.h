@@ -109,11 +109,11 @@ void exec(Sim& s , observer<Sim>& o)
 
     for (int i = 0; i < s.get_n_gen(); i++)
     {
-        o.store_avg_fit(s);
         o.store_env_func(s);
         o.store_var_fit(s);
         o.store_input(s);
         o.store_optimal(s);
+        o.store_avg_fit(s);
 
         if(i % 1000 == 0)
         {
@@ -126,8 +126,40 @@ void exec(Sim& s , observer<Sim>& o)
             std::cout << "exiting store_top_inds()" << std::endl;
         }
 
-        sim::tick (s);
+        sim::tick(s);
     }
+}
+
+template<class Sim>
+std::string create_save_name_from_observer_data(const observer<Sim>& o)
+{
+    mutation_type mut_type = o.get_params().i_p.m_mutation_type;
+
+    if(mut_type == mutation_type::duplication ||
+            mut_type == mutation_type::addition ||
+            mut_type == mutation_type::NRduplication||
+            mut_type == mutation_type::NRaddition)
+
+        return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+                "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
+                "_" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+                "_" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
+                "_" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+                "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+                "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+                "_" + std::to_string(o.get_params().s_p.seed) + ".json";
+
+
+    else return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+            "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+            "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+            "_" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+            "_" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
+            "_" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+            "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+            "__" + std::to_string(o.get_params().s_p.seed) + ".json";
 }
 
 void test_observer();

@@ -25,7 +25,7 @@ std::string convert_mut_type_to_string(mutation_type m)
         string = "duplication";
         return string;
         break;
-
+        
       case mutation_type::addition :
           string = "addition";
           return string;
@@ -40,7 +40,7 @@ std::string convert_mut_type_to_string(mutation_type m)
           string = "NRaddition";
           return string;
           break;
-
+        
     default:
         throw 2;
     }
@@ -53,10 +53,6 @@ void test_mutation_type()
             mutation_type::weights_and_activation != mutation_type::activation &&
             mutation_type::duplication != mutation_type::activation &&
             mutation_type::duplication != mutation_type::weights &&
-            mutation_type::duplication != mutation_type::weights_and_activation &&
-            mutation_type::addition != mutation_type::weights &&
-            mutation_type::addition != mutation_type::weights_and_activation &&
-            mutation_type::addition != mutation_type::activation &&
-            mutation_type::addition != mutation_type::duplication);
+            mutation_type::duplication != mutation_type::weights_and_activation);
 }
 

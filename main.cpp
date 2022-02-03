@@ -6,162 +6,139 @@
 
 #ifndef NDEBUG
 void test() {
-        test_environment();
-        test_individual();
-        test_mutation_type();
-        test_network();
-        test_observer();
-        test_population();
-        test_simulation();
-        test_weight();
-        test_node();
+    test_environment();
+    test_individual();
+    test_mutation_type();
+    test_network();
+    test_observer();
+    test_population();
+    test_simulation();
+    test_weight();
+    test_node();
 }
 #endif
-
-void run_simulation_given_arguments(const cxxopts::ParseResult& results)
+template <env_change_type env_change_type>
+void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
 {
     auto mut_type = convert_ind_args(results).m_mutation_type;
 
     if(mut_type == mutation_type::weights)
     {
-
         using net_t = network<mutation_type::weights>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
-
+        using sim_t = simulation<pop_t, env_change_type>;
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::activation) {
 
         using net_t = network<mutation_type::activation>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::weights_and_activation) {
 
         using net_t = network<mutation_type::weights_and_activation>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "__" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::duplication) {
 
         using net_t = network<mutation_type::duplication>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::NRduplication) {
 
         using net_t = network<mutation_type::NRduplication>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::addition) {
 
         using net_t = network<mutation_type::addition>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else if (mut_type == mutation_type::NRaddition) {
 
         using net_t = network<mutation_type::NRaddition>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t>;
+        using sim_t = simulation<pop_t, env_change_type>;
 
         observer<sim_t> o;
-        auto s = create_simulation<pop_t>(results);
+        auto s = create_simulation<pop_t, env_change_type>(results);
         exec<sim_t>(s, o) ;
         save_json(o,
-                  convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.change_freq).substr(0, 5) +
-                  "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 5) +
-                  "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-                  "_" + std::to_string(o.get_params().s_p.seed) + ".json");
+                  create_save_name_from_observer_data(o));
     }
     else
     {
         throw std::runtime_error{"unknown mutation type"};
     }
 }
+
+void run_simulation_given_arguments(const cxxopts::ParseResult& results)
+{
+    auto env_change_type = convert_sim_args(results).change_type ;
+    if(env_change_type == env_change_type::asymmetrical)
+    {
+        run_simulation_given_mut_type< env_change_type::asymmetrical>(results);
+    }
+    else if(env_change_type == env_change_type::symmetrical)
+    {
+        run_simulation_given_mut_type<env_change_type::asymmetrical>(results);
+    }
+    else if(env_change_type == env_change_type::regular)
+    {
+        run_simulation_given_mut_type<env_change_type::regular>(results);
+    }
+    else{
+        throw std::runtime_error{"unknown change type"};
+    }
+}
+
 
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
@@ -170,25 +147,24 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
 
     try {
 #ifndef NDEBUG
-   if (results.count("test"))
-   {
-       test();
-       // We've already tested, so the program is done
-       return 0;
-   }
+        if (results.count("test"))
+        {
+            test();
+            // We've already tested, so the program is done
+            return 0;
+        }
 #else
-   // In release mode, all asserts are removed from the code
-   assert(1 == 2);
+        // In release mode, all asserts are removed from the code
+        assert(1 == 2);
 #endif
 
-    run_simulation_given_arguments(results);
+        run_simulation_given_arguments(results);
 
     }  catch (int exc) {
         if(exc==1)
-            throw std::runtime_error("The current and maximum architectures are not compatible");
+            std::cerr << "The current and maximum architectures are not compatible";
         if(exc==2)
-            throw std::runtime_error("A wrong mutation type has been entered");
-
+            std::cerr << "A wrong mutation type has been entered";
     }
 
     return 0;

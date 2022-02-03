@@ -1,7 +1,9 @@
 # Entry point for user
 
+
 HEADERS +=  \
   Stopwatch.hpp \
+  env_change_type.h \
   environment.h \
   individual.h \
   json.hpp \
@@ -11,6 +13,7 @@ HEADERS +=  \
   observer.h \
   parser.h \
   population.h \
+  range.h \
   rndutils.hpp \
   simulation.h \
   utilities.h \
@@ -18,6 +21,7 @@ HEADERS +=  \
 
 
 SOURCES +=  \
+  env_change_type.cpp \
   environment.cpp \
   individual.cpp \
   main.cpp \
@@ -27,6 +31,7 @@ SOURCES +=  \
   observer.cpp \
   parser.cpp \
   population.cpp \
+  range.cpp \
   simulation.cpp \
   utilities.cpp \
   weight.cpp
@@ -36,6 +41,7 @@ CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
 CONFIG += resources_big
 
+
 # High warning levels
 # SFML goes bad with -Weffc++
 QMAKE_CXXFLAGS += -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
@@ -43,14 +49,13 @@ QMAKE_CXXFLAGS += -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
 # A warning is an error
 QMAKE_CXXFLAGS += -Werror
 
+
+
 # Debug and release settings
 CONFIG += debug_and_release
 CONFIG(release, debug|release) {
   DEFINES += NDEBUG
 }
-
-#Displaying console when launchin .exe
-CONFIG += console
 
 # Qt5
 QT += core gui
@@ -72,6 +77,11 @@ win32{
   LIBS += -lopengl32              #Dependency
   LIBS += -lgdi32                 #Dependency
   LIBS += -lwinmm                 #Dependency
+  #Displaying console when launchin .exe
+  CONFIG += console
+#allowing info for profiling
+QMAKE_CXXFLAGS += -g
+  CONFIG += force_debug_info
 }
 
 
