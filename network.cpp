@@ -33,7 +33,7 @@ network<M>::network(std::vector<int> nodes_per_layer, std::function<double(doubl
 
 
 template<class Net>
-std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
+std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, rndutils::xorshift128& rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
@@ -55,7 +55,7 @@ std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double m
 }
 
 template<class Net>
-std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, std::mt19937_64 &rng, int repeats)
+std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, rndutils::xorshift128 &rng, int repeats)
 {
     std::vector<weight> networks_weights;
     for(int i = 0; i != repeats; i++)
@@ -260,7 +260,7 @@ void test_network() //!OCLINT
     {
         double mut_rate = 0.01;
         double mut_step = 0.1;
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         auto expected_mean_value  = 0;
         auto expected_stdev = mut_step;
@@ -305,7 +305,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_98
 #ifdef FIX_ISSUE_98
     {
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
         network n{net_param{}};
         double mut_rate = 1;
 
@@ -319,7 +319,7 @@ void test_network() //!OCLINT
 #define FIX_ISSUE_100
 #ifdef FIX_ISSUE_100
     {
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         std::vector<int> net_arch{5,5,5,5,5};
         network n{net_param{net_arch, linear, net_arch}};
@@ -377,7 +377,7 @@ void test_network() //!OCLINT
 
         auto mutation_rate = 1;
         auto mutation_step = 1;
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
         auto rng_copy = rng;
 
         auto before_mutation = n_weights;
@@ -463,7 +463,7 @@ void test_network() //!OCLINT
 
         network n{n_p};
 
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         mutate_weights(n, 1, 0.1, rng); //so the weights will be different
 
@@ -509,7 +509,7 @@ void test_network() //!OCLINT
 
         auto mutation_rate = 1;
         auto mutation_step = 1;
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
         auto rng_copy = rng;
 
         n_simple.mutate(mutation_rate, mutation_step, rng_copy, mutation_rate, mutation_rate);
@@ -555,7 +555,7 @@ void test_network() //!OCLINT
     ///Connections linked to inactive nodes don't mutate
     {
         network n_before{net_param({1,1,1}, linear, {1,2,1})};
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         assert(!n_before.get_net_weights()[0][1].is_active());
 
@@ -601,7 +601,7 @@ void test_network() //!OCLINT
 
     network n{n_p};
 
-    std::mt19937_64 rng;
+    rndutils::xorshift128 rng;
 
     assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
     auto empty_node_iterator = n.get_empty_node_in_layer(0);
@@ -639,8 +639,8 @@ void test_network() //!OCLINT
     n_p.max_arc = {1,8,2,8,1};
 
     network n1{n_p};
-    std::mt19937_64 rng1(0);
-    std::mt19937_64 rng2(1);
+    rndutils::xorshift128 rng1(0);
+    rndutils::xorshift128 rng2(1);
 
     for(int i=0; i!= 100; ++i){
         mutate_activation(n1, 0.2, rng1);
@@ -702,8 +702,8 @@ void test_network() //!OCLINT
     mutate_weights(n1, 1, 0.5, rng);
 
     network n2 = n1;
-    std::mt19937_64 rng1(0);
-    std::mt19937_64 rng2(1);
+    rndutils::xorshift128 rng1(0);
+    rndutils::xorshift128 rng2(1);
 
     auto empty_node_iterator1 = n1.get_empty_node_in_layer(0);
     auto empty_node_iterator2 = n2.get_empty_node_in_layer(0);
@@ -742,7 +742,7 @@ void test_network() //!OCLINT
         network n_add{n_p};
 
         auto mutation_rate = 1;
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
         auto rng_copy = rng;
         auto rng_copy_2 = rng;
 
@@ -801,7 +801,7 @@ void test_network() //!OCLINT
         network n_del{n_p};
 
         auto mutation_rate = 1;
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
 
         mut_del(n_mut, mutation_rate, rng);
@@ -822,8 +822,8 @@ void test_network() //!OCLINT
         network n_dupdel{n_p};
 
         auto mutation_rate = 0.5;
-        std::mt19937_64 rng;
-        std::mt19937_64 rng_copy = rng;
+        rndutils::xorshift128 rng;
+        rndutils::xorshift128 rng_copy = rng;
 
         n_nrd_mut.mutate(mutation_rate, 0.1, rng, mutation_rate, mutation_rate);
 

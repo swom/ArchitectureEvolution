@@ -81,7 +81,7 @@ std::vector<double> create_n_inputs(int n_inputs)
   return input_vector;
 }
 
-std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng)
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, rndutils::xorshift128 &rng)
 {
   std::vector<double> input_vector(n_inputs);
 
@@ -93,7 +93,7 @@ std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt1
 }
 
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
-                                    const int &n_inputs, std::mt19937_64 &rng)
+                                    const int &n_inputs, rndutils::xorshift128 &rng)
 {
     std::vector<double> input_vector(n_inputs);
 
@@ -166,7 +166,7 @@ void test_environment() noexcept
         std::uniform_real_distribution<double> test_dist(-1,1);
 
         ///this is a random engine it is the source of randomness that you can plug inside distribution to generate random numbers with certain characteristic
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         ///We are going to draw numbers from both from the env distribution and the test
         /// and then we are going to store them into vectors
@@ -200,10 +200,10 @@ void test_environment() noexcept
     {
         environment e{env_param{}};
         int n_inputs = 3;
-        std::mt19937_64 rng1;
+        rndutils::xorshift128 rng1;
 
         auto tester_dist = e.get_dist();
-        std::mt19937_64 rng2;
+        rndutils::xorshift128 rng2;
 
         std::vector<std::vector<double>> env_series(0, std::vector<double>(n_inputs));
         std::vector<std::vector<double>> tester_series(0, std::vector<double>(n_inputs));
@@ -230,7 +230,7 @@ void test_environment() noexcept
 
     ///Environment creates new inputs based on its own distribution
     {
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
         auto test_rng = rng;
 
         environment e{env_param{}};
@@ -301,9 +301,9 @@ void test_environment() noexcept
           {
               environment e{env_param{}};
               int n_inputs = 1;
-              std::mt19937_64 rng1;
-              std::mt19937_64 rng2;
-              std::mt19937_64 rng3;
+              rndutils::xorshift128 rng1;
+              rndutils::xorshift128 rng2;
+              rndutils::xorshift128 rng3;
 
               std::vector<double> env_t0_series;
               std::vector<double> env_t1_series;

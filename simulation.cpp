@@ -142,7 +142,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int seed = 123456789;
         simulation s{pop_size,
                     seed};
-        std::mt19937_64 copy_rng(seed);
+        rndutils::xorshift128 copy_rng(seed);
         assert ( s.get_rng()() == copy_rng());
 
     }
@@ -663,7 +663,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
-        std::mt19937_64 rng_before = s.get_rng();
+        rndutils::xorshift128 rng_before = s.get_rng();
 
         assert(s.get_rng() != s.get_env_rng());
 

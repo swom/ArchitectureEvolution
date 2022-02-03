@@ -73,8 +73,8 @@ bool are_same_distribution(std::uniform_real_distribution<double>lhs,
 {
   std::vector<double> lhs_cues;
   std::vector<double> rhs_cues;
-  std::mt19937_64 rng1;
-  std::mt19937_64 rng2;
+  rndutils::xorshift128 rng1;
+  rndutils::xorshift128 rng2;
 
   int repeats = n_repeat;
   for(int i = 0; i != repeats; i++)

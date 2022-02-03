@@ -135,7 +135,7 @@ void test_population() noexcept
         size_t first_ind = 0;
         size_t second_ind = 1;
         population p{n_inds};
-        std::mt19937_64 rng;
+        rndutils::xorshift128 rng;
 
         //make first ind net recognizable
         auto new_net =  change_all_weights_values_and_activations(pop::get_nth_ind_net(p,first_ind), 123456);
