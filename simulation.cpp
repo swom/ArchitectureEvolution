@@ -107,6 +107,7 @@ double identity_first_element(const std::vector<double> &vector)
     return vector[0];
 }
 
+
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
 {
@@ -257,7 +258,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
         assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
-        select_inds(s);
+        s.select_inds();
 
         //all inds should now have the network that matches the target values
         for(const auto& ind :get_inds(s))
@@ -312,7 +313,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         size_t second_ind = 1;
         change_nth_ind_net(s, first_ind, identity_net);
 
-        calc_fitness(s);
+        s.calc_fitness();
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
         auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
@@ -676,21 +677,39 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         int selection_freq = 5;
         int repeats = 100;
-        all_params a_p;
-        a_p.s_p.n_generations = repeats;
-        a_p.s_p.selection_freq = selection_freq;
+
+        sim_param s_p{};
+        s_p.n_generations = repeats;
+        s_p.selection_freq = selection_freq;
+        pop_param p_p;
+        p_p.number_of_inds = 1000;
+        all_params a_p{{},{}, p_p, s_p};
 
         simulation<population<>,
                 env_change_type::symmetrical,
-                selection_type::sporadic> s;
+                selection_type::sporadic> s{a_p};
 
+        double stdev_prev_pop;
+        double stdev_pop;
+        double avg_pop;
+        double avg_prev_pop;
         for (int i = 0; i != repeats; i++)
         {
-            tick(s);
-            if(i % s.get_sel_freq() == 0)
+            if(s.get_time() % s.get_sel_freq() == 0)
             {
-                assert(pop::stdev_fitness(s.get_pop()) < pop::stdev_fitness(s.get_pop().get_new_inds()));
-                assert(pop::avg_fitness(s.get_pop()) < pop::avg_fitness(s.get_pop().get_new_inds()));
+                stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
+                avg_prev_pop = pop::avg_fitness(s.get_pop());
+            }
+
+            tick(s);
+
+            if(s.get_time() % s.get_sel_freq() == 1)
+            {
+                stdev_pop = pop::stdev_fitness(s.get_pop());
+                avg_pop = pop::avg_fitness(s.get_pop());
+
+                assert(stdev_pop < stdev_prev_pop);
+                assert(avg_prev_pop < avg_pop);
             }
         }
     }

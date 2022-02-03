@@ -40,7 +40,7 @@ struct sim_param
         selection_type{sel_type}
     {}
 
-        int seed;
+    int seed;
     double change_freq_A;
     double change_freq_B;
     double selection_strength;
@@ -64,7 +64,6 @@ struct all_params
 
 
 };
-
 
 template<class Pop = population<>,
          enum env_change_type Env_change = env_change_type::symmetrical,
@@ -206,6 +205,42 @@ public:
 
     ///Updates the inputs of the simulation with new calculated inputs
     void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
+
+    ///Calculates fitness of inds in pop given current env values
+    void calc_fitness()
+    {
+        update_optimal(env::calculate_optimal(m_environment, m_input));
+        m_population = pop::calc_fitness(m_population,
+                                         m_optimal_output,
+                                         m_sel_str);
+    }
+    ///Reproduces inds to next gen based on their fitness
+    void reproduce()
+    {
+        pop::reproduce(get_pop(), get_rng());
+    }
+
+    ///Calculates fitness and selects a new population based on fitness
+    void select_inds()
+    {
+        if constexpr(Sel_Type == selection_type::sporadic)
+        {
+            if(m_time % m_selection_frequency == 0)
+            {
+                calc_fitness();
+            }
+            reproduce();
+        }
+        else if constexpr(Sel_Type == selection_type::constant)
+        {
+            calc_fitness();
+            reproduce();
+        }
+        else
+        {
+            throw std::runtime_error{"wrong type of selection"};
+        }
+    }
 
     ///Changes the last input (env function indicator) from 1 to -1 or vice versa
     void switch_env_indicator()
@@ -352,15 +387,6 @@ double avg_fitness(const Sim& s)
 {
     return pop::avg_fitness(s.get_pop());
 }
-///Calculates fitness of inds in pop given current env values
-template<class Sim>
-void calc_fitness(Sim &s)
-{
-    s.update_optimal(calculate_optimal(s));
-    s.get_pop() = pop::calc_fitness(s.get_pop(),
-                                    s.get_optimal(),
-                                    s.get_sel_str());
-}
 
 ///Changes all the weights of a given individual to a given value
 template<class Sim>
@@ -400,21 +426,6 @@ double get_nth_ind_fitness(const Sim& s, const size_t ind_index);
 template<class Sim>
 const typename Sim::pop_t::ind_t::net_t& get_nth_ind_net(const Sim& s, size_t ind_index);
 
-///Reproduces inds to next gen based on their fitness
-template<class Sim>
-void reproduce(Sim& s)
-{
-    pop::reproduce(s.get_pop(), s.get_rng());
-}
-
-///Calculates fitness and selects a new population based on fitness
-template<class Sim>
-void select_inds(Sim& s)
-{
-    calc_fitness(s);
-    reproduce(s);
-}
-
 ///Switches the function of the environment used to calculate the optimal output
 template<class Sim>
 void switch_optimal_function(Sim &s)
@@ -447,7 +458,7 @@ void tick(Sim &s)
 
     }
 
-    select_inds(s);
+    s.select_inds();
 }
 
 ///Calculates the standard devaition of the population fitness

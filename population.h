@@ -224,10 +224,20 @@ template< class Ind>
 rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
-
-    mut_dist.mutate_transform(p.get_inds().begin(),
-                              p.get_inds().end(),
-                              [](const Ind& i){return i.get_fitness();});
+    if(std::any_of(p.get_inds().begin(),
+                   p.get_inds().end(),
+                   [](const Ind& i){return i.get_fitness() != 0;}))
+    {
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind& i){return i.get_fitness();});
+    }
+    else
+    {
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind&){return 1;});
+    }
     return  mut_dist;
 }
 

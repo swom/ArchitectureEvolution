@@ -44,6 +44,7 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
+QMAKE_CXXFLAGS += -Wa,-mbig
 CONFIG += resources_big
 
 
