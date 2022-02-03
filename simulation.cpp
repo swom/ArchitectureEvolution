@@ -675,8 +675,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Selection can happen sporadically every n generations
     {
-        int selection_freq = 50;
-        int repeats = 100;
+        int selection_freq = 5;
+        int repeats = 10;
 
         sim_param s_p{};
         s_p.n_generations = repeats;
@@ -695,20 +695,17 @@ void test_simulation() noexcept//!OCLINT test may be many
         double stdev_pop;
         double avg_pop;
         double avg_prev_pop;
+
         for (int i = 0; i != repeats; i++)
         {
-            if(s.get_time() % s.get_sel_freq() == 0 && s.get_time() != 0)
-            {
-                stdev_prev_pop = pop::stdev_fitness(s.get_pop());
-                avg_prev_pop = pop::avg_fitness(s.get_pop());
-            }
-
             tick(s);
 
             if(s.get_time() % s.get_sel_freq() == 0  && s.get_time() != 0)
             {
                 stdev_pop = pop::stdev_fitness(s.get_pop());
                 avg_pop = pop::avg_fitness(s.get_pop());
+                stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
+                avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
                 assert(stdev_pop < stdev_prev_pop);
                 assert(avg_prev_pop < avg_pop);
