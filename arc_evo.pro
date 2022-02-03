@@ -5,6 +5,7 @@ HEADERS +=  \
   Stopwatch.hpp \
   env_change_type.h \
   environment.h \
+  ind_data.h \
   individual.h \
   json.hpp \
   mutation_type.h \
@@ -23,6 +24,7 @@ HEADERS +=  \
 SOURCES +=  \
   env_change_type.cpp \
   environment.cpp \
+  ind_data.cpp \
   individual.cpp \
   main.cpp \
   mutation_type.cpp \

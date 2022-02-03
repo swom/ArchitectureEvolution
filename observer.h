@@ -1,5 +1,6 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
+#include"ind_data.h"
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
@@ -15,7 +16,7 @@ private:
     int m_top_proportion;
     using Pop = typename Sim::pop_t;
     using Ind = typename Pop::ind_t;
-    std::vector<std::vector<Ind>> m_top_inds;
+    std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
@@ -61,10 +62,31 @@ public:
         m_var_fitnesses.push_back(sim::var_fitness(s));
     }
 
+    ///Calculates the reaction_norm of an individual's network
+    template<class Ind>
+    std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds,
+                                                         const range& cue_range,
+                                                         const int& n_data_points)
+    {
+        double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+        std::vector<Ind_Data<Ind>> inds_data(inds.size());
+        for(const auto& ind : inds)
+        {
+            std::vector<double> reac_norm(n_data_points);
+            for(int i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+            {
+                reac_norm.push_back(ouput(ind.get_net(), {i}));
+            }
+            inds_data.push_back({ind, reac_norm});
+        }
+        return inds_data;
+    }
+
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(sim::get_best_n_inds(s, m_top_proportion));
+        calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion), s.get_cue_range());
+        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion)));
     }
 
     ///Saves the nth best individuals in the population
