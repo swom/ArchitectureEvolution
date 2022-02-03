@@ -236,7 +236,7 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
     {
         mut_dist.mutate_transform(p.get_inds().begin(),
                                   p.get_inds().end(),
-                                  [](const Ind&){return 1;});
+                                  [](const Ind&){return 0.01;});
     }
     return  mut_dist;
 }
