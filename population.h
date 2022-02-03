@@ -122,11 +122,17 @@ std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
     return fitnesses;
 }
 
+///Calculates the avg_fitness of a vector of individuals
+template< class Ind>
+double avg_fitness(const std::vector<Ind>& inds){
+    auto fitnesses = extract_fitnesses(inds());
+    return calc_mean(fitnesses);
+}
+
 ///Calculates the avg_fitness of the population
 template< class Ind>
 double avg_fitness(const population<Ind>& p){
-    auto fitnesses = extract_fitnesses(p.get_inds());
-    return calc_mean(fitnesses);
+    return avg_fitness(p.get_inds());
 }
 
 ///Rescales the distance fro the target of an ind
@@ -295,12 +301,17 @@ void reproduce(population<Ind>& p, std::mt19937_64& rng)
     swap_new_with_old_pop(p);
 }
 
-///Calculates the standard deviation
+///Calculates the standard deviation of fitness of a vector of individuals
 template< class Ind>
-double var_fitness(const population<Ind> &p){
-    auto inds = p.get_inds();
+double stdev_fitness(const std::vector<Ind> &inds){
     auto fitnesses = extract_fitnesses(inds);
     return calc_stdev(fitnesses);
+}
+
+///Calculates the standard deviation of fitness of the current population
+template< class Ind>
+double stdev_fitness(const population<Ind> &p){
+    return stdev_fitness(p.get_inds());
 }
 
 ///Returns the input of the nth individual

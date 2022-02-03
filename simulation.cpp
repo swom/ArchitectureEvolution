@@ -366,8 +366,7 @@ void test_simulation() noexcept//!OCLINT test may be many
                     change_freq_A,
                     change_freq_B,
                     selection_strength,
-                    n_generations,
-                    env_change_type::symmetrical};
+                    n_generations};
 
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
@@ -660,7 +659,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
+        sim_param s_p{1, 0, 0, 0, 0}; //Simulation rng is seeded with 1
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
@@ -675,11 +674,11 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Selection can happen sporadically every n generations
     {
-int selection_freq = 5;
-int repeats = 100;
-all_params a_p;
-a_p.s_p.n_generations = repeats;
-a_p.s_p.sel_freq = selection_freq;
+        int selection_freq = 5;
+        int repeats = 100;
+        all_params a_p;
+        a_p.s_p.n_generations = repeats;
+        a_p.s_p.selection_freq = selection_freq;
 
         simulation<population<>,
                 env_change_type::symmetrical,
@@ -690,8 +689,8 @@ a_p.s_p.sel_freq = selection_freq;
             tick(s);
             if(i % s.get_selection_frequency() == 0)
             {
-                assert(pop::var_fitness(s.get_pop()) < pop::var_fitness(s.get_pop().get_new_pop()));
-                assert(pop::avg_fitness(s.get_pop()) < pop::avg_fitness(s.get_pop().get_new_pop()));
+                assert(pop::stdev_fitness(s.get_pop()) < pop::stdev_fitness(s.get_pop().get_new_inds()));
+                assert(pop::avg_fitness(s.get_pop()) < pop::avg_fitness(s.get_pop().get_new_inds()));
             }
         }
     }

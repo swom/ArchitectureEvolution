@@ -19,13 +19,35 @@ struct sim_param
                                    change_freq_A,
                                    change_freq_B,
                                    selection_strength,
-                                   n_generations)
-    int seed;
+                                   n_generations,
+                                   selection_freq)
+
+    sim_param(int seed = 0,
+              double change_freq_A = 0.1,
+              double change_freq_B = 0.01,
+              double selection_strength = 1,
+              int n_generations = 100,
+              int selection_freq = 1,
+              env_change_type change_type = env_change_type::symmetrical,
+              selection_type sel_type = selection_type::constant):
+        seed{seed},
+        change_freq_A{change_freq_A},
+        change_freq_B{change_freq_B},
+        selection_strength{selection_strength},
+        n_generations{n_generations},
+        selection_freq{selection_freq},
+        change_type{change_type},
+        selection_type{sel_type}
+    {}
+
+        int seed;
     double change_freq_A;
     double change_freq_B;
     double selection_strength;
     int n_generations;
+    int selection_freq;
     env_change_type change_type;
+    selection_type selection_type;
 
 };
 
@@ -426,7 +448,7 @@ void tick(Sim &s)
 template<class Sim>
 double var_fitness(const Sim&s)
 {
-    return pop::var_fitness(s.get_pop());
+    return pop::stdev_fitness(s.get_pop());
 }
 
 
