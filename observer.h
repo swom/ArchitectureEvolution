@@ -15,9 +15,9 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
     for(const auto& ind : inds)
     {
         std::vector<double> reac_norm(n_data_points);
-        for(int i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+        for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
         {
-            reac_norm.push_back(ouput(ind.get_net(), {i}));
+            reac_norm.push_back(ouput(ind.get_net(), std::vector<double>{i}));
         }
         inds_data.push_back({ind, reac_norm});
     }
@@ -85,13 +85,22 @@ public:
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion)));
+        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
+                                                      s.get_env_cue_range(),
+                                                      1000
+                                                      )
+                             );
     }
 
     ///Saves the nth best individuals in the population
     void store_top_n_inds(const Sim& s, int proportion)
     {
-        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, proportion)));
+        m_top_inds.push_back(calculate_reaction_norms(
+                                 sim::get_best_n_inds(s, proportion),
+                                 s.get_env_cue_range(),
+                                 1000
+                                 )
+                             );
     }
 
     const all_params& get_params() const noexcept {return m_params;};
