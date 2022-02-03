@@ -45,7 +45,9 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
                                    m_vec_indiv,
                                    m_mut_rate_weight,
-                                   m_mut_step);
+                                   m_mut_step,
+                                   m_mut_rate_act,
+                                   m_mut_rate_dup);
 
     ///Changes the network of the nth individual to a given network
     template<class Net>
@@ -99,9 +101,10 @@ bool operator== (const population<Ind>& lhs, const population<Ind>& rhs)
     bool inds = lhs.get_inds() == rhs.get_inds();
     bool mut_rate_weight = are_equal_with_tolerance(lhs.get_mut_rate_weight(), rhs.get_mut_rate_weight());
     bool mut_rate_act = are_equal_with_tolerance(lhs.get_mut_rate_act(), rhs.get_mut_rate_act());
+    bool mut_rate_dup = are_equal_with_tolerance(lhs.get_mut_rate_dup(), rhs.get_mut_rate_dup());
     bool mut_step = are_equal_with_tolerance(lhs.get_mut_step(), rhs.get_mut_step());
 
-    return inds && mut_rate_weight && mut_step && mut_rate_act;
+    return inds && mut_rate_weight && mut_step && mut_rate_act && mut_rate_dup;
 }
 namespace pop {
 

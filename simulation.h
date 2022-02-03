@@ -1,6 +1,7 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include "env_change_type.h"
 #include "environment.h"
 #include "population.h"
 
@@ -14,13 +15,16 @@ struct sim_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
                                    seed,
-                                   change_freq,
+                                   change_freq_A,
+                                   change_freq_B,
                                    selection_strength,
                                    n_generations)
     int seed;
-    double change_freq;
+    double change_freq_A;
+    double change_freq_B;
     double selection_strength;
     int n_generations;
+    env_change_type change_type;
 
 };
 
@@ -39,12 +43,14 @@ struct all_params
 };
 
 
-template<class Pop = population<>>
+template<class Pop = population<>,
+         enum env_change_type Env_change = env_change_type::symmetrical>
 class simulation
 {
 public:
 
     using pop_t = Pop;
+    using env_ch_t = env_change_type;
 
     simulation(int init_pop_size = 1,
                int seed = 0,
@@ -58,9 +64,11 @@ public:
         m_population{params.p_p, params.i_p},
         m_n_generations{params.s_p.n_generations},
         m_seed{params.s_p.seed},
-        m_t_change_env_distr{static_cast<double>(params.s_p.change_freq)},
+        m_t_change_env_distr_A{static_cast<double>(params.s_p.change_freq_A)},
+        m_t_change_env_distr_B{static_cast<double>(params.s_p.change_freq_B)},
         m_sel_str{params.s_p.selection_strength},
-        m_change_freq {static_cast<double>(params.s_p.change_freq)},
+        m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
+        m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1),
         m_optimal_output{1}
@@ -69,10 +77,11 @@ public:
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
-
+                                   m_environment,
                                    m_population,
                                    m_time,
-                                   m_change_freq,
+                                   m_change_freq_A,
+                                   m_change_freq_B,
                                    m_sel_str,
                                    m_seed)
 
@@ -97,17 +106,26 @@ public:
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
-    ///returns const ref to
-    const std::bernoulli_distribution& get_t_change_env_distr() const noexcept {return m_t_change_env_distr;}
-    std::bernoulli_distribution& get_t_change_env_distr() noexcept {return m_t_change_env_distr;}
+    ///returns const ref to Bernoulli distribution for change freq of A
+    const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
+
+    ///returns const ref to Bernoulli distribution for change freq of B
+    const std::bernoulli_distribution& get_t_change_env_distr_B() const noexcept {return m_t_change_env_distr_B;}
+
+    ///returns the number of generations the simualtion has run for
     const int& get_time() const noexcept {return m_time;}
+
+    ///increases the number of genration the simulations has run for
     void increase_time() {++m_time;}
 
     ///Returns the strength of selection
     double get_sel_str() const noexcept {return m_sel_str;}
 
-    ///Returns change frequency
-    double get_change_freq() const noexcept {return m_change_freq;}
+    ///Returns change frequency of environment/function A
+    double get_change_freq_A() const noexcept {return m_change_freq_A;}
+
+    ///Returns change frequency of environment/function B
+    double get_change_freq_B() const noexcept {return m_change_freq_B;}
 
     ///Returns seed
     int get_seed() const noexcept {return m_seed;}
@@ -120,6 +138,35 @@ public:
 
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
+
+    ///Checks if environment needs to change
+    bool is_environment_changing(){
+        if constexpr( Env_change == env_change_type::regular)
+        {
+            return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+        }
+
+        if( m_environment.get_name_current_function() == 'A' )
+        {
+            std::bernoulli_distribution distro = get_t_change_env_distr_A();
+            return distro (get_env_rng());
+        }
+        else if (m_environment.get_name_current_function() == 'B')
+        {
+            std::bernoulli_distribution distro;
+            if constexpr( Env_change == env_change_type::asymmetrical)
+            {
+                distro = get_t_change_env_distr_B();
+            }
+            else if(Env_change == env_change_type::symmetrical)
+            {
+                distro = get_t_change_env_distr_A();
+            }
+            return distro (get_env_rng());
+        }
+        else
+            throw std::runtime_error{"invalid current function name"};
+    }
 
     ///Returns the function A of the environment
     const std::function<double(std::vector<double>)> &get_env_function_A() const noexcept
@@ -148,10 +195,12 @@ private:
     int m_n_generations;
     std::mt19937_64 m_rng;
     int m_seed;
-    std::bernoulli_distribution m_t_change_env_distr;
+    std::bernoulli_distribution m_t_change_env_distr_A;
+    std::bernoulli_distribution m_t_change_env_distr_B;
     int m_time = 0;
     double m_sel_str;
-    double m_change_freq;
+    double m_change_freq_A;
+    double m_change_freq_B;
     all_params m_params;
 
     ///The current inputs that the networks of individuals will recieve
@@ -336,13 +385,6 @@ void select_inds(Sim& s)
     reproduce(s);
 }
 
-///Checks if environment should change
-template<class Sim>
-bool is_environment_changing(Sim &s) {
-    std::bernoulli_distribution distro = s.get_t_change_env_distr();
-    return distro (s.get_env_rng());
-}
-
 ///Switches the function of the environment used to calculate the optimal output
 template<class Sim>
 void switch_optimal_function(Sim &s)
@@ -364,7 +406,7 @@ void tick(Sim &s)
 {
     s.increase_time();
 
-    if(is_environment_changing(s)){
+    if(s.is_environment_changing()){
 
         perform_environment_change(s);
     }

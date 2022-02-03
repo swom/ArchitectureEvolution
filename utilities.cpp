@@ -68,7 +68,8 @@ bool are_from_same_distribution(const std::vector<double> &lhs, const std::vecto
 }
 
 bool are_same_distribution(std::uniform_real_distribution<double>lhs,
-                           std::uniform_real_distribution<double> rhs, int n_repeat)
+                           std::uniform_real_distribution<double> rhs,
+                           int n_repeat)
 {
   std::vector<double> lhs_cues;
   std::vector<double> rhs_cues;
