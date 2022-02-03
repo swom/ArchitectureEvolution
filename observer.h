@@ -155,7 +155,7 @@ std::string create_save_name_from_observer_data(const observer<Sim>& o)
     else return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
             "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
             "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
-            "_" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+            "__" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
             "_" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
             "_" + convert_change_type_to_string(o.get_params().s_p.change_type) +
             "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
