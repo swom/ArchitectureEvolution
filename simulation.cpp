@@ -687,7 +687,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         for (int i = 0; i != repeats; i++)
         {
             tick(s);
-            if(i % s.get_selection_frequency() == 0)
+            if(i % s.get_sel_freq() == 0)
             {
                 assert(pop::stdev_fitness(s.get_pop()) < pop::stdev_fitness(s.get_pop().get_new_inds()));
                 assert(pop::avg_fitness(s.get_pop()) < pop::avg_fitness(s.get_pop().get_new_inds()));

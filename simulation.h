@@ -22,21 +22,21 @@ struct sim_param
                                    n_generations,
                                    selection_freq)
 
-    sim_param(int seed = 0,
-              double change_freq_A = 0.1,
-              double change_freq_B = 0.01,
-              double selection_strength = 1,
-              int n_generations = 100,
-              int selection_freq = 1,
-              env_change_type change_type = env_change_type::symmetrical,
+    sim_param(int seed_n = 0,
+              double change_frequency_A = 0.1,
+              double change_frequency_B = 0.01,
+              double sel_strength = 1,
+              int generations = 100,
+              int selection_frequency = 1,
+              env_change_type env_change_type = env_change_type::symmetrical,
               selection_type sel_type = selection_type::constant):
-        seed{seed},
-        change_freq_A{change_freq_A},
-        change_freq_B{change_freq_B},
-        selection_strength{selection_strength},
-        n_generations{n_generations},
-        selection_freq{selection_freq},
-        change_type{change_type},
+        seed{seed_n},
+        change_freq_A{change_frequency_A},
+        change_freq_B{change_frequency_B},
+        selection_strength{sel_strength},
+        n_generations{generations},
+        selection_freq{selection_frequency},
+        change_type{env_change_type},
         selection_type{sel_type}
     {}
 
@@ -93,6 +93,7 @@ public:
         m_sel_str{params.s_p.selection_strength},
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
+        m_selection_frequency{params.s_p.selection_freq},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1),
         m_optimal_output{1}
@@ -144,6 +145,10 @@ public:
 
     ///Returns the strength of selection
     double get_sel_str() const noexcept {return m_sel_str;}
+
+    ///Returns the number of generations after which
+    ///selection takes place
+    int get_sel_freq() const noexcept {return m_selection_frequency;}
 
     ///Returns change frequency of environment/function A
     double get_change_freq_A() const noexcept {return m_change_freq_A;}
@@ -225,6 +230,7 @@ private:
     double m_sel_str;
     double m_change_freq_A;
     double m_change_freq_B;
+    int m_selection_frequency;
     all_params m_params;
 
     ///The current inputs that the networks of individuals will recieve

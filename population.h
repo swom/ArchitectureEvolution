@@ -125,7 +125,7 @@ std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
 ///Calculates the avg_fitness of a vector of individuals
 template< class Ind>
 double avg_fitness(const std::vector<Ind>& inds){
-    auto fitnesses = extract_fitnesses(inds());
+    auto fitnesses = extract_fitnesses(inds);
     return calc_mean(fitnesses);
 }
 

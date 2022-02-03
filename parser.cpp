@@ -56,7 +56,9 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["change_freq_B"].as<double>(),
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
+                results["selection_freq"].as<int>(),
                 string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
+                string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
     };
 }
 ///NOT tested!!!
