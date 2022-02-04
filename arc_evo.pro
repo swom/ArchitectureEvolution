@@ -81,6 +81,7 @@ win32{
   CONFIG += console
 #allowing info for profiling
 QMAKE_CXXFLAGS += -g
+QMAKE_CXXFLAGS += -Wa,-mbig
   CONFIG += force_debug_info
 }
 
