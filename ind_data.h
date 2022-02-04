@@ -13,6 +13,11 @@ struct Ind_Data
 };
 
 template<class Ind>
-bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs);
+bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
+{
+    auto ind = lhs.m_ind == rhs.m_ind;
+    auto reaction_norm = lhs.reac_norm == rhs.reac_norm;
+    return ind && reaction_norm;
+}
 
 #endif // IND_DATA_H
