@@ -29,7 +29,7 @@ struct sim_param
               int generations = 100,
               int selection_frequency = 1,
               env_change_type env_change_type = env_change_type::symmetrical,
-              selection_type sel_type = selection_type::constant):
+              selection_type selec_type = selection_type::constant):
         seed{seed_n},
         change_freq_A{change_frequency_A},
         change_freq_B{change_frequency_B},
@@ -37,7 +37,7 @@ struct sim_param
         n_generations{generations},
         selection_freq{selection_frequency},
         change_type{env_change_type},
-        selection_type{sel_type}
+        sel_type{selec_type}
     {}
 
     int seed;
@@ -47,7 +47,7 @@ struct sim_param
     int n_generations;
     int selection_freq;
     env_change_type change_type;
-    selection_type selection_type;
+    selection_type sel_type;
 
 };
 

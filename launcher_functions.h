@@ -128,7 +128,7 @@ void run_simulation_given_env_change_type(const cxxopts::ParseResult& results)
 
 void run_simulation_given_sel_type(const cxxopts::ParseResult& results)
 {
-    auto sel_type = convert_sim_args(results).selection_type ;
+    auto sel_type = convert_sim_args(results).sel_type ;
     if(sel_type == selection_type::constant)
     {
         run_simulation_given_env_change_type<selection_type::constant>(results);

@@ -23,6 +23,11 @@ bool are_not_equal_with_more_tolerance(double lhs, double rhs)
   return !are_equal_with_more_tolerance(lhs, rhs);
 }
 
+bool are_equal_with_high_tolerance(double lhs, double rhs)
+{
+  return lhs - rhs > -0.005 && lhs - rhs < 0.005;
+}
+
 double calc_mean(const std::vector<double>& numbers){
   return std::accumulate(numbers.begin(),
                               numbers.end(), 0.0)/numbers.size();

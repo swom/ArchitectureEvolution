@@ -5,11 +5,11 @@
 
 template<class Pop, enum env_change_type E, enum selection_type S>
 simulation<Pop, E, S>::simulation(int init_pop_size,
-                                          int seed,
-                                          double t_change_interval,
-                                          std::vector<int> net_arch,
-                                          double sel_str,
-                                          int number_of_generations):
+                                  int seed,
+                                  double t_change_interval,
+                                  std::vector<int> net_arch,
+                                  double sel_str,
+                                  int number_of_generations):
     m_environment{},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
@@ -701,26 +701,24 @@ void test_simulation() noexcept//!OCLINT test may be many
         {
             tick(s);
 
-            if(s.get_time() % s.get_sel_freq() == 0  && s.get_time() != 0)
-            {
-                stdev_pop = pop::stdev_fitness(s.get_pop());
-                avg_pop = pop::avg_fitness(s.get_pop());
-                stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
-                avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+            stdev_pop = pop::stdev_fitness(s.get_pop());
+            avg_pop = pop::avg_fitness(s.get_pop());
+            stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
+            avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
+            if(s.get_time() % s.get_sel_freq() == 0)
+            {
                 assert(stdev_pop < stdev_prev_pop);
                 assert(avg_prev_pop < avg_pop);
-            }
-//            else if(s.get_time() != 0)
-//            {
-//                stdev_pop = pop::stdev_fitness(s.get_pop());
-//                avg_pop = pop::avg_fitness(s.get_pop());
-//                stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
-//                avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
-//                assert(are_equal_with_more_tolerance(stdev_pop, stdev_prev_pop));
-//                assert(are_equal_with_more_tolerance(avg_prev_pop, avg_pop));
-//            }
+                assert(!are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
+                assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+            }
+            else
+            {
+                assert(are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
+                assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+            }
         }
     }
 
