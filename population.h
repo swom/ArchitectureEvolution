@@ -231,20 +231,9 @@ template< class Ind>
 rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
-    if(std::any_of(p.get_inds().begin(),
-                   p.get_inds().end(),
-                   [](const Ind& i){return i.get_fitness() != 0;}))
-    {
-        mut_dist.mutate_transform(p.get_inds().begin(),
-                                  p.get_inds().end(),
-                                  [](const Ind& i){return i.get_fitness();});
-    }
-    else
-    {
-        mut_dist.mutate_transform(p.get_inds().begin(),
-                                  p.get_inds().end(),
-                                  [](const Ind&){return 0.01;});
-    }
+    mut_dist.mutate_transform(p.get_inds().begin(),
+                              p.get_inds().end(),
+                              [](const Ind& i){return i.get_fitness();});
     return  mut_dist;
 }
 
@@ -300,6 +289,25 @@ void select_new_pop(population<Ind>& p,
     }
 }
 
+///Selects new pop randomly
+template<class Ind>
+void select_new_pop_randomly(population<Ind>& p,
+                    std::mt19937_64& rng)
+{
+    auto max_index_inds = p.get_inds().size() - 1;
+    std::uniform_int_distribution<> index_distr(0, max_index_inds);
+    for( size_t i = 0; i != p.get_inds().size(); i++)
+    {
+        auto selected_ind_index = index_distr(rng);
+        auto selected_ind = p.get_inds()[selected_ind_index];
+        p.get_new_inds()[i] = selected_ind;
+        p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
+                                   p.get_mut_step(),
+                                   rng,
+                                   p.get_mut_rate_act(),
+                                   p.get_mut_rate_dup());
+    }
+}
 ///Swaps a vector of new_inds with the vector of old inds
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
@@ -314,6 +322,16 @@ void reproduce(population<Ind>& p, std::mt19937_64& rng)
     auto mut_dist = create_mut_dist_fit(p);
 
     select_new_pop(p, mut_dist, rng);
+
+    swap_new_with_old_pop(p);
+}
+
+///Reproduces inds randomly
+template< class Ind>
+void reproduce_random(population<Ind>& p, std::mt19937_64& rng)
+{
+
+    select_new_pop_randomly(p,rng);
 
     swap_new_with_old_pop(p);
 }

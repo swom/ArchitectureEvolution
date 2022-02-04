@@ -221,6 +221,11 @@ public:
         pop::reproduce(get_pop(), get_rng());
     }
 
+    ///Reproduces inds to next gen randomly
+    void reproduce_randomly()
+    {
+        pop::reproduce_random(get_pop(), get_rng());
+    }
     ///Calculates fitness and selects a new population based on fitness
     void select_inds()
     {
@@ -229,8 +234,12 @@ public:
             if(m_time % m_selection_frequency == 0)
             {
                 calc_fitness();
+                reproduce();
             }
-            reproduce();
+            else
+            {
+                reproduce_randomly();
+            }
         }
         else if constexpr(Sel_Type == selection_type::constant)
         {
