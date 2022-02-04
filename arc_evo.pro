@@ -41,6 +41,8 @@ CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
 CONFIG += resources_big
 
+#Allow for compilation of big object files
+QMAKE_CXXFLAGS += -Wa,-mbig
 
 # High warning levels
 # SFML goes bad with -Weffc++
@@ -79,8 +81,8 @@ win32{
   LIBS += -lwinmm                 #Dependency
   #Displaying console when launchin .exe
   CONFIG += console
-#allowing info for profiling
-QMAKE_CXXFLAGS += -g
+  #allowing info for profiling
+  QMAKE_CXXFLAGS += -g
   CONFIG += force_debug_info
 }
 
