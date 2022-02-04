@@ -166,13 +166,15 @@ void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
 ///Calculates the distance from the output of one individual's network
 /// to the optimal output given a series of inputs
 template<class Ind>
-std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double env_value)
+std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
+                                          double env_value,
+                                          const std::vector<double>& input)
 {
     std::vector<double> distance_from_target;
 
     for(const auto& ind : inds)
     {
-        auto sqr_distance = ind::calc_sqr_distance(ind, env_value);
+        auto sqr_distance = ind::calc_sqr_distance(ind, env_value, input);
         distance_from_target.push_back(sqr_distance);
     }
 
@@ -201,10 +203,15 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
-population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,const double &sel_str)
+population<Ind>& calc_fitness(population<Ind>& p,
+                              const double& optimal_value,
+                              const double &sel_str,
+                              const std::vector<double>& input)
 {
 
-    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
+    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(),
+                                                                     optimal_value,
+                                                                     input);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 

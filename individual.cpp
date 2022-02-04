@@ -37,7 +37,7 @@ void test_individual()
   ///When an individual responds to environment it uses its input values as input
   {
         individual i{ind_param{}};
-        assert( ind::response(i) == output(i.get_net(),i.get_input_values(), &linear));
+        assert( ind::response(i, {0}) == output(i.get_net(),i.get_input_values(), &linear));
   }
 
 //#define FIX_ISSUE_36

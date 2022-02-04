@@ -89,8 +89,7 @@ const std::vector<double> &get_nth_individual_input(const Sim &s, const int n)
 template<class Sim>
 const std::vector<double> &get_current_input(const Sim &s)
 {
-    assert(sim::all_individuals_have_same_input(s));
-    return get_nth_individual_input(s, 0);
+    return s.get_input();
 }
 
 template<class Sim>
@@ -320,8 +319,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
         ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
-        auto first_response = ind::response(get_nth_ind(s, 0))[0];
-        auto second_response = ind::response(get_nth_ind(s, 1))[0];
+        auto first_response = ind::response(get_nth_ind(s, 0), s.get_input())[0];
+        auto second_response = ind::response(get_nth_ind(s, 1), s.get_input())[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
         auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
@@ -645,10 +644,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         ///The response should change when the environment changes.
 
-        std::vector<double> responseA = ind::response(get_nth_ind(s, 0));
+        std::vector<double> responseA = ind::response(get_nth_ind(s, 0), s.get_input());
         perform_environment_change(s);
         assign_inputs(s);
-        std::vector<double> responseB = ind::response(get_nth_ind(s, 0));
+        std::vector<double> responseB = ind::response(get_nth_ind(s, 0), s.get_input());
 
         assert(responseA != responseB);
 
@@ -682,8 +681,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         sim_param s_p{};
         s_p.n_generations = repeats;
         s_p.selection_freq = selection_freq;
+        s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 1000;
+        p_p.number_of_inds = 10000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
@@ -714,7 +714,8 @@ void test_simulation() noexcept//!OCLINT test may be many
                 assert(!are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
                 assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
             }
-            else
+            else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
+
             {
                 assert(are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
                 assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));

@@ -212,7 +212,8 @@ public:
         update_optimal(env::calculate_optimal(m_environment, m_input));
         m_population = pop::calc_fitness(m_population,
                                          m_optimal_output,
-                                         m_sel_str);
+                                         m_sel_str,
+                                         m_input);
     }
     ///Reproduces inds to next gen based on their fitness
     void reproduce()
@@ -354,24 +355,24 @@ size_t get_inds_input_size(const Sim &s)
 
 ///Changes the inputs in the environment of the simulation
 template<class Sim>
-std::vector<double> create_inputs(Sim s)
+std::vector<double> create_inputs(Sim& s)
 {
-    auto &e = s.get_env();
-    return(env::create_n_inputs(e, get_inds_input_size(s), s.get_rng() ));
+    return(env::create_n_inputs(s.get_env(),
+                                s.get_input().size(),
+                                s.get_rng() ));
 }
 
 ///Updates the inputs in simulation and assigns them to individuals
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
-    std::vector<double> new_inputs = create_inputs(s);
+    s.update_inputs(create_inputs(s));
 
-    if(s.get_input().size() > 1){
-        new_inputs.back() = s.get_input().back();
-    }
+//    if(s.get_input().size() > 1){
+//        new_inputs.back() = s.get_input().back();
+//    }
 
-    s.update_inputs(new_inputs);
-    assign_inputs(s);
+   // assign_inputs(s);
 }
 
 ///Calculates the optimal output
@@ -452,10 +453,9 @@ void tick(Sim &s)
         perform_environment_change(s);
     }
 
-    if(get_inds(s).size()){
-
+    if(get_inds(s).size())
+    {
         assign_new_inputs(s);
-
     }
 
     s.select_inds();
