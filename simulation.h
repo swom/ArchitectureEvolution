@@ -369,12 +369,12 @@ void assign_new_inputs(Sim &s)
 
     auto new_inputs = create_inputs(s);
 
-//    if(s.get_input().size() > 1){
-//        new_inputs.back() = s.get_input().back();
-//    }
+    if(s.get_input().size() > 1){
+        new_inputs.back() = s.get_input().back();
+    }
 
     s.update_inputs(new_inputs);
-   // assign_inputs(s);
+    assign_inputs(s);
 }
 
 ///Calculates the optimal output
