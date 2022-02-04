@@ -14,10 +14,11 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
     for(const auto& ind : inds)
     {
-        std::vector<double> reac_norm(n_data_points);
+        std::vector<std::vector<double>> reac_norm(n_data_points);
         for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
         {
-            reac_norm.push_back(ouput(ind.get_net(), std::vector<double>{i}));
+            auto ind_net = ind.get_net();
+            reac_norm.push_back(output(ind_net, std::vector<double>{i}));
         }
         inds_data.push_back({ind, reac_norm});
     }
