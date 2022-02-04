@@ -692,32 +692,23 @@ void test_simulation() noexcept//!OCLINT test may be many
                 env_change_type::symmetrical,
                 selection_type::sporadic> s{a_p};
 
-        double stdev_prev_pop;
-        double stdev_pop;
+
         double avg_pop;
         double avg_prev_pop;
 
         for (int i = 0; i != repeats; i++)
         {
-             tick(s);
-
-            stdev_pop = pop::stdev_fitness(s.get_pop());
-            avg_pop = pop::avg_fitness(s.get_pop());
-            stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
-            avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+            tick(s);
 
             if(s.get_time() % s.get_sel_freq() == 0)
             {
-                assert(stdev_pop < stdev_prev_pop);
+                avg_pop = pop::avg_fitness(s.get_pop());
                 assert(avg_prev_pop < avg_pop);
-
-                assert(!are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
                 assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
             }
-            else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
-
+            else if(s.get_time() % s.get_sel_freq() == (s.get_sel_freq() - 1))
             {
-                assert(are_equal_with_high_tolerance(stdev_pop, stdev_prev_pop));
+                avg_prev_pop = pop::avg_fitness(calc_fitness_of_pop(s));
                 assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
             }
         }

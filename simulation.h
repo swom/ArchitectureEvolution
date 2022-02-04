@@ -366,7 +366,6 @@ std::vector<double> create_inputs(Sim& s)
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
-
     auto new_inputs = create_inputs(s);
 
     if(s.get_input().size() > 1){
@@ -382,6 +381,18 @@ template<class Sim>
 double calculate_optimal(const Sim &s)
 {
     return(env::calculate_optimal(s.get_env(), s.get_input()));
+}
+
+///Returns a population whose fitness has been calculated
+template<class Sim>
+typename Sim::pop_t calc_fitness_of_pop(Sim s)
+{
+
+    s.update_optimal(env::calculate_optimal(s.get_env(), s.get_input()));
+    return pop::calc_fitness(s.get_pop(),
+                                     s.get_optimal(),
+                                     s.get_sel_str(),
+                                     s.get_input());
 }
 
 ///Calculates the avg_fitness of the population
