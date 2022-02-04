@@ -16,6 +16,12 @@ jobs:
       - name: Install Codecov
         run: sudo pip install codecov
 
+      -name: declare compilers
+       run:export CC=g++    
+       
+      -name: declare compilers
+       run:export CXX=g++
+
       - name: qmake
         run: qmake arc_evo.pro
 

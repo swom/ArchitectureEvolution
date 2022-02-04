@@ -711,6 +711,16 @@ void test_simulation() noexcept//!OCLINT test may be many
                 assert(stdev_pop < stdev_prev_pop);
                 assert(avg_prev_pop < avg_pop);
             }
+//            else if(s.get_time() != 0)
+//            {
+//                stdev_pop = pop::stdev_fitness(s.get_pop());
+//                avg_pop = pop::avg_fitness(s.get_pop());
+//                stdev_prev_pop = pop::stdev_fitness(s.get_pop().get_new_inds());
+//                avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+
+//                assert(are_equal_with_more_tolerance(stdev_pop, stdev_prev_pop));
+//                assert(are_equal_with_more_tolerance(avg_prev_pop, avg_pop));
+//            }
         }
     }
 
