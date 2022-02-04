@@ -341,7 +341,7 @@ const std::vector<typename Sim::pop_t::ind_t> &get_inds(const Sim&s)
 template<class Sim>
 std::vector<double> get_inds_input(const Sim &s)
 {
-    assert(all_individuals_have_same_input(s));
+    //assert(all_individuals_have_same_input(s));
     return get_inds(s)[0].get_input_values();
 }
 
@@ -358,7 +358,7 @@ template<class Sim>
 std::vector<double> create_inputs(Sim& s)
 {
     return(env::create_n_inputs(s.get_env(),
-                                s.get_input().size(),
+                                get_inds_input_size(s),
                                 s.get_rng() ));
 }
 
@@ -366,12 +366,14 @@ std::vector<double> create_inputs(Sim& s)
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
-    s.update_inputs(create_inputs(s));
+
+    auto new_inputs = create_inputs(s);
 
 //    if(s.get_input().size() > 1){
 //        new_inputs.back() = s.get_input().back();
 //    }
 
+    s.update_inputs(new_inputs);
    // assign_inputs(s);
 }
 

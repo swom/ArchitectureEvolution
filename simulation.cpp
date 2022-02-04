@@ -699,7 +699,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         for (int i = 0; i != repeats; i++)
         {
-            tick(s);
+             tick(s);
 
             stdev_pop = pop::stdev_fitness(s.get_pop());
             avg_pop = pop::avg_fitness(s.get_pop());
