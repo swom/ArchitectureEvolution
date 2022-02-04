@@ -770,11 +770,9 @@ void test_network() //!OCLINT
 
   network n{n_p};
 
-  std::vector<node>::iterator node_iterator = n.get_net_weights()[0].begin(); //Deleting the first node of the middle layer
+  n.delete_node(0, 0); //Deleting the first node of the middle layer
 
-  n.delete_node(0, node_iterator);
-
-  auto deleted_node = *node_iterator;
+  auto deleted_node = n.get_net_weights()[0][0];
 
   ///Checking that the node has been inactivated, its bias put back to 0 and all its weights reset
   assert(!deleted_node.is_active());
@@ -805,7 +803,7 @@ void test_network() //!OCLINT
 
 
         mut_del(n_mut, mutation_rate, rng);
-        n_del.delete_node(0, n_del.get_net_weights()[0].begin());
+        n_del.delete_node(0, 0);
 
         assert(n_mut == n_del);
     }
