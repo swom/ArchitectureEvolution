@@ -1,6 +1,7 @@
 #ifndef ENV_CHANGE_TYPE_H
 #define ENV_CHANGE_TYPE_H
 #include <map>
+#include<string>
 
 enum class env_change_type
 {
