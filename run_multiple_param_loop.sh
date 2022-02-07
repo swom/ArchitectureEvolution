@@ -28,12 +28,12 @@ make clean
 qmake arc_evo.pro
 make 
 
-#declare -a architectures=("1,2,2,2,1" "1,5,1" "1,5,1,1")
-declare -a architectures=("1,2,2,2,1")
-declare -a max_architectures=("1,8,8,8,1")
-declare -a change_freq=(0 0.005)
-declare -a gen=(500000)
-declare -a mut_type=("NRduplication" "NRaddition")
+declare -a architectures=("2,2,2,2,1")
+declare -a max_architectures=("2,8,8,8,1")
+declare -a change_freq_A=(0.005)
+declare -a gen=(300000)
+declare -a mut_types=("NRaddition" "NRduplication")
+declare -a change_types=("regular")
 
 for seed in $(seq 1 10)
 do
@@ -41,22 +41,29 @@ do
 	do
 		for max_arc in "${max_architectures[@]}"
 		do
-			for change_freq in "${change_freq[@]}"
+			for change_freq_A in "${change_freq_A[@]}"
 			do
 				for gen in "${gen[@]}"
 				do	
-					for mut_type in "${mut_type[@]}"
+					for mut_type in "${mut_types[@]}"
 					do
-						  echo $seed
-						  echo $arc
-						  echo $max_arc
-						  echo $change_freq
-						  echo $gen
-						  echo $mut_type
-						  sbatch run_loop.sh $seed $arc $max_arc $change_freq $gen $mut_type
+            for change_type in "${change_types[@]}"
+            do
+						  echo $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type
+
+						  #echo $seed
+						  #echo $arc
+						  #echo $max_arc
+						  #echo $change_freq_A
+						  #echo $gen
+						  #echo $mut_type
+              #echo $change_type
+              
+						  #sbatch run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type
 					done
 				done
 			done
 		done
 	done
 done 
+done

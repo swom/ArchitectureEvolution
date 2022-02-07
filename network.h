@@ -75,14 +75,14 @@ void mut_dupl_node(Net& n,
 
     std::bernoulli_distribution mut_p{mut_rate};
 
-    for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
+    for(size_t layer = 0; layer != n.get_current_arc().size() - 2; layer++)
     {
-        auto& current_layer = n.get_net_weights()[layer];
+        auto& current_layer = n.get_net_weights().at(layer);
 
-        for(int node = current_layer.size() - 1; node >= 0; --node)
+        for(int node = current_layer.size() - 1; node >= 0; --node) // to avoid chain duplications
         {
 
-            const auto& current_node = current_layer[node];
+            const auto& current_node = current_layer.at(node);
 
             if(current_node.is_active() && mut_p(rng))
             {
@@ -143,19 +143,18 @@ void mut_del(Net& n,
 
   std::bernoulli_distribution mut_p{mut_rate};
 
-  for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
+  for(size_t layer = 0; layer != n.get_current_arc().size() - 2; layer++)
     {
-      auto& current_layer = n.get_net_weights()[layer];
+      auto& current_layer = n.get_net_weights().at(layer);
 
       for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
         {
 
-          const auto& current_node = current_layer[node_index];
+          const auto& current_node = current_layer.at(node_index);
 
           if(current_node.is_active() && mut_p(rng))
             {
-              std::vector<node>::iterator node_iterator = n.get_net_weights()[layer].begin() + node_index;
-              n.delete_node(layer, node_iterator);
+                            n.delete_node(layer, node_index);
             }
         }
     }
@@ -320,17 +319,18 @@ public:
     inline void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
                                     const std::vector<node>::iterator &empty_node_iterator)
     {
-        if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
+      if (layer == m_current_arc.size() - 1) throw "help :(";
+        if(m_current_arc.at(layer+1) >= m_max_arc.at(layer+1))
             return;
 
-        size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
-        m_network_weights[layer][index] = to_duplicate;
+        size_t index = empty_node_iterator - get_net_weights().at(layer).begin() ;
+        m_network_weights.at(layer).at(index) = to_duplicate;
 
-        for(auto &node : m_network_weights[layer+1]){
-            weight weight_to_duplicate = node.get_vec_weights()[index_to_duplicate];
+        for(auto &node : m_network_weights.at(layer+1)){
+            weight weight_to_duplicate = node.get_vec_weights().at(index_to_duplicate);
             node.change_nth_weight(weight_to_duplicate, index);
         }
-        ++m_current_arc[layer + 1];
+        ++m_current_arc.at(layer+1);
     }
 
     inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 &rng)
@@ -435,14 +435,13 @@ public:
       ++m_current_arc[layer + 1];
     }
 
-    inline void delete_node(size_t layer, const std::vector<node>::iterator &node_iterator)
+    inline void delete_node(size_t layer, size_t index)
     {
       if(m_current_arc[layer + 1] == 1)
         return;
 
       //de-activating
-      size_t index = node_iterator - get_net_weights()[layer].begin() ;
-      node &deleted_node = m_network_weights[layer][index];
+      node &deleted_node = m_network_weights.at(layer).at(index);
       deleted_node.deactivate();
 
       //Resetting bias
@@ -455,11 +454,11 @@ public:
         }
 
       //Resetting outgoing connections
-      for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
-          m_network_weights[layer + 1][i].change_nth_weight(default_w, index);
+      for(size_t i=0; i!= m_network_weights.at(layer+1).size(); ++i){
+          m_network_weights.at(layer+1).at(i).change_nth_weight(default_w, index);
         }
 
-      --m_current_arc[layer + 1];
+      --m_current_arc.at(layer+1);
     }
 
 
