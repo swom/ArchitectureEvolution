@@ -20,4 +20,4 @@
 
 module load CMake
 cmake -S . -B build
-cmake --build build
+cmake --build . --config Release --target install
