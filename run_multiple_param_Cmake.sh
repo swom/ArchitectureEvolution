@@ -21,4 +21,4 @@ module load Qt5
 module load GCC
 module load CMake
 cmake -S . -B build
-cmake --build . --config Release --target install
+cmake --build . --config Release --target all

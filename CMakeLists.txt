@@ -13,5 +13,5 @@ file(GLOB src
      "${PROJECT_SOURCE_DIR}/*.h"
 )
 
-#add_compile_options(-Wa,-mbig)
+add_compile_options(-Wa,-mbig)
 add_executable("test" ${src})
