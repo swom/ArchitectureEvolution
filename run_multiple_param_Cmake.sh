@@ -19,7 +19,7 @@
 #SBATCH --output=run_arc_evo_loop.log
 
 module load CMake
-CC=clang 
-CXX=clang++ 
+export CC=g++ 
+export CXX=g++ 
 cmake -S . -B build
 cmake --build build

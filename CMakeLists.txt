@@ -1,8 +1,8 @@
 
 cmake_minimum_required (VERSION 3.8)
 
-project("test" C CXX)
-set(CMAKE_CXX_STANDARD 20)
+project("arc_evo_CMake" C CXX)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
