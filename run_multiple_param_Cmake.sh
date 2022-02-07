@@ -18,6 +18,7 @@
 #SBATCH --job-name=run_arc_evo_loop
 #SBATCH --output=run_arc_evo_loop.log
 module load Qt5
+module load Ninja
 module load GCC
 module load CMake
 cmake -S . -B build
