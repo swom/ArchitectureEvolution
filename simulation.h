@@ -103,6 +103,9 @@ public:
     ///Returns const ref to env_member
     environment& get_env() noexcept {return m_environment;}
 
+    ///Returns the range of the inputs provided by environment
+    const range& get_env_cue_range() const noexcept {return m_environment.get_cue_range();}
+
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
