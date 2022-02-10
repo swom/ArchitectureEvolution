@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "env_change_type.h"
 
 std::string convert_change_type_to_string(env_change_type e)
@@ -21,5 +22,6 @@ std::string convert_change_type_to_string(env_change_type e)
         break;
     default:
         throw std::runtime_error{"could not convert env_change type into string"};
+        return "failed";
     }
 }
