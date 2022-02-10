@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "env_change_type.h"
 
 std::string convert_change_type_to_string(env_change_type e)
