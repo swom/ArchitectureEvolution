@@ -25,4 +25,4 @@ echo "change frequency:  " $4
 echo "number of total generations:  "$5
 echo "mutation type: "$6
 
-./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 
+./build/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 
