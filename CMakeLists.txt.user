@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 6.0.2, 2022-02-07T15:10:28. -->
+<!-- Written by QtCreator 6.0.2, 2022-02-07T20:54:05. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -300,9 +300,9 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">test</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.test</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">test</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">arc_evo_cmake</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.arc_evo_cmake</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">arc_evo_cmake</value>
     <value type="QString" key="RunConfiguration.Arguments">-C 0.005 -X 1,8,8,8,1 -N 1,2,2,2,1 -G 500000 -m NRduplication</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
@@ -527,9 +527,9 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">test</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.test</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">test</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">arc_evo_cmake</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.arc_evo_cmake</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">arc_evo_cmake</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
