@@ -3,7 +3,9 @@
 
 HEADERS +=  \
   Stopwatch.hpp \
+  env_change_type.h \
   environment.h \
+  ind_data.h \
   individual.h \
   json.hpp \
   mutation_type.h \
@@ -12,6 +14,7 @@ HEADERS +=  \
   observer.h \
   parser.h \
   population.h \
+  range.h \
   rndutils.hpp \
   simulation.h \
   utilities.h \
@@ -19,7 +22,9 @@ HEADERS +=  \
 
 
 SOURCES +=  \
+  env_change_type.cpp \
   environment.cpp \
+  ind_data.cpp \
   individual.cpp \
   main.cpp \
   mutation_type.cpp \
@@ -28,6 +33,7 @@ SOURCES +=  \
   observer.cpp \
   parser.cpp \
   population.cpp \
+  range.cpp \
   simulation.cpp \
   utilities.cpp \
   weight.cpp
@@ -35,10 +41,7 @@ SOURCES +=  \
 
 CONFIG += c++17
 QMAKE_CXXFLAGS += -std=c++17
-QMAKE_CXXFLAGS += -g
-CONFIG += force_debug_info
 CONFIG += resources_big
-
 
 # High warning levels
 # SFML goes bad with -Weffc++
@@ -54,9 +57,6 @@ CONFIG += debug_and_release
 CONFIG(release, debug|release) {
   DEFINES += NDEBUG
 }
-
-#Displaying console when launchin .exe
-CONFIG += console
 
 # Qt5
 QT += core gui
@@ -78,6 +78,15 @@ win32{
   LIBS += -lopengl32              #Dependency
   LIBS += -lgdi32                 #Dependency
   LIBS += -lwinmm                 #Dependency
+  #Displaying console when launchin .exe
+  CONFIG += console
+
+  #Allow for compilation of big object files
+  QMAKE_CXXFLAGS += -Wa,-mbig
+  #allowing info for profiling
+  QMAKE_CXXFLAGS += -g
+
+  CONFIG += force_debug_info
 }
 
 

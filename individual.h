@@ -8,7 +8,10 @@ static std::map<std::string, mutation_type> string_to_mut_type_map
     {"weights", mutation_type::weights},
     {"activation", mutation_type::activation},
     {"weights_and_activation", mutation_type::weights_and_activation},
-    {"duplication", mutation_type::duplication}
+    {"duplication", mutation_type::duplication},
+    {"NRduplication", mutation_type::NRduplication},
+    {"addition", mutation_type::addition},
+    {"NRaddition", mutation_type::NRaddition}
 };
 
 struct ind_param

@@ -25,7 +25,22 @@ std::string convert_mut_type_to_string(mutation_type m)
         string = "duplication";
         return string;
         break;
+        
+      case mutation_type::addition :
+          string = "addition";
+          return string;
+          break;
 
+      case mutation_type::NRduplication :
+          string = "NRduplication";
+          return string;
+          break;
+
+      case mutation_type::NRaddition :
+          string = "NRaddition";
+          return string;
+          break;
+        
     default:
         throw 2;
     }

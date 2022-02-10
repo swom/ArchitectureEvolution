@@ -1,8 +1,29 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
+#include"ind_data.h"
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+///Calculates the reaction_norm of an individual's network
+template<class Ind>
+std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds,
+                                                     const range& cue_range,
+                                                     const int& n_data_points)
+{
+    double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+    std::vector<Ind_Data<Ind>> inds_data(inds.size());
+    for(const auto& ind : inds)
+    {
+        std::vector<std::vector<double>> reac_norm(n_data_points);
+        for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+        {
+            auto ind_net = ind.get_net();
+            reac_norm.push_back(output(ind_net, std::vector<double>{i}));
+        }
+        inds_data.push_back({ind, reac_norm});
+    }
+    return inds_data;
+}
 
 template<class Sim = simulation<>>
 class observer
@@ -15,7 +36,7 @@ private:
     int m_top_proportion;
     using Pop = typename Sim::pop_t;
     using Ind = typename Pop::ind_t;
-    std::vector<std::vector<Ind>> m_top_inds;
+    std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
@@ -47,7 +68,7 @@ public:
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
     ///returns const ref to best_ind vector
-    const std::vector<std::vector<Ind>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -61,16 +82,26 @@ public:
         m_var_fitnesses.push_back(sim::var_fitness(s));
     }
 
+
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(sim::get_best_n_inds(s, m_top_proportion));
+        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
+                                                      s.get_env_cue_range(),
+                                                      1000
+                                                      )
+                             );
     }
 
     ///Saves the nth best individuals in the population
     void store_top_n_inds(const Sim& s, int proportion)
     {
-        m_top_inds.push_back(sim::get_best_n_inds(s, proportion));
+        m_top_inds.push_back(calculate_reaction_norms(
+                                 sim::get_best_n_inds(s, proportion),
+                                 s.get_env_cue_range(),
+                                 1000
+                                 )
+                             );
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -109,11 +140,11 @@ void exec(Sim& s , observer<Sim>& o)
 
     for (int i = 0; i < s.get_n_gen(); i++)
     {
-        o.store_avg_fit(s);
         o.store_env_func(s);
         o.store_var_fit(s);
         o.store_input(s);
         o.store_optimal(s);
+        o.store_avg_fit(s);
 
         if(i % 1000 == 0)
         {
@@ -126,8 +157,40 @@ void exec(Sim& s , observer<Sim>& o)
             std::cout << "exiting store_top_inds()" << std::endl;
         }
 
-        sim::tick (s);
+        sim::tick(s);
     }
+}
+
+template<class Sim>
+std::string create_save_name_from_observer_data(const observer<Sim>& o)
+{
+    mutation_type mut_type = o.get_params().i_p.m_mutation_type;
+
+    if(mut_type == mutation_type::duplication ||
+            mut_type == mutation_type::addition ||
+            mut_type == mutation_type::NRduplication||
+            mut_type == mutation_type::NRaddition)
+
+        return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+                "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+                "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+                "_" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
+                "_" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+                "_" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
+                "_" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+                "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+                "_" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+                "_" + std::to_string(o.get_params().s_p.seed) + ".json";
+
+
+    else return convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+            "_" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+            "_" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+            "__" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+            "_" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
+            "_" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+            "_" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+            "__" + std::to_string(o.get_params().s_p.seed) + ".json";
 }
 
 void test_observer();

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <random>
-#include "json.hpp"
+#include "range.h"
 #include "utilities.h"
 
 static double env_func_1(std::vector<double> input){
@@ -32,11 +32,11 @@ struct env_param
               std::vector<double> distrib = std::vector<double>{-1,1}) :
         env_function_A{fun_A},
         env_function_B{fun_B},
-        cue_distrib{distrib}
+        cue_distrib{distrib.front(),distrib.back()}
     {}
 std::function<double(std::vector<double>)> env_function_A;
 std::function<double(std::vector<double>)> env_function_B;
-std::vector<double> cue_distrib;
+range cue_distrib;
 };
 
 
@@ -51,10 +51,12 @@ public:
 
     std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
-
     ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
-        {return m_cue_distribution;}
+    {return m_cue_distribution;}
+
+    ///Returns the cue range
+    const range& get_cue_range() const noexcept {return m_cue_range;}
 
     ///Updates the n first inputs by drawing random ones from the distribution
     std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
@@ -86,6 +88,9 @@ public:
 
 
 private:
+
+    ///The range of the cue distribution
+    range m_cue_range;
 
     /// A distribution to be used for determining cues
     std::uniform_real_distribution<double> m_cue_distribution;
@@ -132,6 +137,11 @@ double calculate_optimal(const environment &e, std::vector<double> input);
 void switch_env_function(environment &e);
 
 }
+
+
+///homebrew version of json loading and saving to load and save cue distributions for environment
+void to_json(nlohmann::json& j, const environment& e);
+void from_json(const nlohmann::json& j, environment& e);
 
 void test_environment() noexcept;
 
