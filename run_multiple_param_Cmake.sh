@@ -28,11 +28,11 @@ cmake --build .
 declare -a architectures=("2,2,2,2,1")
 declare -a max_architectures=("2,8,8,8,1")
 declare -a change_freq_A=(0.005)
-declare -a gen=(3)
+declare -a gen=(1000000)
 declare -a mut_types=("NRaddition" "NRduplication")
 declare -a change_types=("regular")
 
-for seed in $(seq 1 1)
+for seed in $(seq 1 10)
 do
 	for arc in "${architectures[@]}"
 	do
