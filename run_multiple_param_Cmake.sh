@@ -46,15 +46,13 @@ do
 					do
             for change_type in "${change_types[@]}"
             do
-						  echo $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type
-
-						   echo $seed
-						   echo $arc
-						   echo $max_arc
-						   echo $change_freq_A
-						   echo $gen
-						   echo $mut_type
-						   echo $change_type
+						   echo "seed:  "$seed
+						   echo "architecture:  "$arc
+						   echo "max_architecture:  "$max_arc
+						   echo "change_freq_A:  "$change_freq_A
+						   echo "number of generations:  "$gen
+						   echo "mutation type:  "$mut_type
+						   echo "environmental change type:  "$change_type
               
 						  sbatch ../run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type
 					done
