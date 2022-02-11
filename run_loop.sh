@@ -27,4 +27,4 @@ echo "mutation type: "$6
 echo "duplication rate: "$7
 echo "activation rate: "$8
 
-./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -D $7 -A $8
+./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9

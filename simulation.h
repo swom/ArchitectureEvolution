@@ -384,6 +384,12 @@ void reproduce(Sim& s)
 template<class Sim>
 void select_inds(Sim& s)
 {
+
+    if(get_inds(s).size()){
+
+        assign_new_inputs(s);
+
+    }
     calc_fitness(s);
     reproduce(s);
 }
@@ -414,11 +420,6 @@ void tick(Sim &s)
         perform_environment_change(s);
     }
 
-    if(get_inds(s).size()){
-
-        assign_new_inputs(s);
-
-    }
 
     select_inds(s);
 }
