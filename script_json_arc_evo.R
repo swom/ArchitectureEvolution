@@ -101,7 +101,6 @@ ggplot(d,
 ######### Proportion of well-adapted time
 
 d = all_simple_res %>%
-  filter(architecture == "2-8-8-8-1") %>% 
   group_by(mut_type, seed) %>% 
   mutate(
     change = case_when(
@@ -137,7 +136,7 @@ ggplot(d, aes(x = n_change, y = adapt_prop, color = as.factor(m_env_functions), 
 ######### Plotting the slope and r squared of linear regressions 
 
 fitted_models = d %>% 
-  group_by(m_env_functions,mut_type, seed) %>% 
+  group_by(m_env_functions, seed) %>% 
   do(rsq = summary(lm(adapt_prop~n_change, data = .))$r.squared, b = summary(lm(adapt_prop~n_change, data = .))$coefficients[1], a=summary(lm(adapt_prop~n_change, data = .))$coefficients[2])
 
 fitted_models$rsq = unlist(fitted_models$rsq)
@@ -145,9 +144,9 @@ fitted_models$a = unlist(fitted_models$a)
 fitted_models$b = unlist(fitted_models$b)
 fitted_models$m_env_functions = as.factor(fitted_models$m_env_functions)
 
-ggplot(fitted_models, aes(x = mut_type, y = seed, color = a, fill = a, size = rsq)) +
-  geom_point()+
-  facet_grid(m_env_functions ~ .)
+ggplot(fitted_models, aes(x = m_env_functions, y = seed, color = a, fill = a, size = rsq)) +
+   geom_point()#+
+  # facet_grid(m_env_functions)
 
 ####Plotting what's been going on since last env change
 d =   all_simple_res %>%
@@ -161,13 +160,26 @@ for(i in 1:nrow(d)){
   }
 }
 
-d = filter(d, gen%%time ==0) %>% distinct()
- 
-ggplot(d, aes(x = gen, y = avg, color = as.factor(m_env_functions), fill = as.factor(m_env_functions))) +
+d = filter(d, gen%%time ==0) %>% distinct() %>%
+  filter (gen%%25000 == 0)
+
+ggplot(d, aes(ymin = 0, ymax = 1.2, x = gen, y = avg, color = as.factor(m_env_functions), fill = as.factor(m_env_functions), size=sd)) +
   geom_point()+ 
-  facet_grid(change_freq_A ~ .)+
+  facet_grid(seed ~ .)+
   stat_smooth(method='lm')+
   stat_regline_equation(aes(label = ..eq.label..),label.y.npc = 0.3) +
-  stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)+
-  geom_errorbar(aes(ymin=avg-sd, ymax=avg+sd), width=.2,
-                position=position_dodge(.9)) 
+  stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)
+
+
+d = filter(d, gen %in% c(1000, 1000+ time, 50000, 50000+time, 300000, 300000-time))
+  
+ 
+ggplot(d, aes(ymin = 0, ymax = 1.2, x = gen, y = avg, color = as.factor(m_env_functions), fill = as.factor(m_env_functions), size=sd)) +
+  geom_point(alpha=0.5) 
+
+ggplot(d, aes(ymin = 0, ymax = 1.2, x = gen, y = avg, color = as.factor(m_env_functions), fill = as.factor(m_env_functions), size=sd)) +
+  geom_point()+ 
+  facet_grid(seed ~ .)+
+  stat_smooth(method='lm')+
+  stat_regline_equation(aes(label = ..eq.label..),label.y.npc = 0.3) +
+  stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)

@@ -163,6 +163,51 @@ void test_observer()
     }
 #endif
 
+//#define FIX_ISSUE_271
+#ifdef FIX_ISSUE_271
+    ///The observer stores performance calculated from reaction norm
+    {
+        observer o;
 
+        //Give sim some non-default inputs and optimal
+        simulation s{};
+        o.store_performance;
+        assert(o.get_average_perf == calc_avg_perf_from_reaction_norm(s.get_pop()));
+        assert(o.get_sd_perf == calc_sd_perf_from_reaction_norm(s.get_pop()));
+    }
+#endif
+
+//#define FIX_ISSUE_272
+#ifdef FIX_ISSUE_272
+    ///Average and variance of performance can be obtained from a reaction norm
+    {
+    pop_param p_p{5, 0, 0, 0, 0};
+    simulation s{{{},{},p_p,{}}};
+    auto p = s.get_pop();
+
+        range r{-1,1};
+        std::vector<std::vector<double>> reac_norm = calculate_reaction_norms(p.get_inds(), r, 100);
+
+        std::vector<double> averages;
+        for(double j = 0; j!=5; ++j){
+            std::vector<double> errors_one_ind;
+            for(double i=0; i!=100; ++i){
+                std::vector<double> input{- 1 + i*(2/100)};
+                auto opt = s.get_env().get_current_function()(input);
+                auto error = (reac_norm[j][i] - opt)*(reac_norm[j][i] - opt);
+                errors_one_ind.push_back(error);
+              }
+            averages.push_back(std::accumulate(std::begin(errors_one_ind), std::end(errors_one_ind), 0.0) / std::size(errors_one_ind));
+          }
+        double mean = calc_mean(averages);
+        double sd = calc_stdev(averages);
+
+        double avg_perf = calc_avg_perf_from_reaction_norm(p);
+        double sd_perf = calc_sd_perf_from_reaction_norm(p);
+
+        assert(avg_perf == mean);
+        assert(sd_perf == sd);
+          }
+#endif
 }
 #endif

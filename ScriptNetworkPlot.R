@@ -10,16 +10,26 @@ library(ggnetwork)
 library(networkD3)
 library(magick)
 
-dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release/store/Mutation rate"
+
+dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/"
 setwd(dir)
+options(scipen=999)
 
 results=list()
 pattern = "*json$"
+all_aggregate_data=data.frame()
 for (i in  list.files(path = '.', pattern = pattern)){
   
   ###Making a data tibble with all top individuals' data 
   
   results <- fromJSON(file = i)
+  
+  simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
+                                                   "m_env_functions",
+                                                   "m_var_fitnesses")]),
+                               var = "gen")
+  
+  
   names(results$m_top_inds) = seq(from=0, by=1000, length.out=length(results$m_top_inds))
   results_df = results$m_top_inds %>% 
   unlist(recursive=FALSE)#%>%
@@ -30,19 +40,23 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   i = str_replace(i, "weights_and_activation", "weightsandactivation")
   ID = data.frame(i) %>% 
-    separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq", "selection_strength", "max_arc","seed"), sep = '_')%>% 
+    separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq_A","change_freq_B","change_type", "selection_strength", "max_arc","seed"), sep = '_')%>% 
     separate(seed, c("seed",NA))
   
   ID$architecture = as.factor(ID$architecture)
   ID$seed = as.factor(ID$seed)
   ID$max_arc = as.factor(ID$max_arc)
-  ID$change_freq = as.factor(ID$change_freq)
+  ID$change_freq_A = as.factor(ID$change_freq_A)
+  ID$change_freq_B = as.factor(ID$change_freq_B)
   ID$mut_rate_act = as.factor(ID$mut_rate_act)
   ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
   ID$selection_strength = as.factor(ID$selection_strength)
+  ID$change_type = as.factor(ID$change_type)
   
   name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
   assign(name1, cbind(results_df, ID))
+  simple_res = cbind(simple_res, ID)
+  all_simple_res = rbind(all_simple_res, simple_res)
   
   ###Making a number vector out of the architecture
   if(levels(get(name1)$max_arc)[1] == ""){
@@ -109,16 +123,23 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   #Now let's loop through generations
   
+  aggregate_data = data.frame(gen=rep(0,length(levels(get(name2)$gen))),active_nodes=rep(0,length(levels(get(name2)$gen))), inactive_connections=rep(0,length(levels(get(name2)$gen))))
+  count=0
   for(j in levels(get(name2)$gen)){
-  
+  count = count + 1
   #adding weights, weight sign, activation to the edge list
   edge_tibble = as_tibble(cbind(from, to))
   ind = filter(get(name2), gen == j)
   edge_tibble = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign)
   
   node_tibble = as_tibble(cbind(id, layer, node))
-  node_active = c(TRUE, subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)
+  node_active = c(rep(TRUE,architecture[1]), subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)
   node_tibble = cbind(node_tibble, node_active)
+  
+  #Plot number of active nodes
+  aggregate_data$active_nodes[count]=sum(node_tibble$node_active)
+  aggregate_data$inactive_connections[count]=sum(edge_tibble$`ind$m_is_active`==F)
+  aggregate_data$gen[count] = j
   
   # ###plot network####
   ##create igraph or ggraph object
@@ -131,9 +152,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   network_d = network_d - E(network_d)[E(network_d)$weight == 0]
   V(network_d)$color = factor(node_tibble$node_active, levels=c("FALSE", "TRUE"))
   
-
+  
   jpeg(paste("Plot",ind$mut_type, "s",ind$seed,"arch",ind$architecture,
-             "cycle", paste(rep("0",max(nchar(levels(ind$gen)))-(nchar(j))),j, sep=""),"changefreq", 
+             "cycle", paste(paste(rep("0",max(nchar(levels(get(name2)$gen)))-(nchar(j))), collapse=""),j, sep=""),"changefreq", 
              ind$change_freq,"duprate",ind$mut_rate_dup,"actrate", ind$mut_rate_act, ".png", sep = "_")
        ,width = 700,
        height = 700)
@@ -148,17 +169,16 @@ for (i in  list.files(path = '.', pattern = pattern)){
        edge.width = abs(E(network_d)$weight/max(abs(E(network_d)$weight)) * 10), 
        main = title,
        vertex.label = NA
-       )
+  )
   dev.off()
   
   }  
-
   ####Create gif
   ## list file names and read in
-  imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-                   list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
-                   list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
-                   list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
+  imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$seed)[1], full.names =  T)),
+                                                 list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
+                                       list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
+                             list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
                    list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
   img_list = lapply(imgs, image_read)
   
@@ -172,7 +192,27 @@ for (i in  list.files(path = '.', pattern = pattern)){
   path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
   image_write(image = img_animated,
               path = path)
+  }
+  aggregate_data = cbind (aggregate_data,ID)
+  all_aggregate_data=rbind(all_aggregate_data, aggregate_data)
+  all_aggregate_data$gen = as.numeric(all_aggregate_data$gen)
+  all_aggregate_data=mutate(all_aggregate_data, normalized_inactive = inactive_connections/active_nodes)
+
   
 
-}
+ggplot(data = all_aggregate_data
+       #%>%filter(mut_type == "NRduplication")  
+       #%>% slice_min(gen,n = 1000)
+) +
+  geom_line(aes(x = gen, y = active_nodes))+
+  facet_grid(seed~.)
+
+ggplot(data = all_aggregate_data
+       #%>%filter(mut_type == "NRduplication")  
+       #%>% slice_min(gen,n = 1000)
+) +
+  geom_line(aes(x = gen, y = normalized_inactive))+
+  facet_grid(seed~.)
+   
+
  
