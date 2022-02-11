@@ -53,18 +53,19 @@ double calc_avg_perf_from_reaction_norm(Sim s){
   std::vector<std::vector<std::vector<double>>> reac_norm = calculate_reaction_norms(s.get_inds(), r, 100);
 
   std::vector<double> averages;
-  for(int j = 0; j!=5; ++j){
-      std::vector<double> errors_one_ind;
+  for(size_t j = 0; j!=s.get_inds().size(); ++j){
+      std::vector<double> perfs_one_ind;
       for(int i=0; i!=100; ++i){
           double k = i;
           double step = - 1 + k*0.02;
           std::vector<double> input{step};
           auto opt = s.get_env().get_current_function()(input);
           auto error = (reac_norm[j][i][0] - opt)*(reac_norm[j][i][0] - opt);
-          errors_one_ind.push_back(error);
+          auto perf = 1- error;
+          perfs_one_ind.push_back(perf);
         }
-      averages.push_back(std::accumulate(std::begin(errors_one_ind), std::end(errors_one_ind), 0.0) / std::size(errors_one_ind));
-      }
+      averages.push_back(std::accumulate(std::begin(perfs_one_ind), std::end(perfs_one_ind), 0.0) / std::size(perfs_one_ind));
+    }
   return calc_mean(averages);
 }
 
@@ -74,18 +75,19 @@ double calc_sd_perf_from_reaction_norm(Sim s){
   std::vector<std::vector<std::vector<double>>> reac_norm = calculate_reaction_norms(s.get_inds(), r, 100);
 
   std::vector<double> averages;
-  for(int j = 0; j!=5; ++j){
-      std::vector<double> errors_one_ind;
+  for(size_t j = 0; j!=s.get_inds().size(); ++j){
+      std::vector<double> perfs_one_ind;
       for(int i=0; i!=100; ++i){
           double k = i;
           double step = - 1 + k*0.02;
           std::vector<double> input{step};
           auto opt = s.get_env().get_current_function()(input);
           auto error = (reac_norm[j][i][0] - opt)*(reac_norm[j][i][0] - opt);
-          errors_one_ind.push_back(error);
+          auto perf = 1- error;
+          perfs_one_ind.push_back(perf);
         }
-      averages.push_back(std::accumulate(std::begin(errors_one_ind), std::end(errors_one_ind), 0.0) / std::size(errors_one_ind));
-     }
+      averages.push_back(std::accumulate(std::begin(perfs_one_ind), std::end(perfs_one_ind), 0.0) / std::size(perfs_one_ind));
+    }
   return calc_stdev(averages);
 }
 
@@ -104,6 +106,8 @@ private:
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
+    std::vector<double> m_avg_performances;
+    std::vector<double> m_sd_performances;
 
 public:
     observer(int top_proportion = 1):
@@ -133,6 +137,12 @@ public:
 
     ///returns const ref to best_ind vector
     const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
+
+    ///returns const ref to m_avg_performances
+    const std::vector<double>& get_average_perf() const noexcept{return m_avg_performances;}
+
+    ///returns const ref to m_sd_performances
+    const std::vector<double>& get_sd_perf() const noexcept{return m_sd_performances;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -167,6 +177,14 @@ public:
                                  )
                              );
     }
+
+    ///Calculates and store the average and sd of performance
+    void store_performance(const Sim &s)
+    {
+        m_avg_performances.push_back(calc_avg_perf_from_reaction_norm(s));
+        m_sd_performances.push_back(calc_sd_perf_from_reaction_norm(s));
+    }
+
 
     const all_params& get_params() const noexcept {return m_params;};
 
@@ -208,6 +226,7 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_input(s);
         o.store_optimal(s);
         o.store_avg_fit(s);
+        o.store_performance(s);
 
         if(i % 1000 == 0)
         {

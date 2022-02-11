@@ -37,7 +37,7 @@ double calc_stdev(const std::vector<double>& numbers)
                  [&](const double weight) {
       accum += (weight - mean) * (weight - mean);});
 
-  return sqrt(accum / (numbers.size()-1));
+  return sqrt(accum / (numbers.size()));
 }
 
 const std::string convert_arc_to_string(const std::vector<int>& v)
