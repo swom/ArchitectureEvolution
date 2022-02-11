@@ -82,6 +82,15 @@ public:
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
 
+    ///resets the fitness of the population to 0
+    void reset_fitness()
+    {
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.reset_fitness();
+        }
+
+    }
 private:
 
     std::vector<Ind> m_vec_indiv;
