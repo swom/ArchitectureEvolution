@@ -58,7 +58,7 @@ do
                 do
 						    echo $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate
               
-						  sbatch run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate
+						  sbatch ../run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate
 					done
 				done
 			done
