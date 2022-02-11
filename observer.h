@@ -5,12 +5,14 @@
 #include "Stopwatch.hpp"
 
 ///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
 template<class Ind>
 std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds,
                                                      const range& cue_range,
                                                      const int& n_data_points)
 {
     double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
     for(const auto& ind : inds)
     {
@@ -47,7 +49,6 @@ public:
     {
     }
 
-
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
                                    m_var_fitnesses,
@@ -81,7 +82,6 @@ public:
     {
         m_var_fitnesses.push_back(sim::var_fitness(s));
     }
-
 
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
@@ -117,8 +117,6 @@ public:
     const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
 
     const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
-
-
 };
 
 template<class Ind>
@@ -127,7 +125,6 @@ bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
-
 
 ///Executes a simulation for n generations
 template<class Sim>
@@ -154,7 +151,6 @@ void exec(Sim& s , observer<Sim>& o)
         if(i % 1000 == 0)
         {
             o.store_top_n_inds(s);
-            std::cout << "exiting store_top_inds()" << std::endl;
         }
 
         sim::tick(s);
