@@ -52,21 +52,23 @@ do
 							do
 								for act_rate in "${act_rates[@]}"
 								do
-						   echo "seed:  "$seed
-						   echo "architecture:  "$arc
-						   echo "max_architecture:  "$max_arc
-						   echo "change_freq_A:  "$change_freq_A
-						   echo "number of generations:  "$gen
-						   echo "mutation type:  "$mut_type
-						   echo "environmental change type:  "$change_type
-						   echo "duplication rate:  "$dup_rate
-						   echo "activation rate:  "$act_rate
-              
-						  sbatch ../run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate 
+									   echo "seed:  "$seed
+									   echo "architecture:  "$arc
+									   echo "max_architecture:  "$max_arc
+									   echo "change_freq_A:  "$change_freq_A
+									   echo "number of generations:  "$gen
+									   echo "mutation type:  "$mut_type
+									   echo "environmental change type:  "$change_type
+									   echo "duplication rate:  "$dup_rate
+									   echo "activation rate:  "$act_rate
+						  
+									  sbatch ../run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate 
+								done
+							done
+						done
 					done
 				done
 			done
-		done
+		done 
 	done
-done 
 done
