@@ -48,6 +48,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+
+
 #ifndef NDEBUG
 void test_observer()
 {
@@ -177,37 +179,42 @@ void test_observer()
     }
 #endif
 
-//#define FIX_ISSUE_272
+#define FIX_ISSUE_272
 #ifdef FIX_ISSUE_272
     ///Average and variance of performance can be obtained from a reaction norm
-    {
-    pop_param p_p{5, 0, 0, 0, 0};
-    simulation s{{{},{},p_p,{}}};
+    /// Note: this assumes one output
+  {
+    pop_param p_p{5, 1, 1, 1, 1};
+    simulation s{{env_param{},ind_param{{{1,2,1}, sigmoid}},p_p,sim_param{}}};
+
+
+    sim::tick(s);
     auto p = s.get_pop();
+    range r{-1,1};
+    std::vector<std::vector<std::vector<double>>> reac_norm = calculate_reaction_norms(p.get_inds(), r, 100);
 
-        range r{-1,1};
-        std::vector<std::vector<double>> reac_norm = calculate_reaction_norms(p.get_inds(), r, 100);
-
-        std::vector<double> averages;
-        for(double j = 0; j!=5; ++j){
-            std::vector<double> errors_one_ind;
-            for(double i=0; i!=100; ++i){
-                std::vector<double> input{- 1 + i*(2/100)};
-                auto opt = s.get_env().get_current_function()(input);
-                auto error = (reac_norm[j][i] - opt)*(reac_norm[j][i] - opt);
-                errors_one_ind.push_back(error);
-              }
-            averages.push_back(std::accumulate(std::begin(errors_one_ind), std::end(errors_one_ind), 0.0) / std::size(errors_one_ind));
+    std::vector<double> averages;
+    for(int j = 0; j!=5; ++j){
+        std::vector<double> errors_one_ind;
+        for(int i=0; i!=100; ++i){
+            double k = i;
+            double step = - 1 + k*0.02;
+            std::vector<double> input{step};
+            auto opt = s.get_env().get_current_function()(input);
+            auto error = (reac_norm[j][i][0] - opt)*(reac_norm[j][i][0] - opt);
+            errors_one_ind.push_back(error);
           }
-        double mean = calc_mean(averages);
-        double sd = calc_stdev(averages);
+        averages.push_back(std::accumulate(std::begin(errors_one_ind), std::end(errors_one_ind), 0.0) / std::size(errors_one_ind));
+      }
+    double mean = calc_mean(averages);
+    double sd = calc_stdev(averages);
 
-        double avg_perf = calc_avg_perf_from_reaction_norm(p);
-        double sd_perf = calc_sd_perf_from_reaction_norm(p);
+    double avg_perf = calc_avg_perf_from_reaction_norm(s);
+    double sd_perf = calc_sd_perf_from_reaction_norm(s);
 
-        assert(avg_perf == mean);
-        assert(sd_perf == sd);
-          }
+    assert(avg_perf == mean);
+    assert(sd_perf == sd);
+  }
 #endif
 }
 #endif
