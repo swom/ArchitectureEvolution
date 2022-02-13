@@ -126,7 +126,7 @@ template<class Ind>
 double calc_sqr_distance(const Ind &i, double env_value)
 {
     auto output = response(i);
-    return (output[0] - env_value) * (output[0] - env_value);
+    return (output.at(0) - env_value) * (output.at(0) - env_value);
 }
 
 }

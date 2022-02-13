@@ -139,7 +139,6 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
     }
 }
 
-
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
 
@@ -158,6 +157,13 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         assert(1 == 2);
 #endif
 
+//        net_param n_p({1,2,2,2,1},sigmoid,{1,8,8,8,1});
+//        network<mutation_type::NRduplication> n(n_p);
+//        int i = 0;
+//        while(true)
+//        {
+//           n.
+//        }
         run_simulation_given_arguments(results);
 
     }  catch (int exc) {

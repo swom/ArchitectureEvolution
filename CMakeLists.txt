@@ -14,9 +14,10 @@ file(GLOB src
      "${PROJECT_SOURCE_DIR}/*.hpp"
      "${PROJECT_SOURCE_DIR}/*.h"
 )
-if(MINGW)
-  add_compile_options(-Wa,-mbig)
-endif()
-
 
 add_executable("arc_evo" ${src})
+
+if(MINGW)
+  add_compile_options(-Wa,-mbig)
+  set (CMAKE_SHARED_LINKER_FLAGS " ")
+endif()

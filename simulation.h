@@ -340,6 +340,7 @@ template<class Sim>
 void calc_fitness(Sim &s)
 {
     s.update_optimal(calculate_optimal(s));
+
     s.get_pop() = pop::calc_fitness(s.get_pop(),
                                     s.get_optimal(),
                                     s.get_sel_str());
@@ -422,11 +423,15 @@ void tick(Sim &s)
     s.increase_time();
 
     if(s.is_environment_changing()){
-
         perform_environment_change(s);
     }
+
     assign_new_inputs(s);
+
+    std::cout << "f ";
     calc_fitness(s);
+    std::cout << "g ";
+
     reproduce(s);
     //s.reset_fit_pop();
 }
