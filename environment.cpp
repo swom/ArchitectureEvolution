@@ -24,8 +24,8 @@ environment::environment(const env_param& e_p):
     m_cue_distribution{m_cue_range.m_start, m_cue_range.m_end},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
-    m_current_function{e_p.env_function_A},
-    m_name_current_function{'A'}
+    m_current_function{e_p.env_function_B},
+    m_name_current_function{'B'}
 {
     m_rng.seed(0);
 }
@@ -341,7 +341,7 @@ void test_environment() noexcept
   #endif
 
 
-#define FIX_ISSUE_57
+//#define FIX_ISSUE_57
 #ifdef FIX_ISSUE_57
 
     ///An enviroment can switch between optimum/al functions
@@ -370,7 +370,7 @@ void test_environment() noexcept
       }
   #endif
 
-#define FIX_ISSUE_77
+//#define FIX_ISSUE_77
 #ifdef FIX_ISSUE_77
 
     ///The current function matches with the name of the current function

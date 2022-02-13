@@ -612,7 +612,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_138
+//#define FIX_ISSUE_138
 #ifdef FIX_ISSUE_138
 
     ///There should be an input to signal whihc environment function is being used to calculate the optima
@@ -673,7 +673,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_249
+//#define FIX_ISSUE_249
 #ifdef FIX_ISSUE_249
     ///Simulation changes environment/function according to the specific change frequency of each function
     {
