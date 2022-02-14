@@ -773,7 +773,40 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
     }
 #endif
+
+#define FIX_ISSUE_275
+#ifdef FIX_ISSUE_261
+    //The number of trials (output-optimal_output distance)
+    //on which fitness can be calculated can be decided in the sim_parameters
+    //by defualt the number of trials is 1
+    //The final fitness of an individual is the cumulative sum of the rescaled distances
+    //of an individual output to the optimal output
+    {
+        int number_of_trials = 5;
+        sim_param s_p1{};
+        sim_param s_p2{};
+
+        assert(s_p1.n_trials == 1);
+        s_p2.n_trials = 5;
+
+        assert(s_p1.n_trials < s_p2.n_trials);
+
+        all_params a_p1{env_param{}, ind_param{}, pop_param{1}, s_p1};
+        all_params a_p2{env_param{}, ind_param{}, pop_param{1}, s_p2};
+
+        simulation s1{a_p1};
+        simulation s2{a_p2};
+
+        calc_fitness(s1);
+        calc_fitness(s2);
+
+        assert(!pops_have_same_fitness(s1, s2));
+        assert(sum_of_fitnesses(s1) * s_p2.n_trials / s_p1.n_trials == sum_of_fitnesses(s2));
+
+    }
+
 }
 
 
+#endif
 #endif
