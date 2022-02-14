@@ -428,14 +428,9 @@ void tick(Sim &s)
 
     assign_new_inputs(s);
 
-    std::cout << "f ";
     calc_fitness(s);
-    std::cout << "g ";
 
     reproduce(s);
-    std::cout << "h" << std::endl;
-
-    //s.reset_fit_pop();
 }
 
 ///Calculates the standard devaition of the population fitness
