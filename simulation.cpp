@@ -228,7 +228,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0, 1};
 
         auto sim_p = sim_param{};
-        sim_p.selection_strength = 2;
+        sim_p.selection_strength = 20;
 
 
         simulation s{all_params{
@@ -785,8 +785,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     //of an individual output to the optimal output
     {
         int number_of_trials = 5;
-        pop_param p_p1{1};
-        pop_param p_p2{1};
+        pop_param p_p1{2};
+        pop_param p_p2{2};
 
         assert(p_p1.n_trials == 1);
         p_p2.n_trials = 5;
@@ -799,13 +799,16 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s1{a_p1};
         simulation s2{a_p2};
 
+        auto fitnesses_s1 = evaluate_inds(s1);
+        auto fitnesses_s2 = evaluate_inds(s2);
+        assert(fitnesses_s1 != fitnesses_s2);
 
-        //Fitness is resetted every call of calc_fitness(s)
-        assert(evaluate_inds(s1) == evaluate_inds(s1));
-        assert(evaluate_inds(s2) == evaluate_inds(s2));
-
-        assert(!pops_have_same_fitness(s1, s2));
-        assert(sum_of_fitnesses(s1) * p_p2.n_trials / p_p1.n_trials == sum_of_fitnesses(s2));
+        assert(std::equal(fitnesses_s1.begin(),
+                          fitnesses_s1.end(),
+                          fitnesses_s2.begin(),
+                          [p_p1, p_p2](const double& s1, const double& s2)
+        {return s1 * p_p2.n_trials / p_p1.n_trials == s2;})
+               );
 
     }
 
