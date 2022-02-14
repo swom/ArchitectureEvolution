@@ -340,7 +340,6 @@ template<class Sim>
 void calc_fitness(Sim &s)
 {
     s.update_optimal(calculate_optimal(s));
-
     s.get_pop() = pop::calc_fitness(s.get_pop(),
                                     s.get_optimal(),
                                     s.get_sel_str());
@@ -398,7 +397,6 @@ void select_inds(Sim& s)
     assign_new_inputs(s);
     calc_fitness(s);
     reproduce(s);
-    //s.reset_fit_pop();
 }
 
 ///Switches the function of the environment used to calculate the optimal output
@@ -426,11 +424,7 @@ void tick(Sim &s)
         perform_environment_change(s);
     }
 
-    assign_new_inputs(s);
-
-    calc_fitness(s);
-
-    reproduce(s);
+   select_inds(s);
 }
 
 ///Calculates the standard devaition of the population fitness
