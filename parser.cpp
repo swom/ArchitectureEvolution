@@ -85,7 +85,9 @@ cxxopts::Options create_parser(){
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
-            ("P,pop_size","the numebr of individuals in the simulation",cxxopts::value<int>()->default_value("1000"))
+            ("P,pop_size",
+             "the numebr of individuals in the simulation",
+             cxxopts::value<int>()->default_value("1000"))
             ("C,change_freq_A",
              "the probability with which the target function A will change",
              cxxopts::value<double>()->default_value("0.01"))

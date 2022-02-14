@@ -81,6 +81,9 @@ public:
     ///Sets the fitness of an ind
     void set_fitness(double fitness) {m_fitness = fitness;}
 
+    ///Resets fitness to  0
+    void reset_fitness() {m_fitness = 0;}
+
     ///Set the input values of an individual
     void assign_input(const std::vector<double> &input) {m_input_values = input;}
 
@@ -123,7 +126,7 @@ template<class Ind>
 double calc_sqr_distance(const Ind &i, double env_value)
 {
     auto output = response(i);
-    return (output[0] - env_value) * (output[0] - env_value);
+    return (output.at(0) - env_value) * (output.at(0) - env_value);
 }
 
 }

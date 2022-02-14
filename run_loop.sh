@@ -15,14 +15,16 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
 #SBATCH --mem=1G
-#SBATCH --job-name=single_switch_sim
-#SBATCH --output=switch_%j.log
+#SBATCH --job-name=arc_evo_sim
+#SBATCH --output=arc_evo_%j.log
 
 echo "seed: "$1
 echo "architecture: "$2
-echo "max_arc:  " $3
-echo "change frequency:  " $4
-echo "number of total generations:  "$5
+echo "max_arc: " $3
+echo "change frequency: " $4
+echo "number of total generations: "$5
 echo "mutation type: "$6
+echo "duplication rate: "$7
+echo "activation rate: "$8
 
-./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 
+./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9
