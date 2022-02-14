@@ -257,7 +257,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
         assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
-        select_inds(s);
+        calc_fitness(s);
+        reproduce(s);
 
         //all inds should now have the network that matches the target values
         for(const auto& ind :get_inds(s))

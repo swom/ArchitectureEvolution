@@ -239,7 +239,9 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
 
     if(all_fitnesses_are(0,p))
     {
-        throw std::runtime_error{"all pop fitnesses are 0"};
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind& i){return 0.1;});
     }
 
     mut_dist.mutate_transform(p.get_inds().begin(),
