@@ -433,6 +433,8 @@ void tick(Sim &s)
     std::cout << "g ";
 
     reproduce(s);
+    std::cout << "h" << std::endl;
+
     //s.reset_fit_pop();
 }
 

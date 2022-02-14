@@ -138,6 +138,15 @@ double avg_fitness(const population<Ind>& p){
     return calc_mean(fitnesses);
 }
 
+///Checks if fitness of all individuals equals a certain value
+template<class Ind>
+bool all_fitnesses_are(double value, const population<Ind>& p)
+{
+    return std::all_of(p.get_inds().begin(),
+                       p.get_inds().end(),
+                       [&value](const Ind& i){return i.get_fitness() == value;});
+}
+
 ///Rescales the distance fro the target of an ind
 ///to a fitness value between 0  and 1
 std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target,
@@ -227,6 +236,11 @@ template< class Ind>
 rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
+
+    if(all_fitnesses_are(0,p))
+    {
+        throw std::runtime_error{"all pop fitnesses are 0"};
+    }
 
     mut_dist.mutate_transform(p.get_inds().begin(),
                               p.get_inds().end(),

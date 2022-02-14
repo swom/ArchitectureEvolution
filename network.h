@@ -80,7 +80,7 @@ void mut_dupl_node(Net& n,
         auto& current_layer = n.get_net_weights().at(layer);
 
         // to avoid chain duplications
-        for(int node = current_layer.size() - 1; node >= 0; --node)
+        for(int node = current_layer.size() - 1; node >= 0; node--)
         {
             const auto& current_node = current_layer.at(node);
 
@@ -112,7 +112,7 @@ void mut_add_node(Net& n,
             auto& current_layer = n.get_net_weights().at(layer);
 
             // to avoid chain duplications
-            for(int node = current_layer.size() - 1; node >= 0; --node)
+            for(int node = current_layer.size() - 1; node >= 0; node--)
             {
 
                 const auto& current_node = current_layer.at(node);
@@ -147,7 +147,7 @@ void mut_del(Net& n,
     {
         auto& current_layer = n.get_net_weights().at(layer);
 
-        for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
+        for(size_t node_index = 0; node_index != current_layer.size(); node_index++)
         {
             const auto& current_node = current_layer.at(node_index);
 
@@ -166,11 +166,11 @@ void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
     if(mut_rate != 0){
         std::bernoulli_distribution mut_p{mut_rate};
 
-        for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-            for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+        for(size_t i = 0; i != n.get_net_weights().size(); i++)
+            for(size_t j = 0; j != n.get_net_weights()[i].size(); j++){
                 auto &current_node = n.get_net_weights()[i][j];
                 if(current_node.is_active()){
-                    for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+                    for(size_t k = 0; k != current_node.get_vec_weights().size(); k++)
                     {
                         if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
                             const weight &current_weight = current_node.get_vec_weights()[k];
@@ -244,6 +244,11 @@ public:
             m_network_weights.push_back(temp_layer_vector);
         }
     }
+
+    inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
+                    m_network_weights.begin(),
+                    m_network_weights.end(),
+                    [] (const auto& i) {return i.size() == 0;});}
 
     void mutate(const double& mut_rate_weight,
                 const double& mut_step,
@@ -349,7 +354,9 @@ public:
         }
     }
 
-    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 &rng)
+    inline void add_node(size_t layer,
+                         const std::vector<node>::iterator &empty_node_iterator,
+                         std::mt19937_64 &rng)
     {
         if(m_current_arc[layer + 1] == m_max_arc[layer + 1])
         {
@@ -477,12 +484,10 @@ public:
         }
 
         --m_current_arc.at(layer+1);
-        bool any_layer_has_no_nodes = std::any_of(m_current_arc.begin(), m_current_arc.end(), [] (const int& i)
-        {return i < 1;});
 
-        if(any_layer_has_no_nodes)
+        if(any_layer_has_no_nodes())
         {
-            throw std::runtime_error{"One layer got its last node deleted"};
+            throw std::runtime_error{"One layer got has 0 nodes"};
         }
     }
 
@@ -694,35 +699,54 @@ int get_number_weights(const Net &n);
 template<class Net>
 std::vector<double> output(const Net& n, std::vector<double> input)
 {
-    //std::cout << "a";
 
     assert(input.size() == n.get_input_size());
+
+    if(n.any_layer_has_no_nodes())
+    {
+        throw std::runtime_error{"One layer has 0 nodes"};
+    }
+    std::vector<double> w{0};
+    std::vector<double> output;
+
     for(size_t layer = 0; layer != n.get_net_weights().size(); layer++)
     {
-        auto output = std::vector<double>(n.get_net_weights().at(layer).size());
+        output.resize(n.get_net_weights().at(layer).size());
 
         for(size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
         {
-            const class node &current_node = n.get_net_weights().at(layer).at(node);
-            std::vector<double> w{0};
-
-            if(current_node.is_active()){
-                std::vector<weight> vec_w = current_node.get_vec_weights();
-                convert_to_double_or_zero(vec_w).swap(w);
+            if(n.get_net_weights().at(layer).size() != output.size())
+            {
+                throw std::runtime_error{"A node got lost somewhere in output()"};
             }
 
-            double node_value = current_node.get_bias() +
+            const auto &current_node = n.get_net_weights().at(layer).at(node);
+
+            double node_value = 0;
+
+            if(current_node.is_active())
+            {
+
+                std::vector<weight> vec_w = current_node.get_vec_weights();
+                convert_to_double_or_zero(vec_w).swap(w);
+
+                if(input.size() != w.size())
+                {
+                    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
+                }
+
+                node_value = current_node.get_bias() +
                     std::inner_product(input.begin(),
                                        input.end(),
                                        w.begin(),
                                        0.0);
+            }
 
             output.at(node) = n(node_value);
         }
 
-        input = std::move(output);
+        output.swap(input);
     }
-    // std::cout << "b ";
 
     return input;
 }
