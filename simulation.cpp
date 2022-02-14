@@ -225,7 +225,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0, 1};
 
         auto sim_p = sim_param{};
         sim_p.selection_strength = 2;

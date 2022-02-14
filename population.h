@@ -20,7 +20,7 @@ struct pop_param
     double mut_step;
     double mut_rate_activation;
     double mut_rate_duplication;
-    int n_trials;
+    int n_trials = 1;
 };
 
 template <class Ind = individual<>>

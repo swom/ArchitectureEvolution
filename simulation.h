@@ -396,9 +396,11 @@ std::vector<double> evaluate_inds(Sim& s){
     {
         assign_new_inputs(s);
         s.update_optimal(calculate_optimal(s));
+        auto performance = pop::calc_dist_from_target(s.get_inds(), s.get_optimal());
+
         std::transform(cumulative_performance.begin(),
                        cumulative_performance.end(),
-                       pop::calc_dist_from_target(s.get_inds(), s.get_optimal()).begin(),
+                       performance.begin(),
                        cumulative_performance.begin(),
                        std::plus<double>());
     }
