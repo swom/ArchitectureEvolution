@@ -18,12 +18,15 @@ struct sim_param
                                    change_freq_A,
                                    change_freq_B,
                                    selection_strength,
-                                   n_generations)
+                                   n_generations,
+                                   n_trials
+                                   )
     int seed;
     double change_freq_A;
     double change_freq_B;
     double selection_strength;
     int n_generations;
+    int n_trials;
     env_change_type change_type;
 
 };
@@ -337,12 +340,13 @@ double avg_fitness(const Sim& s)
 }
 ///Calculates fitness of inds in pop given current env values
 template<class Sim>
-void calc_fitness(Sim &s)
+const Sim& calc_fitness(Sim &s)
 {
     s.update_optimal(calculate_optimal(s));
     s.get_pop() = pop::calc_fitness(s.get_pop(),
                                     s.get_optimal(),
                                     s.get_sel_str());
+    return s;
 }
 
 ///Changes all the weights of a given individual to a given value
@@ -412,6 +416,23 @@ void perform_environment_change(Sim &s)
 {
     switch_optimal_function(s);
     s.switch_env_indicator();
+}
+///checks if the individuals in the populations from 2 different simulations
+///have exactly the same fitness values
+template<class Sim>
+bool pops_have_same_fitness(const Sim& lhs, const Sim& rhs)
+{
+    return pop::extract_fitnesses(lhs.get_inds()) == pop::extract_fitnesses(rhs.get_inds());
+}
+
+///sums the fitness of all individuals of a simulation toghether
+template<class Sim>
+double sum_of_fitnesses(const Sim& s)
+{
+    auto fitnesses = pop::extract_fitnesses(s.get_inds());
+    return std::accumulate(fitnesses.begin(),
+                           fitnesses.end(),
+                           0.0);
 }
 
 ///Ticks time one generation into the future

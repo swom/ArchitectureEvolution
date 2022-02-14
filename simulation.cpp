@@ -362,12 +362,14 @@ void test_simulation() noexcept//!OCLINT test may be many
         double change_freq_B = 87654321;
         double selection_strength = 0.321546;
         int n_generations = 123465;
+        int n_trials = 123465;
 
         sim_param  s_p{seed,
                     change_freq_A,
                     change_freq_B,
                     selection_strength,
                     n_generations,
+                    n_trials,
                     env_change_type::symmetrical};
 
         all_params params{{}, {}, {}, s_p};
@@ -661,7 +663,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
+        sim_param s_p{1, 0, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
@@ -797,16 +799,18 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s1{a_p1};
         simulation s2{a_p2};
 
-        calc_fitness(s1);
-        calc_fitness(s2);
+
+        //Fitness is resetted every call of calc_fitness(s)
+        assert(calc_fitness(s1) == calc_fitness(s1));
+        assert(calc_fitness(s2) == calc_fitness(s2));
 
         assert(!pops_have_same_fitness(s1, s2));
         assert(sum_of_fitnesses(s1) * s_p2.n_trials / s_p1.n_trials == sum_of_fitnesses(s2));
 
     }
 
+#endif
+
 }
 
-
-#endif
 #endif
