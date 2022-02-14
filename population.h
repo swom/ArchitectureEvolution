@@ -216,8 +216,6 @@ template< class Ind>
 population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,const double &sel_str)
 {
 
-    p.reset_fitness();
-
     std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
