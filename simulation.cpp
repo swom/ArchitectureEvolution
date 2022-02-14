@@ -362,14 +362,12 @@ void test_simulation() noexcept//!OCLINT test may be many
         double change_freq_B = 87654321;
         double selection_strength = 0.321546;
         int n_generations = 123465;
-        int n_trials = 123465;
 
         sim_param  s_p{seed,
                     change_freq_A,
                     change_freq_B,
                     selection_strength,
                     n_generations,
-                    n_trials,
                     env_change_type::symmetrical};
 
         all_params params{{}, {}, {}, s_p};
@@ -663,7 +661,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
+        //Simulation rng is seeded with 1
+        sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical};
+
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
@@ -777,7 +777,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 #endif
 
 #define FIX_ISSUE_275
-#ifdef FIX_ISSUE_261
+#ifdef FIX_ISSUE_275
     //The number of trials (output-optimal_output distance)
     //on which fitness can be calculated can be decided in the sim_parameters
     //by defualt the number of trials is 1
@@ -785,27 +785,27 @@ void test_simulation() noexcept//!OCLINT test may be many
     //of an individual output to the optimal output
     {
         int number_of_trials = 5;
-        sim_param s_p1{};
-        sim_param s_p2{};
+        pop_param p_p1{1};
+        pop_param p_p2{1};
 
-        assert(s_p1.n_trials == 1);
-        s_p2.n_trials = 5;
+        assert(p_p1.n_trials == 1);
+        p_p2.n_trials = 5;
 
-        assert(s_p1.n_trials < s_p2.n_trials);
+        assert(p_p1.n_trials < p_p2.n_trials);
 
-        all_params a_p1{env_param{}, ind_param{}, pop_param{1}, s_p1};
-        all_params a_p2{env_param{}, ind_param{}, pop_param{1}, s_p2};
+        all_params a_p1{env_param{}, ind_param{}, p_p1, sim_param{}};
+        all_params a_p2{env_param{}, ind_param{}, p_p2, sim_param{}};
 
         simulation s1{a_p1};
         simulation s2{a_p2};
 
 
         //Fitness is resetted every call of calc_fitness(s)
-        assert(calc_fitness(s1) == calc_fitness(s1));
-        assert(calc_fitness(s2) == calc_fitness(s2));
+        assert(evaluate_inds(s1) == evaluate_inds(s1));
+        assert(evaluate_inds(s2) == evaluate_inds(s2));
 
         assert(!pops_have_same_fitness(s1, s2));
-        assert(sum_of_fitnesses(s1) * s_p2.n_trials / s_p1.n_trials == sum_of_fitnesses(s2));
+        assert(sum_of_fitnesses(s1) * p_p2.n_trials / p_p1.n_trials == sum_of_fitnesses(s2));
 
     }
 

@@ -43,7 +43,8 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
     results["mut_rate_weight"].as<double>(),
     results["mut_step"].as<double>(),
     results["mut_rate_act"].as<double>(),
-    results["mut_rate_dup"].as<double>()
+    results["mut_rate_dup"].as<double>(),
+    results["num_trials"].as<int>(),
 };
 }
 
@@ -56,7 +57,6 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["change_freq_B"].as<double>(),
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
-                results["num_trials"].as<int>(),
                 string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
     };
 }
@@ -121,7 +121,7 @@ cxxopts::Options create_parser(){
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
             ("n,number_of_trials",
              "the of trials individuals undergo to calculate their fitness/performance score",
-             cxxopts::value<std::vector<double>>()->default_value("-1,1"))
+             cxxopts::value<std::vector<double>>()->default_value("1"))
             ("t,test",
              "run all tests")
             ("h, help",

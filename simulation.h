@@ -18,15 +18,13 @@ struct sim_param
                                    change_freq_A,
                                    change_freq_B,
                                    selection_strength,
-                                   n_generations,
-                                   n_trials
+                                   n_generations
                                    )
     int seed;
     double change_freq_A;
     double change_freq_B;
     double selection_strength;
     int n_generations;
-    int n_trials;
     env_change_type change_type;
 
 };
@@ -112,6 +110,9 @@ public:
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
+    ///Returns the number of generatiosn for which the simualtion has to run
+    const int get_n_trials() const noexcept {return m_population.get_n_trials();}
+
     ///returns const ref to Bernoulli distribution for change freq of A
     const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
 
@@ -195,7 +196,7 @@ public:
     ///Resets the fitness of the population to 0
     void reset_fit_pop()
     {
-         m_population.reset_fitness();
+        m_population.reset_fitness();
     }
 
     const all_params& get_params() const noexcept {return m_params;}
@@ -338,16 +339,7 @@ double avg_fitness(const Sim& s)
 {
     return pop::avg_fitness(s.get_pop());
 }
-///Calculates fitness of inds in pop given current env values
-template<class Sim>
-const Sim& calc_fitness(Sim &s)
-{
-    s.update_optimal(calculate_optimal(s));
-    s.get_pop() = pop::calc_fitness(s.get_pop(),
-                                    s.get_optimal(),
-                                    s.get_sel_str());
-    return s;
-}
+
 
 ///Changes all the weights of a given individual to a given value
 template<class Sim>
@@ -394,11 +386,44 @@ void reproduce(Sim& s)
     pop::reproduce(s.get_pop(), s.get_rng());
 }
 
+///Evaluates the operformance of all indiivduals in a population
+template<class Sim>
+std::vector<double> evaluate_inds(Sim& s){
+
+    std::vector<double> cumulative_performance(s.get_inds().size(), 0);
+
+    for(size_t i = 0; i != s.get_n_trials(); i++)
+    {
+        assign_new_inputs(s);
+        s.update_optimal(calculate_optimal(s));
+        std::transform(cumulative_performance.begin(),
+                       cumulative_performance.end(),
+                       pop::calc_dist_from_target(s.get_inds(), s.get_optimal()).begin(),
+                       cumulative_performance.begin(),
+                       std::plus<double>());
+    }
+
+    return cumulative_performance;
+}
+
+///Calculates fitness of inds in pop given current env values
+template<class Sim>
+const Sim& calc_fitness(Sim &s)
+{
+
+    auto cumulative_performance = evaluate_inds(s);
+
+    auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, s.get_sel_str());
+
+    pop::set_fitness_inds(s.get_pop(), fitness_vector);
+
+    return s;
+}
+
 ///Calculates fitness and selects a new population based on fitness
 template<class Sim>
 void select_inds(Sim& s)
 {
-    assign_new_inputs(s);
     calc_fitness(s);
     reproduce(s);
 }
@@ -445,7 +470,7 @@ void tick(Sim &s)
         perform_environment_change(s);
     }
 
-   select_inds(s);
+    select_inds(s);
 }
 
 ///Calculates the standard devaition of the population fitness
