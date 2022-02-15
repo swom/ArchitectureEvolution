@@ -5,6 +5,7 @@ HEADERS +=  \
   Stopwatch.hpp \
   env_change_type.h \
   environment.h \
+  ind_data.h \
   individual.h \
   json.hpp \
   launcher_functions.h \
@@ -25,6 +26,7 @@ HEADERS +=  \
 SOURCES +=  \
   env_change_type.cpp \
   environment.cpp \
+  ind_data.cpp \
   individual.cpp \
   main.cpp \
   mutation_type.cpp \
@@ -86,7 +88,12 @@ win32{
   QMAKE_CXXFLAGS += -Wa,-mbig
   #allowing info for profiling
   QMAKE_CXXFLAGS += -g
+
+  #having debug info out for profiling
   CONFIG += force_debug_info
+
+  #allowing Debug in Release
+  QMAKE_LFLAGS_RELEASE-=-Wl,-s
 }
 
 

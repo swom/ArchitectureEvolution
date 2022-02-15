@@ -1,8 +1,31 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
+#include"ind_data.h"
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Ind>
+std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds,
+                                                     const range& cue_range,
+                                                     const int& n_data_points)
+{
+    double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+
+    std::vector<Ind_Data<Ind>> inds_data(inds.size());
+    for(const auto& ind : inds)
+    {
+        std::vector<std::vector<double>> reac_norm(n_data_points);
+        for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+        {
+            auto ind_net = ind.get_net();
+            reac_norm.push_back(output(ind_net, std::vector<double>{i}));
+        }
+        inds_data.push_back({ind, reac_norm});
+    }
+    return inds_data;
+}
 
 template<class Sim = simulation<>>
 class observer
@@ -15,7 +38,7 @@ private:
     int m_top_proportion;
     using Pop = typename Sim::pop_t;
     using Ind = typename Pop::ind_t;
-    std::vector<std::vector<Ind>> m_top_inds;
+    std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
@@ -25,7 +48,6 @@ public:
         m_top_proportion{top_proportion}
     {
     }
-
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -47,7 +69,7 @@ public:
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
     ///returns const ref to best_ind vector
-    const std::vector<std::vector<Ind>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -64,13 +86,22 @@ public:
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(sim::get_best_n_inds(s, m_top_proportion));
+        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
+                                                      s.get_env_cue_range(),
+                                                      1000
+                                                      )
+                             );
     }
 
     ///Saves the nth best individuals in the population
     void store_top_n_inds(const Sim& s, int proportion)
     {
-        m_top_inds.push_back(sim::get_best_n_inds(s, proportion));
+        m_top_inds.push_back(calculate_reaction_norms(
+                                 sim::get_best_n_inds(s, proportion),
+                                 s.get_env_cue_range(),
+                                 1000
+                                 )
+                             );
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -86,8 +117,6 @@ public:
     const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
 
     const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
-
-
 };
 
 template<class Ind>
@@ -96,7 +125,6 @@ bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
-
 
 ///Executes a simulation for n generations
 template<class Sim>
@@ -118,12 +146,11 @@ void exec(Sim& s , observer<Sim>& o)
         if(i % 1000 == 0)
         {
             auto lap_ms = my_watch.lap<sw::ms>();
-            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;;
+            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;
         }
         if(i % 1000 == 0)
         {
             o.store_top_n_inds(s);
-            std::cout << "exiting store_top_inds()" << std::endl;
         }
 
         sim::tick(s);

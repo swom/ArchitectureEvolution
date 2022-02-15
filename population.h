@@ -82,6 +82,15 @@ public:
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
 
+    ///resets the fitness of the population to 0
+    void reset_fitness()
+    {
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.reset_fitness();
+        }
+
+    }
 private:
 
     std::vector<Ind> m_vec_indiv;
@@ -133,6 +142,15 @@ double avg_fitness(const std::vector<Ind>& inds){
 template< class Ind>
 double avg_fitness(const population<Ind>& p){
     return avg_fitness(p.get_inds());
+}
+
+///Checks if fitness of all individuals equals a certain value
+template<class Ind>
+bool all_fitnesses_are(double value, const population<Ind>& p)
+{
+    return std::all_of(p.get_inds().begin(),
+                       p.get_inds().end(),
+                       [&value](const Ind& i){return i.get_fitness() == value;});
 }
 
 ///Rescales the distance fro the target of an ind
@@ -231,6 +249,14 @@ template< class Ind>
 rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
+
+    if(all_fitnesses_are(0,p))
+    {
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind& ){return 0.1;});
+    }
+
     mut_dist.mutate_transform(p.get_inds().begin(),
                               p.get_inds().end(),
                               [](const Ind& i){return i.get_fitness();});

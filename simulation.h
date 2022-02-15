@@ -127,6 +127,9 @@ public:
     ///Returns const ref to env_member
     environment& get_env() noexcept {return m_environment;}
 
+    ///Returns the range of the inputs provided by environment
+    const range& get_env_cue_range() const noexcept {return m_environment.get_cue_range();}
+
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
@@ -159,7 +162,7 @@ public:
     int get_seed() const noexcept {return m_seed;}
 
     ///Returns a reference to the vector of individuals
-    const std::vector<typename Pop::ind_t> &get_inds() const;
+    const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
 
     ///Returns the current inputs in the simulation
     const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -258,6 +261,12 @@ public:
         if(get_input().size() > 1){
             m_input.back() = -m_input.back();
         }
+    }
+
+    ///Resets the fitness of the population to 0
+    void reset_fit_pop()
+    {
+         m_population.reset_fitness();
     }
 
     const all_params& get_params() const noexcept {return m_params;}
@@ -471,7 +480,6 @@ void tick(Sim &s)
     s.increase_time();
 
     if(s.is_environment_changing()){
-
         perform_environment_change(s);
     }
 

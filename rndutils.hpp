@@ -356,7 +356,7 @@ public:
 
   void seed(std::seed_seq& sseq)
   {
-    sseq.generate((uint32_t*) state_, ((uint32_t*) state_) + sizeof(state_) / sizeof(uint32_t));
+    sseq.generate((uint64_t*) state_, ((uint64_t*) state_) + sizeof(state_) / sizeof(uint64_t));
   }
 
   uint64_t operator()(void)
@@ -435,7 +435,7 @@ public:
   void seed(std::seed_seq& sseq)
   {
     pivot_ = 0;
-    sseq.generate((uint32_t*) state_, ((uint32_t*) state_) + sizeof(state_) / sizeof(uint32_t));
+    sseq.generate((uint64_t*) state_, ((uint64_t*) state_) + sizeof(state_) / sizeof(uint64_t));
   }
 
   uint64_t operator()(void)

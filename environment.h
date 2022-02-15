@@ -51,9 +51,12 @@ public:
 
     std::uniform_real_distribution<double>& get_dist() noexcept {return m_cue_distribution;}
 
-///Returns the cue distribution of the environment
+    ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
-        {return m_cue_distribution;}
+    {return m_cue_distribution;}
+
+    ///Returns the cue range
+    const range& get_cue_range() const noexcept {return m_cue_range;}
 
     ///Updates the n first inputs by drawing random ones from the distribution
     std::vector<double> update_n_inputs(std::mt19937_64 &rng, const size_t n);
