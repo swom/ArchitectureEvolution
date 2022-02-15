@@ -21,7 +21,6 @@ file(GLOB hanno
 )
 
 if(MINGW)
-  set (CMAKE_SHARED_LINKER_FLAGS " ")
   add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
   #add_compile_options(-Weffc++)
   #Disable -Weffc++ for rndutils.hpp
