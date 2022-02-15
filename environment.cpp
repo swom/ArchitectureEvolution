@@ -7,10 +7,12 @@
 environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
     m_cue_range{-1,1},
+    m_cue_distribution{-1, 1},
     m_env_function_A{env_functionA},
     m_env_function_B{env_functionB},
     m_current_function{env_functionA},
-    m_name_current_function{'A'}
+    m_name_current_function{'A'},
+    m_rng{0}
 {
     m_rng.seed(0);
 
@@ -25,7 +27,8 @@ environment::environment(const env_param& e_p):
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
     m_current_function{e_p.env_function_A},
-    m_name_current_function{'A'}
+    m_name_current_function{'A'},
+    m_rng{0}
 {
     m_rng.seed(0);
 }

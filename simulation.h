@@ -111,7 +111,7 @@ public:
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
     ///Returns the number of generatiosn for which the simualtion has to run
-    const int get_n_trials() const noexcept {return m_population.get_n_trials();}
+    int get_n_trials() const noexcept {return m_population.get_n_trials();}
 
     ///returns const ref to Bernoulli distribution for change freq of A
     const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
@@ -392,7 +392,7 @@ std::vector<double> evaluate_inds(Sim& s){
 
     std::vector<double> cumulative_performance(s.get_inds().size(), 0);
 
-    for(size_t i = 0; i != s.get_n_trials(); i++)
+    for(int i = 0; i != s.get_n_trials(); i++)
     {
         assign_new_inputs(s);
         s.update_optimal(calculate_optimal(s));

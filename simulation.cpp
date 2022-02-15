@@ -785,11 +785,14 @@ void test_simulation() noexcept//!OCLINT test may be many
     //of an individual output to the optimal output
     {
         int number_of_trials = 5;
-        pop_param p_p1{2};
-        pop_param p_p2{2};
+        pop_param p_p1{};
+        pop_param p_p2{};
+
+        p_p1.number_of_inds = 2;
+        p_p2.number_of_inds = p_p1.number_of_inds;
 
         assert(p_p1.n_trials == 1);
-        p_p2.n_trials = 5;
+        p_p2.n_trials = number_of_trials;
 
         assert(p_p1.n_trials < p_p2.n_trials);
 
@@ -806,8 +809,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(std::equal(fitnesses_s1.begin(),
                           fitnesses_s1.end(),
                           fitnesses_s2.begin(),
-                          [p_p1, p_p2](const double& s1, const double& s2)
-        {return s1 * p_p2.n_trials / p_p1.n_trials == s2;})
+                          [p_p1, p_p2](const double& v_s1, const double& v_s2)
+        {return v_s1 * p_p2.n_trials / p_p1.n_trials == v_s2;})
                );
 
     }
