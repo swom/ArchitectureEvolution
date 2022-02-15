@@ -12,6 +12,66 @@
 
 double identity_first_element(const std::vector<double>& vector);
 
+///Assigns the given new input to each individual in the simulation
+template<class Sim>
+void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
+{
+    pop::assign_new_inputs_to_inds(s.get_pop(), new_input);
+}
+
+///Assigns the input in simulation<M> to individuals
+template<class Sim>
+void assign_inputs(Sim &s)
+{
+    pop::assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+}
+
+///Returns the individuals in the simualtion
+template<class Sim>
+const std::vector<typename Sim::pop_t::ind_t> &get_inds(const Sim&s)
+{
+    return s.get_pop().get_inds();
+}
+
+///Returns the input of the individuals
+template<class Sim>
+std::vector<double> get_inds_input(const Sim &s)
+{
+    //assert(all_individuals_have_same_input(s));
+    return get_inds(s)[0].get_input_values();
+}
+
+///Returns the size of the inputs of the individuals
+template<class Sim>
+size_t get_inds_input_size(const Sim &s)
+
+{
+    return get_inds_input(s).size();
+}
+
+///Changes the inputs in the environment of the simulation
+template<class Sim>
+std::vector<double> create_inputs(Sim& s)
+{
+    return(env::create_n_inputs(s.get_env(),
+                                get_inds_input_size(s),
+                                s.get_rng() ));
+}
+
+///Updates the inputs in simulation and assigns them to individuals
+template<class Sim>
+void assign_new_inputs(Sim &s)
+{
+    auto new_inputs = create_inputs(s);
+
+    if(s.get_input().size() > 1){
+        new_inputs.back() = s.get_input().back();
+    }
+
+    s.update_inputs(new_inputs);
+    assign_inputs(s);
+}
+
 struct sim_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
@@ -221,7 +281,7 @@ public:
         {
             assign_new_inputs(*this);
             update_optimal(env::calculate_optimal(m_environment, m_input));
-            auto performance = pop::calc_dist_from_target(get_inds(), get_optimal());
+            auto performance = pop::calc_dist_from_target(get_inds(), get_optimal(), m_input);
 
             std::transform(cumulative_performance.begin(),
                            cumulative_performance.end(),
@@ -234,7 +294,7 @@ public:
     }
 
     ///Calculates fitness of inds in pop given current env values
-    void calc_fitness()
+    const simulation<Pop, Env_change, Sel_Type>& calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
 
@@ -242,7 +302,7 @@ public:
 
         pop::set_fitness_inds(get_pop(), fitness_vector);
 
-        return this;
+        return *this;
     }
     ///Reproduces inds to next gen based on their fitness
     void reproduce()
@@ -360,65 +420,6 @@ bool all_individuals_have_same_input(const Sim &s)
     return pop::all_individuals_have_same_input(p);
 }
 
-///Assigns the given new input to each individual in the simulation
-template<class Sim>
-void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
-{
-    pop::assign_new_inputs_to_inds(s.get_pop(), new_input);
-}
-
-///Assigns the input in simulation<M> to individuals
-template<class Sim>
-void assign_inputs(Sim &s)
-{
-    pop::assign_new_inputs_to_inds(s.get_pop(), s.get_input());
-}
-
-///Returns the individuals in the simualtion
-template<class Sim>
-const std::vector<typename Sim::pop_t::ind_t> &get_inds(const Sim&s)
-{
-    return s.get_pop().get_inds();
-}
-
-///Returns the input of the individuals
-template<class Sim>
-std::vector<double> get_inds_input(const Sim &s)
-{
-    //assert(all_individuals_have_same_input(s));
-    return get_inds(s)[0].get_input_values();
-}
-
-///Returns the size of the inputs of the individuals
-template<class Sim>
-size_t get_inds_input_size(const Sim &s)
-
-{
-    return get_inds_input(s).size();
-}
-
-///Changes the inputs in the environment of the simulation
-template<class Sim>
-std::vector<double> create_inputs(Sim& s)
-{
-    return(env::create_n_inputs(s.get_env(),
-                                get_inds_input_size(s),
-                                s.get_rng() ));
-}
-
-///Updates the inputs in simulation and assigns them to individuals
-template<class Sim>
-void assign_new_inputs(Sim &s)
-{
-    auto new_inputs = create_inputs(s);
-
-    if(s.get_input().size() > 1){
-        new_inputs.back() = s.get_input().back();
-    }
-
-    s.update_inputs(new_inputs);
-    assign_inputs(s);
-}
 
 ///Calculates the optimal output
 template<class Sim>
