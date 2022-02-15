@@ -38,6 +38,7 @@
 Makefile
 Makefile.*
 release/
+build/
 simulation.pro.user
 
 #Saved files

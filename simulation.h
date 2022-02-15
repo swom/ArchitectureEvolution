@@ -189,6 +189,12 @@ public:
         }
     }
 
+    ///Resets the fitness of the population to 0
+    void reset_fit_pop()
+    {
+         m_population.reset_fitness();
+    }
+
     const all_params& get_params() const noexcept {return m_params;}
 
 private:
@@ -302,6 +308,10 @@ std::vector<double> create_inputs(Sim s)
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
+    if(!s.get_inds().size())
+    {
+        return;
+    }
     std::vector<double> new_inputs = create_inputs(s);
 
     if(s.get_input().size() > 1){
@@ -330,6 +340,7 @@ template<class Sim>
 void calc_fitness(Sim &s)
 {
     s.update_optimal(calculate_optimal(s));
+
     s.get_pop() = pop::calc_fitness(s.get_pop(),
                                     s.get_optimal(),
                                     s.get_sel_str());
@@ -384,8 +395,10 @@ void reproduce(Sim& s)
 template<class Sim>
 void select_inds(Sim& s)
 {
+    assign_new_inputs(s);
     calc_fitness(s);
     reproduce(s);
+    //s.reset_fit_pop();
 }
 
 ///Switches the function of the environment used to calculate the optimal output
@@ -410,17 +423,14 @@ void tick(Sim &s)
     s.increase_time();
 
     if(s.is_environment_changing()){
-
         perform_environment_change(s);
     }
 
-    if(get_inds(s).size()){
+    assign_new_inputs(s);
 
-        assign_new_inputs(s);
+    calc_fitness(s);
 
-    }
-
-    select_inds(s);
+    reproduce(s);
 }
 
 ///Calculates the standard devaition of the population fitness

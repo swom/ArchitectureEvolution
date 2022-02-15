@@ -43,25 +43,25 @@ void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
                     std::mt19937_64& rng)
 {
-  if(mut_rate != 0){
-      std::bernoulli_distribution mut_p{mut_rate};
-      std::normal_distribution<double> mut_st{0,mut_step};
+    if(mut_rate != 0){
+        std::bernoulli_distribution mut_p{mut_rate};
+        std::normal_distribution<double> mut_st{0,mut_step};
 
-      for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-        for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-            auto &current_node = n.get_net_weights()[i][j];
-            if(current_node.is_active()){
-                for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
-                  {
-                    if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                        const weight &current_weight = current_node.get_vec_weights()[k];
-                        weight mutated_weight(current_weight.get_weight() + mut_st(rng),
-                                              current_weight.is_active());
-                        current_node.change_nth_weight(mutated_weight, k);
-                      }
-                  }
-              }
-          }
+        for(size_t i = 0; i != n.get_net_weights().size(); ++i)
+            for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
+                auto &current_node = n.get_net_weights()[i][j];
+                if(current_node.is_active()){
+                    for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+                    {
+                        if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                            const weight &current_weight = current_node.get_vec_weights()[k];
+                            weight mutated_weight(current_weight.get_weight() + mut_st(rng),
+                                                  current_weight.is_active());
+                            current_node.change_nth_weight(mutated_weight, k);
+                        }
+                    }
+                }
+            }
     }
 
 }
@@ -69,24 +69,24 @@ void mutate_weights(Net& n, const double& mut_rate,
 ///Mutates the weights of a network
 template<class Net>
 void mut_dupl_node(Net& n,
-                  const double& mut_rate,
-                    std::mt19937_64& rng)
+                   const double& mut_rate,
+                   std::mt19937_64& rng)
 {
 
     std::bernoulli_distribution mut_p{mut_rate};
 
-    for(size_t layer = 0; layer != n.get_current_arc().size() - 2; layer++)
+    for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
     {
         auto& current_layer = n.get_net_weights().at(layer);
 
-        for(int node = current_layer.size() - 1; node >= 0; --node) // to avoid chain duplications
+        // to avoid chain duplications
+        for(int node = current_layer.size() - 1; node >= 0; node--)
         {
-
             const auto& current_node = current_layer.at(node);
 
             if(current_node.is_active() && mut_p(rng))
             {
-               //this returns an iterator if you use std::find()
+                //this returns an iterator if you use std::find()
                 auto free_node = n.get_empty_node_in_layer(layer);
 
                 if(free_node != current_layer.end()){
@@ -104,34 +104,34 @@ void mut_add_node(Net& n,
                   const double& mut_rate,
                   std::mt19937_64& rng)
 {
-  if(mut_rate){
-      std::bernoulli_distribution mut_p{mut_rate};
+    if(mut_rate){
+        std::bernoulli_distribution mut_p{mut_rate};
 
-      for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
+        for(size_t layer = 0; layer != n.get_current_arc().size() - 1; layer++)
         {
-          auto& current_layer = n.get_net_weights()[layer];
+            auto& current_layer = n.get_net_weights().at(layer);
 
-          for(int node = current_layer.size() - 1; node >= 0; --node)
+            // to avoid chain duplications
+            for(int node = current_layer.size() - 1; node >= 0; node--)
             {
 
-              const auto& current_node = current_layer[node];
+                const auto& current_node = current_layer.at(node);
 
-              ///To keep it comparable with duplication, this is also per active node
-              /// Networks with more active nodes will have more mutations
+                ///To keep it comparable with duplication, this is also per active node
+                /// Networks with more active nodes will have more mutations
 
-              if(current_node.is_active() && mut_p(rng))
+                if(current_node.is_active() && mut_p(rng))
                 {
-                  //this returns an iterator if you use std::find()
-                  auto free_node = n.get_empty_node_in_layer(layer);
+                    //this returns an iterator if you use std::find()
+                    auto free_node = n.get_empty_node_in_layer(layer);
 
-                  if(free_node != current_layer.end()){
-                      n.add_node(layer, free_node, rng);
+                    if(free_node != current_layer.end()){
+                        n.add_node(layer, free_node, rng);
                     }
                 }
             }
         }
     }
-
 }
 
 ///Mutates a network by deleting some nodes
@@ -141,20 +141,19 @@ void mut_del(Net& n,
              std::mt19937_64& rng)
 {
 
-  std::bernoulli_distribution mut_p{mut_rate};
+    std::bernoulli_distribution mut_p{mut_rate};
 
-  for(size_t layer = 0; layer != n.get_current_arc().size() - 2; layer++)
+    for(size_t layer = 0; layer != n.get_net_weights().size() - 1; layer++)
     {
-      auto& current_layer = n.get_net_weights().at(layer);
+        auto& current_layer = n.get_net_weights().at(layer);
 
-      for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
+        for(size_t node_index = 0; node_index != current_layer.size(); node_index++)
         {
+            const auto& current_node = current_layer.at(node_index);
 
-          const auto& current_node = current_layer.at(node_index);
-
-          if(current_node.is_active() && mut_p(rng))
+            if(current_node.is_active() && mut_p(rng))
             {
-                            n.delete_node(layer, node_index);
+                n.delete_node(layer, node_index);
             }
         }
     }
@@ -164,24 +163,24 @@ void mut_del(Net& n,
 template<class Net>
 void mutate_activation(Net &n, const double &mut_rate, std::mt19937_64 &rng)
 {
-  if(mut_rate != 0){
-    std::bernoulli_distribution mut_p{mut_rate};
+    if(mut_rate != 0){
+        std::bernoulli_distribution mut_p{mut_rate};
 
-    for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-      for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-          auto &current_node = n.get_net_weights()[i][j];
-          if(current_node.is_active()){
-              for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
-                {
-                  if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                      const weight &current_weight = current_node.get_vec_weights()[k];
-                      weight mutated_weight(current_weight.get_weight(),
-                                            !current_weight.is_active());
-                      current_node.change_nth_weight(mutated_weight, k);
+        for(size_t i = 0; i != n.get_net_weights().size(); i++)
+            for(size_t j = 0; j != n.get_net_weights()[i].size(); j++){
+                auto &current_node = n.get_net_weights()[i][j];
+                if(current_node.is_active()){
+                    for(size_t k = 0; k != current_node.get_vec_weights().size(); k++)
+                    {
+                        if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
+                            const weight &current_weight = current_node.get_vec_weights()[k];
+                            weight mutated_weight(current_weight.get_weight(),
+                                                  !current_weight.is_active());
+                            current_node.change_nth_weight(mutated_weight, k);
+                        }
                     }
                 }
             }
-        }
     }
 }
 
@@ -191,16 +190,16 @@ void mutate_biases(Net& n, const double& mut_rate,
                    const double& mut_step,
                    std::mt19937_64& rng)
 {
-  if(mut_rate != 0){
-      std::bernoulli_distribution mut_p{mut_rate};
-      std::normal_distribution<double> mut_st{0,mut_step};
+    if(mut_rate != 0){
+        std::bernoulli_distribution mut_p{mut_rate};
+        std::normal_distribution<double> mut_st{0,mut_step};
 
-      auto& vector = n.get_net_weights();
-      for(auto& layer : vector){
-          for(auto& node : layer)
+        auto& vector = n.get_net_weights();
+        for(auto& layer : vector){
+            for(auto& node : layer)
             {
-              if(mut_p(rng) && node.is_active()){
-                  node.change_bias(node.get_bias() + mut_st(rng));
+                if(mut_p(rng) && node.is_active()){
+                    node.change_bias(node.get_bias() + mut_st(rng));
                 }
             }
         }
@@ -216,15 +215,15 @@ public:
             std::function<double(double)> activation_function = &linear);
 
 
-        network(const net_param &n_p):
+    network(const net_param &n_p):
         m_input_size{n_p.net_arc[0]},
         m_activation_function{n_p.function},
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
-          if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
-              throw std::runtime_error{"starting and maximum architecture are not compatible"};
-            }
+        if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
+            throw std::runtime_error{"starting and maximum architecture are not compatible"};
+        }
 
         for (size_t i = 1; i != n_p.net_arc.size(); i++ )
         {
@@ -237,7 +236,7 @@ public:
                 node temp_node(temp_weights);
                 if((j+1) <= n_p.net_arc[i]){
                     temp_node.activate();
-               }
+                }
                 temp_layer_vector.push_back(temp_node);
             }
 
@@ -246,219 +245,250 @@ public:
         }
     }
 
-        void mutate(const double& mut_rate_weight,
-                    const double& mut_step,
-                    std::mt19937_64& rng,
-                    const double& mut_rate_act = 0.01,
-                    const double& mut_rate_dup = 0.01
+    inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
+                    m_network_weights.begin(),
+                    m_network_weights.end(),
+                    [] (const auto& i) {return i.size() == 0;});}
+
+    void mutate(const double& mut_rate_weight,
+                const double& mut_step,
+                std::mt19937_64& rng,
+                const double& mut_rate_act = 0.01,
+                const double& mut_rate_dup = 0.01
             )
+    {
+
+        if constexpr (M == mutation_type::activation)
         {
-
-          if constexpr (M == mutation_type::activation)
-          {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::weights)
-          {
+        else if constexpr(M == mutation_type::weights)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::weights_and_activation)
-          {
+        else if constexpr(M == mutation_type::weights_and_activation)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::duplication)
-          {
+        else if constexpr(M == mutation_type::duplication)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_dupl_node(*this, mut_rate_dup, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::addition)
-          {
+        else if constexpr(M == mutation_type::addition)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_add_node(*this, mut_rate_dup, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::NRduplication)
-          {
+        else if constexpr(M == mutation_type::NRduplication)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_dupl_node(*this, mut_rate_dup, rng);
             mut_del(*this, mut_rate_dup, rng);
-          }
+        }
 
-          else if constexpr(M == mutation_type::NRaddition)
-          {
+        else if constexpr(M == mutation_type::NRaddition)
+        {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
             mutate_weights(*this, mut_rate_weight, mut_step, rng);
             mut_add_node(*this, mut_rate_dup, rng);
             mut_del(*this, mut_rate_dup, rng);
-          }
+        }
 
-        };
+    };
 
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
     {
-     std::vector<node> &layer = get_net_weights()[l];
-     return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+        std::vector<node> &layer = get_net_weights()[l];
+        return std::find_if(layer.begin(), layer.end(), node_is_inactive);
     }
 
 
-    inline void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
-                                    const std::vector<node>::iterator &empty_node_iterator)
+    inline void duplicate_node(const node &node_to_duplicate,
+                               size_t layer,
+                               size_t index_to_duplicate,
+                               const std::vector<node>::iterator &empty_node_iterator)
     {
-      if (layer == m_current_arc.size() - 1) throw "help :(";
-        if(m_current_arc.at(layer+1) >= m_max_arc.at(layer+1))
+        if (layer == (m_current_arc.size() - 1))
+        {
+            throw std::runtime_error{"help :(, trying to duplicate one node in output"};
+        }
+
+        //This is bad, very confusing
+        //Check if layer has free nodes, if not just return
+        //Should be already checked in mutate_duplication
+        if(m_current_arc.at(layer + 1) == m_max_arc.at(layer + 1))
+        {
             return;
+        }
 
         size_t index = empty_node_iterator - get_net_weights().at(layer).begin() ;
-        m_network_weights.at(layer).at(index) = to_duplicate;
+        m_network_weights.at(layer).at(index) = node_to_duplicate;
 
+        //This also should trigger if first check fails
         for(auto &node : m_network_weights.at(layer+1)){
             weight weight_to_duplicate = node.get_vec_weights().at(index_to_duplicate);
             node.change_nth_weight(weight_to_duplicate, index);
         }
         ++m_current_arc.at(layer+1);
+
+        if(m_current_arc.at(layer + 1) > m_max_arc.at(layer + 1))
+        {
+            std::runtime_error{"One node too much has been added"};
+        }
     }
 
-    inline void add_node(size_t layer, const std::vector<node>::iterator &empty_node_iterator, std::mt19937_64 &rng)
+    inline void add_node(size_t layer,
+                         const std::vector<node>::iterator &empty_node_iterator,
+                         std::mt19937_64 &rng)
     {
-      if(m_current_arc[layer + 1] >= m_max_arc[layer + 1])
-        return;
-
-      //Preparing the indexes of which connections to inactivate
-      node &node_to_add = *empty_node_iterator;
-      std::vector<size_t> vec_indexes(node_to_add.get_vec_weights().size());
-      std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
-      if(layer != 0){
-      for(size_t i = 0; i != m_network_weights[layer-1].size(); ++i){
-        if(!m_network_weights[layer-1][i].is_active()){
-            vec_indexes[i] = 999;
-            }
-          }
-      vec_indexes.erase(std::remove(vec_indexes.begin(), vec_indexes.end(), 999), vec_indexes.end());
+        if(m_current_arc[layer + 1] == m_max_arc[layer + 1])
+        {
+            return;
         }
 
-      std::vector<size_t> indexes_to_activate;
-      int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
-      std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
-
-      std::uniform_real_distribution<double> dist_in(min_weight_in_layer(*this, layer),
-                                                  max_weight_in_layer(*this, layer));
-
-
-      std::vector<size_t> vec_indexes_out(m_network_weights[layer + 1].size());
-      std::iota(std::begin(vec_indexes_out), std::end(vec_indexes_out), 0);
-
-      for(size_t i = 0; i != m_network_weights[layer+1].size(); ++i){
-        if(!m_network_weights[layer+1][i].is_active()){
-            vec_indexes_out[i] = 999;
+        //Preparing the indexes of which connections to inactivate
+        node &node_to_add = *empty_node_iterator;
+        std::vector<size_t> vec_indexes(node_to_add.get_vec_weights().size());
+        std::iota(std::begin(vec_indexes), std::end(vec_indexes), 0);
+        if(layer != 0){
+            for(size_t i = 0; i != m_network_weights[layer-1].size(); ++i){
+                if(!m_network_weights[layer-1][i].is_active()){
+                    vec_indexes[i] = 999;
+                }
             }
-        vec_indexes_out.erase(std::remove(vec_indexes_out.begin(), vec_indexes_out.end(), 999), vec_indexes_out.end());
+            vec_indexes.erase(std::remove(vec_indexes.begin(), vec_indexes.end(), 999), vec_indexes.end());
+        }
 
-          }
+        std::vector<size_t> indexes_to_activate;
+        int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
+        std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
 
-      std::vector<size_t> indexes_to_activate_out;
-      int nb_outgoing_weights = std::round(average_number_outgoing_weights(*this, layer));
-      std::sample(vec_indexes_out.begin(), vec_indexes_out.end(), std::back_inserter(indexes_to_activate_out), nb_outgoing_weights, rng);
+        std::uniform_real_distribution<double> dist_in(min_weight_in_layer(*this, layer),
+                                                       max_weight_in_layer(*this, layer));
 
-      std::uniform_real_distribution<double> dist_out(min_weight_in_layer(*this, layer + 1),
-                                                  max_weight_in_layer(*this, layer + 1));
 
-      //activating
-      size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
-      node &added_node = m_network_weights[layer][index];
-      added_node.activate();
+        std::vector<size_t> vec_indexes_out(m_network_weights[layer + 1].size());
+        std::iota(std::begin(vec_indexes_out), std::end(vec_indexes_out), 0);
 
-      //Making the bias random within a given range
-      std::uniform_real_distribution<double> dist_bias(min_bias_in_layer(*this, layer),
-                                                        max_bias_in_layer(*this, layer));
-      added_node.change_bias(dist_bias(rng));
+        for(size_t i = 0; i != m_network_weights[layer+1].size(); ++i){
+            if(!m_network_weights[layer+1][i].is_active()){
+                vec_indexes_out[i] = 999;
+            }
+            vec_indexes_out.erase(std::remove(vec_indexes_out.begin(), vec_indexes_out.end(), 999), vec_indexes_out.end());
 
-      //adding incoming connections
-      for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
-          weight w = added_node.get_vec_weights()[i];
-          if(layer != 0){
-              if((m_network_weights[layer-1][i].is_active())){
-                  if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
-                      w.change_activation(true);
-                      w.change_weight(dist_in(rng));
-                      added_node.change_nth_weight(w,i);
+        }
+
+        std::vector<size_t> indexes_to_activate_out;
+        int nb_outgoing_weights = std::round(average_number_outgoing_weights(*this, layer));
+        std::sample(vec_indexes_out.begin(), vec_indexes_out.end(), std::back_inserter(indexes_to_activate_out), nb_outgoing_weights, rng);
+
+        std::uniform_real_distribution<double> dist_out(min_weight_in_layer(*this, layer + 1),
+                                                        max_weight_in_layer(*this, layer + 1));
+
+        //activating
+        size_t index = empty_node_iterator - get_net_weights()[layer].begin() ;
+        node &added_node = m_network_weights[layer][index];
+        added_node.activate();
+
+        //Making the bias random within a given range
+        std::uniform_real_distribution<double> dist_bias(min_bias_in_layer(*this, layer),
+                                                         max_bias_in_layer(*this, layer));
+        added_node.change_bias(dist_bias(rng));
+
+        //adding incoming connections
+        for(size_t i=0; i!= added_node.get_vec_weights().size(); ++i){
+            weight w = added_node.get_vec_weights()[i];
+            if(layer != 0){
+                if((m_network_weights[layer-1][i].is_active())){
+                    if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+                        w.change_activation(true);
+                        w.change_weight(dist_in(rng));
+                        added_node.change_nth_weight(w,i);
                     }
-                  else{
-                      w.change_activation(false);
-                      added_node.change_nth_weight(w,i);
+                    else{
+                        w.change_activation(false);
+                        added_node.change_nth_weight(w,i);
                     }
                 }
             }
-          else{
-              if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
-                  w.change_activation(true);
-                  w.change_weight(dist_in(rng));
-                  added_node.change_nth_weight(w,i);
+            else{
+                if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+                    w.change_activation(true);
+                    w.change_weight(dist_in(rng));
+                    added_node.change_nth_weight(w,i);
                 }
-              else{
-                  w.change_activation(false);
-                  added_node.change_nth_weight(w,i);
-                }
-            }
-        }
-
-      //adding outgoing connections
-      for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
-          weight w = m_network_weights[layer + 1][i].get_vec_weights()[index];
-          if((m_network_weights[layer+1][i].is_active())){
-              if(std::count(indexes_to_activate_out.begin(), indexes_to_activate_out.end(), i)){
-                  w.change_activation(true);
-                  w.change_weight(dist_out(rng));
-                  m_network_weights[layer + 1][i].change_nth_weight(w, index);
-                }
-              else{
-                  w.change_activation(false);
-                  m_network_weights[layer + 1][i].change_nth_weight(w, index);
+                else{
+                    w.change_activation(false);
+                    added_node.change_nth_weight(w,i);
                 }
             }
         }
 
-      ++m_current_arc[layer + 1];
+        //adding outgoing connections
+        for(size_t i=0; i!= m_network_weights[layer + 1].size(); ++i){
+            weight w = m_network_weights[layer + 1][i].get_vec_weights()[index];
+            if((m_network_weights[layer+1][i].is_active())){
+                if(std::count(indexes_to_activate_out.begin(), indexes_to_activate_out.end(), i)){
+                    w.change_activation(true);
+                    w.change_weight(dist_out(rng));
+                    m_network_weights[layer + 1][i].change_nth_weight(w, index);
+                }
+                else{
+                    w.change_activation(false);
+                    m_network_weights[layer + 1][i].change_nth_weight(w, index);
+                }
+            }
+        }
+
+        ++m_current_arc[layer + 1];
     }
 
     inline void delete_node(size_t layer, size_t index)
     {
-      if(m_current_arc[layer + 1] == 1)
-        return;
+        if(m_current_arc[layer + 1] == 1)
+            return;
 
-      //de-activating
-      node &deleted_node = m_network_weights.at(layer).at(index);
-      deleted_node.deactivate();
+        //de-activating
+        node &deleted_node = m_network_weights.at(layer).at(index);
+        deleted_node.deactivate();
 
-      //Resetting bias
-      deleted_node.change_bias(0);
+        //Resetting bias
+        deleted_node.change_bias(0);
 
-      //Resetting incoming connections
-      weight default_w{};
-      for(size_t i=0; i!= deleted_node.get_vec_weights().size(); ++i){
-              deleted_node.change_nth_weight(default_w,i);
+        //Resetting incoming connections
+        weight default_w{};
+        for(size_t i = 0; i != deleted_node.get_vec_weights().size(); i++){
+            deleted_node.change_nth_weight(default_w,i);
         }
 
-      //Resetting outgoing connections
-      for(size_t i=0; i!= m_network_weights.at(layer+1).size(); ++i){
-          m_network_weights.at(layer+1).at(i).change_nth_weight(default_w, index);
+        //Resetting outgoing connections
+        for(size_t i=0; i!= m_network_weights.at(layer+1).size(); i++){
+            m_network_weights.at(layer+1).at(i).change_nth_weight(default_w, index);
         }
 
-      --m_current_arc.at(layer+1);
+        --m_current_arc.at(layer+1);
+
+        if(any_layer_has_no_nodes())
+        {
+            throw std::runtime_error{"One layer got has 0 nodes"};
+        }
     }
 
 
@@ -489,10 +519,10 @@ public:
 
     void change_network_arc(std::vector<int> new_arc);
 
-//    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
+    //    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
 
-//    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
-//                        const std::vector<node>::iterator &empty_node_iterator);
+    //    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
+    //                        const std::vector<node>::iterator &empty_node_iterator);
 
 private:
 
@@ -513,44 +543,44 @@ private:
 
     inline bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc)
     {
-      if(net_arc.size() != max_arc.size()){
-       return false;
+        if(net_arc.size() != max_arc.size()){
+            return false;
         }
 
-      bool there_is_a_wrong_number_in_net_arc = false;
-      for(auto & layer : net_arc){
-          if(layer <= 0){
-            there_is_a_wrong_number_in_net_arc = true;
+        bool there_is_a_wrong_number_in_net_arc = false;
+        for(auto & layer : net_arc){
+            if(layer <= 0){
+                there_is_a_wrong_number_in_net_arc = true;
             }
         }
 
-      bool there_is_a_wrong_number_in_max_arc = false;
-      for(auto & layer : max_arc){
-          if(layer <= 0){
-            there_is_a_wrong_number_in_max_arc = true;
+        bool there_is_a_wrong_number_in_max_arc = false;
+        for(auto & layer : max_arc){
+            if(layer <= 0){
+                there_is_a_wrong_number_in_max_arc = true;
             }
         }
 
-      if(there_is_a_wrong_number_in_max_arc || there_is_a_wrong_number_in_net_arc){
-          return false;
+        if(there_is_a_wrong_number_in_max_arc || there_is_a_wrong_number_in_net_arc){
+            return false;
         }
 
-      bool net_arc_smaller_than_max_arc = true;
-      for(size_t i = 0; i != net_arc.size(); ++i){
-          if(net_arc[i] > max_arc[i]){
-              net_arc_smaller_than_max_arc = false;
+        bool net_arc_smaller_than_max_arc = true;
+        for(size_t i = 0; i != net_arc.size(); ++i){
+            if(net_arc[i] > max_arc[i]){
+                net_arc_smaller_than_max_arc = false;
             }
         }
 
-      if(!net_arc_smaller_than_max_arc){
-          return false;
+        if(!net_arc_smaller_than_max_arc){
+            return false;
         }
 
-      if(net_arc[0] != max_arc[0] || net_arc.back() != max_arc.back()){
-          return false;
+        if(net_arc[0] != max_arc[0] || net_arc.back() != max_arc.back()){
+            return false;
         }
-      else
-        return true;
+        else
+            return true;
     }
 };
 
@@ -669,32 +699,53 @@ int get_number_weights(const Net &n);
 template<class Net>
 std::vector<double> output(const Net& n, std::vector<double> input)
 {
+
     assert(input.size() == n.get_input_size());
+
+    if(n.any_layer_has_no_nodes())
+    {
+        throw std::runtime_error{"One layer has 0 nodes"};
+    }
+    std::vector<double> w{0};
+    std::vector<double> output;
 
     for(size_t layer = 0; layer != n.get_net_weights().size(); layer++)
     {
-        auto output = std::vector<double>(n.get_net_weights()[layer].size());
+        output.resize(n.get_net_weights().at(layer).size());
 
-        for(size_t node = 0; node != n.get_net_weights()[layer].size(); node++)
+        for(size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
         {
-            const class node &current_node = n.get_net_weights()[layer][node];
-            std::vector<double> w{0};
-
-            if(current_node.is_active()){
-            std::vector<weight> vec_w = current_node.get_vec_weights();
-            w = convert_to_double_or_zero(vec_w);
+            if(n.get_net_weights().at(layer).size() != output.size())
+            {
+                throw std::runtime_error{"A node got lost somewhere in output()"};
             }
 
-            double node_value = current_node.get_bias() +
+            const auto &current_node = n.get_net_weights().at(layer).at(node);
+
+            double node_value = 0;
+
+            if(current_node.is_active())
+            {
+
+                std::vector<weight> vec_w = current_node.get_vec_weights();
+                convert_to_double_or_zero(vec_w).swap(w);
+
+                if(input.size() != w.size())
+                {
+                    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
+                }
+
+                node_value = current_node.get_bias() +
                     std::inner_product(input.begin(),
                                        input.end(),
                                        w.begin(),
                                        0.0);
+            }
 
-            output[node] = n(node_value);
+            output.at(node) = n(node_value);
         }
 
-        input = std::move(output);
+        output.swap(input);
     }
 
     return input;
@@ -704,6 +755,7 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 template <typename Fun, mutation_type M>
 inline std::vector<double> output(const network<M>& n, std::vector<double> input, Fun fun)
 {
+
     assert(input.size() == n.get_input_size());
 
     for(size_t layer = 0; layer != n.get_net_weights().size(); layer++)
@@ -774,27 +826,27 @@ bool is_same_mutator_network(const Net_lhs &lhs, const Net_rhs &rhs)
 ///Only counting the active nodes and connections coming from active nodes
 template<class Net>
 inline double average_number_incoming_weights(const Net &n, size_t layer_index){
-  std::vector<node> layer = n.get_net_weights()[layer_index];
-  double total = 0;
-  size_t layer_size_active = 0;
+    std::vector<node> layer = n.get_net_weights()[layer_index];
+    double total = 0;
+    size_t layer_size_active = 0;
 
-  for(const auto &node : layer){
-      if(node.is_active()){
-                ++layer_size_active;
-                for(size_t i = 0; i != node.get_vec_weights().size(); ++i){
-                    if(node.get_vec_weights()[i].is_active() &&
-                       (layer_index == 0 ? true : n.get_net_weights()[layer_index - 1][i].is_active())){
-                        ++total;
-                      }
-                  }}
+    for(const auto &node : layer){
+        if(node.is_active()){
+            ++layer_size_active;
+            for(size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                if(node.get_vec_weights()[i].is_active() &&
+                        (layer_index == 0 ? true : n.get_net_weights()[layer_index - 1][i].is_active())){
+                    ++total;
+                }
+            }}
     }
-  return total / layer_size_active;
+    return total / layer_size_active;
 }
 
 ///Calculates the average number of weights going out of a layer
 template<class Net>
 inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
-  size_t layer_size_active = 0;
+    size_t layer_size_active = 0;
     size_t next_layer_size_active = 0;
     std::vector<node> layer = n.get_net_weights()[layer_index];
     std::vector<node> next_layer = n.get_net_weights()[layer_index + 1];
@@ -802,13 +854,13 @@ inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
     for(const auto &node : layer){
         if(node.is_active()){
             ++layer_size_active;
-          }
-      }
+        }
+    }
     for(const auto &node : next_layer){
         if(node.is_active()){
             ++next_layer_size_active;
-          }
-      }
+        }
+    }
 
     return (average_number_incoming_weights(n, layer_index + 1) * next_layer_size_active / layer_size_active);
 }
@@ -816,45 +868,45 @@ inline double average_number_outgoing_weights(const Net &n, size_t layer_index){
 ///Returns the minimum bias of all the nodes in a layer
 template<class Net>
 inline double min_bias_in_layer(const Net &n, size_t layer){
-  std::vector<double> biases;
-  for(const node &node : n.get_net_weights()[layer]){
-      biases.push_back(node.get_bias());
+    std::vector<double> biases;
+    for(const node &node : n.get_net_weights()[layer]){
+        biases.push_back(node.get_bias());
     }
-  return *std::min_element(biases.begin(), biases.end());
+    return *std::min_element(biases.begin(), biases.end());
 }
 
 ///Returns the maximum bias of all the nodes in a layer
 template<class Net>
 inline double max_bias_in_layer(const Net &n, size_t layer){
-  std::vector<double> biases;
-  for(const node &node : n.get_net_weights()[layer]){
-      biases.push_back(node.get_bias());
+    std::vector<double> biases;
+    for(const node &node : n.get_net_weights()[layer]){
+        biases.push_back(node.get_bias());
     }
-  return *std::max_element(biases.begin(), biases.end());
+    return *std::max_element(biases.begin(), biases.end());
 }
 
 ///Returns the minimum weight of all the connections of all nodes in a layer
 template<class Net>
 inline double min_weight_in_layer(const Net &n, size_t layer){
-  std::vector<double> weights;
-  for(const node &node : n.get_net_weights()[layer]){
-      for(const weight &weight : node.get_vec_weights()){
-          weights.push_back(weight.get_weight());
+    std::vector<double> weights;
+    for(const node &node : n.get_net_weights()[layer]){
+        for(const weight &weight : node.get_vec_weights()){
+            weights.push_back(weight.get_weight());
         }
     }
-  return *std::min_element(weights.begin(), weights.end());
+    return *std::min_element(weights.begin(), weights.end());
 }
 
 ///Returns the maximum weight of all the connections of all nodes in a layer
 template<class Net>
 inline double max_weight_in_layer(const Net &n, size_t layer){
-  std::vector<double> weights;
-  for(const node &node : n.get_net_weights()[layer]){
-      for(const weight &weight : node.get_vec_weights()){
-          weights.push_back(weight.get_weight());
+    std::vector<double> weights;
+    for(const node &node : n.get_net_weights()[layer]){
+        for(const weight &weight : node.get_vec_weights()){
+            weights.push_back(weight.get_weight());
         }
     }
-  return *std::max_element(weights.begin(), weights.end());
+    return *std::max_element(weights.begin(), weights.end());
 }
 
 void test_network();

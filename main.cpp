@@ -139,7 +139,6 @@ void run_simulation_given_arguments(const cxxopts::ParseResult& results)
     }
 }
 
-
 int main(int argc, char ** argv) //!OCLINT tests may be long
 {
 
@@ -166,6 +165,9 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         if(exc==2)
             std::cerr << "A wrong mutation type has been entered";
     }
+    catch( const std::runtime_error& e ) {
+        std::cerr << e.what() << std::endl;
+    };
 
     return 0;
 }
