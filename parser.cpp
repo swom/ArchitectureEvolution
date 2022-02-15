@@ -43,7 +43,8 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
     results["mut_rate_weight"].as<double>(),
     results["mut_step"].as<double>(),
     results["mut_rate_act"].as<double>(),
-    results["mut_rate_dup"].as<double>()
+    results["mut_rate_dup"].as<double>(),
+    results["num_trials"].as<int>(),
 };
 }
 
@@ -68,10 +69,18 @@ cxxopts::Options create_parser(){
                              "Insert the parameters for the simualtion and see if you can get a mutational switch to evolve");
     options.allow_unrecognised_options();
     options.add_options()
-            ("a,env_func_A", "the starting env function A",cxxopts::value<std::string>()->default_value("1"))
-            ("b,env_func_B", "the starting env function B",cxxopts::value<std::string>()->default_value("2"))
-            ("N,net_arc", "the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
-            ("X,max_arc", "the maximum size of the network architecture", cxxopts::value<std::vector<int>>()->default_value("1,8,1"))
+            ("a,env_func_A",
+             "the starting env function A",
+             cxxopts::value<std::string>()->default_value("1"))
+            ("b,env_func_B",
+             "the starting env function B",
+             cxxopts::value<std::string>()->default_value("2"))
+            ("N,net_arc",
+             "the network architecture",
+             cxxopts::value<std::vector<int>>()->default_value("1,2,1"))
+            ("X,max_arc",
+             "the maximum size of the network architecture",
+             cxxopts::value<std::vector<int>>()->default_value("1,8,1"))
             ("F,act_func",
              "the string representing the name of the activation function of the net",
              cxxopts::value<std::string>()->default_value("sigmoid"))
@@ -87,9 +96,7 @@ cxxopts::Options create_parser(){
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
-            ("P,pop_size",
-             "the numebr of individuals in the simulation",
-             cxxopts::value<int>()->default_value("1000"))
+            ("P,pop_size","the numebr of individuals in the simulation",cxxopts::value<int>()->default_value("1000"))
             ("C,change_freq_A",
              "the probability with which the target function A will change",
              cxxopts::value<double>()->default_value("0.01"))
@@ -114,6 +121,9 @@ cxxopts::Options create_parser(){
             ("d,cue_distrib",
              "the minimum and maximum of the distribution used to generate environmental cues",
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
+            ("n,number_of_trials",
+             "the of trials individuals undergo to calculate their fitness/performance score",
+             cxxopts::value<std::vector<double>>()->default_value("1"))
             ("t,test",
              "run all tests")
             ("h, help",

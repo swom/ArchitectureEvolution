@@ -225,10 +225,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0, 1};
 
         auto sim_p = sim_param{};
-        sim_p.selection_strength = 2;
+        sim_p.selection_strength = 20;
 
 
         simulation s{all_params{
@@ -660,7 +660,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0, 0}; //Simulation rng is seeded with 1
+        //Simulation rng is seeded with 1
+        sim_param s_p{1};
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
@@ -815,5 +816,48 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
     }
 #endif
+
+#define FIX_ISSUE_275
+#ifdef FIX_ISSUE_275
+    //The number of trials (output-optimal_output distance)
+    //on which fitness can be calculated can be decided in the sim_parameters
+    //by defualt the number of trials is 1
+    //The final fitness of an individual is the cumulative sum of the rescaled distances
+    //of an individual output to the optimal output
+    {
+        int number_of_trials = 5;
+        pop_param p_p1{};
+        pop_param p_p2{};
+
+        p_p1.number_of_inds = 2;
+        p_p2.number_of_inds = p_p1.number_of_inds;
+
+        assert(p_p1.n_trials == 1);
+        p_p2.n_trials = number_of_trials;
+
+        assert(p_p1.n_trials < p_p2.n_trials);
+
+        all_params a_p1{env_param{}, ind_param{}, p_p1, sim_param{}};
+        all_params a_p2{env_param{}, ind_param{}, p_p2, sim_param{}};
+
+        simulation s1{a_p1};
+        simulation s2{a_p2};
+
+        auto fitnesses_s1 = s1.evaluate_inds();
+        auto fitnesses_s2 = s2.evaluate_inds();
+        assert(fitnesses_s1 != fitnesses_s2);
+
+        assert(std::equal(fitnesses_s1.begin(),
+                          fitnesses_s1.end(),
+                          fitnesses_s2.begin(),
+                          [p_p1, p_p2](const double& v_s1, const double& v_s2)
+        {return v_s1 * p_p2.n_trials / p_p1.n_trials == v_s2;})
+               );
+
+    }
+
+#endif
+
 }
+
 #endif
