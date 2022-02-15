@@ -36,7 +36,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         assert(1 == 2);
 #endif
 
-     //   run_simulation_given_sel_type(results);
+       run_simulation_given_sel_type(results);
 
     }  catch (int exc) {
         if(exc==1)
