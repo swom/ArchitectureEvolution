@@ -16,6 +16,7 @@ file(GLOB src
 )
 
 if(MINGW)
+  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g)
   add_compile_options(-Wa,-mbig)
   set (CMAKE_SHARED_LINKER_FLAGS " ")
 endif()

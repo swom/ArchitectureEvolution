@@ -7,8 +7,11 @@
 
 template<mutation_type M>
 network<M>::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
+    m_network_weights{},
     m_input_size{nodes_per_layer[0]},
-    m_activation_function{activation_function}
+    m_activation_function{activation_function},
+    m_current_arc{nodes_per_layer},
+    m_max_arc{nodes_per_layer}
 { 
 
     for (size_t i = 1; i != nodes_per_layer.size(); i++ )
