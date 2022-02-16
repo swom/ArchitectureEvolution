@@ -49,7 +49,7 @@ public:
 
     environment(const env_param &e_p);
 
-    std::uniform_real_distribution<double>& get_dist() noexcept {return m_cue_distribution;}
+    std::uniform_real_distribution<double> get_dist() {return m_cue_distribution;}
 
     ///Returns the cue distribution of the environment
     const std::uniform_real_distribution<double>&  get_cue_distribtion() const noexcept
@@ -124,8 +124,11 @@ std::vector<double> create_n_inputs(int n_inputs);
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, std::mt19937_64 &rng);
 
 ///Create a vector of a given number of inputs from the distribution member of the environment
-std::vector<double> create_n_inputs(environment& e, const int &n_inputs, std::mt19937_64 &rng);
+std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng);
 
+///Creates a vector of a given number of inputs for a distribution
+std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist,
+                                    const int &n_inputs, std::mt19937_64 &rng);
 
 ///Calculates the optimal output, given input, using the env function
 double calculate_optimal(const environment &e, std::vector<double> input);
