@@ -128,7 +128,7 @@ cxxopts::Options create_parser(){
              cxxopts::value<std::vector<double>>()->default_value("1"))
             ("s,sel_freq",
              "the number of generations after which selection happens in the sporadic selection scenario",
-             cxxopts::value<std::vector<double>>()->default_value("1"))
+             cxxopts::value<std::vector<int>>()->default_value("1"))
             ("t,test",
              "run all tests")
             ("h, help",
