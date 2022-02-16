@@ -123,9 +123,9 @@ cxxopts::Options create_parser(){
             ("d,cue_distrib",
              "the minimum and maximum of the distribution used to generate environmental cues",
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
-            ("n,number_of_trials",
+            ("n,num_trials",
              "the of trials individuals undergo to calculate their fitness/performance score",
-             cxxopts::value<std::vector<double>>()->default_value("1"))
+             cxxopts::value<int>()->default_value("1"))
             ("f,sel_freq",
              "the number of generations after which selection happens in the sporadic selection scenario",
              cxxopts::value<int>()->default_value("1"))
