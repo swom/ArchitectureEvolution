@@ -57,7 +57,9 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["change_freq_B"].as<double>(),
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
+                results["sel_freq"].as<int>(),
                 string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
+                string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
     };
 }
 ///NOT tested!!!
@@ -94,7 +96,9 @@ cxxopts::Options create_parser(){
             ("M,mut_step",
              "the variance of the normal distribution from which mutation size is drawn",
              cxxopts::value<double>()->default_value("0.1"))
-            ("P,pop_size","the numebr of individuals in the simulation",cxxopts::value<int>()->default_value("1000"))
+            ("P,pop_size",
+             "the numebr of individuals in the simulation",
+             cxxopts::value<int>()->default_value("1000"))
             ("C,change_freq_A",
              "the probability with which the target function A will change",
              cxxopts::value<double>()->default_value("0.01"))
