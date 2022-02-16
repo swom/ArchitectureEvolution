@@ -115,21 +115,18 @@ namespace ind {
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
 template<class Ind>
-std::vector<double> response(const Ind& ind,
-                             const std::vector<double>& input)
+std::vector<double> response(const Ind& ind)
 {
-    return output(ind.get_net(),input);
+    return output(ind.get_net(),ind.get_input_values());
 }
 
 ///Calculates the distance of a response of a network
 /// and a given value
 template<class Ind>
-double calc_sqr_distance(const Ind &i,
-                         double env_value,
-                         const std::vector<double>& input)
+double calc_sqr_distance(const Ind &i, double env_value)
 {
-    auto output = response(i, input);
-    return (output[0] - env_value) * (output[0] - env_value);
+    auto output = response(i);
+    return (output.at(0) - env_value) * (output.at(0) - env_value);
 }
 
 }
