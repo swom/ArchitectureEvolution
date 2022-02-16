@@ -84,7 +84,7 @@ std::vector<double> create_n_inputs(int n_inputs)
   return input_vector;
 }
 
-std::vector<double> create_n_inputs(environment e, const int &n_inputs, std::mt19937_64 &rng)
+std::vector<double> create_n_inputs(environment& e, const int &n_inputs, std::mt19937_64 &rng)
 {
   std::vector<double> input_vector(n_inputs);
 
