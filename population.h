@@ -8,19 +8,6 @@
 
 struct pop_param
 {
-    pop_param(int n_inds = 1,
-              double mut_rate_w = 0.01,
-              double mut_st = 0.1,
-              double mut_rate_act = 0.001,
-              double mut_rate_dupl = 0.001,
-              int n_tr = 1) :
-        number_of_inds{n_inds},
-        mut_rate_weight{mut_rate_w},
-        mut_step{mut_st},
-        mut_rate_activation{mut_rate_act},
-        mut_rate_duplication{mut_rate_dupl},
-        n_trials{n_tr}
-    {};
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(pop_param,
                                    number_of_inds,
                                    mut_rate_weight,
@@ -33,7 +20,7 @@ struct pop_param
     double mut_step;
     double mut_rate_activation;
     double mut_rate_duplication;
-    int n_trials;
+    int n_trials = 1;
 };
 
 template <class Ind = individual<>>
@@ -151,17 +138,11 @@ std::vector<double> extract_fitnesses(const std::vector<Ind>& inds)
     return fitnesses;
 }
 
-///Calculates the avg_fitness of a vector of individuals
-template< class Ind>
-double avg_fitness(const std::vector<Ind>& inds){
-    auto fitnesses = extract_fitnesses(inds);
-    return calc_mean(fitnesses);
-}
-
 ///Calculates the avg_fitness of the population
 template< class Ind>
 double avg_fitness(const population<Ind>& p){
-    return avg_fitness(p.get_inds());
+    auto fitnesses = extract_fitnesses(p.get_inds());
+    return calc_mean(fitnesses);
 }
 
 ///Checks if fitness of all individuals equals a certain value
@@ -204,15 +185,13 @@ void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
 ///Calculates the distance from the output of one individual's network
 /// to the optimal output given a series of inputs
 template<class Ind>
-std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
-                                          double env_value,
-                                          const std::vector<double>& input)
+std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds, double env_value)
 {
     std::vector<double> distance_from_target;
 
     for(const auto& ind : inds)
     {
-        auto sqr_distance = ind::calc_sqr_distance(ind, env_value, input);
+        auto sqr_distance = ind::calc_sqr_distance(ind, env_value);
         distance_from_target.push_back(sqr_distance);
     }
 
@@ -241,15 +220,11 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
-population<Ind>& calc_fitness(population<Ind>& p,
+std::vector<double> calc_fitness(population<Ind>& p,
                               const double& optimal_value,
-                              const double &sel_str,
-                              const std::vector<double>& input)
+                              const double &sel_str)
 {
-
-    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(),
-                                                                     optimal_value,
-                                                                     input);
+    std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 
@@ -277,12 +252,10 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
                                   p.get_inds().end(),
                                   [](const Ind& ){return 0.1;});
     }
-    else
-    {
-        mut_dist.mutate_transform(p.get_inds().begin(),
-                                  p.get_inds().end(),
-                                  [](const Ind& i){return i.get_fitness();});
-    }
+
+    mut_dist.mutate_transform(p.get_inds().begin(),
+                              p.get_inds().end(),
+                              [](const Ind& i){return i.get_fitness();});
     return  mut_dist;
 }
 
@@ -338,25 +311,6 @@ void select_new_pop(population<Ind>& p,
     }
 }
 
-///Selects new pop randomly
-template<class Ind>
-void select_new_pop_randomly(population<Ind>& p,
-                             std::mt19937_64& rng)
-{
-    auto max_index_inds = p.get_inds().size() - 1;
-    std::uniform_int_distribution<> index_distr(0, max_index_inds);
-    for( size_t i = 0; i != p.get_inds().size(); i++)
-    {
-        auto selected_ind_index = index_distr(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
-        p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
-                                   p.get_mut_step(),
-                                   rng,
-                                   p.get_mut_rate_act(),
-                                   p.get_mut_rate_dup());
-    }
-}
 ///Swaps a vector of new_inds with the vector of old inds
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
@@ -375,27 +329,12 @@ void reproduce(population<Ind>& p, std::mt19937_64& rng)
     swap_new_with_old_pop(p);
 }
 
-///Reproduces inds randomly
+///Calculates the standard deviation
 template< class Ind>
-void reproduce_random(population<Ind>& p, std::mt19937_64& rng)
-{
-
-    select_new_pop_randomly(p,rng);
-
-    swap_new_with_old_pop(p);
-}
-
-///Calculates the standard deviation of fitness of a vector of individuals
-template< class Ind>
-double stdev_fitness(const std::vector<Ind> &inds){
+double var_fitness(const population<Ind> &p){
+    auto inds = p.get_inds();
     auto fitnesses = extract_fitnesses(inds);
     return calc_stdev(fitnesses);
-}
-
-///Calculates the standard deviation of fitness of the current population
-template< class Ind>
-double stdev_fitness(const population<Ind> &p){
-    return stdev_fitness(p.get_inds());
 }
 
 ///Returns the input of the nth individual
