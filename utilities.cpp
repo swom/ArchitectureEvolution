@@ -23,6 +23,11 @@ bool are_not_equal_with_more_tolerance(double lhs, double rhs)
   return !are_equal_with_more_tolerance(lhs, rhs);
 }
 
+bool are_equal_with_high_tolerance(double lhs, double rhs)
+{
+  return lhs - rhs > -0.005 && lhs - rhs < 0.005;
+}
+
 double calc_mean(const std::vector<double>& numbers){
   return std::accumulate(numbers.begin(),
                               numbers.end(), 0.0)/numbers.size();
@@ -59,9 +64,9 @@ bool are_from_same_distribution(const std::vector<double> &lhs, const std::vecto
 
   auto lhs_stdev = calc_stdev(lhs);
   auto rhs_stdev = calc_stdev(rhs);
-
-  if(are_equal_with_more_tolerance(lhs_mean, rhs_mean) &&
-         are_equal_with_tolerance(lhs_stdev, rhs_stdev))
+  auto same_mean = are_equal_with_more_tolerance(lhs_mean, rhs_mean);
+  auto same_stdev = are_equal_with_more_tolerance(lhs_stdev, rhs_stdev);
+  if( same_mean && same_stdev)
     return true;
   else
     return false;
