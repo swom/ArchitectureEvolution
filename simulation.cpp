@@ -385,7 +385,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     //#ifdef FIX_ISSUE_39
 
     {
-        simulation s{0};
+        all_params a_p{{},{}, pop_param(1),{}};
+        simulation s{a_p};
         environment &e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
@@ -565,7 +566,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
 
-        int repeats = 100000;
+        int repeats = 1000000;
         std::vector<double> sim_values;
         std::vector<double> test_values;
 
@@ -837,8 +838,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         assert(p_p1.n_trials < p_p2.n_trials);
 
-        all_params a_p1{env_param{}, ind_param{}, p_p1, sim_param{}};
-        all_params a_p2{env_param{}, ind_param{}, p_p2, sim_param{}};
+        env_param e_p;
+        e_p.cue_distrib = {1,1};
+        all_params a_p1{e_p, ind_param{}, p_p1, sim_param{}};
+        all_params a_p2{e_p, ind_param{}, p_p2, sim_param{}};
 
         simulation s1{a_p1};
         simulation s2{a_p2};

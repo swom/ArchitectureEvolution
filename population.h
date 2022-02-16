@@ -8,6 +8,19 @@
 
 struct pop_param
 {
+    pop_param(int n_inds = 1,
+              double mut_rate_w = 0.01,
+              double mut_st = 0.1,
+              double mut_rate_act = 0.001,
+              double mut_rate_dupl = 0.001,
+              int n_tr = 1) :
+        number_of_inds{n_inds},
+        mut_rate_weight{mut_rate_w},
+        mut_step{mut_st},
+        mut_rate_activation{mut_rate_act},
+        mut_rate_duplication{mut_rate_dupl},
+        n_trials{n_tr}
+    {};
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(pop_param,
                                    number_of_inds,
                                    mut_rate_weight,
@@ -20,7 +33,7 @@ struct pop_param
     double mut_step;
     double mut_rate_activation;
     double mut_rate_duplication;
-    int n_trials = 1;
+    int n_trials;
 };
 
 template <class Ind = individual<>>
@@ -264,10 +277,12 @@ rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p
                                   p.get_inds().end(),
                                   [](const Ind& ){return 0.1;});
     }
-
-    mut_dist.mutate_transform(p.get_inds().begin(),
-                              p.get_inds().end(),
-                              [](const Ind& i){return i.get_fitness();});
+    else
+    {
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind& i){return i.get_fitness();});
+    }
     return  mut_dist;
 }
 
@@ -326,7 +341,7 @@ void select_new_pop(population<Ind>& p,
 ///Selects new pop randomly
 template<class Ind>
 void select_new_pop_randomly(population<Ind>& p,
-                    std::mt19937_64& rng)
+                             std::mt19937_64& rng)
 {
     auto max_index_inds = p.get_inds().size() - 1;
     std::uniform_int_distribution<> index_distr(0, max_index_inds);
