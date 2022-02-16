@@ -126,9 +126,12 @@ cxxopts::Options create_parser(){
             ("n,number_of_trials",
              "the of trials individuals undergo to calculate their fitness/performance score",
              cxxopts::value<std::vector<double>>()->default_value("1"))
-            ("s,sel_freq",
+            ("f,sel_freq",
              "the number of generations after which selection happens in the sporadic selection scenario",
              cxxopts::value<int>()->default_value("1"))
+            ("s,sel_type",
+             "the type of seelction regime of the simulation can be 'constant' or 'sporadic'",
+             cxxopts::value<std::string>()->default_value("constant"))
             ("t,test",
              "run all tests")
             ("h, help",
