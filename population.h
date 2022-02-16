@@ -13,12 +13,14 @@ struct pop_param
                                    mut_rate_weight,
                                    mut_step,
                                    mut_rate_activation,
-                                   mut_rate_duplication)
+                                   mut_rate_duplication,
+                                   n_trials)
     int number_of_inds;
     double mut_rate_weight;
     double mut_step;
     double mut_rate_activation;
     double mut_rate_duplication;
+    int n_trials = 1;
 };
 
 template <class Ind = individual<>>
@@ -39,7 +41,8 @@ public:
         m_mut_rate_act{p_p.mut_rate_activation},
         m_mut_rate_dup{p_p.mut_rate_duplication},
         m_mut_rate_weight{p_p.mut_rate_weight},
-        m_mut_step{p_p.mut_step}
+        m_mut_step{p_p.mut_step},
+        m_n_trials{p_p.n_trials}
     {}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(population,
@@ -82,6 +85,18 @@ public:
     ///Return mutation step
     double get_mut_step() const noexcept {return m_mut_step;}
 
+    ///Returns the number of trials for which individuals have to be evaluated
+    int get_n_trials() const noexcept {return m_n_trials;}
+
+    ///resets the fitness of the population to 0
+    void reset_fitness()
+    {
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.reset_fitness();
+        }
+
+    }
 private:
 
     std::vector<Ind> m_vec_indiv;
@@ -90,6 +105,7 @@ private:
     double m_mut_rate_dup;
     double m_mut_rate_weight;
     double m_mut_step;
+    int m_n_trials = 1;
     rndutils::mutable_discrete_distribution<> m_fitness_dist;
 
 };
@@ -127,6 +143,15 @@ template< class Ind>
 double avg_fitness(const population<Ind>& p){
     auto fitnesses = extract_fitnesses(p.get_inds());
     return calc_mean(fitnesses);
+}
+
+///Checks if fitness of all individuals equals a certain value
+template<class Ind>
+bool all_fitnesses_are(double value, const population<Ind>& p)
+{
+    return std::all_of(p.get_inds().begin(),
+                       p.get_inds().end(),
+                       [&value](const Ind& i){return i.get_fitness() == value;});
 }
 
 ///Rescales the distance fro the target of an ind
@@ -195,9 +220,10 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
-population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,const double &sel_str)
+std::vector<double> calc_fitness(population<Ind>& p,
+                              const double& optimal_value,
+                              const double &sel_str)
 {
-
     std::vector<double> distance_from_target = calc_dist_from_target(p.get_inds(), optimal_value);
 
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
@@ -206,6 +232,7 @@ population<Ind>& calc_fitness(population<Ind>& p, const double& optimal_value,co
 
     return p;
 }
+
 ///changes the net of the nth individual to a given net
 template< class Ind>
 void change_nth_ind_net(population<Ind>& p, size_t ind_index, const typename Ind::net_t& n)
@@ -213,11 +240,18 @@ void change_nth_ind_net(population<Ind>& p, size_t ind_index, const typename Ind
     p.change_nth_ind_net(ind_index, n);
 }
 
-///Creates a mutable distribution from whihc to draw inds based on fitness
-template< class Ind>
+///Creates a mutable distribution from which to draw inds based on fitness
+template<class Ind>
 rndutils::mutable_discrete_distribution<> create_mut_dist_fit(population<Ind>& p)
 {
     rndutils::mutable_discrete_distribution<> mut_dist;
+
+    if(all_fitnesses_are(0,p))
+    {
+        mut_dist.mutate_transform(p.get_inds().begin(),
+                                  p.get_inds().end(),
+                                  [](const Ind& ){return 0.1;});
+    }
 
     mut_dist.mutate_transform(p.get_inds().begin(),
                               p.get_inds().end(),

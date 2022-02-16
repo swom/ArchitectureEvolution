@@ -86,7 +86,11 @@ win32{
   #allowing info for profiling
   QMAKE_CXXFLAGS += -g
 
+  #having debug info out for profiling
   CONFIG += force_debug_info
+
+  #allowing Debug in Release
+  QMAKE_LFLAGS_RELEASE-=-Wl,-s
 }
 
 

@@ -18,7 +18,8 @@ struct sim_param
                                    change_freq_A,
                                    change_freq_B,
                                    selection_strength,
-                                   n_generations)
+                                   n_generations
+                                   )
     int seed;
     double change_freq_A;
     double change_freq_B;
@@ -109,6 +110,9 @@ public:
     ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
+    ///Returns the number of generatiosn for which the simualtion has to run
+    int get_n_trials() const noexcept {return m_population.get_n_trials();}
+
     ///returns const ref to Bernoulli distribution for change freq of A
     const std::bernoulli_distribution& get_t_change_env_distr_A() const noexcept {return m_t_change_env_distr_A;}
 
@@ -134,7 +138,7 @@ public:
     int get_seed() const noexcept {return m_seed;}
 
     ///Returns a reference to the vector of individuals
-    const std::vector<typename Pop::ind_t> &get_inds() const;
+    const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
 
     ///Returns the current inputs in the simulation
     const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -187,6 +191,12 @@ public:
         if(get_input().size() > 1){
             m_input.back() = -m_input.back();
         }
+    }
+
+    ///Resets the fitness of the population to 0
+    void reset_fit_pop()
+    {
+        m_population.reset_fitness();
     }
 
     const all_params& get_params() const noexcept {return m_params;}
@@ -302,6 +312,10 @@ std::vector<double> create_inputs(Sim s)
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
+    if(!s.get_inds().size())
+    {
+        return;
+    }
     std::vector<double> new_inputs = create_inputs(s);
 
     if(s.get_input().size() > 1){
@@ -325,15 +339,7 @@ double avg_fitness(const Sim& s)
 {
     return pop::avg_fitness(s.get_pop());
 }
-///Calculates fitness of inds in pop given current env values
-template<class Sim>
-void calc_fitness(Sim &s)
-{
-    s.update_optimal(calculate_optimal(s));
-    s.get_pop() = pop::calc_fitness(s.get_pop(),
-                                    s.get_optimal(),
-                                    s.get_sel_str());
-}
+
 
 ///Changes all the weights of a given individual to a given value
 template<class Sim>
@@ -380,6 +386,42 @@ void reproduce(Sim& s)
     pop::reproduce(s.get_pop(), s.get_rng());
 }
 
+///Evaluates the operformance of all indiivduals in a population
+template<class Sim>
+std::vector<double> evaluate_inds(Sim& s){
+
+    std::vector<double> cumulative_performance(s.get_inds().size(), 0);
+
+    for(int i = 0; i != s.get_n_trials(); i++)
+    {
+        assign_new_inputs(s);
+        s.update_optimal(calculate_optimal(s));
+        auto performance = pop::calc_dist_from_target(s.get_inds(), s.get_optimal());
+
+        std::transform(cumulative_performance.begin(),
+                       cumulative_performance.end(),
+                       performance.begin(),
+                       cumulative_performance.begin(),
+                       std::plus<double>());
+    }
+
+    return cumulative_performance;
+}
+
+///Calculates fitness of inds in pop given current env values
+template<class Sim>
+const Sim& calc_fitness(Sim &s)
+{
+
+    auto cumulative_performance = evaluate_inds(s);
+
+    auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, s.get_sel_str());
+
+    pop::set_fitness_inds(s.get_pop(), fitness_vector);
+
+    return s;
+}
+
 ///Calculates fitness and selects a new population based on fitness
 template<class Sim>
 void select_inds(Sim& s)
@@ -402,6 +444,23 @@ void perform_environment_change(Sim &s)
     switch_optimal_function(s);
     s.switch_env_indicator();
 }
+///checks if the individuals in the populations from 2 different simulations
+///have exactly the same fitness values
+template<class Sim>
+bool pops_have_same_fitness(const Sim& lhs, const Sim& rhs)
+{
+    return pop::extract_fitnesses(lhs.get_inds()) == pop::extract_fitnesses(rhs.get_inds());
+}
+
+///sums the fitness of all individuals of a simulation toghether
+template<class Sim>
+double sum_of_fitnesses(const Sim& s)
+{
+    auto fitnesses = pop::extract_fitnesses(s.get_inds());
+    return std::accumulate(fitnesses.begin(),
+                           fitnesses.end(),
+                           0.0);
+}
 
 ///Ticks time one generation into the future
 template<class Sim>
@@ -410,14 +469,7 @@ void tick(Sim &s)
     s.increase_time();
 
     if(s.is_environment_changing()){
-
         perform_environment_change(s);
-    }
-
-    if(get_inds(s).size()){
-
-        assign_new_inputs(s);
-
     }
 
     select_inds(s);
