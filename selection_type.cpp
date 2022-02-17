@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "selection_type.h"
 
 std::string convert_selection_type_to_string(selection_type s)
