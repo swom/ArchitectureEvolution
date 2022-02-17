@@ -146,7 +146,7 @@ void exec(Sim& s , observer<Sim>& o)
         if(i % 1000 == 0)
         {
             auto lap_ms = my_watch.lap<sw::ms>();
-            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;;
+            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;
         }
         if(i % 1000 == 0)
         {

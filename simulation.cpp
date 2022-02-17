@@ -3,13 +3,13 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop, enum env_change_type Env_change_t>
-simulation<Pop, Env_change_t>::simulation(int init_pop_size,
-                                          int seed,
-                                          double t_change_interval,
-                                          std::vector<int> net_arch,
-                                          double sel_str,
-                                          int number_of_generations):
+template<class Pop, enum env_change_type E, enum selection_type S>
+simulation<Pop, E, S>::simulation(int init_pop_size,
+                                  int seed,
+                                  double t_change_interval,
+                                  std::vector<int> net_arch,
+                                  double sel_str,
+                                  int number_of_generations):
     m_environment{},
     m_population{init_pop_size},
     m_n_generations{number_of_generations},
@@ -89,8 +89,7 @@ const std::vector<double> &get_nth_individual_input(const Sim &s, const int n)
 template<class Sim>
 const std::vector<double> &get_current_input(const Sim &s)
 {
-    assert(sim::all_individuals_have_same_input(s));
-    return get_nth_individual_input(s, 0);
+    return s.get_input();
 }
 
 template<class Sim>
@@ -106,6 +105,7 @@ double identity_first_element(const std::vector<double> &vector)
 {
     return vector[0];
 }
+
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -225,10 +225,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 
         int pop_size = 2;
-        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0};
+        auto minimal_pop = pop_param{pop_size, 0, 0, 0, 0, 1};
 
         auto sim_p = sim_param{};
-        sim_p.selection_strength = 2;
+        sim_p.selection_strength = 20;
 
 
         simulation s{all_params{
@@ -257,7 +257,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(net_behaves_like_the_function(best_net, identity_env.env_function_A));
         assert(!net_behaves_like_the_function(worst_net, identity_env.env_function_A));
 
-        select_inds(s);
+        s.calc_fitness();
+        s.reproduce();
 
         //all inds should now have the network that matches the target values
         for(const auto& ind :get_inds(s))
@@ -312,15 +313,15 @@ void test_simulation() noexcept//!OCLINT test may be many
         size_t second_ind = 1;
         change_nth_ind_net(s, first_ind, identity_net);
 
-        calc_fitness(s);
+        s.calc_fitness();
 
         ///ind 0 response should match exactly the optimal output therefore it will have fitness 1 (max)
         auto first_ind_fit =  get_nth_ind_fitness(s, first_ind) ;
         assert(are_equal_with_tolerance( first_ind_fit, 1));
 
         ///ind 1 response is not the optimal output, therefore its fitness should be the lowest in all the population
-        auto first_response = ind::response(get_nth_ind(s, 0))[0];
-        auto second_response = ind::response(get_nth_ind(s, 1))[0];
+        auto first_response = ind::response(get_nth_ind(s, 0), s.get_input())[0];
+        auto second_response = ind::response(get_nth_ind(s, 1), s.get_input())[0];
         assert(!are_equal_with_tolerance(first_response, second_response));
 
         auto second_ind_fit =  get_nth_ind_fitness(s, second_ind) ;
@@ -366,8 +367,7 @@ void test_simulation() noexcept//!OCLINT test may be many
                     change_freq_A,
                     change_freq_B,
                     selection_strength,
-                    n_generations,
-                    env_change_type::symmetrical};
+                    n_generations};
 
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
@@ -385,7 +385,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     //#ifdef FIX_ISSUE_39
 
     {
-        simulation s{0};
+        all_params a_p{{},{}, pop_param(1),{}};
+        simulation s{a_p};
         environment &e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
@@ -565,7 +566,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         simulation s;
 
-        int repeats = 100000;
+        int repeats = 1000000;
         std::vector<double> sim_values;
         std::vector<double> test_values;
 
@@ -645,10 +646,10 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         ///The response should change when the environment changes.
 
-        std::vector<double> responseA = ind::response(get_nth_ind(s, 0));
+        std::vector<double> responseA = ind::response(get_nth_ind(s, 0), s.get_input());
         perform_environment_change(s);
         assign_inputs(s);
-        std::vector<double> responseB = ind::response(get_nth_ind(s, 0));
+        std::vector<double> responseB = ind::response(get_nth_ind(s, 0), s.get_input());
 
         assert(responseA != responseB);
 
@@ -660,7 +661,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     ///Simulations have two rngs, one for population and one for environment(always seeded with 0)
     {
-        sim_param s_p{1, 0, 0, 0, 0, env_change_type::symmetrical}; //Simulation rng is seeded with 1
+        //Simulation rng is seeded with 1
+        sim_param s_p{1};
         all_params params{{}, {}, {}, s_p};
         simulation s{params};
         std::mt19937_64 rng_before = s.get_rng();
@@ -672,6 +674,49 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     }
 #endif
+
+    ///#263
+    ///Selection can happen sporadically every n generations
+    {
+        int selection_freq = 5;
+        int repeats = 10;
+
+        sim_param s_p{};
+        s_p.n_generations = repeats;
+        s_p.selection_freq = selection_freq;
+        s_p.selection_strength = 10;
+        pop_param p_p;
+        p_p.number_of_inds = 10000;
+        p_p.mut_rate_weight = 0.5;
+        p_p.mut_step = 0.1;
+        all_params a_p{{},{}, p_p, s_p};
+
+        simulation<population<>,
+                env_change_type::symmetrical,
+                selection_type::sporadic> s{a_p};
+
+
+        double avg_pop;
+        double avg_prev_pop;
+
+        for (int i = 0; i != repeats; i++)
+        {
+             tick(s);
+
+            avg_pop = pop::avg_fitness(s.get_pop());
+            avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+
+            if(s.get_time() % s.get_sel_freq() == 0)
+            {
+                assert(avg_prev_pop < avg_pop);
+                assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+            }
+            else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
+            {
+                assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+            }
+        }
+    }
 
 #define FIX_ISSUE_249
 #ifdef FIX_ISSUE_249
@@ -772,5 +817,50 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
     }
 #endif
+
+#define FIX_ISSUE_275
+#ifdef FIX_ISSUE_275
+    //The number of trials (output-optimal_output distance)
+    //on which fitness can be calculated can be decided in the sim_parameters
+    //by defualt the number of trials is 1
+    //The final fitness of an individual is the cumulative sum of the rescaled distances
+    //of an individual output to the optimal output
+    {
+        int number_of_trials = 5;
+        pop_param p_p1{};
+        pop_param p_p2{};
+
+        p_p1.number_of_inds = 2;
+        p_p2.number_of_inds = p_p1.number_of_inds;
+
+        assert(p_p1.n_trials == 1);
+        p_p2.n_trials = number_of_trials;
+
+        assert(p_p1.n_trials < p_p2.n_trials);
+
+        env_param e_p;
+        e_p.cue_distrib = {1,1};
+        all_params a_p1{e_p, ind_param{}, p_p1, sim_param{}};
+        all_params a_p2{e_p, ind_param{}, p_p2, sim_param{}};
+
+        simulation s1{a_p1};
+        simulation s2{a_p2};
+
+        auto fitnesses_s1 = s1.evaluate_inds();
+        auto fitnesses_s2 = s2.evaluate_inds();
+        assert(fitnesses_s1 != fitnesses_s2);
+
+        assert(std::equal(fitnesses_s1.begin(),
+                          fitnesses_s1.end(),
+                          fitnesses_s2.begin(),
+                          [p_p1, p_p2](const double& v_s1, const double& v_s2)
+        {return v_s1 * p_p2.n_trials / p_p1.n_trials == v_s2;})
+               );
+
+    }
+
+#endif
+
 }
+
 #endif

@@ -81,6 +81,9 @@ public:
     ///Sets the fitness of an ind
     void set_fitness(double fitness) {m_fitness = fitness;}
 
+    ///Resets fitness to  0
+    void reset_fitness() {m_fitness = 0;}
+
     ///Set the input values of an individual
     void assign_input(const std::vector<double> &input) {m_input_values = input;}
 
@@ -112,17 +115,20 @@ namespace ind {
 ///Lets a network send out an ouput signal
 ///!!!!Attention!!! for now no input is provided
 template<class Ind>
-std::vector<double> response(const Ind& ind)
+std::vector<double> response(const Ind& ind,
+                             const std::vector<double>& input)
 {
-    return output(ind.get_net(),ind.get_input_values());
+    return output(ind.get_net(),input);
 }
 
 ///Calculates the distance of a response of a network
 /// and a given value
 template<class Ind>
-double calc_sqr_distance(const Ind &i, double env_value)
+double calc_sqr_distance(const Ind &i,
+                         double env_value,
+                         const std::vector<double>& input)
 {
-    auto output = response(i);
+    auto output = response(i, input);
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
