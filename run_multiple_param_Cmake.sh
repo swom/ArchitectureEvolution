@@ -62,7 +62,18 @@ do
 		              do 
                     for selection_freq in "${selection_freqs[@]}"
   								  do    						  
-    									  echo $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate $selection_type $selection_freq
+    									  echo "seed:  "$seed 
+                        echo "arc:  "$arc 
+                        echo "max_arc:  "$max_arc 
+                        echo "change_freq_A:  "$change_freq_A 
+                        echo "gen:  "$gen 
+                        echo "mut_type:  "$mut_type 
+                        echo "change_type:  "$change_type 
+                        echo "dup_rate:  "$dup_rate 
+                        echo "act_rate:  "$act_rate 
+                        echo "selection_type:  "$selection_type 
+                        echo "selection_freq:  "$selection_freq
+                        echo ""
                         sbatch ../run_loop.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $change_type $dup_rate $act_rate $selection_type $selection_freq
     								done 
                   done 
