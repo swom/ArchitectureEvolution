@@ -1,6 +1,7 @@
 #ifndef SELECTION_TYPE_H
 #define SELECTION_TYPE_H
 #include<map>
+#include<string>
 
 enum class selection_type
 {

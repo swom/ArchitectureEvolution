@@ -22,6 +22,7 @@ file(GLOB hanno
 
 if(MINGW)
   add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
+  #add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
   #add_compile_options(-Weffc++)
   #Disable -Weffc++ for rndutils.hpp
   set_source_files_properties({hanno} PROPERTIES COMPILE_OPTIONS -Wno-effc++)
