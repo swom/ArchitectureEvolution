@@ -12,6 +12,60 @@
 
 double identity_first_element(const std::vector<double>& vector);
 
+struct sim_param
+{
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
+                                   seed,
+                                   change_freq_A,
+                                   change_freq_B,
+                                   selection_strength,
+                                   n_generations,
+                                   selection_freq)
+
+    sim_param(int seed_n = 0,
+              double change_frequency_A = 0.1,
+              double change_frequency_B = 0.01,
+              double sel_strength = 1,
+              int generations = 100,
+              int selection_frequency = 1,
+              env_change_type env_change_type = env_change_type::symmetrical,
+              selection_type selec_type = selection_type::constant):
+        seed{seed_n},
+        change_freq_A{change_frequency_A},
+        change_freq_B{change_frequency_B},
+        selection_strength{sel_strength},
+        n_generations{generations},
+        selection_freq{selection_frequency},
+        change_type{env_change_type},
+        sel_type{selec_type}
+    {}
+
+    int seed;
+    double change_freq_A;
+    double change_freq_B;
+    double selection_strength;
+    int n_generations;
+    int selection_freq;
+    env_change_type change_type;
+    selection_type sel_type;
+
+};
+
+struct all_params
+{
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
+                                   i_p,
+                                   p_p,
+                                   s_p)
+    env_param e_p;
+    ind_param i_p;
+    pop_param p_p;
+    sim_param s_p;
+
+
+};
+
+
 ///Assigns the given new input to each individual in the simulation
 template<class Sim>
 void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
@@ -71,59 +125,6 @@ void assign_new_inputs(Sim &s)
     s.update_inputs(new_inputs);
     assign_inputs(s);
 }
-
-struct sim_param
-{
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(sim_param,
-                                   seed,
-                                   change_freq_A,
-                                   change_freq_B,
-                                   selection_strength,
-                                   n_generations,
-                                   selection_freq)
-
-    sim_param(int seed_n = 0,
-              double change_frequency_A = 0.1,
-              double change_frequency_B = 0.01,
-              double sel_strength = 1,
-              int generations = 100,
-              int selection_frequency = 1,
-              env_change_type env_change_type = env_change_type::symmetrical,
-              selection_type selec_type = selection_type::constant):
-        seed{seed_n},
-        change_freq_A{change_frequency_A},
-        change_freq_B{change_frequency_B},
-        selection_strength{sel_strength},
-        n_generations{generations},
-        selection_freq{selection_frequency},
-        change_type{env_change_type},
-        sel_type{selec_type}
-    {}
-
-    int seed;
-    double change_freq_A;
-    double change_freq_B;
-    double selection_strength;
-    int n_generations;
-    int selection_freq;
-    env_change_type change_type;
-    selection_type sel_type;
-
-};
-
-struct all_params
-{
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
-                                   i_p,
-                                   p_p,
-                                   s_p)
-    env_param e_p;
-    ind_param i_p;
-    pop_param p_p;
-    sim_param s_p;
-
-
-};
 
 template<class Pop = population<>,
          enum env_change_type Env_change = env_change_type::symmetrical,
