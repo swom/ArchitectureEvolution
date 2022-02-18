@@ -9,23 +9,16 @@ endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if(MINGW)
+  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
+  add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
+ # add_compile_options(-Weffc++)
+endif()
 
 file(GLOB src
      "${PROJECT_SOURCE_DIR}/*.cpp"
      "${PROJECT_SOURCE_DIR}/*.h"
-     "${PROJECT_SOURCE_DIR}/Stopwatch.hpp"
+     "${PROJECT_SOURCE_DIR}/*.hpp"
 )
 
-file(GLOB hanno
-  "${PROJECT_SOURCE_DIR}/rndutils.hpp"
-)
-
-if(MINGW)
-  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
-  #add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
-  #add_compile_options(-Weffc++)
-  #Disable -Weffc++ for rndutils.hpp
-  set_source_files_properties({hanno} PROPERTIES COMPILE_OPTIONS -Wno-effc++)
-endif()
-
-add_executable("arc_evo" ${src} ${hanno})
+add_executable("arc_evo" ${src})
