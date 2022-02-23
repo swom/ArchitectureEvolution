@@ -48,6 +48,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+
+
 #ifndef NDEBUG
 void test_observer()
 {
@@ -163,6 +165,57 @@ void test_observer()
     }
 #endif
 
+#define FIX_ISSUE_271
+#ifdef FIX_ISSUE_271
+    ///The observer stores performance calculated from reaction norm
+    {
+        observer o;
 
+        //Give sim some non-default inputs and optimal
+        simulation s{};
+        o.store_performance(s);
+        assert(o.get_average_perf()[0] == calc_avg_perf_from_reaction_norm(s));
+        assert(o.get_sd_perf()[0] == calc_sd_perf_from_reaction_norm(s));
+    }
+#endif
+
+#define FIX_ISSUE_272
+#ifdef FIX_ISSUE_272
+    ///Average and variance of performance can be obtained from a reaction norm
+    /// Note: this assumes one output
+  {
+    pop_param p_p{5, 1, 1, 1, 1};
+    simulation s{{env_param{},ind_param{{{1,2,1}, sigmoid}},p_p,sim_param{}}};
+
+
+    sim::tick(s);
+    auto p = s.get_pop();
+    range r{-1,1};
+    std::vector<std::vector<std::vector<double>>> reac_norm = calculate_reaction_norms(p.get_inds(), r, 100);
+
+    std::vector<double> averages;
+    for(int j = 0; j!=5; ++j){
+        std::vector<double> perfs_one_ind;
+        for(int i=0; i!=100; ++i){
+            double k = i;
+            double step = - 1 + k*0.02;
+            std::vector<double> input{step};
+            auto opt = s.get_env().get_current_function()(input);
+            auto error = (reac_norm[j][i][0] - opt)*(reac_norm[j][i][0] - opt);
+            auto perf = 1- error;
+            perfs_one_ind.push_back(perf);
+          }
+        averages.push_back(std::accumulate(std::begin(perfs_one_ind), std::end(perfs_one_ind), 0.0) / std::size(perfs_one_ind));
+      }
+    double mean = calc_mean(averages);
+    double sd = calc_stdev(averages);
+
+    double avg_perf = calc_avg_perf_from_reaction_norm(s);
+    double sd_perf = calc_sd_perf_from_reaction_norm(s);
+
+    assert(avg_perf == mean);
+    assert(sd_perf == sd);
+  }
+#endif
 }
 #endif

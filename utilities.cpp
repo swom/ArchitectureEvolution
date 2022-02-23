@@ -42,7 +42,7 @@ double calc_stdev(const std::vector<double>& numbers)
                  [&](const double weight) {
       accum += (weight - mean) * (weight - mean);});
 
-  return sqrt(accum / (numbers.size()-1));
+  return sqrt(accum / (numbers.size()));
 }
 
 const std::string convert_arc_to_string(const std::vector<int>& v)
@@ -92,7 +92,8 @@ bool are_same_distribution(std::uniform_real_distribution<double>lhs,
 }
 
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
-                            const std::function<double(std::vector<double>)> &rhs, int n_repeats)
+                            const std::function<double(std::vector<double>)> &rhs,
+                            int n_repeats)
 {
   std::vector<std::vector<double>> input_series;
 

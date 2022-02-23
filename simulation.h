@@ -226,7 +226,7 @@ public:
     int get_seed() const noexcept {return m_seed;}
 
     ///Returns a reference to the vector of individuals
-    const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
+    const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();}
 
     ///Returns the current inputs in the simulation
     const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -550,6 +550,8 @@ const std::vector<double> &get_nth_individual_input(const Sim &s, const int n);
 ///Updates the input with the current environmental indicator
 template<class Sim>
 void update_env_indicator(Sim &s);
+
+
 
 }
 
