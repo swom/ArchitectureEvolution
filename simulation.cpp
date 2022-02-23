@@ -215,7 +215,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         identity_env.env_function_A = identity;
         assert(are_same_env_functions(identity_env.env_function_A, identity));
 
-        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
+        auto potential_identity_net_param = net_param{{1,1}, identity, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto potental_identity_ind = ind_param{potential_identity_net_param};
         assert(!net_behaves_like_the_function(potential_identity_net, identity));
@@ -280,7 +280,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         env_param identity_env_par {};
         identity_env_par.env_function_A = identity;
 
-        auto potential_identity_net_param = net_param{{1,1}, linear, {1,1}};
+        auto potential_identity_net_param = net_param{{1,1}, identity, {1,1}};
         network potential_identity_net {potential_identity_net_param};
         auto identity_net = change_all_weights_values_and_activations(potential_identity_net, 1);
 

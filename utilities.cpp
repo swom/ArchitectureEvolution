@@ -87,7 +87,8 @@ bool are_same_distribution(std::uniform_real_distribution<double>lhs,
 }
 
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
-                            const std::function<double(std::vector<double>)> &rhs, int n_repeats)
+                            const std::function<double(std::vector<double>)> &rhs,
+                            int n_repeats)
 {
   std::vector<std::vector<double>> input_series;
 

@@ -44,3 +44,6 @@ simulation.pro.user
 #Saved files
 *.json
 *.csv
+
+#R stuff
+*.Rhistory
