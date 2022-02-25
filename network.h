@@ -218,13 +218,12 @@ private:
                                          size_t index_weight,
                                          reac_norm& rn,
                                          double original_weight,
-                                         std::normal_distribution<double>& mut_dist,
-                                         std::mt19937& rng,
+                                         double new_weight,
                                          const range& input_range,
                                          int n_inputs
                                          )
     {
-        node_it->change_nth_weight(original_weight +  mut_dist(rng), index_weight);
+        node_it->change_nth_weight(new_weight, index_weight);
         rn = calculate_reaction_norm(*this, input_range, n_inputs);
         node_it->change_nth_weight(original_weight, index_weight);
         return rn;
@@ -570,21 +569,20 @@ public:
                     auto original_weight = node_it->get_vec_weights()[index_weight];
                     for(int i = 0; i != n_mutations; i++)
                     {
-
+                        auto new_weight = original_weight + mut_dist(rng);
                         weight_spectrum[i] = calc_alternative_reac_norm(node_it,
                                                                         index_weight,
                                                                         rn,
                                                                         original_weight,
-                                                                        mut_dist,
-                                                                        rng,
+                                                                        new_weight,
                                                                         input_range,
                                                                         n_inputs);
 
+                        rn.clear();
+                        rn.reserve(n_inputs);
                     }
 
                     node_spectrum[index_weight] = weight_spectrum;
-                    rn.clear();
-                    rn.reserve(n_inputs);
                 }
                 auto index_node = std::distance(layer_it->begin(), node_it);
                 layer_spectrum[index_node] = node_spectrum;
