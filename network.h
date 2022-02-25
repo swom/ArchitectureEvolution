@@ -6,6 +6,7 @@
 #include "json.hpp"
 #include "node.h"
 #include "mutation_type.h"
+#include "netwrok_spectrum.h"
 
 double sigmoid(double x);
 double linear(double x);
@@ -210,6 +211,24 @@ void mutate_biases(Net& n, const double& mut_rate,
 template<mutation_type M = mutation_type::weights>
 class network
 {
+private:
+    ///Calculates the reaction norm fo the network after a mutation on a weight
+    //make a private function of net
+    reac_norm calc_alternative_reac_norm(std::vector<node>::iterator node_it,
+                                         size_t index_weight,
+                                         reac_norm& rn,
+                                         double original_weight,
+                                         std::normal_distribution<double>& mut_dist,
+                                         std::mt19937& rng,
+                                         const range& input_range,
+                                         int n_inputs
+                                         )
+    {
+        node_it->change_nth_weight(original_weight +  mut_dist(rng), index_weight);
+        rn = calculate_reaction_norm(*this, input_range, n_inputs);
+        node_it->change_nth_weight(original_weight, index_weight);
+        return rn;
+    }
 public:
     network(std::vector<int> nodes_per_layer,
             std::function<double(double)> activation_function = &linear);
@@ -240,6 +259,7 @@ public:
                 }
                 temp_layer_vector.push_back(temp_node);
             }
+
 
             //A vector of the size of the number of connections is pushed back in the weight matrix
             m_network_weights.push_back(temp_layer_vector);
@@ -520,6 +540,61 @@ public:
 
     void change_network_arc(std::vector<int> new_arc);
 
+
+    //make a public function of net
+    net_weight_mut_spectrum calc_spectrum_weights_for_weights_mutation(double mut_step,
+                                                                       std::mt19937_64& rng,
+                                                                       int n_mutations,
+                                                                       int n_inputs,
+                                                                       range input_range)
+
+    {
+        auto mutable_net = *this;
+        std::normal_distribution<double> mut_dist(0, mut_step);
+
+        net_weight_mut_spectrum network_weights_spectrum(mutable_net.get_net_weights().size());
+        layer_weight_mut_spectrum layer_spectrum;
+        node_weight_mut_spectrum node_spectrum;
+        weight_mut_spectrum weight_spectrum(n_mutations);
+        reac_norm rn;
+        rn.reserve(n_inputs);
+
+        for(auto layer_it = mutable_net.get_net_weights().begin(); layer_it != mutable_net.get_net_weights().end(); layer_it++)
+        {
+            layer_spectrum.resize(layer_it->size());
+            for(auto node_it = layer_it->begin(); node_it != layer_it->end(); node_it++)
+            {
+                node_spectrum.resize(node_it->get_vec_weights().size());
+                for(auto index_weight = 0; index_weight != node_it->get_vec_weights().size(); index_weight++)
+                {
+                    auto original_weight = node_it->get_vec_weights()[index_weight];
+                    for(int i = 0; i != n_mutations; i++)
+                    {
+
+                        weight_spectrum[i] = calc_alternative_reac_norm(node_it,
+                                                                        index_weight,
+                                                                        rn,
+                                                                        original_weight,
+                                                                        mut_dist,
+                                                                        rng,
+                                                                        input_range,
+                                                                        n_inputs);
+
+                    }
+
+                    node_spectrum[index_weight] = weight_spectrum;
+                    rn.clear();
+                    rn.reserve(n_inputs);
+                }
+                auto index_node = std::distance(layer_it->begin(), node_it);
+                layer_spectrum[index_node] = node_spectrum;
+            }
+            auto index_layer = std::distance( mutable_net.get_net_weights().begin(), layer_it);
+            network_weights_spectrum[index_layer] = layer_spectrum;
+        }
+        return network_weights_spectrum;
+    }
+
 private:
 
     ///Vector of of vectors, representing the weights coming into each node
@@ -536,6 +611,7 @@ private:
 
     ///The maximum architecture
     std::vector<int> m_max_arc;
+
 
     inline bool net_arc_and_max_arc_are_compatible(const std::vector<int> &net_arc, const std::vector<int> &max_arc)
     {
@@ -732,10 +808,10 @@ std::vector<double> output(const Net& n, std::vector<double> input)
                 }
 
                 node_value = current_node.get_bias() +
-                    std::inner_product(input.begin(),
-                                       input.end(),
-                                       w.begin(),
-                                       0.0);
+                        std::inner_product(input.begin(),
+                                           input.end(),
+                                           w.begin(),
+                                           0.0);
             }
 
             output.at(node) = n(node_value);
@@ -903,6 +979,24 @@ inline double max_weight_in_layer(const Net &n, size_t layer){
         }
     }
     return *std::max_element(weights.begin(), weights.end());
+}
+
+
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Net>
+reac_norm calculate_reaction_norm(const Net& net,
+                                  const range& cue_range,
+                                  const int& n_data_points)
+{
+    reac_norm r_norm;
+    r_norm.reserve(n_data_points);
+    double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+    for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    {
+        r_norm.insert({i, output(net, std::vector<double>{i}).at(0)});
+    }
+    return r_norm;
 }
 
 void test_network();

@@ -1,7 +1,7 @@
 #ifndef INDIVIDUAL_H
 #define INDIVIDUAL_H
 
-#include "netwrok_spectrum.h"
+#include "network.h"
 
 static std::map<std::string, mutation_type> string_to_mut_type_map
 {
