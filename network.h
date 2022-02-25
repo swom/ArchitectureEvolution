@@ -520,11 +520,6 @@ public:
 
     void change_network_arc(std::vector<int> new_arc);
 
-    //    std::vector<node>::iterator get_empty_node_in_layer(size_t l);
-
-    //    void duplicate_node(const node &to_duplicate, size_t layer, size_t index_to_duplicate,
-    //                        const std::vector<node>::iterator &empty_node_iterator);
-
 private:
 
     ///Vector of of vectors, representing the weights coming into each node
