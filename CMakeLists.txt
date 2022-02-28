@@ -1,9 +1,5 @@
 cmake_minimum_required (VERSION 3.8)
 
-project("arc_evo" C CXX)
-set(CMAKE_CXX_STANDARD 20)
-
-
 # Integrate our local vcpkg install into CMake
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 if (WIN32)
@@ -11,7 +7,9 @@ if (WIN32)
     set(VCPKG_TARGET_TRIPLET x64-windows)
 endif()
 
-project("myproject" CXX)
+project("arc_evo" C CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Let CMake make the call
 # $> git submodule update --init --remote --recursive
@@ -27,16 +25,13 @@ if (NOT GIT_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "git submodule update --init --remote --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
 endif()
 
-
-find_package(nlohmann_json CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)
-
+find_package(nlohmann_json CONFIG REQUIRED)
 
 if(UNIX)
 set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(MINGW)
   add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
