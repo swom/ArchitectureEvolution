@@ -212,20 +212,24 @@ template<mutation_type M = mutation_type::weights>
 class network
 {
 private:
+
     ///Calculates the reaction norm fo the network after a mutation on a weight
     //make a private function of net
-    reac_norm calc_alternative_reac_norm(std::vector<node>::iterator node_it,
+    reac_norm calc_alternative_reac_norm(node& node,
+                                         reac_norm rn,
                                          size_t index_weight,
-                                         reac_norm& rn,
                                          double original_weight,
                                          double new_weight,
                                          const range& input_range,
                                          int n_inputs
                                          )
     {
-        node_it->change_nth_weight(new_weight, index_weight);
+        node.change_nth_weight(new_weight, index_weight);
+
         rn = calculate_reaction_norm(*this, input_range, n_inputs);
-        node_it->change_nth_weight(original_weight, index_weight);
+
+        node.change_nth_weight(original_weight, index_weight);
+
         return rn;
     }
 public:
@@ -544,8 +548,9 @@ public:
     net_weight_mut_spectrum calc_spectrum_weights_for_weights_mutation(double mut_step,
                                                                        std::mt19937_64& rng,
                                                                        int n_mutations,
-                                                                       int n_inputs,
-                                                                       range input_range)
+                                                                       range input_range,
+                                                                       int n_inputs
+                                                                       )
 
     {
         auto mutable_net = *this;
@@ -564,22 +569,20 @@ public:
             for(auto node_it = layer_it->begin(); node_it != layer_it->end(); node_it++)
             {
                 node_spectrum.resize(node_it->get_vec_weights().size());
-                for(auto index_weight = 0; index_weight != node_it->get_vec_weights().size(); index_weight++)
+                for(size_t index_weight = 0; index_weight != node_it->get_vec_weights().size(); index_weight++)
                 {
-                    auto original_weight = node_it->get_vec_weights()[index_weight];
+                    auto original_weight = node_it->get_vec_weights()[index_weight].get_weight();
                     for(int i = 0; i != n_mutations; i++)
                     {
                         auto new_weight = original_weight + mut_dist(rng);
-                        weight_spectrum[i] = calc_alternative_reac_norm(node_it,
-                                                                        index_weight,
+                        weight_spectrum[i] = calc_alternative_reac_norm(*node_it,
                                                                         rn,
+                                                                        index_weight,
                                                                         original_weight,
                                                                         new_weight,
                                                                         input_range,
                                                                         n_inputs);
 
-                        rn.clear();
-                        rn.reserve(n_inputs);
                     }
 
                     node_spectrum[index_weight] = weight_spectrum;

@@ -17,6 +17,7 @@ private:
     using Pop = typename Sim::pop_t;
     using Ind = typename Pop::ind_t;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
+    std::vector<std::vector<network_spectrum>> m_top_spectrums;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
@@ -66,7 +67,8 @@ public:
     {
         m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
                                                       s.get_env_cue_range(),
-                                                      1000
+                                                      1000,
+                                                      s.get_time()
                                                       )
                              );
     }
@@ -77,9 +79,22 @@ public:
         m_top_inds.push_back(calculate_reaction_norms(
                                  sim::get_best_n_inds(s, proportion),
                                  s.get_env_cue_range(),
-                                 1000
+                                 1000,
+                                 s.get_time()
                                  )
                              );
+    }
+
+    ///Stores the network spectrum of the top n best individuals
+    void store_network_spectrum_n_best(Sim& s)
+    {
+        std::vector<network_spectrum> spectrums = calculate_mut_spectrums(sim::get_best_n_inds(s, m_top_proportion),
+                                                              s.get_mut_step(),
+                                                              s.get_rng(),
+                                                              10000,
+                                                              s.get_env_cue_range(),
+                                                              1000);
+        m_top_spectrums.push_back(spectrums);
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -130,6 +145,10 @@ void exec(Sim& s , observer<Sim>& o)
         {
             o.store_top_n_inds(s);
         }
+        if(i % 1000 == 0)
+        {
+            o.store_network_spectrum_n_best(s);
+        }
 
         sim::tick(s);
     }
@@ -139,17 +158,17 @@ template<class Sim>
 std::string create_save_name_from_observer_data(const observer<Sim>& o)
 {
 
-        return "mut_type_" + convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-                "_start_arc" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-                "_act_r" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
-                "_dup_r" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
-                "_ch_A" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
-                "_ch_B" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
-                "_ch_type" + convert_change_type_to_string(o.get_params().s_p.change_type) +
-                "_sel_str" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
-                "_max_arc" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-                "_sel_type" + convert_selection_type_to_string(o.get_params().s_p.sel_type) +
-                "_" + std::to_string(o.get_params().s_p.seed) + ".json";
+    return "mut_type_" + convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
+            "_start_arc" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
+            "_act_r" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
+            "_dup_r" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
+            "_ch_A" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
+            "_ch_B" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
+            "_ch_type" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+            "_sel_str" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
+            "_max_arc" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
+            "_sel_type" + convert_selection_type_to_string(o.get_params().s_p.sel_type) +
+            "_" + std::to_string(o.get_params().s_p.seed) + ".json";
 
 }
 

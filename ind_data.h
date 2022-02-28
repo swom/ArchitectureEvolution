@@ -9,9 +9,11 @@ struct Ind_Data
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Data,
                                    m_ind,
-                                   m_reac_norm)
+                                   m_reac_norm,
+                                   generation)
     Ind m_ind;
     reac_norm m_reac_norm;
+    int generation;
 };
 
 template<class Ind>
@@ -35,21 +37,22 @@ struct Ind_Spectrum
     network_spectrum net_spectrum;
 };
 
-///Calculates the reaction_norm of an individual's network
+///Calculates the reaction_norm of individuals' networks
 /// for a given range and a given number of data points
 template<class Ind>
 std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds,
                                                      const range& cue_range,
-                                                     const int& n_data_points)
+                                                     const int& n_data_points,
+                                                    const int& generation)
 {
 
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
     for(const auto& ind : inds)
     {
-        auto r_norm =calculate_reaction_norm(ind.get_net(),
+        auto r_norm = calculate_reaction_norm(ind.get_net(),
                                              cue_range,
                                              n_data_points);
-        inds_data.push_back({ind, r_norm});
+        inds_data.push_back({ind, r_norm, generation});
     }
     return inds_data;
 }

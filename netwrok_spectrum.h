@@ -1,5 +1,8 @@
 #ifndef NETWROK_SPECTRUM_H
 #define NETWROK_SPECTRUM_H
+#include <json.hpp>
+#include<random>
+
 #include "range.h"
 
 using reac_norm = std::unordered_map<double,double>;
@@ -28,6 +31,16 @@ struct network_spectrum
 {
 public:
     network_spectrum();
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(network_spectrum,
+                                       m_net_spectrum_weights_for_weights_mutation,
+                                       m_net_spectrum_biases_for_weights_mutation,
+                                       m_net_spectrum_for_act_mutation,
+                                       m_net_spectrum_for_dup,
+                                       m_net_spectrum_for_nradd,
+                                       m_net_spectrum_for_del
+                                       )
+
     ///Reaction norm spectrum for each WEIGHT when WEIGHT MUTATION
     net_weight_mut_spectrum m_net_spectrum_weights_for_weights_mutation;
     ///Reaction norm spectrum for each BIAS when WEIGHT MUTATION
