@@ -49,21 +49,21 @@ public:
                                    m_network);
 
     ///Calculates the mutational spectrum of the individual's network
-    network_spectrum calc_spectrum(double mut_step,
-                                   std::mt19937_64& rng,
-                                   int n_mutations,
-                                   const range& cue_range,
-                                   const int& n_data_points
-                                   )
+    network_spectrum<Net> calc_spectrum(double mut_step,
+                                        std::mt19937_64& rng,
+                                        int n_mutations,
+                                        const range& cue_range,
+                                        const int& n_data_points
+                                        )
     {
-        network_spectrum ns;
-        ns.m_net_spectrum_weights_for_weights_mutation = m_network.calc_spectrum_weights_for_weights_mutation(mut_step,
-                                                                                                              rng,
-                                                                                                              n_mutations,
-                                                                                                              cue_range,
-                                                                                                              n_data_points
-                                                                                                              );
-        return ns;
+
+        return network_spectrum<Net> (m_network,
+                                      mut_step,
+                                      rng,
+                                      n_mutations,
+                                      cue_range,
+                                      n_data_points
+                                      );
     }
     ///Changes the network of an individual with another network
     void change_net(const Net& n)
@@ -149,31 +149,6 @@ double calc_sqr_distance(const Ind &i,
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
-}
-
-///Calculates the reaction_norm of individuals' networks
-/// for a given range and a given number of data points
-template<class Ind>
-std::vector<network_spectrum> calculate_mut_spectrums(std::vector<Ind> inds,
-                                                      double mut_step,
-                                                      std::mt19937_64& rng,
-                                                      int n_mutations,
-                                                      const range& cue_range,
-                                                      const int& n_data_points)
-{
-
-    std::vector<network_spectrum> spect_vector(inds.size());
-    for(auto& ind : inds)
-    {
-        auto net_spect = ind.calc_spectrum(mut_step,
-                                           rng,
-                                           n_mutations,
-                                           cue_range,
-                                           n_data_points
-                                           );
-        spect_vector.push_back(net_spect);
-    }
-    return spect_vector;
 }
 
 void test_individual();

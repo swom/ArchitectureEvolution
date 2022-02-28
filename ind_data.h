@@ -2,7 +2,7 @@
 #define IND_DATA_H
 #include <vector>
 #include <json.hpp>
-#include "netwrok_spectrum.h"
+#include "individual.h"
 
 template<class Ind>
 struct Ind_Data
@@ -29,12 +29,14 @@ bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
 template<class Ind>
 struct Ind_Spectrum
 {
+    using Net = typename Ind::net_t;
+    using Net_Spect = network_spectrum<Net>;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Spectrum,
                                    m_ind,
                                    reac_norm)
     Ind m_ind;
     reac_norm reac_norm;
-    network_spectrum net_spectrum;
+    Net_Spect net_spectrum;
 };
 
 ///Calculates the reaction_norm of individuals' networks
@@ -57,4 +59,28 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
     return inds_data;
 }
 
+///Calculates the reaction_norm of individuals' networks
+/// for a given range and a given number of data points
+template<class Ind>
+std::vector<network_spectrum<typename Ind::net_t>> calculate_mut_spectrums(std::vector<Ind> inds,
+                                                                           double mut_step,
+                                                                           std::mt19937_64& rng,
+                                                                           int n_mutations,
+                                                                           const range& cue_range,
+                                                                           const int& n_data_points)
+{
+
+    std::vector<network_spectrum<typename Ind::net_t>> spect_vector(inds.size());
+    for(auto ind = inds.begin(); ind != inds.end(); ind++)
+    {
+
+        spect_vector.at(std::distance(inds.begin(), ind)) = ind->calc_spectrum(mut_step,
+                                                                              rng,
+                                                                              n_mutations,
+                                                                              cue_range,
+                                                                              n_data_points
+                                                                              );
+    }
+    return spect_vector;
+}
 #endif // IND_DATA_H

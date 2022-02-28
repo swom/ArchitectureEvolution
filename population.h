@@ -1,7 +1,7 @@
 #ifndef POPULATION_H
 #define POPULATION_H
 
-#include "individual.h"
+#include "ind_data.h"
 #include "rndutils.hpp"
 #include <vector>
 

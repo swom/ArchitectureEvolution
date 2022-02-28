@@ -27,10 +27,25 @@ using net_act_mut_spectrum = std::vector<layer_act_mut_spectrum>;
 using layer_mut_spectrum = std::vector<reac_norm>;
 using net_node_level_mutation_mut_spectrum = std::vector<layer_mut_spectrum>;
 
-struct network_spectrum
+template<class Network>
+class network_spectrum
 {
 public:
-    network_spectrum();
+    network_spectrum(){};
+    network_spectrum(Network& net,
+                     double mut_step,
+                     std::mt19937_64 rng,
+                     int n_mutations,
+                     range input_range,
+                     int input_number):
+        m_current_reac_norm{calculate_reaction_norm(net, input_range, input_number)},
+        m_net_spectrum_weights_for_weights_mutation{net.calc_spectrum_weights_for_weights_mutation( mut_step,
+                                                                                                rng,
+                                                                                                n_mutations,
+                                                                                                input_range,
+                                                                                                input_number
+                                                                                                )}
+    {};
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(network_spectrum,
                                        m_net_spectrum_weights_for_weights_mutation,
@@ -40,7 +55,10 @@ public:
                                        m_net_spectrum_for_nradd,
                                        m_net_spectrum_for_del
                                        )
+    private :
 
+        ///The current reaction norm without any mutations
+        reac_norm m_current_reac_norm;
     ///Reaction norm spectrum for each WEIGHT when WEIGHT MUTATION
     net_weight_mut_spectrum m_net_spectrum_weights_for_weights_mutation;
     ///Reaction norm spectrum for each BIAS when WEIGHT MUTATION

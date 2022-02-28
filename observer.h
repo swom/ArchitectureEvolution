@@ -1,6 +1,5 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
-#include"ind_data.h"
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
@@ -8,16 +7,19 @@
 template<class Sim = simulation<>>
 class observer
 {
+    using Pop = typename Sim::pop_t;
+    using Ind = typename Pop::ind_t;
+    using Net = typename Ind::net_t;
+    using Net_Spect = network_spectrum<Net>;
+
 private:
 
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     int m_top_proportion;
-    using Pop = typename Sim::pop_t;
-    using Ind = typename Pop::ind_t;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
-    std::vector<std::vector<network_spectrum>> m_top_spectrums;
+    std::vector<std::vector<Net_Spect>> m_top_spectrums;
     all_params m_params = {};
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
@@ -67,7 +69,7 @@ public:
     {
         m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
                                                       s.get_env_cue_range(),
-                                                      1000,
+                                                      100,
                                                       s.get_time()
                                                       )
                              );
@@ -79,7 +81,7 @@ public:
         m_top_inds.push_back(calculate_reaction_norms(
                                  sim::get_best_n_inds(s, proportion),
                                  s.get_env_cue_range(),
-                                 1000,
+                                 100,
                                  s.get_time()
                                  )
                              );
@@ -88,13 +90,15 @@ public:
     ///Stores the network spectrum of the top n best individuals
     void store_network_spectrum_n_best(Sim& s)
     {
-        std::vector<network_spectrum> spectrums = calculate_mut_spectrums(sim::get_best_n_inds(s, m_top_proportion),
+
+        m_top_spectrums.emplace_back(std::vector<Net_Spect>{});
+        std::vector<Net_Spect> spectrums = calculate_mut_spectrums(sim::get_best_n_inds(s, m_top_proportion),
                                                               s.get_mut_step(),
                                                               s.get_rng(),
-                                                              10000,
+                                                              1000,
                                                               s.get_env_cue_range(),
-                                                              1000);
-        m_top_spectrums.push_back(spectrums);
+                                                              100);
+        m_top_spectrums.back() = spectrums;
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -128,29 +132,31 @@ void exec(Sim& s , observer<Sim>& o)
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;
 
-    for (int i = 0; i < s.get_n_gen(); i++)
+    while(s.get_time() !=  s.get_n_gen())
     {
+        sim::tick(s);
+
         o.store_env_func(s);
         o.store_var_fit(s);
         o.store_input(s);
         o.store_optimal(s);
         o.store_avg_fit(s);
 
-        if(i % 1000 == 0)
-        {
-            auto lap_ms = my_watch.lap<sw::ms>();
-            std::cout << "Cycle " << i << " --Lap time in ms: " << lap_ms << std::endl;
-        }
-        if(i % 1000 == 0)
+
+        if(s.get_time() % 1000 == 0)
         {
             o.store_top_n_inds(s);
         }
-        if(i % 1000 == 0)
+        if(s.get_time() % 1 == 0)
         {
             o.store_network_spectrum_n_best(s);
         }
+        if(s.get_time() % 1 == 0)
+        {
+            auto lap_ms = my_watch.lap<sw::ms>();
+            std::cout << "Cycle " << s.get_time() << " --Lap time in ms: " << lap_ms << std::endl;
+        }
 
-        sim::tick(s);
     }
 }
 

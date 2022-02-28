@@ -215,7 +215,7 @@ private:
 
     ///Calculates the reaction norm fo the network after a mutation on a weight
     //make a private function of net
-    reac_norm calc_alternative_reac_norm(node& node,
+    reac_norm calc_alternative_reac_norm(std::vector<node>::iterator node,
                                          reac_norm rn,
                                          size_t index_weight,
                                          double original_weight,
@@ -224,11 +224,11 @@ private:
                                          int n_inputs
                                          )
     {
-        node.change_nth_weight(new_weight, index_weight);
+        node->change_nth_weight(new_weight, index_weight);
 
         rn = calculate_reaction_norm(*this, input_range, n_inputs);
 
-        node.change_nth_weight(original_weight, index_weight);
+        node->change_nth_weight(original_weight, index_weight);
 
         return rn;
     }
@@ -575,7 +575,7 @@ public:
                     for(int i = 0; i != n_mutations; i++)
                     {
                         auto new_weight = original_weight + mut_dist(rng);
-                        weight_spectrum[i] = calc_alternative_reac_norm(*node_it,
+                        weight_spectrum[i] = calc_alternative_reac_norm(node_it,
                                                                         rn,
                                                                         index_weight,
                                                                         original_weight,
