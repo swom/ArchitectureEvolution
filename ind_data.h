@@ -33,9 +33,9 @@ struct Ind_Spectrum
     using Net_Spect = network_spectrum<Net>;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Spectrum,
                                    m_ind,
-                                   reac_norm)
+                                   reaction_norm)
     Ind m_ind;
-    reac_norm reac_norm;
+    reac_norm reaction_norm;
     Net_Spect net_spectrum;
 };
 
