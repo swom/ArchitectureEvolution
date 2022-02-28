@@ -42,5 +42,5 @@ build/
 simulation.pro.user
 
 #Saved files
-*.json
+./*/*.json
 *.csv
