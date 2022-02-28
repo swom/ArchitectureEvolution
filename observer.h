@@ -98,7 +98,7 @@ public:
                                                               1000,
                                                               s.get_env_cue_range(),
                                                               100);
-        m_top_spectrums.back() = spectrums;
+         spectrums.swap(m_top_spectrums.back());
     }
 
     const all_params& get_params() const noexcept {return m_params;};
