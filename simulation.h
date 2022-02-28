@@ -328,6 +328,7 @@ public:
             }
             else
             {
+                calc_fitness();
                 reproduce_randomly();
             }
         }
