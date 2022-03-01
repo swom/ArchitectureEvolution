@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 # Integrate our local vcpkg install into CMake
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -7,9 +7,7 @@ if (WIN32)
     set(VCPKG_TARGET_TRIPLET x64-windows)
 endif()
 
-project("arc_evo" C CXX)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+project("arc_evo" CXX)
 
 # Let CMake make the call
 # $> git submodule update --init --remote --recursive
@@ -25,30 +23,6 @@ if (NOT GIT_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "git submodule update --init --remote --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
 endif()
 
-find_package(TBB CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
+# go on as normal
+add_subdirectory("src")
 
-if(UNIX)
-set(CMAKE_BUILD_TYPE "Release")
-endif()
-
-
-if(MINGW)
-  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)
-  add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
- # add_compile_options(-Weffc++)
-endif()
-
-file(GLOB src
-     "${PROJECT_SOURCE_DIR}/*.cpp"
-     "${PROJECT_SOURCE_DIR}/*.h"
-     "${PROJECT_SOURCE_DIR}/*.hpp"
-)
-
-add_executable("arc_evo" ${src})
-
-
-target_link_libraries(hello_vcpkg PUBLIC
-    TBB::tbb
-    nlohmann_json::nlohmann_json
-)
