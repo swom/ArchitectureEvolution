@@ -13,17 +13,23 @@ jobs:
       #- name: Install Codecov
       #  run: sudo pip install codecov
 
+      - name: where are we?
+        run: pwd   
+        
+      - name: what is in here?
+        run: ls
+      
       - name: create build directory
-        run: mkdir build
+        run: mkdir ./ArchitectureEvolution/build
         
       - name: enter build directory
-        run: cd build   
+        run: cd ./ArchitectureEvolution/build   
         
       - name: cmake          
         env:
           CC: gcc
           CXX: gcc
-        run: cmake ../ArchitectureEvolution/ 
+        run: cmake .. 
 
       - name: build with cmake
         env:
