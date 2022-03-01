@@ -14,9 +14,9 @@ if(MINGW)
 endif()
 
 file(GLOB src
-     "${PROJECT_SOURCE_DIR}/*.cpp"
-     "${PROJECT_SOURCE_DIR}/*.h"
-     "${PROJECT_SOURCE_DIR}/*.hpp"
+     "${PROJECT_SOURCE_DIR}/src/*.cpp"
+     "${PROJECT_SOURCE_DIR}/src/*.h"
+     "${PROJECT_SOURCE_DIR}/src/*.hpp"
 )
 
 add_executable(arc_evo ${src})

@@ -1,7 +1,7 @@
 #ifndef IND_DATA_H
 #define IND_DATA_H
 #include <vector>
-#include <json.hpp>
+#include "json.hpp"
 template<class Ind>
 struct Ind_Data
 {

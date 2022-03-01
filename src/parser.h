@@ -5,7 +5,7 @@
 #include "observer.h"
 
 //Version 2.1 of https://github.com/jarro2783/cxxopts
-#include <cxxopts.hpp>
+#include "cxxopts.hpp"
 
 std::vector<int> arch_str_to_arch_vec(std::string net_arc);
 
