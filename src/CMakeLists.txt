@@ -3,10 +3,6 @@ find_package(TBB CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 
-if(UNIX)
-set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 
 if(MINGW)
   add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)

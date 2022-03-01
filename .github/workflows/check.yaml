@@ -10,17 +10,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-
       - name: Install Codecov
         run: sudo pip install codecov
 
-      - name: qmake
-        run: qmake arc_evo.pro
+      - name: create build directory
+        run: mkdir build
+        
+      - name: enter build directory
+        run: cd build  
+        
+      - name: cmake
+        run: cmake .. 
 
-      - name: make
-        run: make debug --silent
+      - name: build with cmake
+        run: cmake --build .
 
       - name: run
         run: ./arc_evo --test
