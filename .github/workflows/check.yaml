@@ -23,7 +23,8 @@ jobs:
         run: mkdir ./build
         
       - name: enter build directory
-        run: cd ./build   
+        run: cd ./build/  
+        
       - name: where are we?
         run: pwd   
         
