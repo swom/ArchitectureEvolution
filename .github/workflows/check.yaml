@@ -20,7 +20,7 @@ jobs:
         run: cd build   
         
       - name: list above build directory
-        run: ls ..  
+        run: ls -r ..  
         
       - name: cmake
         run: cmake ..
