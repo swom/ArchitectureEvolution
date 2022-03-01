@@ -10,8 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Codecov
-        run: sudo pip install codecov
+      #- name: Install Codecov
+      #  run: sudo pip install codecov
 
       - name: create build directory
         run: mkdir build
