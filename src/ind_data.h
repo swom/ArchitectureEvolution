@@ -1,7 +1,8 @@
 #ifndef IND_DATA_H
 #define IND_DATA_H
 #include <vector>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
+
 template<class Ind>
 struct Ind_Data
 {

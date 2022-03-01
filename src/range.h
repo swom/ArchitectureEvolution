@@ -1,7 +1,8 @@
 #ifndef RANGE_H
 #define RANGE_H
 #include <vector>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
+
 
 struct range
 {

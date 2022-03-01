@@ -1,6 +1,7 @@
 
 find_package(TBB CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(cxxopts CONFIG REQUIRED)
 
 if(UNIX)
 set(CMAKE_BUILD_TYPE "Release")
@@ -26,4 +27,5 @@ set_target_properties(arc_evo PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(arc_evo PUBLIC
     TBB::tbb
     nlohmann_json::nlohmann_json
+    cxxopts::cxxopts
 )
