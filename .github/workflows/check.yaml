@@ -20,7 +20,7 @@ jobs:
         run: cd build  
         
       - name: cmake
-        run: cmake .. 
+        run: cmake ../ 
 
       - name: build with cmake
         run: cmake --build .
