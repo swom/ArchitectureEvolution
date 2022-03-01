@@ -7,7 +7,8 @@ if (WIN32)
     set(VCPKG_TARGET_TRIPLET x64-windows)
 endif()
 
-project("arc_evo" CXX)
+project(arc_evo C CXX)
+set(CMAKE_CXX_STANDARD 20)
 
 # Let CMake make the call
 # $> git submodule update --init --remote --recursive
@@ -23,6 +24,7 @@ if (NOT GIT_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "git submodule update --init --remote --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
 endif()
 
+
 # go on as normal
-add_subdirectory("src")
+add_subdirectory(src)
 
