@@ -17,10 +17,13 @@ jobs:
         run: mkdir build
         
       - name: enter build directory
-        run: cd build  
+        run: cd build   
+        
+      - name: list above build directory
+        run: ls ..  
         
       - name: cmake
-        run: cmake ../ 
+        run: cmake ..
 
       - name: build with cmake
         run: cmake --build .
