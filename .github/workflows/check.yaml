@@ -20,7 +20,7 @@ jobs:
         run: cd build   
         
       - name: list above build directory
-        run: ls -r ..  
+        run: ls -r ../ArchitectureEvolution/  
         
       - name: cmake
         run: cmake ..
