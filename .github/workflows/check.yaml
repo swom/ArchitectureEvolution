@@ -1,9 +1,6 @@
 on:
   push:
   pull_request:
-
-  - name: run-cmake
-  uses: lukka/run-cmake@v1
   
 name: check
 
@@ -13,7 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
     
-0.0
 
       #- name: Install Codecov
       #  run: sudo pip install codecov
