@@ -19,10 +19,16 @@ jobs:
       - name: enter build directory
         run: cd build   
         
-      - name: cmake
+      - name: cmake          
+        env:
+          CC: gcc
+          CXX: gcc
         run: cmake ../ArchitectureEvolution/ 
 
       - name: build with cmake
+        env:
+          CC: gcc
+          CXX: gcc
         run: cmake --build .
 
       - name: run
