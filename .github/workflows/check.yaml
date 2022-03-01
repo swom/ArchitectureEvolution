@@ -20,35 +20,19 @@ jobs:
         run: ls
       
       - name: create build directory
+        env:
+          CC: gcc
+          CXX: gcc
         run: | 
               pwd
               mkdir build
               cd build
               pwd
-        
-      - name: where are we?
-        run: pwd   
-        
-      - name: what is in here?
-        run: ls   
-        
-      - name: what is up there?
-        run: ls ..
-        
-      - name: cmake          
-        env:
-          CC: gcc
-          CXX: gcc
-        run: cmake .. 
-
-      - name: build with cmake
-        env:
-          CC: gcc
-          CXX: gcc
-        run: cmake --build .
+              cmake .. 
+              cmake --build .
 
       - name: run
-        run: ./arc_evo --test
+        run: ./build/arc_evo --test
 
      
       #- name: Measure codecov 1
