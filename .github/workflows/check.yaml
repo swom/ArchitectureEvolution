@@ -20,10 +20,11 @@ jobs:
         run: ls
       
       - name: create build directory
-        run: mkdir build
-        
-      - name: enter build directory
-        run: cd build/  
+        run: | 
+              pwd
+              mkdir build
+              cd build
+              pwd
         
       - name: where are we?
         run: pwd   
