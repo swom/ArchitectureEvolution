@@ -24,6 +24,14 @@ jobs:
         
       - name: enter build directory
         run: cd ./build   
+      - name: where are we?
+        run: pwd   
+        
+      - name: what is in here?
+        run: ls   
+        
+      - name: what is up there?
+        run: ls ..
         
       - name: cmake          
         env:
