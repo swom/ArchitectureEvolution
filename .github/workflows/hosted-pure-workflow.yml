@@ -76,8 +76,8 @@ jobs:
         run: |
           cmake --build --preset ninja-multi-vcpkg-debug
           
-      - name: what is in here
-        run : ls
+      - name: what is in builds
+        run : ls builds
         
       # Test the whole project with CTest.
       - name: Test (Debug)
