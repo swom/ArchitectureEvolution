@@ -1,7 +1,7 @@
 on:
   push:
   pull_request:
-
+  
 name: check
 
 jobs:
@@ -9,24 +9,31 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
+    
 
       #- name: Install Codecov
       #  run: sudo pip install codecov
 
+      - name: where are we?
+        run: pwd   
+        
+      - name: what is in here?
+        run: ls
+      
       - name: create build directory
-        run: mkdir build
-        
-      - name: enter build directory
-        run: cd build   
-        
-      - name: cmake
-        run: cmake ../ArchitectureEvolution/ 
-
-      - name: build with cmake
-        run: cmake --build .
+        env:
+          CC: gcc
+          CXX: gcc
+        run: | 
+              pwd
+              mkdir build
+              cd build
+              pwd
+              cmake .. 
+              cmake --build .
 
       - name: run
-        run: ./arc_evo --test
+        run: ./build/arc_evo --test
 
      
       #- name: Measure codecov 1
