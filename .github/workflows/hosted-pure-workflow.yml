@@ -76,10 +76,8 @@ jobs:
         run: |
           cmake --build --preset ninja-multi-vcpkg-debug
           
-      - name: what is in builds
-        run : |
-              ls builds
-              ninja-multi-vcpkg --test
+      - name: where is the executable?
+        run : find . -type f -executable -printt
               
         
       # Test the whole project with CTest.
