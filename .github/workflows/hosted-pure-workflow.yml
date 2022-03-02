@@ -75,6 +75,7 @@ jobs:
       - name: Build (Debug)
         run: |
           cmake --build --preset ninja-multi-vcpkg-debug
+          arc_evo --test
 
       # Test the whole project with CTest.
       - name: Test (Debug)
