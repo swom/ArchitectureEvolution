@@ -161,7 +161,10 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
         m_current_arc = new_arc;
     }
-    else throw std::invalid_argument{"The current and maximum architectures are not compatible"};
+    else
+    {
+        throw std::invalid_argument{"The current and maximum architectures are not compatible"};
+    }
 }
 
 

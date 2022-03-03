@@ -29,7 +29,7 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results);
 void run_simulation_given_env_change_type(const cxxopts::ParseResult& results);
 
 ///Given parameters, creates a simulation
-template<class Pop, env_change_type E, selection_type S>
+template<class Pop, env_change_symmetry_type E, selection_type S>
 simulation<Pop, E, S> create_simulation(const cxxopts::ParseResult& parameters)
 {
   auto env = convert_env_args(parameters);

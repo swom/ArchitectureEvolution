@@ -28,7 +28,8 @@ struct sim_param
               double sel_strength = 1,
               int generations = 100,
               int selection_frequency = 1,
-              env_change_type env_change_type = env_change_type::symmetrical,
+              env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
+              env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant):
         seed{seed_n},
         change_freq_A{change_frequency_A},
@@ -36,7 +37,8 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        change_type{env_change_type},
+        change_sym_type{env_change_symmetry_type},
+        change_freq_type{env_change_freq_type},
         sel_type{selec_type}
     {}
 
@@ -46,7 +48,8 @@ struct sim_param
     double selection_strength;
     int n_generations;
     int selection_freq;
-    env_change_type change_type;
+    env_change_symmetry_type change_sym_type;
+    env_change_freq_type change_freq_type;
     selection_type sel_type;
 
 };
@@ -127,14 +130,16 @@ void assign_new_inputs(Sim &s)
 }
 
 template<class Pop = population<>,
-         enum env_change_type Env_change = env_change_type::symmetrical,
+         enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
+         enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant>
 class simulation
 {
 public:
 
     using pop_t = Pop;
-    using env_ch_t = env_change_type;
+    using env_ch_s_t = env_change_symmetry_type;
+    using env_ch_f_t = env_change_freq_type;
 
     simulation(int init_pop_size = 1,
                int seed = 0,
@@ -239,31 +244,33 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
-        if constexpr( Env_change == env_change_type::regular)
+        if constexpr( Env_change_freq == env_change_freq_type::regular)
         {
             return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
         }
-
-        if( m_environment.get_name_current_function() == 'A' )
+        else if( Env_change_freq == env_change_freq_type::stochastic)
         {
-            std::bernoulli_distribution distro = get_t_change_env_distr_A();
-            return distro (get_env_rng());
-        }
-        else if (m_environment.get_name_current_function() == 'B')
-        {
-            std::bernoulli_distribution distro;
-            if constexpr( Env_change == env_change_type::asymmetrical)
+            if( m_environment.get_name_current_function() == 'A' )
             {
-                distro = get_t_change_env_distr_B();
+                std::bernoulli_distribution distro = get_t_change_env_distr_A();
+                return distro (get_env_rng());
             }
-            else if(Env_change == env_change_type::symmetrical)
+            else if (m_environment.get_name_current_function() == 'B')
             {
-                distro = get_t_change_env_distr_A();
+                std::bernoulli_distribution distro;
+                if constexpr( Env_change_sym == env_change_symmetry_type::asymmetrical)
+                {
+                    distro = get_t_change_env_distr_B();
+                }
+                else if(Env_change_sym == env_change_symmetry_type::symmetrical)
+                {
+                    distro = get_t_change_env_distr_A();
+                }
+                return distro (get_env_rng());
             }
-            return distro (get_env_rng());
+            else
+                throw std::runtime_error{"invalid current function name"};
         }
-        else
-            throw std::runtime_error{"invalid current function name"};
     }
 
     ///Returns the function A of the environment
@@ -298,7 +305,7 @@ public:
     }
 
     ///Calculates fitness of inds in pop given current env values
-    const simulation<Pop, Env_change, Sel_Type>& calc_fitness()
+    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>& calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
 
