@@ -161,7 +161,7 @@ void network<M>::change_network_arc(std::vector<int> new_arc){
     if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
         m_current_arc = new_arc;
     }
-    else throw 1;
+    else throw std::invalid_argument{"The current and maximum architectures are not compatible"};
 }
 
 
@@ -440,7 +440,8 @@ void test_network() //!OCLINT
         try{
         n.change_network_arc(new_arc);
         }
-        catch(int exc){
+        catch(const std::invalid_argument& e){
+            std::cerr << e.what() << std::endl;
             exception_thrown = true;
           }
         assert(exception_thrown == false);
@@ -449,7 +450,8 @@ void test_network() //!OCLINT
         try{
         n.change_network_arc(invalid_new_arc);
         }
-        catch(int exc){
+        catch(const std::invalid_argument& e){
+            std::cerr << e.what() << std::endl;
             exception_thrown = true;
           }
         assert(exception_thrown == true);

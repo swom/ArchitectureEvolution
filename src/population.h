@@ -1,7 +1,7 @@
 #ifndef POPULATION_H
 #define POPULATION_H
 
-#include "individual.h"
+#include "ind_data.h"
 #include "rndutils.hpp"
 #include <vector>
 
@@ -344,7 +344,7 @@ void select_new_pop_randomly(population<Ind>& p,
                              std::mt19937_64& rng)
 {
     auto max_index_inds = p.get_inds().size() - 1;
-    std::uniform_int_distribution<> index_distr(0, max_index_inds);
+    std::uniform_int_distribution<> index_distr(0, int(max_index_inds));
     for( size_t i = 0; i != p.get_inds().size(); i++)
     {
         auto selected_ind_index = index_distr(rng);

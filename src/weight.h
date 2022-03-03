@@ -1,7 +1,7 @@
 #ifndef WEIGHT_H
 #define WEIGHT_H
-#include "json.hpp"
 #include <vector>
+#include <nlohmann/json.hpp>
 
 
 class weight

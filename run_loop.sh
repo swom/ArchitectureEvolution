@@ -24,7 +24,10 @@ echo "max_arc: " $3
 echo "change frequency: " $4
 echo "number of total generations: "$5
 echo "mutation type: "$6
-echo "duplication rate: "$7
-echo "activation rate: "$8
+echo "change type:  "$7
+echo "duplication rate: "$8
+echo "activation rate: "$9  
+echo "selection type: "${10}
+echo "selection frequency: "${11}
 
-./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9
+./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9 -s ${10} -f ${11}
