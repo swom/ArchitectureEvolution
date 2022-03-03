@@ -358,8 +358,8 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         //sim_par
         int seed = 10126789;
-        double change_freq_A = 123789;
-        double change_freq_B = 87654321;
+        double change_freq_A = 0.123789;
+        double change_freq_B = 0.87654321;
         double selection_strength = 0.321546;
         int n_generations = 123465;
 
@@ -805,20 +805,20 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         std::cout << "   test issue 261" << std::endl;
 
+        int repeats = 1000;
         sim_param s_p{};
         s_p.change_freq_A = 0.1;
-        s_p.change_freq_B = 0.01;
-        s_p.n_generations = 10000;
+        s_p.change_freq_B = 0.2;
+        s_p.n_generations = repeats;
         all_params a_p{{},{}, {}, s_p};
 
         simulation<population<>, env_change_type::regular> regular_sim{a_p};
-        int repeats = 1000000;
 
         auto current_function_name = get_name_current_function(regular_sim);
-        for(int i = 0; i != repeats; i++)
+        for(int i = 0; i !=  s_p.n_generations; i++)
         {
             tick(regular_sim);
-            if(std::fmod(regular_sim.get_time(), 1.0/s_p.change_freq_A)  == 0)
+            if(std::fmod(regular_sim.get_time(), 1.0/s_p.change_freq_A)  ==  0)
             {
                 assert(current_function_name != get_name_current_function(regular_sim));
                 current_function_name = get_name_current_function(regular_sim);
