@@ -82,7 +82,7 @@ void mut_dupl_node(Net& n,
         auto& current_layer = n.get_net_weights().at(layer);
 
         // to avoid chain duplications
-        for(size_t node = current_layer.size() - 1; node >= 0; node--)
+        for(int node = int(current_layer.size() - 1); node >= 0; node--)
         {
             const auto& current_node = current_layer.at(node);
 
@@ -114,7 +114,7 @@ void mut_add_node(Net& n,
             auto& current_layer = n.get_net_weights().at(layer);
 
             // to avoid chain duplications
-            for(size_t node = current_layer.size() - 1; node >= 0; node--)
+            for(int node = int(current_layer.size() - 1); node >= 0; node--)
             {
 
                 const auto& current_node = current_layer.at(node);
@@ -734,7 +734,7 @@ bool net_behaves_like_the_function(const Net &n,
     std::vector<double> n_output;
     std::vector<double> f_output;
 
-    for(size_t i = 0; i != n_repeats; ++i)
+    for(size_t i = 0; i != size_t(n_repeats); ++i)
     {
         std::vector<double> input;
         for(size_t j = 0; j != input_size; ++j){
