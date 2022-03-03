@@ -40,7 +40,7 @@ public:
         ///!!!!Attention!!!! input values are for now a fixed amount
         m_input_values(i_p.net_par.net_arc[0], 1.0),
         m_network{i_p.net_par}
-      {}
+    {}
 
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(individual,
@@ -48,6 +48,23 @@ public:
                                    m_input_values,
                                    m_network);
 
+    ///Calculates the mutational spectrum of the individual's network
+    network_spectrum<Net> calc_spectrum(double mut_step,
+                                        std::mt19937_64& rng,
+                                        int n_mutations,
+                                        const range& cue_range,
+                                        const int& n_data_points
+                                        )
+    {
+
+        return network_spectrum<Net> (m_network,
+                                      mut_step,
+                                      rng,
+                                      n_mutations,
+                                      cue_range,
+                                      n_data_points
+                                      );
+    }
     ///Changes the network of an individual with another network
     void change_net(const Net& n)
     {
@@ -103,11 +120,11 @@ private:
 template<class Net>
 bool operator== (const individual<Net>& lhs, const individual<Net>& rhs)
 {
-  bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
-  bool network = lhs.get_net() == rhs.get_net();
-  bool inputs = lhs.get_input_values() == rhs.get_input_values();
+    bool fitness = are_equal_with_tolerance(lhs.get_fitness(), rhs.get_fitness());
+    bool network = lhs.get_net() == rhs.get_net();
+    bool inputs = lhs.get_input_values() == rhs.get_input_values();
 
-  return fitness && network && inputs;
+    return fitness && network && inputs;
 }
 
 namespace ind {

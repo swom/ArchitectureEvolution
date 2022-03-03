@@ -25,7 +25,6 @@ if (NOT GIT_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "git submodule update --init --remote --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
 endif()
 
-
 # go on as normal
 add_subdirectory(src)
 

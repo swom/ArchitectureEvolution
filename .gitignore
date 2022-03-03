@@ -31,7 +31,8 @@
 *.out
 *.app
 *.pro.user
-*.pro.user.*
+*.pro.user
+*CMakeLists.user.*
 *.autsave
 *.autosave
 .qmake.stash

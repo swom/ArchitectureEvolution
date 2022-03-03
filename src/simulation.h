@@ -192,6 +192,9 @@ public:
     const range& get_env_cue_range() const noexcept {return m_environment.get_cue_range();}
 
     ///Returns the number of generatiosn for which the simualtion has to run
+    const double& get_mut_step() const noexcept {return m_params.p_p.mut_step;}
+
+    ///Returns the number of generatiosn for which the simualtion has to run
     const int& get_n_gen() const noexcept {return m_n_generations;}
 
     ///Returns the number of generatiosn for which the simualtion has to run
@@ -460,9 +463,9 @@ void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop
     pop::change_nth_ind_net(s.get_pop(), ind_index, n) ;
 }
 
-///Gets the best n individuals in a pop
+///Gets const ref the best n individuals in a pop
 template<class Sim>
-const std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
+std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 {
     return pop::get_best_n_inds(s.get_pop(), n);
 }
