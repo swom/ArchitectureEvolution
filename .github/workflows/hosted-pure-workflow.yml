@@ -77,7 +77,7 @@ jobs:
           cmake --build --preset ninja-multi-vcpkg-debug
           
       - name: test executable?
-        run : ./builds/ninja-multi-vcpkg/src/Debug/arc_evo --test
+        run : ./builds/ninja-multi-vcpkg/src/Debug/arc_evo -t
               
         
       # Test the whole project with CTest.
