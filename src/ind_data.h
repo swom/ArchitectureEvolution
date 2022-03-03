@@ -1,7 +1,7 @@
 #ifndef IND_DATA_H
 #define IND_DATA_H
 #include <vector>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include "individual.h"
 
 template<class Ind>

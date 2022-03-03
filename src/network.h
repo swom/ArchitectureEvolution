@@ -3,7 +3,8 @@
 #include "utilities.h"
 #include <iostream>
 #include <random>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
+
 #include "node.h"
 #include "mutation_type.h"
 #include "netwrok_spectrum.h"

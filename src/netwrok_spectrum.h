@@ -1,6 +1,6 @@
 #ifndef NETWROK_SPECTRUM_H
 #define NETWROK_SPECTRUM_H
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include<random>
 
 #include "range.h"

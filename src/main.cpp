@@ -7,14 +7,23 @@
 #ifndef NDEBUG
 void test() {
     test_environment();
+    std::cout << "testing environment" << std::endl;
     test_individual();
+    std::cout << "testing individual" << std::endl;
     test_mutation_type();
+    std::cout << "testing mutation_type" << std::endl;
     test_network();
+    std::cout << "testing network" << std::endl;
     test_observer();
+    std::cout << "testing observer" << std::endl;
     test_population();
+    std::cout << "testing population" << std::endl;
     test_simulation();
+    std::cout << "testing simulation" << std::endl;
     test_weight();
+    std::cout << "testing weight" << std::endl;
     test_node();
+    std::cout << "testing node" << std::endl;
 }
 #endif
 
