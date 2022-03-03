@@ -49,12 +49,13 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
        run_simulation_given_sel_type(results);
 
     }  catch (int exc) {
-        if(exc==1)
-            std::cerr << "The current and maximum architectures are not compatible";
         if(exc==2)
             std::cerr << "A wrong mutation type has been entered";
     }
     catch( const std::runtime_error& e ) {
+        std::cerr << e.what() << std::endl;
+    }
+    catch( const std::invalid_argument& e ) {
         std::cerr << e.what() << std::endl;
     };
 

@@ -170,7 +170,7 @@ void test_population() noexcept
             assert(ind.get_net() == network{net_par});
         }
 
-        assert(are_equal_with_tolerance(p.get_inds().size(), number_of_inds) &
+        assert(are_equal_with_tolerance(double(p.get_inds().size()), number_of_inds) &
                are_equal_with_tolerance(p.get_mut_rate_weight(), mut_rate) &
                are_equal_with_tolerance(p.get_mut_step(), mut_step));
     }

@@ -3,6 +3,13 @@ find_package(TBB CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    add_compile_options(-march=native)
+    # add_compile_options(-Weffc++)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # MSVC
+    add_compile_options(/GS- /bigobj)     # /GS-: no security cookie
+endif()
 
 if(MINGW)
   add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig)

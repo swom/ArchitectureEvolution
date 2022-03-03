@@ -124,7 +124,7 @@ std::vector<double> create_n_inputs(int n_inputs);
 std::vector<double> create_n_inputs(std::uniform_real_distribution<double> dist, const int &n_inputs, std::mt19937_64 &rng);
 
 ///Create a vector of a given number of inputs from the distribution member of the environment
-std::vector<double> create_n_inputs(environment& e, const int &n_inputs, std::mt19937_64 &rng);
+std::vector<double> create_n_inputs(environment& e, const size_t &n_inputs, std::mt19937_64 &rng);
 
 
 ///Calculates the optimal output, given input, using the env function

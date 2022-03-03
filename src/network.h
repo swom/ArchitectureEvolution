@@ -82,7 +82,7 @@ void mut_dupl_node(Net& n,
         auto& current_layer = n.get_net_weights().at(layer);
 
         // to avoid chain duplications
-        for(int node = current_layer.size() - 1; node >= 0; node--)
+        for(size_t node = current_layer.size() - 1; node >= 0; node--)
         {
             const auto& current_node = current_layer.at(node);
 
@@ -114,7 +114,7 @@ void mut_add_node(Net& n,
             auto& current_layer = n.get_net_weights().at(layer);
 
             // to avoid chain duplications
-            for(int node = current_layer.size() - 1; node >= 0; node--)
+            for(size_t node = current_layer.size() - 1; node >= 0; node--)
             {
 
                 const auto& current_node = current_layer.at(node);
@@ -402,7 +402,7 @@ public:
         }
 
         std::vector<size_t> indexes_to_activate;
-        int nb_incoming_weights = std::round(average_number_incoming_weights(*this, layer));
+        int nb_incoming_weights = int(std::round(average_number_incoming_weights(*this, layer)));
         std::sample(vec_indexes.begin(), vec_indexes.end(), std::back_inserter(indexes_to_activate), nb_incoming_weights, rng);
 
         std::uniform_real_distribution<double> dist_in(min_weight_in_layer(*this, layer),
@@ -421,7 +421,7 @@ public:
         }
 
         std::vector<size_t> indexes_to_activate_out;
-        int nb_outgoing_weights = std::round(average_number_outgoing_weights(*this, layer));
+        int nb_outgoing_weights = int(std::round(average_number_outgoing_weights(*this, layer)));
         std::sample(vec_indexes_out.begin(), vec_indexes_out.end(), std::back_inserter(indexes_to_activate_out), nb_outgoing_weights, rng);
 
         std::uniform_real_distribution<double> dist_out(min_weight_in_layer(*this, layer + 1),
@@ -734,11 +734,11 @@ bool net_behaves_like_the_function(const Net &n,
     std::vector<double> n_output;
     std::vector<double> f_output;
 
-    for(int i = 0; i != n_repeats; ++i)
+    for(size_t i = 0; i != n_repeats; ++i)
     {
         std::vector<double> input;
         for(size_t j = 0; j != input_size; ++j){
-            input.push_back(i + j);
+            input.push_back(int(i + j));
         }
         assert(output(n, input).size() == 1);
         if(output(n, input) [0] != f(input))
