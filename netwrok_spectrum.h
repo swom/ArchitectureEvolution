@@ -39,12 +39,12 @@ public:
                      range input_range,
                      int input_number):
         m_current_reac_norm{calculate_reaction_norm(net, input_range, input_number)},
-        m_net_spectrum_weights_for_weights_mutation{net.v( mut_step,
-                                                           rng,
-                                                           n_mutations,
-                                                           input_range,
-                                                           input_number
-                                                           )}
+        m_net_spectrum_weights_for_weights_mutation{net.calc_spectrum_weights_for_weights_mutation( mut_step,
+                                                                                                    rng,
+                                                                                                    n_mutations,
+                                                                                                    input_range,
+                                                                                                    input_number
+                                                                                                    )}
     {};
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(network_spectrum,
