@@ -212,6 +212,7 @@ void mutate_biases(Net& n, const double& mut_rate,
 template<mutation_type M = mutation_type::weights>
 class network
 {
+
 private:
 
     ///Calculates the reaction norm fo the network after a mutation on a weight

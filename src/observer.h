@@ -5,12 +5,11 @@
 
 class base_observer{
 public:
-    base_observer();
-    virtual ~base_observer() = 0;
+
 };
 
 template<class Sim = simulation<>>
-class observer : private base_observer
+class observer : public base_observer
 {
     using Sim_t = Sim;
     using Pop = typename Sim_t::pop_t;
@@ -36,8 +35,7 @@ public:
         m_top_proportion{top_proportion}
     {
     }
-    observer(const observer& o) = default;
-    ~observer();
+
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -102,12 +100,12 @@ public:
 
         m_top_spectrums.emplace_back(std::vector<Net_Spect>{});
         std::vector<Net_Spect> spectrums = calculate_mut_spectrums(sim::get_best_n_inds(s, m_top_proportion),
-                                                              s.get_mut_step(),
-                                                              s.get_rng(),
-                                                              1000,
-                                                              s.get_env_cue_range(),
-                                                              100);
-         spectrums.swap(m_top_spectrums.back());
+                                                                   s.get_mut_step(),
+                                                                   s.get_rng(),
+                                                                   1000,
+                                                                   s.get_env_cue_range(),
+                                                                   100);
+        spectrums.swap(m_top_spectrums.back());
     }
 
     const all_params& get_params() const noexcept {return m_params;};
@@ -188,7 +186,70 @@ std::string create_save_name_from_observer_data(const observer<Sim>& o)
 
 }
 
+///load an observer of correct type based on selection frequency type
+template<mutation_type M, selection_type S, env_change_freq_type F>
+std::unique_ptr<base_observer> load_observer_json_change_symmetry_type(const all_params& pars)
+{
+    auto f_t = pars.s_p.change_sym_type;
+    if (f_t == env_change_symmetry_type::symmetrical ) {
+        using net_t = network<M>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t, env_change_symmetry_type::symmetrical, F, S>;
+        return std::make_unique<base_observer>(observer<sim_t>());
+    }
+    else if(f_t == env_change_symmetry_type::symmetrical)
+    {
+        using net_t = network<M>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t, env_change_symmetry_type::asymmetrical, F, S>;
+        return std::make_unique<base_observer>(observer<sim_t>());
+    }
+    else
+        throw std::invalid_argument{"invalid symmetry type when loading observer"};
 
+
+}
+
+///load an observer of correct type based on change frequency type
+template<mutation_type M, selection_type S>
+std::unique_ptr<base_observer> load_observer_json_change_freq_type(const all_params& pars)
+{
+    auto f_t = pars.s_p.change_freq_type;
+    switch (f_t) {
+    case env_change_freq_type::regular :
+        return load_observer_json_change_symmetry_type<M, S, env_change_freq_type::regular>(pars);
+        break;
+    case env_change_freq_type::stochastic :
+        return load_observer_json_change_symmetry_type<M, S, env_change_freq_type::stochastic>(pars);
+        break;
+    default:
+        throw std::invalid_argument{"invalid frequency type when loading observer"};
+
+    }
+}
+
+///load an observer of correct type based on selection type
+template<mutation_type M>
+std::unique_ptr<base_observer> load_observer_selection_type(const all_params& pars)
+{
+    auto s_t = pars.s_p.sel_type;
+    switch (s_t) {
+    case selection_type::constant :
+        return load_observer_json_change_freq_type<M, selection_type::constant>(pars);
+        break;
+    case selection_type::sporadic :
+        return load_observer_json_change_freq_type<M, selection_type::sporadic>(pars);
+        break;
+    default:
+        throw std::invalid_argument{"invalid selection_type when loading observer"};
+
+    }
+}
+///load an observer of correct type based on parameter
+std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_params &pars);
+///loads an observer based on filename
 std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
 void test_observer();
 

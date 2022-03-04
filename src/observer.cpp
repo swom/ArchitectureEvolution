@@ -48,28 +48,56 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+
+///load an observer of correct type based on mutation_type
+std::unique_ptr<base_observer> load_observer_json_mutation_type(const all_params &pars)
+{
+    auto m_t = pars.i_p.m_mutation_type;
+    switch (m_t) {
+    case mutation_type::NRaddition :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::NRduplication :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::activation :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::addition :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::duplication :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::weights :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    case mutation_type::weights_and_activation :
+        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        break;
+    default:
+        throw std::invalid_argument{"invalid mutation_type when loading observer"};
+
+    }
+}
+
 ///load an observer of correct type based on parameter
 std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_params &pars)
 {
-       auto m_t = pars.i_p.m_mutation_type;
-       switch () {
-
-       }
-
+    return load_observer_json_mutation_type(pars);
 }
 
-///loads an observer based on filename
 std::unique_ptr<base_observer> load_observer_json(const std::string &filename)
 {
 
-   std::ifstream f(filename);
-   nlohmann::json json_in;
-   f >> json_in;
-   auto pars = json_in.get<all_params>();
+    std::ifstream f(filename);
+    nlohmann::json json_in;
+    f >> json_in;
+    auto pars = json_in.get<all_params>();
 
-   auto obs_ptr = load_observer_json_of_correct_type(pars);
+    auto obs_ptr = load_observer_json_of_correct_type(pars);
 
-   return obs_ptr;
+    return obs_ptr;
 }
 #ifndef NDEBUG
 void test_observer()
