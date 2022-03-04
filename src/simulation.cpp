@@ -803,6 +803,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 #define FIX_ISSUE_261
 #ifdef FIX_ISSUE_261
+    ///Environment can change regularly instead of stochastically
     {
 
         int repeats = 1000;
