@@ -170,7 +170,8 @@ std::string create_save_name_from_observer_data(const observer<Sim>& o)
             "_dup_r" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
             "_ch_A" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
             "_ch_B" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
-            "_ch_type" + convert_change_type_to_string(o.get_params().s_p.change_type) +
+            "_ch_type" + convert_change_symmetry_type_to_string(o.get_params().s_p.change_sym_type) +
+            "_ch_type" + convert_change_freq_type_to_string(o.get_params().s_p.change_freq_type) +
             "_sel_str" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
             "_max_arc" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
             "_sel_type" + convert_selection_type_to_string(o.get_params().s_p.sel_type) +

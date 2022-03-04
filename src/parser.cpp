@@ -58,7 +58,8 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
                 results["sel_freq"].as<int>(),
-                string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
+                string_to_env_change_symmetry_type_map.find(results["env_change_type"].as<std::string>())->second,
+                string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
     };
 }
@@ -105,9 +106,12 @@ cxxopts::Options create_parser(){
             ("c,change_freq_B",
              "the probability with which the target function B will change",
              cxxopts::value<double>()->default_value("0.01"))
-            ("e,env_change_type",
-             "type of environmental change that a simulation will undergo",
+            ("e,env_change_symm_type",
+             "type of symmetry of the environmental change that a simulation will undergo",
              cxxopts::value<std::string>()->default_value("symmetrical"))
+            ("z,env_change_freq_type",
+             "type of frequency environmental change that a simulation will undergo",
+             cxxopts::value<std::string>()->default_value("stochastic"))
             ("S,seed",
              "the seed of the rng",
              cxxopts::value<int>()->default_value("0"))

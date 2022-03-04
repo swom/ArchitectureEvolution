@@ -3,8 +3,8 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop, enum env_change_type E, enum selection_type S>
-simulation<Pop, E, S>::simulation(int init_pop_size,
+template<class Pop, enum env_change_symmetry_type Es, enum env_change_freq_type Ef, enum selection_type S>
+simulation<Pop, Es, Ef, S>::simulation(int init_pop_size,
                                   int seed,
                                   double t_change_interval,
                                   std::vector<int> net_arch,
@@ -698,7 +698,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         all_params a_p{{},{}, p_p, s_p};
 
         simulation<population<>,
-                env_change_type::symmetrical,
+                env_change_symmetry_type::symmetrical,
+                env_change_freq_type::stochastic,
                 selection_type::sporadic> s{a_p};
 
 
@@ -735,7 +736,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.change_freq_B = 0.01;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_type::asymmetrical> s_asym{a_p};
+        simulation<population<>, env_change_symmetry_type::asymmetrical> s_asym{a_p};
         int repeats = 1000000;
 
         int n_switches_A = 0;
@@ -767,7 +768,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         ///Test that in symmetrical mode changes from one env to the other
         /// happen with same frequency for both environments
 
-        simulation<population<>, env_change_type::symmetrical> s_sym{a_p};
+        simulation<population<>, env_change_symmetry_type::symmetrical> s_sym{a_p};
 
         n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
@@ -802,8 +803,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 #define FIX_ISSUE_261
 #ifdef FIX_ISSUE_261
+    ///Environment can change regularly instead of stochastically
     {
-        std::cout << "   test issue 261" << std::endl;
 
         int repeats = 1000;
         sim_param s_p{};
@@ -812,7 +813,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.n_generations = repeats;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_type::regular> regular_sim{a_p};
+        simulation<population<>, env_change_symmetry_type::symmetrical, env_change_freq_type::regular> regular_sim{a_p};
 
         auto current_function_name = get_name_current_function(regular_sim);
         for(int i = 0; i !=  s_p.n_generations; i++)
@@ -825,7 +826,6 @@ void test_simulation() noexcept//!OCLINT test may be many
             }
 
         }
-        std::cout << "   end test issue 261" << std::endl;
 
     }
 #endif
