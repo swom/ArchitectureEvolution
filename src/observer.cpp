@@ -48,6 +48,29 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+///load an observer of correct type based on parameter
+std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_params &pars)
+{
+       auto m_t = pars.i_p.m_mutation_type;
+       switch () {
+
+       }
+
+}
+
+///loads an observer based on filename
+std::unique_ptr<base_observer> load_observer_json(const std::string &filename)
+{
+
+   std::ifstream f(filename);
+   nlohmann::json json_in;
+   f >> json_in;
+   auto pars = json_in.get<all_params>();
+
+   auto obs_ptr = load_observer_json_of_correct_type(pars);
+
+   return obs_ptr;
+}
 #ifndef NDEBUG
 void test_observer()
 {
@@ -163,6 +186,16 @@ void test_observer()
     }
 #endif
 
+    ///Observer can be saved and loaded with correct templates
+    {
+        observer o;
 
+        save_json(o, "obs_test");
+        auto loaded_o = load_observer_json("obs_test");
+
+        assert(typeid (o) == typeid(loaded_o));
+    }
 }
 #endif
+
+

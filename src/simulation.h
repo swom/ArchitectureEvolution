@@ -401,8 +401,8 @@ Class load_json(
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    Class s;
     f >> json_in;
+    Class s;
     return s = json_in;
 }
 

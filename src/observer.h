@@ -3,11 +3,17 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+class base_observer{
+public:
+    base_observer();
+    virtual ~base_observer() = 0;
+};
 
 template<class Sim = simulation<>>
-class observer
+class observer : private base_observer
 {
-    using Pop = typename Sim::pop_t;
+    using Sim_t = Sim;
+    using Pop = typename Sim_t::pop_t;
     using Ind = typename Pop::ind_t;
     using Net = typename Ind::net_t;
     using Net_Spect = network_spectrum<Net>;
@@ -25,10 +31,13 @@ private:
     std::vector<double> m_optimal;
 
 public:
+
     observer(int top_proportion = 1):
         m_top_proportion{top_proportion}
     {
     }
+    observer(const observer& o) = default;
+    ~observer();
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
@@ -179,6 +188,8 @@ std::string create_save_name_from_observer_data(const observer<Sim>& o)
 
 }
 
+
+std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
 void test_observer();
 
 #endif // OBSERVER_H
