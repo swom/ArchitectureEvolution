@@ -48,7 +48,7 @@ public:
                                    m_top_proportion)
 
     ///returns const ref to m_avg_fitness
-    const std::vector<double>& get_avg_fitness() const noexcept{return m_avg_fitnesses;}
+    const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
@@ -58,6 +58,9 @@ public:
 
     ///returns const ref to best_ind vector
     const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
+    const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
+    const all_params& get_params() const noexcept {return m_params;};
+    const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -108,8 +111,6 @@ public:
         spectrums.swap(m_top_spectrums.back());
     }
 
-    const all_params& get_params() const noexcept {return m_params;};
-
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
     void store_par (const Sim& s) noexcept {m_params = s.get_params();}
@@ -117,10 +118,6 @@ public:
     void store_input(const Sim& s) noexcept {m_input.push_back(s.get_input());}
 
     void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_optimal());}
-
-    const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
-
-    const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 };
 
 template<class Ind>
