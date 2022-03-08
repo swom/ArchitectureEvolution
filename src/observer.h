@@ -64,15 +64,19 @@ private:
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
-    all_params m_params = {};
+    obs_param m_obs_param;
+    all_params m_params;
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
-    obs_param m_obs_param;
 
 public:
 
-    observer(obs_param params = obs_param{}):
-        m_obs_param(params)
+    observer(
+            obs_param params = obs_param{},
+             all_params sim_params = all_params{}
+            ):
+        m_obs_param(params),
+        m_params{sim_params}
     {
     }
 
@@ -238,8 +242,6 @@ public:
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
-    void store_par (const Sim& s) noexcept {m_params = s.get_params();}
-
     void store_input(const Sim& s) noexcept {m_input.push_back(s.get_input());}
 
     void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_optimal());}
@@ -256,7 +258,10 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 template<class Sim>
 void exec(Sim& s , observer<Sim>& o)
 {
-    o.store_par(s);
+    if(s.get_params() != o.get_params())
+    {
+        throw std::runtime_error{"Observer was not initialized correctly with simulation parameters"};
+    }
 
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;

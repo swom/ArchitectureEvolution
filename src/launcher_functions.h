@@ -15,8 +15,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -28,8 +28,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -41,8 +41,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -54,8 +54,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -67,8 +67,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -80,8 +80,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));
@@ -93,8 +93,8 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o{convert_obs_args(results)};
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
                   create_save_name_from_observer_data(o));

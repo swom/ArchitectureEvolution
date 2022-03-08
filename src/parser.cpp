@@ -175,3 +175,16 @@ cxxopts::Options create_parser(){
 #ifndef NDEBUG
 
 #endif
+
+all_params convert_all_params(const cxxopts::ParseResult &results)
+{
+    auto env = convert_env_args(results);
+    auto ind = convert_ind_args(results);
+    auto pop = convert_pop_args(results);
+    auto sim = convert_sim_args(results);
+
+    return all_params {
+        env, ind, pop, sim
+    };
+
+}

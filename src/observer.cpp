@@ -110,20 +110,20 @@ void test_observer()
 {
 #define FIX_ISSUE_47
 #ifdef FIX_ISSUE_47
-    ///An observer can store the sim_param of a simulation
+    ///An observer stores the sim_param of a simulation
+    /// at initialization
     {
-        observer o;
+        observer o_default;
         //Give sim some non-default params
 
         env_param e_p{env_func_2, env_func_1};
         all_params params = {e_p,{},{},{}};
 
         simulation s{params};
-        assert(o.get_params() != params);
+        assert(o_default.get_params() != params);
 
-        o.store_par(s);
-
-        assert(o.get_params() == params);
+        observer o_init{obs_param{},params};
+        assert(o_default.get_params() == params);
     }
 #endif
 
