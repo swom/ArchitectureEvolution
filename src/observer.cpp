@@ -105,6 +105,35 @@ observer<> load_default_observer_json(const std::string &filename)
     return  load_json<observer<>>(filename);
 }
 
+observer<> calculate_mut_spec_from_observer_data(const all_params& params)
+{
+    auto o = load_json<observer<>>(create_save_name_from_params(params));
+    auto gens = extract_gens(o.get_top_inds());
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, gens.size()),
+                      [&](const tbb::blocked_range<size_t>& r){
+        for(size_t i=r.begin(); i!=r.end(); ++i)
+        o.calculate_mut_spectrums_for_gen(gens[i]);
+    });
+    return o;
+}
+
+std::string create_save_name_from_params(const all_params& p)
+{
+
+    return "mut_type_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
+            "_start_arc" + convert_arc_to_string(p.i_p.net_par.net_arc) +
+            "_act_r" + std::to_string(p.p_p.mut_rate_activation).substr(0, 8) +
+            "_dup_r" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 8) +
+            "_ch_A" + std::to_string(p.s_p.change_freq_A).substr(0, 8) +
+            "_ch_B" + std::to_string(p.s_p.change_freq_B).substr(0, 8) +
+            "_ch_type" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
+            "_ch_type" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
+            "_sel_str" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
+            "_max_arc" + convert_arc_to_string(p.i_p.net_par.max_arc) +
+            "_sel_type" + convert_selection_type_to_string(p.s_p.sel_type) +
+            "_" + std::to_string(p.s_p.seed) + ".json";
+
+}
 #ifndef NDEBUG
 void test_observer()
 {
@@ -277,7 +306,16 @@ void test_observer()
         for(int i = 0; i != s.get_n_gen(); i++)
         {
             assert( o.calculate_mut_spectrums_for_gen(i) == o.get_top_spectrums_gen(i));
+            //The operation adds copyes of the smae mutational spectrum onto the vector
             assert(o.get_top_spectrums_gen(i) == o.get_top_spectrums_gen(i + length_of_simulation));
+        }
+
+        ///It is possible to load an observer and calculate the mutational spetrum of all the recorded individuals
+        auto loaded_o = calculate_mut_spec_from_observer_data(o.get_params());
+        for(int i = 0; i != s.get_n_gen(); i++)
+        {
+            //The operation adds copyes of the smae mutational spectrum onto the vector
+            assert(o.get_top_spectrums_gen(i + length_of_simulation)== loaded_o.get_top_spectrums_gen(i + 2 * length_of_simulation));
         }
     }
 

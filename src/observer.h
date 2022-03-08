@@ -1,5 +1,6 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
+#include <tbb/parallel_for.h>
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
@@ -145,6 +146,7 @@ public:
         return inds;
     }
 
+
     ///Returns a vector containing the stored top idnividuals of a given gen
     std::vector<Ind> get_top_inds_gen(int generation) noexcept
     {
@@ -228,7 +230,6 @@ public:
     std::vector<Ind_Spectrum<Ind>> calculate_mut_spectrums_for_gen(int generation)
     {
         std::mt19937_64 rng;
-        m_top_spectrums.emplace_back(std::vector<Ind_Spectrum<Ind>>{});
         std::vector<Ind_Spectrum<Ind>> spectrums = calculate_mut_spectrums(get_top_inds_gen(generation),
                                                                            m_params.p_p.mut_step,
                                                                            rng,
@@ -236,7 +237,6 @@ public:
                                                                            m_params.e_p.cue_range,
                                                                            get_n_points_reac_norm(),
                                                                            generation);
-        spectrums.swap(m_top_spectrums.back());
         return spectrums;
     }
 
@@ -294,24 +294,17 @@ void exec(Sim& s , observer<Sim>& o)
     }
 }
 
-template<class Sim>
-std::string create_save_name_from_observer_data(const observer<Sim>& o)
+///Retruns a vector of the generations in which individuals were recorded
+template<class ind_data_structure>
+std::vector<double> extract_gens(std::vector<ind_data_structure> data_v) noexcept
 {
-
-    return "mut_type_" + convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-            "_start_arc" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-            "_act_r" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
-            "_dup_r" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
-            "_ch_A" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
-            "_ch_B" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
-            "_ch_type" + convert_change_symmetry_type_to_string(o.get_params().s_p.change_sym_type) +
-            "_ch_type" + convert_change_freq_type_to_string(o.get_params().s_p.change_freq_type) +
-            "_sel_str" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
-            "_max_arc" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-            "_sel_type" + convert_selection_type_to_string(o.get_params().s_p.sel_type) +
-            "_" + std::to_string(o.get_params().s_p.seed) + ".json";
-
+    std::vector<double> gens(data_v.size());
+    std::transform(data_v.begin(), data_v.end(), gens.begin(),
+                   [](const auto& data_structure){return data_structure.at(0).generation;});
+    return gens;
 }
+
+std::string create_save_name_from_params(const all_params& p);
 
 ///load an observer of correct type based on selection frequency type
 template<mutation_type M, selection_type S, env_change_freq_type F>
