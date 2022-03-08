@@ -24,6 +24,8 @@ pop_param convert_pop_args(const cxxopts::ParseResult& results);
 
 sim_param convert_sim_args(const cxxopts::ParseResult& results);
 
+obs_param convert_obs_args(const cxxopts::ParseResult& results);
+
 ///runs a simulation given a parsed set of command line arguments
 /// that are read as parameters
 void run_simulation_given_env_change_type(const cxxopts::ParseResult& results);
