@@ -1,6 +1,5 @@
 #include "observer.h"
 #include <fstream>
-#include <mutex>
 
 bool operator==(const all_params& lhs, const all_params& rhs)
 {

@@ -1,6 +1,5 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
-#include <tbb/parallel_for.h>
 #include "simulation.h"
 #include "Stopwatch.hpp"
 

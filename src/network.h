@@ -221,22 +221,21 @@ private:
 
     ///Calculates the reaction norm fo the network after a mutation on a weight
     //make a private function of net
-    reac_norm calc_alternative_reac_norm(std::vector<node>::iterator node,
+    reac_norm calc_alternative_reac_norm(node& node,
                                          reac_norm rn,
                                          size_t index_weight,
                                          double original_weight,
                                          double new_weight,
                                          const range& input_range,
                                          int n_inputs,
-                                         std::mutex m = std::mutex{}
-                                         )
+                                         std::mutex& m)
     {
         m.lock();
-        node->change_nth_weight(new_weight, index_weight);
+        node.change_nth_weight(new_weight, index_weight);
 
         rn = calculate_reaction_norm(*this, input_range, n_inputs);
 
-        node->change_nth_weight(original_weight, index_weight);
+        node.change_nth_weight(original_weight, index_weight);
         m.unlock();
         return rn;
     }
@@ -572,23 +571,24 @@ public:
         rn.reserve(n_inputs);
         std::mutex m;
 
-        for(auto layer_it = mutable_net.get_net_weights().begin(); layer_it != mutable_net.get_net_weights().end(); layer_it++)
+        for(auto layer = 0; layer != mutable_net.get_net_weights().size(); layer++)
         {
-            layer_spectrum.resize(layer_it->size());
+            auto current_layer = mutable_net.get_net_weights()[layer];
+            layer_spectrum.resize(current_layer.size());
             ///tbb from here:https://stackoverflow.com/questions/29719787/parallel-more-than-one-nested-loops-with-tbb
             tbb::parallel_for( tbb::blocked_range<size_t>(0, layer_spectrum.size() ),
                                [&]( const tbb::blocked_range<size_t> &r)
             {
                 for(size_t node_index=r.begin(); node_index!=r.end(); ++node_index)
                 {
-                    node_spectrum.resize(layer_it[node_index]->get_vec_weights().size());
+                    node_spectrum.resize(current_layer[node_index].get_vec_weights().size());
 
                     tbb::parallel_for( tbb::blocked_range<size_t>(0, node_spectrum.size() ),
                                        [&]( const tbb::blocked_range<size_t> &j)
                     {
                         for(size_t index_weight=j.begin(); index_weight!=j.end(); ++index_weight)
                         {
-                            auto original_weight = layer_it[node_index]->get_vec_weights()[index_weight].get_weight();
+                            auto original_weight = current_layer[node_index].get_vec_weights()[index_weight].get_weight();
 
                             tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
                                                [&]( const tbb::blocked_range<size_t> &x)
@@ -598,7 +598,7 @@ public:
                                     m.lock();
                                     auto new_weight = original_weight + mut_dist(rng);
                                     m.unlock();
-                                    weight_spectrum[mut] = calc_alternative_reac_norm(layer_it[node_index],
+                                    weight_spectrum[mut] = calc_alternative_reac_norm(current_layer[node_index],
                                                                                       rn,
                                                                                       index_weight,
                                                                                       original_weight,
@@ -613,16 +613,12 @@ public:
                             node_spectrum[index_weight] = weight_spectrum;
                         }
 
-                        auto index_node = std::distance(layer_it->begin(), layer_it[node_index]);
-                        layer_spectrum[index_node] = node_spectrum;
+                        layer_spectrum[node_index] = node_spectrum;
                     });
-
                 }
-
             });///tbb to here
 
-            auto index_layer = std::distance( mutable_net.get_net_weights().begin(), layer_it);
-            network_weights_spectrum[index_layer] = layer_spectrum;
+            network_weights_spectrum[layer] = layer_spectrum;
         }
         return network_weights_spectrum;
     }
