@@ -102,7 +102,7 @@ std::unique_ptr<base_observer> load_observer_json(const std::string &filename)
 
 observer<> load_default_observer_json(const std::string &filename)
 {
-   return  load_json<observer<>>(filename);
+    return  load_json<observer<>>(filename);
 }
 
 #ifndef NDEBUG
@@ -223,31 +223,63 @@ void test_observer()
     ///Observer can be saved and loaded with correct templates
     {
         using net_t = network<mutation_type::NRduplication>;
-                using ind_t = individual<net_t>;
-                using pop_t = population<ind_t>;
-                using sim_t = simulation<pop_t,
-                env_change_symmetry_type::asymmetrical,
-                env_change_freq_type::regular,
-                selection_type::sporadic>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t,
+        env_change_symmetry_type::asymmetrical,
+        env_change_freq_type::regular,
+        selection_type::sporadic>;
 
         observer<sim_t> o;
 
         save_json(o, "obs_test");
         auto loaded_o = load_default_observer_json("obs_test");
 
-       assert( o.get_avg_fitness() == loaded_o.get_avg_fitness());
-       assert( o.get_env_funcs() == loaded_o.get_env_funcs());
-       assert( o.get_input() == loaded_o.get_input());
-       assert( o.get_optimal() == loaded_o.get_optimal());
-       assert( o.get_params() == loaded_o.get_params());
-       assert( o.get_top_inds().size() == loaded_o.get_top_inds().size());
-       for( size_t i = 0 ;  i != o.get_top_inds().size(); i++)
-           for( size_t j = 0 ;  i != o.get_top_inds()[i].size(); i++)
-               assert( o.get_top_inds()[i][j].m_ind.get_net().get_net_weights() == loaded_o.get_top_inds()[i][j].m_ind.get_net().get_net_weights());
-       //assert(typeid (o) == typeid(loaded_o)); ideally this test should pass but cannot think of a way
+        assert( o.get_avg_fitness() == loaded_o.get_avg_fitness());
+        assert( o.get_env_funcs() == loaded_o.get_env_funcs());
+        assert( o.get_input() == loaded_o.get_input());
+        assert( o.get_optimal() == loaded_o.get_optimal());
+        assert( o.get_params() == loaded_o.get_params());
+        assert( o.get_top_inds().size() == loaded_o.get_top_inds().size());
+        for( size_t i = 0 ;  i != o.get_top_inds().size(); i++)
+            for( size_t j = 0 ;  i != o.get_top_inds()[i].size(); i++)
+            {
+                assert( o.get_top_inds()[i][j].m_ind.get_net().get_net_weights() == loaded_o.get_top_inds()[i][j].m_ind.get_net().get_net_weights());
+            }
+        //assert(typeid (o) == typeid(loaded_o)); ideally this test should pass but cannot think of a way
 
     }
 
+    ///It is possible to calculate the spectrum of individuals from a given generation
+    /// and adds it to the vector of Ind_spectrum data in observer
+    {
+        //make mutation hapen but they do not change anything,
+        //It is just required that the ouput of the two operations are the same
+        double mut_step = 0;
+        int length_of_simulation = 3;
+        int n_inds = 1;
+
+        all_params a_p;
+        a_p.s_p.n_generations = length_of_simulation;
+        a_p.p_p.number_of_inds = n_inds;
+        a_p.p_p.mut_step = mut_step;
+        simulation s{a_p};
+
+        int record_freq = 1;
+        int top_inds_recorded = 1;
+        int n_data_points = 4;
+        observer o({top_inds_recorded, record_freq, record_freq, n_data_points});
+
+        exec(s, o);
+        assert(o.get_top_inds().size() == size_t(length_of_simulation) &&
+               o.get_top_spectrums().size() == size_t(length_of_simulation));
+
+        for(int i = 0; i != s.get_n_gen(); i++)
+        {
+            assert( o.calculate_mut_spectrums_for_gen(i) == o.get_top_spectrums_gen(i));
+            assert(o.get_top_spectrums_gen(i) == o.get_top_spectrums_gen(i + length_of_simulation));
+        }
+    }
 
 }
 #endif

@@ -29,14 +29,14 @@ struct env_param
 {
     env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
               std::function<double(std::vector<double>)> fun_B = env_func_2,
-              std::vector<double> distrib = std::vector<double>{-1,1}) :
+              std::vector<double> env_cue_range = std::vector<double>{-1,1}) :
         env_function_A{fun_A},
         env_function_B{fun_B},
-        cue_distrib{distrib.front(),distrib.back()}
+        cue_range{env_cue_range.front(),env_cue_range.back()}
     {}
 std::function<double(std::vector<double>)> env_function_A;
 std::function<double(std::vector<double>)> env_function_B;
-range cue_distrib;
+range cue_range;
 };
 
 
