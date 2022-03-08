@@ -4,6 +4,9 @@
 #include <iostream>
 #include <random>
 #include <nlohmann/json.hpp>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range3d.h>
+#include <mutex>
 
 #include "node.h"
 #include "mutation_type.h"
@@ -224,15 +227,17 @@ private:
                                          double original_weight,
                                          double new_weight,
                                          const range& input_range,
-                                         int n_inputs
+                                         int n_inputs,
+                                         std::mutex m = std::mutex{}
                                          )
     {
+        m.lock();
         node->change_nth_weight(new_weight, index_weight);
 
         rn = calculate_reaction_norm(*this, input_range, n_inputs);
 
         node->change_nth_weight(original_weight, index_weight);
-
+        m.unlock();
         return rn;
     }
 public:
@@ -565,34 +570,57 @@ public:
         weight_mut_spectrum weight_spectrum(n_mutations);
         reac_norm rn;
         rn.reserve(n_inputs);
+        std::mutex m;
 
         for(auto layer_it = mutable_net.get_net_weights().begin(); layer_it != mutable_net.get_net_weights().end(); layer_it++)
         {
             layer_spectrum.resize(layer_it->size());
-            for(auto node_it = layer_it->begin(); node_it != layer_it->end(); node_it++)
+            ///tbb from here:https://stackoverflow.com/questions/29719787/parallel-more-than-one-nested-loops-with-tbb
+            tbb::parallel_for( tbb::blocked_range<size_t>(0, layer_spectrum.size() ),
+                               [&]( const tbb::blocked_range<size_t> &r)
             {
-                node_spectrum.resize(node_it->get_vec_weights().size());
-                for(size_t index_weight = 0; index_weight != node_it->get_vec_weights().size(); index_weight++)
+                for(size_t node_index=r.begin(); node_index!=r.end(); ++node_index)
                 {
-                    auto original_weight = node_it->get_vec_weights()[index_weight].get_weight();
-                    for(int i = 0; i != n_mutations; i++)
+                    node_spectrum.resize(layer_it[node_index]->get_vec_weights().size());
+
+                    tbb::parallel_for( tbb::blocked_range<size_t>(0, node_spectrum.size() ),
+                                       [&]( const tbb::blocked_range<size_t> &j)
                     {
-                        auto new_weight = original_weight + mut_dist(rng);
-                        weight_spectrum[i] = calc_alternative_reac_norm(node_it,
-                                                                        rn,
-                                                                        index_weight,
-                                                                        original_weight,
-                                                                        new_weight,
-                                                                        input_range,
-                                                                        n_inputs);
+                        for(size_t index_weight=j.begin(); index_weight!=j.end(); ++index_weight)
+                        {
+                            auto original_weight = layer_it[node_index]->get_vec_weights()[index_weight].get_weight();
 
-                    }
+                            tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
+                                               [&]( const tbb::blocked_range<size_t> &x)
+                            {
+                                for(size_t mut=x.begin(); mut!=x.end(); ++mut)
+                                {
+                                    m.lock();
+                                    auto new_weight = original_weight + mut_dist(rng);
+                                    m.unlock();
+                                    weight_spectrum[mut] = calc_alternative_reac_norm(layer_it[node_index],
+                                                                                      rn,
+                                                                                      index_weight,
+                                                                                      original_weight,
+                                                                                      new_weight,
+                                                                                      input_range,
+                                                                                      n_inputs,
+                                                                                      m);
 
-                    node_spectrum[index_weight] = weight_spectrum;
+                                }
+                            });
+
+                            node_spectrum[index_weight] = weight_spectrum;
+                        }
+
+                        auto index_node = std::distance(layer_it->begin(), layer_it[node_index]);
+                        layer_spectrum[index_node] = node_spectrum;
+                    });
+
                 }
-                auto index_node = std::distance(layer_it->begin(), node_it);
-                layer_spectrum[index_node] = node_spectrum;
-            }
+
+            });///tbb to here
+
             auto index_layer = std::distance( mutable_net.get_net_weights().begin(), layer_it);
             network_weights_spectrum[index_layer] = layer_spectrum;
         }
