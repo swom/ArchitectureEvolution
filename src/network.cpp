@@ -4,6 +4,12 @@
 #include <cassert>
 #include <cmath>
 #include <numeric>
+bool operator==(const net_param& lhs, const net_param& rhs)
+{
+    bool net_arcs = lhs.net_arc == rhs.net_arc;
+    bool max_arcs = lhs.max_arc == rhs.max_arc;
+    return max_arcs && net_arcs;
+}
 
 template<mutation_type M>
 network<M>::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):

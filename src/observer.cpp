@@ -1,19 +1,15 @@
 #include "observer.h"
 #include <fstream>
-
+#include <mutex>
 
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
-    return lhs.i_p.net_par.net_arc ==  rhs.i_p.net_par.net_arc &&
-            lhs.p_p.mut_rate_weight == rhs.p_p.mut_rate_weight &&
-            lhs.p_p.mut_step == rhs.p_p.mut_step &&
-            lhs.p_p.number_of_inds == rhs.p_p.number_of_inds &&
-            lhs.s_p.change_freq_A == rhs.s_p.change_freq_A &&
-            lhs.s_p.change_freq_B == rhs.s_p.change_freq_B &&
-            lhs.s_p.seed == rhs.s_p.seed &&
-            lhs.s_p.selection_strength == rhs.s_p.selection_strength &&
-            are_same_env_functions(lhs.e_p.env_function_A, rhs.e_p.env_function_A)&&
-            are_same_env_functions(lhs.e_p.env_function_B, rhs.e_p.env_function_B);
+  bool ind_par = lhs.i_p == rhs.i_p;
+  bool env_pars = lhs.e_p == rhs.e_p;
+  bool pop_pars = lhs.p_p == rhs.p_p;
+  bool sim_pars = lhs.s_p == rhs.s_p;
+
+  return ind_par && env_pars && pop_pars && sim_pars;
 }
 
 template<class Sim>
@@ -109,10 +105,18 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
 {
     auto o = load_json<observer<>>(create_save_name_from_params(params));
     auto gens = extract_gens(o.get_top_inds());
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, gens.size()),
+
+    std::mutex m;
+
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, gens.size()),
                       [&](const tbb::blocked_range<size_t>& r){
         for(size_t i=r.begin(); i!=r.end(); ++i)
-        o.calculate_mut_spectrums_for_gen(gens[i]);
+        {
+            auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
+            m.lock();
+            o.add_spectrum(spectrum);
+            m.unlock();
+        }
     });
     return o;
 }
@@ -152,7 +156,7 @@ void test_observer()
         assert(o_default.get_params() != params);
 
         observer o_init{obs_param{},params};
-        assert(o_default.get_params() == params);
+        assert(o_init.get_params() == params);
     }
 #endif
 
@@ -284,7 +288,7 @@ void test_observer()
     {
         //make mutation hapen but they do not change anything,
         //It is just required that the ouput of the two operations are the same
-        double mut_step = 0;
+        double mut_step = 0.00000000000001;
         int length_of_simulation = 3;
         int n_inds = 1;
 
@@ -297,7 +301,13 @@ void test_observer()
         int record_freq = 1;
         int top_inds_recorded = 1;
         int n_data_points = 4;
-        observer o({top_inds_recorded, record_freq, record_freq, n_data_points});
+        int n_mutations = 10;
+        observer o({top_inds_recorded,
+                    record_freq,
+                    record_freq,
+                    n_data_points,
+                    n_mutations},
+                   s.get_params());
 
         exec(s, o);
         assert(o.get_top_inds().size() == size_t(length_of_simulation) &&
@@ -305,17 +315,18 @@ void test_observer()
 
         for(int i = 0; i != s.get_n_gen(); i++)
         {
-            assert( o.calculate_mut_spectrums_for_gen(i) == o.get_top_spectrums_gen(i));
-            //The operation adds copyes of the smae mutational spectrum onto the vector
-            assert(o.get_top_spectrums_gen(i) == o.get_top_spectrums_gen(i + length_of_simulation));
+            auto mut_spectrum = o.calculate_mut_spectrums_for_gen(i);
+            assert(mut_spectrum == o.get_top_spectrums_gen(i));
         }
 
         ///It is possible to load an observer and calculate the mutational spetrum of all the recorded individuals
+        save_json<observer<>>(o, create_save_name_from_params(o.get_params()));
         auto loaded_o = calculate_mut_spec_from_observer_data(o.get_params());
         for(int i = 0; i != s.get_n_gen(); i++)
         {
-            //The operation adds copyes of the smae mutational spectrum onto the vector
-            assert(o.get_top_spectrums_gen(i + length_of_simulation)== loaded_o.get_top_spectrums_gen(i + 2 * length_of_simulation));
+            auto original = o.get_top_spectrums().at(i);
+            auto calculated_from_upload = loaded_o.get_top_spectrums().at(i + length_of_simulation);
+            assert(original == calculated_from_upload);
         }
     }
 

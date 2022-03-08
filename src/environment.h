@@ -39,6 +39,7 @@ std::function<double(std::vector<double>)> env_function_B;
 range cue_range;
 };
 
+bool operator==(const env_param& lhs, const env_param& rhs);
 
 class environment
 {

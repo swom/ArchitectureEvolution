@@ -38,6 +38,7 @@ struct net_param
     std::vector<int> max_arc;
 };
 
+bool operator==(const net_param& lhs, const net_param& rhs);
 
 ///Mutates the weights of a network
 template<class Net>

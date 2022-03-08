@@ -31,6 +31,14 @@ struct Ind_Spectrum
 {
     using Net = typename Ind::net_t;
     using Net_Spect = network_spectrum<Net>;
+
+    Ind_Spectrum(){};
+    Ind_Spectrum(Ind i, Net_Spect net_s, int gen):
+        m_ind{i},
+        net_spectrum{net_s},
+        generation{gen}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Spectrum,
                                    m_ind,
                                    net_spectrum )
@@ -56,12 +64,13 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
 {
 
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
-    for(const auto& ind : inds)
+    for(auto i = inds.begin(); i != inds.end(); i++)
     {
-        auto r_norm = calculate_reaction_norm(ind.get_net(),
+        auto r_norm = calculate_reaction_norm(i->get_net(),
                                               cue_range,
                                               n_data_points);
-        inds_data.push_back({ind, r_norm, generation});
+
+        inds_data[std::distance(inds.begin(), i)] = Ind_Data<Ind>{*i, r_norm, generation};
     }
     return inds_data;
 }

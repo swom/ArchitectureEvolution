@@ -36,6 +36,8 @@ struct pop_param
     int n_trials;
 };
 
+bool operator==(const pop_param& lhs, const pop_param& rhs);
+
 template <class Ind = individual<>>
 class population
 {

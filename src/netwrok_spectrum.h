@@ -47,7 +47,7 @@ public:
                                                                                                     )}
     {};
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(network_spectrum,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(network_spectrum,
                                        m_current_reac_norm,
                                        m_net_spectrum_weights_for_weights_mutation
                                        //                                       ,

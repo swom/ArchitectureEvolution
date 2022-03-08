@@ -54,6 +54,8 @@ struct sim_param
 
 };
 
+bool operator==(const sim_param& lhs, const sim_param& rhs);
+
 struct all_params
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,

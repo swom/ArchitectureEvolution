@@ -34,6 +34,14 @@ environment::environment(const env_param& e_p):
 }
 
 
+bool operator==(const env_param& lhs, const env_param& rhs)
+{
+    bool env_func_As = are_same_env_functions(lhs.env_function_A, rhs.env_function_A);
+    bool env_func_Bs = are_same_env_functions(lhs.env_function_B, rhs.env_function_B);
+    bool ranges = lhs.cue_range == rhs.cue_range;
+
+    return env_func_As && env_func_Bs && ranges;
+}
 
 bool operator== (const environment& lhs, const environment& rhs)
 {

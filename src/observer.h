@@ -16,7 +16,7 @@ struct obs_param{
         m_reac_norm_n_points{n_data_points_for_reac_norm},
         m_n_mutations_per_locus{n_mutations_for_mutational_spectrum}
     {
-        if(top_ind_reg_freq == 0 || spectrum_reg_freq == 0)
+        if(top_ind_reg_freq == 0)
             throw std::invalid_argument{"the number of generations after which a recording should happen cannot be 0"};
         if(top_prop == 0)
             throw std::invalid_argument{"the number of indidivuduals recorderd cannot be 0"};
@@ -74,7 +74,7 @@ public:
 
     observer(
             obs_param params = obs_param{},
-             all_params sim_params = all_params{}
+            all_params sim_params = all_params{}
             ):
         m_obs_param(params),
         m_params{sim_params}
@@ -86,11 +86,15 @@ public:
                                    m_avg_fitnesses,
                                    m_var_fitnesses,
                                    m_top_inds,
+                                   m_top_spectrums,
                                    m_env_functions,
                                    m_params,
                                    m_input,
                                    m_optimal,
                                    m_obs_param)
+
+    ///adds a network spectrum to the vector of network spectrums
+    void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
 
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
@@ -123,17 +127,17 @@ public:
     template<class ind_data_structure>
     const std::vector<ind_data_structure>& get_generation(const std::vector<std::vector<ind_data_structure>>& data, int generation)
     {
-                auto data_vec = std::find_if(data.begin(),
-                            data.end(),
-                            [&generation](const auto& inds_vec){return inds_vec.at(0).generation == generation;});
-                if(data_vec != data.end())
-                    return *data_vec;
-                else
-                {
-                    std::string error = {"No record for the given generation for the given data_type: "};
-                    error += typeid(ind_data_structure).name();
-                    throw std::invalid_argument{error};
-                }
+        auto data_vec = std::find_if(data.begin(),
+                                     data.end(),
+                                     [&generation](const auto& inds_vec){return inds_vec.at(0).generation == generation;});
+        if(data_vec != data.end())
+            return *data_vec;
+        else
+        {
+            std::string error = {"No record for the given generation for the given data_type: "};
+            error += typeid(ind_data_structure).name();
+            throw std::invalid_argument{error};
+        }
     }
 
     ///Retruns a vector of individuals from a vector of individual data structures
@@ -150,7 +154,7 @@ public:
     ///Returns a vector containing the stored top idnividuals of a given gen
     std::vector<Ind> get_top_inds_gen(int generation) noexcept
     {
-         return extract_inds(get_generation(m_top_inds, generation));
+        return extract_inds(get_generation(m_top_inds, generation));
     }
     ///returns const ref to best_ind vector
     const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
@@ -163,7 +167,7 @@ public:
     /// from individuals of a particular generation
     const std::vector<Ind_Spectrum<Ind>>& get_top_spectrums_gen(int generation) noexcept
     {
-       return get_generation(m_top_spectrums, generation);
+        return get_generation(m_top_spectrums, generation);
     }
 
     //Returns a const reference to the input vector given to individuals that generation
@@ -193,7 +197,8 @@ public:
         m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, get_top_inds_proportion()),
                                                       s.get_env_cue_range(),
                                                       get_n_points_reac_norm(),
-                                                      s.get_time()
+                                                      s.get_time() - 1 //when this function is called timer is ticked,
+                                                      //but we are still in the previous generation
                                                       )
                              );
     }
@@ -205,7 +210,8 @@ public:
                                  sim::get_best_n_inds(s, proportion),
                                  s.get_env_cue_range(),
                                  get_n_points_reac_norm(),
-                                 s.get_time()
+                                 s.get_time() - 1 //when this function is called timer is ticked,
+                                 //but we are still in the previous generation
                                  )
                              );
     }
@@ -214,14 +220,17 @@ public:
     void store_network_spectrum_n_best(Sim& s)
     {
 
-        m_top_spectrums.emplace_back(calculate_mut_spectrums(sim::get_best_n_inds(s, get_top_inds_proportion()),
-                                                                           s.get_mut_step(),
-                                                                           s.get_rng(),
-                                                                           get_n_mut_mutational_spectrum(),
-                                                                           s.get_env_cue_range(),
-                                                                           get_n_points_reac_norm(),
-                                                                           s.get_time())
-                );
+        m_top_spectrums.emplace_back(
+                    calculate_mut_spectrums(sim::get_best_n_inds(s, get_top_inds_proportion()),
+                                            s.get_mut_step(),
+                                            s.get_rng(),
+                                            get_n_mut_mutational_spectrum(),
+                                            s.get_env_cue_range(),
+                                            get_n_points_reac_norm(),
+                                            s.get_time() - 1 //when this function is called timer is ticked,
+                                            //but we are still in the previous generation
+                                            )
+                    );
     }
 
     ///Calculates the mutational spectrums of individuals
@@ -296,9 +305,9 @@ void exec(Sim& s , observer<Sim>& o)
 
 ///Retruns a vector of the generations in which individuals were recorded
 template<class ind_data_structure>
-std::vector<double> extract_gens(std::vector<ind_data_structure> data_v) noexcept
+std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
 {
-    std::vector<double> gens(data_v.size());
+    std::vector<int> gens(data_v.size());
     std::transform(data_v.begin(), data_v.end(), gens.begin(),
                    [](const auto& data_structure){return data_structure.at(0).generation;});
     return gens;

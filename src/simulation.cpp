@@ -29,6 +29,24 @@ simulation<Pop, Es, Ef, S>::simulation(int init_pop_size,
     }
 }
 
+bool operator==(const sim_param& lhs, const sim_param& rhs)
+{
+    bool seeds = lhs.seed == rhs.seed;
+    bool change_freq_A = lhs.change_freq_A == rhs.change_freq_A;
+    bool change_freq_B = lhs.change_freq_B == rhs.change_freq_B;
+    bool selection_strength = lhs.selection_strength == rhs.selection_strength;
+    bool n_generations = lhs.n_generations == rhs.n_generations;
+    bool selection_freq = lhs.selection_freq == rhs.selection_freq;
+    bool change_sym_type = lhs.change_sym_type == rhs.change_sym_type;
+    bool change_freq_type = lhs.change_freq_type == rhs.change_freq_type;
+    bool sel_type = lhs.sel_type == rhs.sel_type;
+
+    return seeds && change_freq_A && change_freq_B &&
+            selection_strength && n_generations &&
+            selection_freq && change_sym_type &&
+            change_freq_type && sel_type;
+}
+
 namespace sim {
 
 template<class Pop>
