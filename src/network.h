@@ -991,12 +991,12 @@ reac_norm calculate_reaction_norm(const Net& net,
                                   const range& cue_range,
                                   const int& n_data_points)
 {
-    reac_norm r_norm;
+    static reac_norm r_norm;
     r_norm.reserve(n_data_points);
     double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
     for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
     {
-        r_norm.insert({i, output(net, std::vector<double>{i}).at(0)});
+        r_norm.push_back({i, output(net, std::vector<double>{i}).at(0)});
     }
     return r_norm;
 }
