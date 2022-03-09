@@ -54,7 +54,7 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
         auto r_norm = calculate_reaction_norm(ind.get_net(),
                                              cue_range,
                                              n_data_points);
-        inds_data.push_back({ind, r_norm, generation});
+        inds_data.emplace_back(ind, std::move(r_norm), generation);
     }
     return inds_data;
 }

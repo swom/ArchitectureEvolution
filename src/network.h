@@ -800,20 +800,29 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 
             if(current_node.is_active())
             {
+                //std::vector<weight> vec_w = current_node.get_vec_weights();
+                //convert_to_double_or_zero(vec_w).swap(w);
 
-                std::vector<weight> vec_w = current_node.get_vec_weights();
-                convert_to_double_or_zero(vec_w).swap(w);
+                //if(input.size() != w.size())
+                //{
+                //    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
+                //}
 
-                if(input.size() != w.size())
-                {
-                    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
-                }
+                //node_value = current_node.get_bias() +
+                //        std::inner_product(input.begin(),
+                //                           input.end(),
+                //                           w.begin(),
+                //                           0.0);
 
-                node_value = current_node.get_bias() +
-                        std::inner_product(input.begin(),
-                                           input.end(),
-                                           w.begin(),
-                                           0.0);
+                const std::vector<weight>& vec_w = current_node.get_vec_weights();
+                auto node_value = current_node.get_bias() +
+                  std::inner_product(input.begin(),
+                    input.end(),
+                    vec_w.begin(),
+                    0.0,
+                    [](double a, double b) { return a + b; },
+                    [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                );
             }
 
             output.at(node) = n(node_value);
@@ -824,6 +833,44 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 
     return input;
 }
+
+
+// populates 'output' with the output of a network for a given input
+// 'input' is used as scratch-memory
+template<class Net>
+void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<double>& output)
+{
+  assert(input.size() == n.get_input_size());
+
+  if (n.any_layer_has_no_nodes())
+  {
+    throw std::runtime_error{ "One layer has 0 nodes" };
+  }
+  for (size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+  {
+    output.clear();
+    for (size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
+    {
+      const auto& current_node = n.get_net_weights().at(layer).at(node);
+      double node_value = 0;
+      if (current_node.is_active())
+      {
+        const std::vector<weight>& vec_w = current_node.get_vec_weights();
+        auto node_value = current_node.get_bias() +
+          std::inner_product(input.begin(),
+            input.end(),
+            vec_w.begin(),
+            0.0,
+            [](double a, double b) { return a + b; },
+            [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+        );
+      }
+      output.push_back(n(node_value));
+    }
+    output.swap(input);
+  }
+}
+
 
 ///Returns the output of a network for a given input and a given activation function
 template <typename Fun, mutation_type M>
@@ -991,12 +1038,25 @@ reac_norm calculate_reaction_norm(const Net& net,
                                   const range& cue_range,
                                   const int& n_data_points)
 {
+    //reac_norm r_norm;
+    //r_norm.reserve(n_data_points);
+    //double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+    //for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    //{   
+    //  r_norm.push_back({ i, output(net, std::vector<double>{i}).at(0) });
+    //}
+    //return r_norm;
+
     reac_norm r_norm;
     r_norm.reserve(n_data_points);
-    double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
-    for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    std::vector<double> input;
+    std::vector<double> output;
+    double step_size = (cue_range.m_end - cue_range.m_start) / n_data_points;
+    for (double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
     {
-        r_norm.push_back({i, output(net, std::vector<double>{i}).at(0)});
+      input.assign({ i });
+      output_ugly_but_fast(net, input, output);
+      r_norm.emplace_back(i, output[0]);
     }
     return r_norm;
 }
