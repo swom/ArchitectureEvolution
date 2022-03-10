@@ -7,10 +7,18 @@
 template<class Ind>
 struct Ind_Data
 {
+    Ind_Data(){};
+    Ind_Data(Ind ind, reac_norm rn, int gen):
+        m_ind{ind},
+        m_reac_norm{rn},
+        generation{gen}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Data,
                                    m_ind,
                                    m_reac_norm,
                                    generation)
+
     Ind m_ind;
     reac_norm m_reac_norm;
     int generation;
@@ -31,6 +39,16 @@ struct Ind_Spectrum
 {
     using Net = typename Ind::net_t;
     using Net_Spect = network_spectrum<Net>;
+
+    Ind_Spectrum(){};
+    Ind_Spectrum(Ind ind,
+                 reac_norm rn,
+                 Net_Spect ns):
+        m_ind{ind},
+        reaction_norm{rn},
+        net_spectrum{ns}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Spectrum,
                                    m_ind,
                                    reaction_norm)

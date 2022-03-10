@@ -11,6 +11,7 @@ struct react_norm_t {
 
   double x, y; 
 };
+
 using reac_norm = std::vector<react_norm_t>;
 
 //typedefs for spectrum of weigths
