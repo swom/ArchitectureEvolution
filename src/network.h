@@ -221,8 +221,7 @@ private:
 
     ///Calculates the reaction norm fo the network after a mutation on a weight
     //make a private function of net
-    reac_norm calc_alternative_reac_norm(node& node,
-                                         reac_norm rn,
+    reac_norm calc_alternative_reac_norm(reac_norm rn,
                                          double new_weight,
                                          const range& input_range,
                                          int n_inputs,
@@ -575,7 +574,7 @@ public:
         std::generate(mutations.begin(), mutations.end(),
                       [&rng, &mut_dist]{return mut_dist(rng);});
 
-        for(auto layer_index = 0; layer_index != mutable_net.get_net_weights().size(); layer_index++)
+        for(size_t layer_index = 0; layer_index != mutable_net.get_net_weights().size(); layer_index++)
         {
             auto current_layer = mutable_net.get_net_weights()[layer_index];
             layer_spectrum.resize(current_layer.size());
@@ -600,8 +599,7 @@ public:
                         for(size_t mut=x.begin(); mut!=x.end(); ++mut)
                         {
                             auto new_weight = original_weight + mutations[mut];
-                            weight_spectrum[mut] = calc_alternative_reac_norm(current_layer[node_index],
-                                                                              rn,
+                            weight_spectrum[mut] = calc_alternative_reac_norm(rn,
                                                                               new_weight,
                                                                               input_range,
                                                                               n_inputs,
@@ -881,7 +879,7 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
             if (current_node.is_active())
             {
                 const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                auto node_value = current_node.get_bias() +
+                node_value = current_node.get_bias() +
                         std::inner_product(input.begin(),
                                            input.end(),
                                            vec_w.begin(),

@@ -8,12 +8,13 @@
 struct react_norm_t { 
     react_norm_t(){};
     react_norm_t(double x, double y):
-    x{x},
-    y{y}
+    m_x{x},
+    m_y{y}
     {};
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, x, y); 
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, m_x, m_y);
 
-  double x, y; 
+  double m_x;
+  double m_y;
 };
 bool operator==(const react_norm_t& lhs, const react_norm_t& rhs);
 
