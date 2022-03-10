@@ -2,10 +2,22 @@
 #define NETWROK_SPECTRUM_H
 #include <nlohmann/json.hpp>
 #include<random>
-
+#include <vector>
 #include "range.h"
 
-using reac_norm = std::unordered_map<double,double>;
+struct react_norm_t { 
+    react_norm_t(){};
+    react_norm_t(double x, double y):
+    x{x},
+    y{y}
+    {};
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, x, y); 
+
+  double x, y; 
+};
+bool operator==(const react_norm_t& lhs, const react_norm_t& rhs);
+
+using reac_norm = std::vector<react_norm_t>;
 
 //typedefs for spectrum of weigths
 using weight_mut_spectrum = std::vector<reac_norm>;

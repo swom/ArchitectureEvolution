@@ -7,10 +7,18 @@
 template<class Ind>
 struct Ind_Data
 {
+    Ind_Data(){};
+    Ind_Data(Ind ind, reac_norm rn, int gen):
+        m_ind{ind},
+        m_reac_norm{rn},
+        generation{gen}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Data,
                                    m_ind,
                                    m_reac_norm,
                                    generation)
+
     Ind m_ind;
     reac_norm m_reac_norm;
     int generation;
@@ -41,7 +49,8 @@ struct Ind_Spectrum
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Spectrum,
                                    m_ind,
-                                   net_spectrum )
+                                   net_spectrum,
+                                   generation)
     Ind m_ind;
     Net_Spect net_spectrum;
     int generation;
@@ -67,10 +76,9 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
     for(auto i = inds.begin(); i != inds.end(); i++)
     {
         auto r_norm = calculate_reaction_norm(i->get_net(),
-                                              cue_range,
-                                              n_data_points);
-
-        inds_data[std::distance(inds.begin(), i)] = Ind_Data<Ind>{*i, r_norm, generation};
+                                             cue_range,
+                                             n_data_points);
+        inds_data.emplace_back(*i, std::move(r_norm), generation);
     }
     return inds_data;
 }
