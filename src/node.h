@@ -18,7 +18,6 @@ public:
     const bool &is_active() const noexcept {return m_active;}
     const double &get_bias() const noexcept {return m_bias;}
     const std::vector<weight> &get_vec_weights() const noexcept {return m_weights;}
-    std::vector<weight> get_vec_weights() noexcept {return m_weights;}
     void change_nth_weight(weight new_weight, size_t index) {m_weights[index] = new_weight;}
 
     ///Sets the value of the nodes to the given value

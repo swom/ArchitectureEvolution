@@ -72,7 +72,7 @@ std::vector<Ind_Data<Ind>> calculate_reaction_norms(const std::vector<Ind>& inds
                                                     const int& generation)
 {
 
-    std::vector<Ind_Data<Ind>> inds_data(inds.size());
+    std::vector<Ind_Data<Ind>> inds_data;
     for(auto i = inds.begin(); i != inds.end(); i++)
     {
         auto r_norm = calculate_reaction_norm(i->get_net(),
