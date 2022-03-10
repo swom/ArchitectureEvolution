@@ -227,16 +227,14 @@ private:
                                          double original_weight,
                                          double new_weight,
                                          const range& input_range,
-                                         int n_inputs,
-                                         std::mutex& m)
+                                         int n_inputs)
     {
-        m.lock();
-        node.change_nth_weight(new_weight, index_weight);
-
-        rn = calculate_reaction_norm(*this, input_range, n_inputs);
-
-        node.change_nth_weight(original_weight, index_weight);
-        m.unlock();
+        rn = calculate_reaction_norm_with_modified_weight(*this,
+                                                          input_range,
+                                                          n_inputs,
+                                                          layer_index,
+                                                          node_index,
+                                                          weight_index);
         return rn;
     }
 public:
@@ -569,59 +567,53 @@ public:
         weight_mut_spectrum weight_spectrum(n_mutations);
         reac_norm rn;
         rn.reserve(n_inputs);
-        std::mutex m;
+
+        std::vector<double> mutations(n_mutations);
+        std::generate(mutations.begin(), mutations.end(),
+                      [&rng, &mut_dist]{return mut_dist(rng);});
 
         for(auto layer = 0; layer != mutable_net.get_net_weights().size(); layer++)
         {
             auto current_layer = mutable_net.get_net_weights()[layer];
             layer_spectrum.resize(current_layer.size());
-            ///tbb from here:https://stackoverflow.com/questions/29719787/parallel-more-than-one-nested-loops-with-tbb
-            tbb::parallel_for( tbb::blocked_range<size_t>(0, layer_spectrum.size() ),
-                               [&]( const tbb::blocked_range<size_t> &r)
+
+            for(size_t node_index = 0; node_index != current_layer.end(); ++node_index)
             {
-                for(size_t node_index=r.begin(); node_index!=r.end(); ++node_index)
+                node_spectrum.resize(current_layer[node_index].get_vec_weights().size());
+
+                for(size_t index_weight = 0;
+                    index_weight != current_layer.at(node_index).get_vec_weights().size(); //Demetra rule!!!
+                    ++index_weight)
                 {
-                    node_spectrum.resize(current_layer[node_index].get_vec_weights().size());
+                    auto original_weight = current_layer[node_index].get_vec_weights()[index_weight].get_weight();
 
-                    tbb::parallel_for( tbb::blocked_range<size_t>(0, node_spectrum.size() ),
-                                       [&]( const tbb::blocked_range<size_t> &j)
+
+                    tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
+                                       [&]( const tbb::blocked_range<size_t> &x)
                     {
-                        for(size_t index_weight=j.begin(); index_weight!=j.end(); ++index_weight)
+                        for(size_t mut=x.begin(); mut!=x.end(); ++mut)
                         {
-                            auto original_weight = current_layer[node_index].get_vec_weights()[index_weight].get_weight();
+                            auto new_weight = original_weight + mutations[mut];
+                            weight_spectrum[mut] = calc_alternative_reac_norm(current_layer[node_index],
+                                                                              rn,
+                                                                              index_weight,
+                                                                              original_weight,
+                                                                              new_weight,
+                                                                              input_range,
+                                                                              n_inputs
+                                                                              );
 
-                            tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
-                                               [&]( const tbb::blocked_range<size_t> &x)
-                            {
-                                for(size_t mut=x.begin(); mut!=x.end(); ++mut)
-                                {
-                                    m.lock();
-                                    auto new_weight = original_weight + mut_dist(rng);
-                                    m.unlock();
-                                    weight_spectrum[mut] = calc_alternative_reac_norm(current_layer[node_index],
-                                                                                      rn,
-                                                                                      index_weight,
-                                                                                      original_weight,
-                                                                                      new_weight,
-                                                                                      input_range,
-                                                                                      n_inputs,
-                                                                                      m);
-
-                                }
-                            });
-
-                            node_spectrum[index_weight] = weight_spectrum;
                         }
-
-                        layer_spectrum[node_index] = node_spectrum;
                     });
+                    node_spectrum[index_weight] = weight_spectrum;
                 }
-            });///tbb to here
-
+                layer_spectrum[node_index] = node_spectrum;
+            }
             network_weights_spectrum[layer] = layer_spectrum;
         }
         return network_weights_spectrum;
     }
+
 
 private:
 
@@ -1024,6 +1016,28 @@ reac_norm calculate_reaction_norm(const Net& net,
     {
         r_norm.insert({i, output(net, std::vector<double>{i}).at(0)});
     }
+    return r_norm;
+}
+
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Net>
+reac_norm calculate_reaction_norm_with_modified_weight(const Net& net,
+                                                       const range& cue_range,
+                                                       const int& n_data_points,
+                                                       size_t layer_index,
+                                                       size_t node_index,
+                                                       size_t weight_index)
+{
+    reac_norm r_norm;
+    r_norm.reserve(n_data_points);
+    double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+
+    for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    {
+        r_norm.insert({i, output(net, std::vector<double>{i}).at(0)});
+    }
+
     return r_norm;
 }
 
