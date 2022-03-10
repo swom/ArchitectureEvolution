@@ -6,6 +6,11 @@
 #include "range.h"
 
 struct react_norm_t { 
+    react_norm_t(){};
+    react_norm_t(double x, double y):
+    x{x},
+    y{y}
+    {};
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, x, y); 
 
   double x, y; 
