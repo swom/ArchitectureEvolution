@@ -815,7 +815,7 @@ std::vector<double> output(const Net& n, std::vector<double> input)
                 //                           0.0);
 
                 const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                auto node_value = current_node.get_bias() +
+                node_value = current_node.get_bias() +
                   std::inner_product(input.begin(),
                     input.end(),
                     vec_w.begin(),

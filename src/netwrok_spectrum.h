@@ -7,10 +7,10 @@
 
 struct react_norm_t { 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, x, y); 
-  friend bool operator==(const react_norm_t& a, const react_norm_t& b) = default;
 
   double x, y; 
 };
+bool operator==(const react_norm_t& lhs, const react_norm_t& rhs);
 
 using reac_norm = std::vector<react_norm_t>;
 
