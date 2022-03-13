@@ -106,14 +106,16 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
     auto gens = extract_gens(o.get_top_inds());
 
 
-//#ifdef NDEBUG
-//#pragma omp parallel for
-//#else
+#ifdef NDEBUG
+#pragma omp parallel for
+#else
 #pragma omp parallel for ordered
-//#endif
+#endif
     for (int i = 0 ; i < int(gens.size()); i++)
     {
+
         auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
+#pragma omp ordered
 #pragma omp critical
         {
             o.add_spectrum(spectrum);
