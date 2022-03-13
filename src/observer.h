@@ -285,11 +285,11 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_avg_fit(s);
 
 
-        if(s.get_time() %  o.get_record_freq_top_inds() == 0)
+        if(o.get_record_freq_top_inds() != 0 && s.get_time() %  o.get_record_freq_top_inds() == 0)
         {
             o.store_top_n_inds(s);
         }
-        if(s.get_time() % o.get_record_freq_spectrum() == 0)
+        if( o.get_record_freq_spectrum() != 0 && s.get_time() % o.get_record_freq_spectrum() == 0)
         {
             o.store_network_spectrum_n_best(s);
         }
