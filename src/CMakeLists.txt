@@ -28,7 +28,6 @@ add_executable(arc_evo ${src})
 set_target_properties(arc_evo PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(arc_evo PUBLIC
-  TBB::tbb
   nlohmann_json::nlohmann_json
   cxxopts::cxxopts
   )
