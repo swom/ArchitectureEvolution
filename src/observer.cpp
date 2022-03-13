@@ -111,7 +111,7 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
 #else
 #pragma omp parallel for
 #endif
-    for (int i = 0 ; i < gens.size(); i++)
+    for (int i = 0 ; i < int(gens.size()); i++)
     {
         auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
 #pragma omp critical
