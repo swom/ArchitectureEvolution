@@ -29,6 +29,24 @@ simulation<Pop, Es, Ef, S>::simulation(int init_pop_size,
     }
 }
 
+bool operator==(const sim_param& lhs, const sim_param& rhs)
+{
+    bool seeds = lhs.seed == rhs.seed;
+    bool change_freq_A = lhs.change_freq_A == rhs.change_freq_A;
+    bool change_freq_B = lhs.change_freq_B == rhs.change_freq_B;
+    bool selection_strength = lhs.selection_strength == rhs.selection_strength;
+    bool n_generations = lhs.n_generations == rhs.n_generations;
+    bool selection_freq = lhs.selection_freq == rhs.selection_freq;
+    bool change_sym_type = lhs.change_sym_type == rhs.change_sym_type;
+    bool change_freq_type = lhs.change_freq_type == rhs.change_freq_type;
+    bool sel_type = lhs.sel_type == rhs.sel_type;
+
+    return seeds && change_freq_A && change_freq_B &&
+            selection_strength && n_generations &&
+            selection_freq && change_sym_type &&
+            change_freq_type && sel_type;
+}
+
 namespace sim {
 
 template<class Pop>
@@ -414,7 +432,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         //create a non-default simulaiton
         env_param e_p{};
-        e_p.cue_distrib = range{-0.123,0.123};
+        e_p.cue_range = range{-0.123,0.123};
         net_param n_p;
         n_p.net_arc = {1,2,3,4,5,6};
         n_p.max_arc = {1,2,3,4,5,6};
@@ -852,7 +870,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(p_p1.n_trials < p_p2.n_trials);
 
         env_param e_p;
-        e_p.cue_distrib = {1,1};
+        e_p.cue_range = {1,1};
         all_params a_p1{e_p, ind_param{}, p_p1, sim_param{}};
         all_params a_p2{e_p, ind_param{}, p_p2, sim_param{}};
 

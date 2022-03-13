@@ -1,5 +1,4 @@
 #include "population.h"
-
 #include <cassert>
 
 template< class Ind>
@@ -15,6 +14,18 @@ population<Ind>::population(int init_nr_indiv,
     m_mut_rate_weight{mut_rate},
     m_mut_step{mut_step}
 {}
+
+bool operator==(const pop_param& lhs, const pop_param& rhs)
+{
+    bool n_inds = lhs.number_of_inds == rhs.number_of_inds;
+    bool mut_rate_weights = lhs.mut_rate_weight == rhs.mut_rate_weight;
+    bool mut_steps = lhs.mut_step == rhs.mut_step;
+    bool mut_rate_activations = lhs.mut_rate_activation == rhs.mut_rate_activation;
+    bool mut_rate_duplication = lhs.mut_rate_duplication == rhs.mut_rate_duplication;
+    bool n_trials = lhs.n_trials == rhs.n_trials;
+
+    return n_inds && mut_rate_weights && mut_steps && mut_rate_activations && mut_rate_duplication && n_trials;
+}
 
 namespace pop {
 std::vector<double> adjust_distances(std::vector<double> distances)

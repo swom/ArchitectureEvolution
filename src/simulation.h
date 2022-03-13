@@ -54,6 +54,8 @@ struct sim_param
 
 };
 
+bool operator==(const sim_param& lhs, const sim_param& rhs);
+
 struct all_params
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
@@ -287,12 +289,13 @@ public:
     std::vector<double> evaluate_inds(){
 
         std::vector<double> cumulative_performance(get_inds().size(), 0);
+        std::vector<double> performance(get_inds().size());
 
         for(int i = 0; i != m_population.get_n_trials(); i++)
         {
             assign_new_inputs(*this);
             update_optimal(env::calculate_optimal(m_environment, m_input));
-            auto performance = pop::calc_dist_from_target(get_inds(), get_optimal(), m_input);
+            performance = pop::calc_dist_from_target(get_inds(), get_optimal(), m_input);
 
             std::transform(cumulative_performance.begin(),
                            cumulative_performance.end(),
@@ -401,8 +404,8 @@ Class load_json(
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    Class s;
     f >> json_in;
+    Class s;
     return s = json_in;
 }
 

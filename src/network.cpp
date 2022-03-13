@@ -4,6 +4,12 @@
 #include <cassert>
 #include <cmath>
 #include <numeric>
+bool operator==(const net_param& lhs, const net_param& rhs)
+{
+    bool net_arcs = lhs.net_arc == rhs.net_arc;
+    bool max_arcs = lhs.max_arc == rhs.max_arc;
+    return max_arcs && net_arcs;
+}
 
 template<mutation_type M>
 network<M>::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
@@ -49,9 +55,8 @@ std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double m
             for(auto& node : layer)
                 for(size_t j = 0; j != node.get_vec_weights().size(); ++j)
                 {
-                    const weight &current_weight = node.get_vec_weights()[j];
-                    if(current_weight.get_weight() < -0.0001 || current_weight.get_weight() > 0.0001)
-                        networks_weights.push_back(current_weight);
+                    if(node.get_vec_weights()[j].get_weight() < -0.0001 || node.get_vec_weights()[j].get_weight() > 0.0001)
+                        networks_weights.push_back(node.get_vec_weights()[j]);
                 }
     }
     return  networks_weights;
@@ -264,16 +269,16 @@ void test_network() //!OCLINT
 
     ///Network weights mutate following a normal distribution
     {
-        double mut_rate = 0.01;
+        double mut_rate = 1;
         double mut_step = 0.1;
-        std::mt19937_64 rng;
+        std::mt19937_64 rng{};
 
         auto expected_mean_value  = 0;
         auto expected_stdev = mut_step;
 
-        int repeats = 100000;
+        int repeats = 1000;
 
-        auto very_simple_nodes = std::vector<int>{1,2,1};
+        auto very_simple_nodes = std::vector<int>{1,1};
         net_param n_p{very_simple_nodes, linear, very_simple_nodes};
         network n{n_p};
 
@@ -288,8 +293,10 @@ void test_network() //!OCLINT
         double mean = calc_mean(weights_as_doubles);
         double stdev = calc_stdev(weights_as_doubles);
 
-        assert(mean - expected_mean_value < 0.01 && mean - expected_mean_value > -0.01);
-        assert(stdev - expected_stdev < 0.01 && stdev - expected_stdev > -0.01);
+        auto delta_mean = mean - expected_mean_value;
+        auto delta_stdev = stdev - expected_stdev;
+        assert(delta_mean < 0.01 && delta_mean > -0.01);
+        assert(delta_stdev < 0.01 && delta_stdev > -0.01);
 
     }
 
