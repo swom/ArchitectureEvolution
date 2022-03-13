@@ -1,4 +1,4 @@
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 find_package(TBB CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
@@ -32,5 +32,7 @@ target_link_libraries(arc_evo PUBLIC
   TBB::tbb
   nlohmann_json::nlohmann_json
   cxxopts::cxxopts
-  OpenMP::OpenMP_CXX
   )
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(arc_evo PUBLIC OpenMP::OpenMP_CXX)
+endif()
