@@ -1,5 +1,4 @@
 find_package(OpenMP)
-find_package(TBB CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 
