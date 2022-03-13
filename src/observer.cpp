@@ -105,18 +105,15 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
     auto o = load_json<observer<>>(create_save_name_from_params(params));
     auto gens = extract_gens(o.get_top_inds());
 
-    std::mutex m;
-
-            tbb::parallel_for(tbb::blocked_range<size_t>(0, gens.size()),
-                      [&](const tbb::blocked_range<size_t>& r){
-        for(size_t i=r.begin(); i!=r.end(); ++i)
+#pragma omp parallel for
+    for (size_t i = 0 ; i < gens.size(); i++)
         {
             auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
-            m.lock();
-            o.add_spectrum(spectrum);
-            m.unlock();
+         #pragma omp critical
+            {
+                o.add_spectrum(spectrum);
+            }
         }
-    });
     return o;
 }
 

@@ -4,10 +4,9 @@
 #include <iostream>
 #include <random>
 #include <nlohmann/json.hpp>
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range3d.h>
+//#include <tbb/parallel_for.h>
 #include <mutex>
-
+#include <omp.h>
 #include "node.h"
 #include "mutation_type.h"
 #include "netwrok_spectrum.h"
@@ -591,27 +590,28 @@ public:
                 {
                     if(!current_layer[node_index].get_vec_weights()[weight_index].is_active()) continue;
 
-                    const auto& original_weight = current_layer[node_index].get_vec_weights()[weight_index].get_weight();
-
-                    tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
-                                       [&]( const tbb::blocked_range<size_t> &x)
+                    //                        tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
+                    //                                           [&]( const tbb::blocked_range<size_t> &x)
+                    //                        {
+                    //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
+                    #pragma omp parallel for
+                    for (size_t mut = 0; mut < mutations.size(); mut++)
                     {
-                        for(size_t mut=x.begin(); mut!=x.end(); ++mut)
-                        {
-                            auto new_weight = original_weight + mutations[mut];
-                            weight_spectrum[mut] = calc_alternative_reac_norm(rn,
-                                                                              new_weight,
-                                                                              input_range,
-                                                                              n_inputs,
-                                                                              layer_index,
-                                                                              node_index,
-                                                                              weight_index
-                                                                              );
-                        }
-                    });
+                        auto new_weight = current_layer[node_index].get_vec_weights()[weight_index].get_weight() + mutations[mut];
+                        weight_spectrum[mut] = calc_alternative_reac_norm(rn,
+                                                                          new_weight,
+                                                                          input_range,
+                                                                          n_inputs,
+                                                                          layer_index,
+                                                                          node_index,
+                                                                          weight_index
+                                                                          );
+                    }
+                    //                        });
 
                     node_spectrum[weight_index] = weight_spectrum;
                 }
+
                 layer_spectrum[node_index] = node_spectrum;
             }
             network_weights_spectrum[layer_index] = layer_spectrum;
