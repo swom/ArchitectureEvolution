@@ -14,12 +14,12 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
-        observer<sim_t> o;
 
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::activation) {
 
@@ -28,11 +28,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::weights_and_activation) {
 
@@ -41,11 +41,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::duplication) {
 
@@ -54,11 +54,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::NRduplication) {
 
@@ -67,11 +67,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::addition) {
 
@@ -80,11 +80,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else if (mut_type == mutation_type::NRaddition) {
 
@@ -93,11 +93,11 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>;
 
-        observer<sim_t> o;
         auto s = create_simulation<pop_t, env_change_sym_type, env_change_freq_type, selection_type>(results);
+        observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
-                  create_save_name_from_observer_data(o));
+                  create_save_name_from_params(o.get_params()));
     }
     else
     {
@@ -154,6 +154,5 @@ void run_simulation_given_env_freq_type(const cxxopts::ParseResult& results)
         throw std::runtime_error{"unknown change type"};
     }
 }
-
 
 #endif // LAUNCHER_FUNCTIONS_H

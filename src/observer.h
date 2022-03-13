@@ -3,11 +3,56 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+struct obs_param{
+    obs_param(int top_prop = 1,
+              int top_ind_reg_freq = 1,
+              int spectrum_reg_freq = 1,
+              int n_data_points_for_reac_norm = 100,
+              int n_mutations_for_mutational_spectrum = 1000):
+        m_top_proportion{top_prop},
+        m_top_ind_reg_freq{top_ind_reg_freq},
+        m_spectrum_reg_freq{spectrum_reg_freq},
+        m_reac_norm_n_points{n_data_points_for_reac_norm},
+        m_n_mutations_per_locus{n_mutations_for_mutational_spectrum}
+    {
+        if(top_ind_reg_freq == 0)
+            throw std::invalid_argument{"the number of generations after which a recording should happen cannot be 0"};
+        if(top_prop == 0)
+            throw std::invalid_argument{"the number of indidivuduals recorderd cannot be 0"};
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(obs_param,
+                                   m_top_proportion,
+                                   m_top_ind_reg_freq,
+                                   m_spectrum_reg_freq,
+                                   m_reac_norm_n_points,
+                                   m_n_mutations_per_locus
+                                   )
+
+    ///The top n idividuals stored in the observed
+    int m_top_proportion;
+    ///The number of generations after which individuals are stored
+    int m_top_ind_reg_freq;
+    ///The number of generations after which
+    /// the mutational spectrum of the top individuals is stored
+    int m_spectrum_reg_freq;
+    ///The number of data points on which to calculate the reaction norm of an individual
+    int m_reac_norm_n_points;
+    ///The number of mutations executed on each locus
+    /// when calculating the mutational spectrum of an individual
+    int m_n_mutations_per_locus;
+};
+
+class base_observer{
+public:
+
+};
 
 template<class Sim = simulation<>>
-class observer
+class observer : public base_observer
 {
-    using Pop = typename Sim::pop_t;
+    using Sim_t = Sim;
+    using Pop = typename Sim_t::pop_t;
     using Ind = typename Pop::ind_t;
     using Net = typename Ind::net_t;
     using Net_Spect = network_spectrum<Net>;
@@ -17,40 +62,121 @@ private:
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
-    int m_top_proportion;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
-    std::vector<std::vector<Net_Spect>> m_top_spectrums;
-    all_params m_params = {};
+    std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
+    obs_param m_obs_param;
+    all_params m_params;
     std::vector<std::vector<double>> m_input;
     std::vector<double> m_optimal;
 
 public:
-    observer(int top_proportion = 1):
-        m_top_proportion{top_proportion}
+
+    observer(
+            obs_param params = obs_param{},
+            all_params sim_params = all_params{}
+            ):
+        m_obs_param(params),
+        m_params{sim_params}
     {
     }
+
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(observer,
                                    m_avg_fitnesses,
                                    m_var_fitnesses,
                                    m_top_inds,
+                                   m_top_spectrums,
                                    m_env_functions,
                                    m_params,
                                    m_input,
                                    m_optimal,
-                                   m_top_proportion)
+                                   m_obs_param)
+
+    ///adds a network spectrum to the vector of network spectrums
+    void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
 
     ///returns const ref to m_avg_fitness
-    const std::vector<double>& get_avg_fitness() const noexcept{return m_avg_fitnesses;}
+    const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
 
+    ///Returns const ref to record frequency
+    /// of top individuals
+    const int& get_record_freq_top_inds() const noexcept {return m_obs_param.m_top_ind_reg_freq;}
+
+    ///Returns const ref to record frequency
+    /// of top indidivudals mutational spectrums
+    const int& get_record_freq_spectrum() const noexcept {return m_obs_param.m_spectrum_reg_freq;}
+
+    /// Returns const ref to the number of points to be recorded for reaction norm
+    const int& get_n_points_reac_norm() const noexcept {return m_obs_param.m_reac_norm_n_points;}
+
+    /// Returns const ref to the number of mutations
+    /// used for calcualting the mutational spectrum
+    const int& get_n_mut_mutational_spectrum() const noexcept {return m_obs_param.m_n_mutations_per_locus;}
+
     ///returns const ref to m_var_fitnesses
     const std::vector<double>& get_var_fitness() const noexcept{return m_var_fitnesses;}
 
+    ///returns const ref to the number of top individuals to be recorded
+    const int& get_top_inds_proportion() const noexcept{return m_obs_param.m_top_proportion;}
+
+    ///Returns the vector whosgeneration element is of a certain value
+    template<class ind_data_structure>
+    const std::vector<ind_data_structure>& get_generation(const std::vector<std::vector<ind_data_structure>>& data, int generation)
+    {
+        auto data_vec = std::find_if(data.begin(),
+                                     data.end(),
+                                     [&generation](const auto& inds_vec){return inds_vec.at(0).generation == generation;});
+        if(data_vec != data.end())
+            return *data_vec;
+        else
+        {
+            std::string error = {"No record for the given generation for the given data_type: "};
+            error += typeid(ind_data_structure).name();
+            throw std::invalid_argument{error};
+        }
+    }
+
+    ///Retruns a vector of individuals from a vector of individual data structures
+    template<class ind_data_structure>
+    std::vector<Ind> extract_inds(std::vector<ind_data_structure> data_v) noexcept
+    {
+        std::vector<Ind> inds(data_v.size());
+        std::transform(data_v.begin(), data_v.end(), inds.begin(),
+                       [](const auto& data_structure){return data_structure.m_ind;});
+        return inds;
+    }
+
+
+    ///Returns a vector containing the stored top idnividuals of a given gen
+    std::vector<Ind> get_top_inds_gen(int generation) noexcept
+    {
+        return extract_inds(get_generation(m_top_inds, generation));
+    }
     ///returns const ref to best_ind vector
     const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
+
+    /// of the best individuals in various generations
+    ///returns const ref to the vector of mutational spectrum
+    const std::vector<std::vector<Ind_Spectrum<Ind>>>& get_top_spectrums() const noexcept{return m_top_spectrums;}
+
+    ///returns const ref to the vector of mutational spectrum
+    /// from individuals of a particular generation
+    const std::vector<Ind_Spectrum<Ind>>& get_top_spectrums_gen(int generation) noexcept
+    {
+        return get_generation(m_top_spectrums, generation);
+    }
+
+    //Returns a const reference to the input vector given to individuals that generation
+    const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
+
+    ///Returns a const referernce to the paramteres used to initialize the simulation
+    const all_params& get_params() const noexcept {return m_params;};
+
+    ////returns a constant reference to the otpimal output value given to individuals that generation
+    const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -67,10 +193,11 @@ public:
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(const Sim& s)
     {
-        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, m_top_proportion),
+        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, get_top_inds_proportion()),
                                                       s.get_env_cue_range(),
-                                                      100,
-                                                      s.get_time()
+                                                      get_n_points_reac_norm(),
+                                                      s.get_time() - 1 //when this function is called timer is ticked,
+                                                      //but we are still in the previous generation
                                                       )
                              );
     }
@@ -81,8 +208,9 @@ public:
         m_top_inds.push_back(calculate_reaction_norms(
                                  sim::get_best_n_inds(s, proportion),
                                  s.get_env_cue_range(),
-                                 100,
-                                 s.get_time()
+                                 get_n_points_reac_norm(),
+                                 s.get_time() - 1 //when this function is called timer is ticked,
+                                 //but we are still in the previous generation
                                  )
                              );
     }
@@ -91,29 +219,40 @@ public:
     void store_network_spectrum_n_best(Sim& s)
     {
 
-        m_top_spectrums.emplace_back(std::vector<Net_Spect>{});
-        std::vector<Net_Spect> spectrums = calculate_mut_spectrums(sim::get_best_n_inds(s, m_top_proportion),
-                                                              s.get_mut_step(),
-                                                              s.get_rng(),
-                                                              1000,
-                                                              s.get_env_cue_range(),
-                                                              100);
-         spectrums.swap(m_top_spectrums.back());
+        m_top_spectrums.emplace_back(
+                    calculate_mut_spectrums(sim::get_best_n_inds(s, get_top_inds_proportion()),
+                                            s.get_mut_step(),
+                                            s.get_rng(),
+                                            get_n_mut_mutational_spectrum(),
+                                            s.get_env_cue_range(),
+                                            get_n_points_reac_norm(),
+                                            s.get_time() - 1 //when this function is called timer is ticked,
+                                            //but we are still in the previous generation
+                                            )
+                    );
     }
 
-    const all_params& get_params() const noexcept {return m_params;};
+    ///Calculates the mutational spectrums of individuals
+    ///stored in top inds vector, given a certain generation
+    /// and adds it to the vector of top individuals
+    std::vector<Ind_Spectrum<Ind>> calculate_mut_spectrums_for_gen(int generation)
+    {
+        std::mt19937_64 rng;
+        std::vector<Ind_Spectrum<Ind>> spectrums = calculate_mut_spectrums(get_top_inds_gen(generation),
+                                                                           m_params.p_p.mut_step,
+                                                                           rng,
+                                                                           get_n_mut_mutational_spectrum(),
+                                                                           m_params.e_p.cue_range,
+                                                                           get_n_points_reac_norm(),
+                                                                           generation);
+        return spectrums;
+    }
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
-
-    void store_par (const Sim& s) noexcept {m_params = s.get_params();}
 
     void store_input(const Sim& s) noexcept {m_input.push_back(s.get_input());}
 
     void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_optimal());}
-
-    const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
-
-    const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
 };
 
 template<class Ind>
@@ -127,7 +266,10 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 template<class Sim>
 void exec(Sim& s , observer<Sim>& o)
 {
-    o.store_par(s);
+    if(s.get_params() != o.get_params())
+    {
+        throw std::runtime_error{"Observer was not initialized correctly with simulation parameters"};
+    }
 
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;
@@ -143,11 +285,11 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_avg_fit(s);
 
 
-        if(s.get_time() % 1000 == 0)
+        if(s.get_time() %  o.get_record_freq_top_inds() == 0)
         {
             o.store_top_n_inds(s);
         }
-        if(s.get_time() % 1 == 0)
+        if(s.get_time() % o.get_record_freq_spectrum() == 0)
         {
             o.store_network_spectrum_n_best(s);
         }
@@ -160,25 +302,83 @@ void exec(Sim& s , observer<Sim>& o)
     }
 }
 
-template<class Sim>
-std::string create_save_name_from_observer_data(const observer<Sim>& o)
+///Retruns a vector of the generations in which individuals were recorded
+template<class ind_data_structure>
+std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
 {
+    std::vector<int> gens(data_v.size());
+    std::transform(data_v.begin(), data_v.end(), gens.begin(),
+                   [](const auto& data_structure){return data_structure.at(0).generation;});
+    return gens;
+}
 
-    return "mut_type_" + convert_mut_type_to_string(o.get_params().i_p.m_mutation_type) +
-            "_start_arc" + convert_arc_to_string(o.get_params().i_p.net_par.net_arc) +
-            "_act_r" + std::to_string(o.get_params().p_p.mut_rate_activation).substr(0, 8) +
-            "_dup_r" + std::to_string(o.get_params().p_p.mut_rate_duplication).substr(0, 8) +
-            "_ch_A" + std::to_string(o.get_params().s_p.change_freq_A).substr(0, 8) +
-            "_ch_B" + std::to_string(o.get_params().s_p.change_freq_B).substr(0, 8) +
-            "_ch_type" + convert_change_symmetry_type_to_string(o.get_params().s_p.change_sym_type) +
-            "_ch_type" + convert_change_freq_type_to_string(o.get_params().s_p.change_freq_type) +
-            "_sel_str" + std::to_string(o.get_params().s_p.selection_strength).substr(0, 3) +
-            "_max_arc" + convert_arc_to_string(o.get_params().i_p.net_par.max_arc) +
-            "_sel_type" + convert_selection_type_to_string(o.get_params().s_p.sel_type) +
-            "_" + std::to_string(o.get_params().s_p.seed) + ".json";
+std::string create_save_name_from_params(const all_params& p);
+
+///load an observer of correct type based on selection frequency type
+template<mutation_type M, selection_type S, env_change_freq_type F>
+std::unique_ptr<base_observer> load_observer_json_change_symmetry_type(const all_params& pars)
+{
+    auto f_t = pars.s_p.change_sym_type;
+    if (f_t == env_change_symmetry_type::symmetrical ) {
+        using net_t = network<M>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t, env_change_symmetry_type::symmetrical, F, S>;
+        return std::make_unique<base_observer>(observer<sim_t>());
+    }
+    else if(f_t == env_change_symmetry_type::symmetrical)
+    {
+        using net_t = network<M>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t, env_change_symmetry_type::asymmetrical, F, S>;
+        return std::make_unique<base_observer>(observer<sim_t>());
+    }
+    else
+        throw std::invalid_argument{"invalid symmetry type when loading observer"};
+
 
 }
 
+///load an observer of correct type based on change frequency type
+template<mutation_type M, selection_type S>
+std::unique_ptr<base_observer> load_observer_json_change_freq_type(const all_params& pars)
+{
+    auto f_t = pars.s_p.change_freq_type;
+    switch (f_t) {
+    case env_change_freq_type::regular :
+        return load_observer_json_change_symmetry_type<M, S, env_change_freq_type::regular>(pars);
+        break;
+    case env_change_freq_type::stochastic :
+        return load_observer_json_change_symmetry_type<M, S, env_change_freq_type::stochastic>(pars);
+        break;
+    default:
+        throw std::invalid_argument{"invalid frequency type when loading observer"};
+
+    }
+}
+
+///load an observer of correct type based on selection type
+template<mutation_type M>
+std::unique_ptr<base_observer> load_observer_selection_type(const all_params& pars)
+{
+    auto s_t = pars.s_p.sel_type;
+    switch (s_t) {
+    case selection_type::constant :
+        return load_observer_json_change_freq_type<M, selection_type::constant>(pars);
+        break;
+    case selection_type::sporadic :
+        return load_observer_json_change_freq_type<M, selection_type::sporadic>(pars);
+        break;
+    default:
+        throw std::invalid_argument{"invalid selection_type when loading observer"};
+
+    }
+}
+///load an observer of correct type based on parameter
+std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_params &pars);
+///loads an observer based on filename
+std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
 void test_observer();
 
 #endif // OBSERVER_H

@@ -16,19 +16,21 @@ static std::map<std::string, mutation_type> string_to_mut_type_map
 
 struct ind_param
 {
+    ind_param(net_param net_pars = net_param(),
+              enum mutation_type mut = mutation_type::weights):
+        net_par{net_pars},
+        m_mutation_type{mut}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ind_param,
                                    net_par,
                                    m_mutation_type)
     net_param net_par;
     enum mutation_type m_mutation_type;
 
-    ind_param(net_param net_pars = net_param(),
-              enum mutation_type mut = mutation_type::weights):
-        net_par{net_pars},
-        m_mutation_type{mut}
-    {}
-};
 
+};
+bool operator==(const ind_param& lhs, const ind_param& rhs);
 
 template<class Net = network<>>
 class individual
