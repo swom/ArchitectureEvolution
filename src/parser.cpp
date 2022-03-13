@@ -150,10 +150,10 @@ cxxopts::Options create_parser(){
              cxxopts::value<int>()->default_value("1"))
             ("R,top_inds_registration_freq",
              "the number of generations after which top individuals will be selected",
-             cxxopts::value<int>()->default_value("1"))
+             cxxopts::value<int>()->default_value("1000"))
             ("r,top_spec_registration_freq",
              "the number of generations after which the mutational spectrum of individuals will be recorded",
-             cxxopts::value<int>()->default_value("1000"))
+             cxxopts::value<int>()->default_value("10000"))
             ("p,n_reac_norm_points",
              "the number of inputs on which the reaction norm of an individual will be measured",
              cxxopts::value<int>()->default_value("100"))
