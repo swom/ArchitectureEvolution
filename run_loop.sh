@@ -30,4 +30,4 @@ echo "activation rate: "$9
 echo "selection type: "${10}
 echo "selection frequency: "${11}
 
-./arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9 -s ${10} -f ${11}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9 -s ${10} -f ${11}
