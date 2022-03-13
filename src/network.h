@@ -595,7 +595,7 @@ public:
                     //                        {
                     //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
                     #pragma omp parallel for
-                    for (size_t mut = 0; mut < mutations.size(); mut++)
+                    for (int mut = 0; mut < mutations.size(); mut++)
                     {
                         auto new_weight = current_layer[node_index].get_vec_weights()[weight_index].get_weight() + mutations[mut];
                         weight_spectrum[mut] = calc_alternative_reac_norm(rn,

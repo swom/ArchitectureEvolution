@@ -3,12 +3,12 @@
 
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
-  bool ind_par = lhs.i_p == rhs.i_p;
-  bool env_pars = lhs.e_p == rhs.e_p;
-  bool pop_pars = lhs.p_p == rhs.p_p;
-  bool sim_pars = lhs.s_p == rhs.s_p;
+    bool ind_par = lhs.i_p == rhs.i_p;
+    bool env_pars = lhs.e_p == rhs.e_p;
+    bool pop_pars = lhs.p_p == rhs.p_p;
+    bool sim_pars = lhs.s_p == rhs.s_p;
 
-  return ind_par && env_pars && pop_pars && sim_pars;
+    return ind_par && env_pars && pop_pars && sim_pars;
 }
 
 template<class Sim>
@@ -105,15 +105,20 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
     auto o = load_json<observer<>>(create_save_name_from_params(params));
     auto gens = extract_gens(o.get_top_inds());
 
+
+#ifndef NDEBUG
+#pragma omp parallel for ordered
+#else
 #pragma omp parallel for
-    for (size_t i = 0 ; i < gens.size(); i++)
+#endif
+    for (int i = 0 ; i < gens.size(); i++)
+    {
+        auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
+#pragma omp critical
         {
-            auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
-         #pragma omp critical
-            {
-                o.add_spectrum(spectrum);
-            }
+            o.add_spectrum(spectrum);
         }
+    }
     return o;
 }
 
