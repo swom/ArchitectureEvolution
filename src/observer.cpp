@@ -115,7 +115,9 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
     {
 
         auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
+#ifndef NDEBUG
 #pragma omp ordered
+#endif
 #pragma omp critical
         {
             o.add_spectrum(spectrum);

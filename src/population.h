@@ -207,7 +207,7 @@ void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
 /// to the optimal output given a series of inputs
 template<class Ind>
 std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
-                                          double env_value,
+                                          const double& env_value,
                                           const std::vector<double>& input)
 {
     std::vector<double> distance_from_target(inds.size());
@@ -216,7 +216,7 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
     for(int i = 0 ; i < int(inds.size()); i++)
     {
         auto sqr_distance = ind::calc_sqr_distance(inds[i], env_value, input);
-        distance_from_target[sqr_distance];
+        distance_from_target[i]  = sqr_distance;
     }
 
     return distance_from_target;
