@@ -30,6 +30,7 @@ cmake --build .
 
 
 declare -a architectures=("1,2,2,2,1")
+declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0)
 declare -a gen=(1000000)
 declare -a mut_types=("weights")
@@ -40,23 +41,26 @@ for seed in $(seq 1 10)
 do
 	for arc in "${architectures[@]}"
 	do
-		for change_freq_A in "${change_freq_As[@]}"
+		for max_arc in "${max_architectures[@]}"
 		do
-			for gen in "${gen[@]}"
-			do	
-				for mut_type in "${mut_types[@]}"
-				do
-					for sel_type in "${sel_types[@]}"
+			for change_freq_A in "${change_freq_As[@]}"
+			do
+				for gen in "${gen[@]}"
+				do	
+					for mut_type in "${mut_types[@]}"
 					do
-						for sel_freq in "${sel_freqs[@]}"
+						for sel_type in "${sel_types[@]}"
 						do
-								echo $seed $arc $change_freq_A $gen $mut_type $sel_type $sel_freq
+							for sel_freq in "${sel_freqs[@]}"
+							do
+									echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
               
-								sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
+									sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
+							done
 						done
 					done
-				done
-			done 
+				done 
+			done
 		done
 	done
 done
