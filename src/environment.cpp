@@ -22,7 +22,7 @@ environment::environment(std::function<double(std::vector<double>)> env_function
 }
 
 environment::environment(const env_param& e_p):
-    m_cue_range{e_p.cue_distrib},
+    m_cue_range{e_p.cue_range},
     m_cue_distribution{m_cue_range.m_start, m_cue_range.m_end},
     m_env_function_A{e_p.env_function_A},
     m_env_function_B{e_p.env_function_B},
@@ -34,6 +34,14 @@ environment::environment(const env_param& e_p):
 }
 
 
+bool operator==(const env_param& lhs, const env_param& rhs)
+{
+    bool env_func_As = are_same_env_functions(lhs.env_function_A, rhs.env_function_A);
+    bool env_func_Bs = are_same_env_functions(lhs.env_function_B, rhs.env_function_B);
+    bool ranges = lhs.cue_range == rhs.cue_range;
+
+    return env_func_As && env_func_Bs && ranges;
+}
 
 bool operator== (const environment& lhs, const environment& rhs)
 {
@@ -142,7 +150,7 @@ void to_json(nlohmann::json& j, const environment& e)
 void from_json(const nlohmann::json& j, environment& e)
 {
     env_param e_p;
-    e_p.cue_distrib = {j.at("start"), j.at("end")};
+    e_p.cue_range = {j.at("start"), j.at("end")};
     e = {e_p};
 }
 
@@ -405,7 +413,7 @@ void test_environment() noexcept
     {
         env_param param{};
         range distrib{-213,123};
-        param.cue_distrib = distrib;
+        param.cue_range = distrib;
         environment e{param};
 
         std::uniform_real_distribution<double> test_distrib(distrib.m_start, distrib.m_end);

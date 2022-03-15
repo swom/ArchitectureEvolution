@@ -20,14 +20,12 @@
 
 echo "seed: "$1
 echo "architecture: "$2
-echo "max_arc: " $3
+echo "max_architecture: "$3
 echo "change frequency: " $4
 echo "number of total generations: "$5
 echo "mutation type: "$6
-echo "change type:  "$7
-echo "duplication rate: "$8
-echo "activation rate: "$9  
-echo "selection type: "${10}
-echo "selection frequency: "${11}
+echo "selection type: "${7}
+echo "selection frequency: "${8}
+echo "record top ind frequency: "$9
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -e$7 -D $8 -A $9 -s ${10} -f ${11}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9

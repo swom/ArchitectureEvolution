@@ -1,8 +1,15 @@
 #include "individual.h"
-
 #include <algorithm>
 #include <cassert>
 
+
+
+bool operator==(const ind_param& lhs, const ind_param& rhs)
+{
+    bool net_pars = lhs.net_par == rhs.net_par;
+    bool mut_type = lhs.m_mutation_type == rhs.m_mutation_type;
+    return net_pars && mut_type;
+}
 #ifndef NDEBUG
 void test_individual()
 {

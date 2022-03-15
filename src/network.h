@@ -4,7 +4,8 @@
 #include <iostream>
 #include <random>
 #include <nlohmann/json.hpp>
-
+//#include <tbb/parallel_for.h>
+#include <mutex>
 #include "node.h"
 #include "mutation_type.h"
 #include "netwrok_spectrum.h"
@@ -38,6 +39,7 @@ struct net_param
     std::vector<int> max_arc;
 };
 
+bool operator==(const net_param& lhs, const net_param& rhs);
 
 ///Mutates the weights of a network
 template<class Net>
@@ -56,7 +58,7 @@ void mutate_weights(Net& n, const double& mut_rate,
                     for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
                     {
                         if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                            const weight &current_weight = current_node.get_vec_weights()[k];
+                            const auto &current_weight = current_node.get_vec_weights().at(k);
                             weight mutated_weight(current_weight.get_weight() + mut_st(rng),
                                                   current_weight.is_active());
                             current_node.change_nth_weight(mutated_weight, k);
@@ -68,7 +70,7 @@ void mutate_weights(Net& n, const double& mut_rate,
 
 }
 
-///Mutates the weights of a network
+///Mutates the nodes of a network via duplication
 template<class Net>
 void mut_dupl_node(Net& n,
                    const double& mut_rate,
@@ -212,25 +214,27 @@ void mutate_biases(Net& n, const double& mut_rate,
 template<mutation_type M = mutation_type::weights>
 class network
 {
+
 private:
 
     ///Calculates the reaction norm fo the network after a mutation on a weight
     //make a private function of net
-    reac_norm calc_alternative_reac_norm(std::vector<node>::iterator node,
-                                         reac_norm rn,
-                                         size_t index_weight,
-                                         double original_weight,
+    reac_norm calc_alternative_reac_norm(reac_norm rn,
                                          double new_weight,
                                          const range& input_range,
-                                         int n_inputs
+                                         int n_inputs,
+                                         size_t layer_index,
+                                         size_t node_index,
+                                         size_t weight_index
                                          )
     {
-        node->change_nth_weight(new_weight, index_weight);
-
-        rn = calculate_reaction_norm(*this, input_range, n_inputs);
-
-        node->change_nth_weight(original_weight, index_weight);
-
+        rn = calculate_reaction_norm_with_modified_weight(*this,
+                                                          input_range,
+                                                          n_inputs,
+                                                          layer_index,
+                                                          node_index,
+                                                          weight_index,
+                                                          new_weight);
         return rn;
     }
 public:
@@ -564,38 +568,56 @@ public:
         reac_norm rn;
         rn.reserve(n_inputs);
 
-        for(auto layer_it = mutable_net.get_net_weights().begin(); layer_it != mutable_net.get_net_weights().end(); layer_it++)
+        std::vector<double> mutations(n_mutations);
+        std::generate(mutations.begin(), mutations.end(),
+                      [&rng, &mut_dist]{return mut_dist(rng);});
+
+        for(size_t layer_index = 0; layer_index != mutable_net.get_net_weights().size(); layer_index++)
         {
-            layer_spectrum.resize(layer_it->size());
-            for(auto node_it = layer_it->begin(); node_it != layer_it->end(); node_it++)
+            auto current_layer = mutable_net.get_net_weights()[layer_index];
+            layer_spectrum.resize(current_layer.size());
+
+            for(size_t node_index = 0; node_index != current_layer.size(); ++node_index)
             {
-                node_spectrum.resize(node_it->get_vec_weights().size());
-                for(size_t index_weight = 0; index_weight != node_it->get_vec_weights().size(); index_weight++)
+                if(!current_layer.at(node_index).is_active()) continue;
+
+                node_spectrum.resize(current_layer[node_index].get_vec_weights().size());
+
+                for(size_t weight_index = 0;
+                    weight_index != current_layer.at(node_index).get_vec_weights().size(); //Demetra rule!!!
+                    ++weight_index)
                 {
-                    auto original_weight = node_it->get_vec_weights()[index_weight].get_weight();
-                    for(int i = 0; i != n_mutations; i++)
+                    if(!current_layer[node_index].get_vec_weights()[weight_index].is_active()) continue;
+
+                    //                        tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
+                    //                                           [&]( const tbb::blocked_range<size_t> &x)
+                    //                        {
+                    //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
+                    #pragma omp parallel for
+                    for (int mut = 0; mut < int(mutations.size()); mut++)
                     {
-                        auto new_weight = original_weight + mut_dist(rng);
-                        weight_spectrum[i] = calc_alternative_reac_norm(node_it,
-                                                                        rn,
-                                                                        index_weight,
-                                                                        original_weight,
-                                                                        new_weight,
-                                                                        input_range,
-                                                                        n_inputs);
-
+                        auto new_weight = current_layer[node_index].get_vec_weights()[weight_index].get_weight() + mutations[mut];
+                        weight_spectrum[mut] = calc_alternative_reac_norm(rn,
+                                                                          new_weight,
+                                                                          input_range,
+                                                                          n_inputs,
+                                                                          layer_index,
+                                                                          node_index,
+                                                                          weight_index
+                                                                          );
                     }
+                    //                        });
 
-                    node_spectrum[index_weight] = weight_spectrum;
+                    node_spectrum[weight_index] = weight_spectrum;
                 }
-                auto index_node = std::distance(layer_it->begin(), node_it);
-                layer_spectrum[index_node] = node_spectrum;
+
+                layer_spectrum[node_index] = node_spectrum;
             }
-            auto index_layer = std::distance( mutable_net.get_net_weights().begin(), layer_it);
-            network_weights_spectrum[index_layer] = layer_spectrum;
+            network_weights_spectrum[layer_index] = layer_spectrum;
         }
         return network_weights_spectrum;
     }
+
 
 private:
 
@@ -800,20 +822,29 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 
             if(current_node.is_active())
             {
+                //std::vector<weight> vec_w = current_node.get_vec_weights();
+                //convert_to_double_or_zero(vec_w).swap(w);
 
-                std::vector<weight> vec_w = current_node.get_vec_weights();
-                convert_to_double_or_zero(vec_w).swap(w);
+                //if(input.size() != w.size())
+                //{
+                //    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
+                //}
 
-                if(input.size() != w.size())
-                {
-                    throw std::runtime_error{"incoming weights and incoming inputs are not the same number"};
-                }
+                //node_value = current_node.get_bias() +
+                //        std::inner_product(input.begin(),
+                //                           input.end(),
+                //                           w.begin(),
+                //                           0.0);
 
+                const std::vector<weight>& vec_w = current_node.get_vec_weights();
                 node_value = current_node.get_bias() +
                         std::inner_product(input.begin(),
                                            input.end(),
-                                           w.begin(),
-                                           0.0);
+                                           vec_w.begin(),
+                                           0.0,
+                                           [](double a, double b) { return a + b; },
+                [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                );
             }
 
             output.at(node) = n(node_value);
@@ -824,6 +855,115 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 
     return input;
 }
+
+
+// populates 'output' with the output of a network for a given input
+// 'input' is used as scratch-memory
+template<class Net>
+void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<double>& output)
+{
+    assert(input.size() == n.get_input_size());
+
+    if (n.any_layer_has_no_nodes())
+    {
+        throw std::runtime_error{ "One layer has 0 nodes" };
+    }
+    for (size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+    {
+        output.clear();
+        for (size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
+        {
+            const auto& current_node = n.get_net_weights().at(layer).at(node);
+            double node_value = 0;
+            if (current_node.is_active())
+            {
+                const std::vector<weight>& vec_w = current_node.get_vec_weights();
+                node_value = current_node.get_bias() +
+                        std::inner_product(input.begin(),
+                                           input.end(),
+                                           vec_w.begin(),
+                                           0.0,
+                                           [](double a, double b) { return a + b; },
+                [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                );
+            }
+            output.push_back(n(node_value));
+        }
+        output.swap(input);
+    }
+    output.swap(input); //undo swap in last iteration
+}
+
+// populates 'output' with the output of a network for a given input
+// 'input' is used as scratch-memory
+template<class Net>
+void output_with_modified_weight(const Net& n,
+                                 std::vector<double>& input,
+                                 std::vector<double>& output,
+                                 size_t modified_layer_index,
+                                 size_t modified_node_index,
+                                 size_t modified_weight_index,
+                                 double modified_weight)
+{
+    assert(input.size() == n.get_input_size());
+
+    if (n.any_layer_has_no_nodes())
+    {
+        throw std::runtime_error{ "One layer has 0 nodes" };
+    }
+
+    bool is_modified_layer = false;
+    bool is_modified_node = false;
+
+    for (size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+    {
+        is_modified_layer = layer == modified_layer_index;
+
+        output.clear();
+        for (size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
+        {
+
+            is_modified_node = node == modified_node_index;
+
+            const auto& current_node = n.get_net_weights().at(layer).at(node);
+
+            double node_value = 0;
+            if (current_node.is_active())
+            {
+                if(is_modified_layer && is_modified_node)
+                {
+                    std::vector<weight> changed_weights = current_node.get_vec_weights();
+                    changed_weights[modified_weight_index].change_weight(modified_weight);
+
+                    node_value = current_node.get_bias() +
+                            std::inner_product(input.begin(),
+                                               input.end(),
+                                               changed_weights.begin(),
+                                               0.0,
+                                               [](double a, double b) { return a + b; },
+                    [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                    );
+                }
+                else
+                {
+                    const std::vector<weight>& vec_w = current_node.get_vec_weights();
+                    node_value = current_node.get_bias() +
+                            std::inner_product(input.begin(),
+                                               input.end(),
+                                               vec_w.begin(),
+                                               0.0,
+                                               [](double a, double b) { return a + b; },
+                    [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                    );
+                }
+            }
+            output.push_back(n(node_value));
+        }
+        output.swap(input);
+    }
+    output.swap(input); //undo swap in last iteration
+}
+
 
 ///Returns the output of a network for a given input and a given activation function
 template <typename Fun, mutation_type M>
@@ -991,13 +1131,60 @@ reac_norm calculate_reaction_norm(const Net& net,
                                   const range& cue_range,
                                   const int& n_data_points)
 {
+    //reac_norm r_norm;
+    //r_norm.reserve(n_data_points);
+    //double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+    //for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    //{
+    //  r_norm.push_back({ i, output(net, std::vector<double>{i}).at(0) });
+    //}
+    //return r_norm;
+
     reac_norm r_norm;
     r_norm.reserve(n_data_points);
+    std::vector<double> input;
+    std::vector<double> output;
+    double step_size = (cue_range.m_end - cue_range.m_start) / n_data_points;
+    for (double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    {
+        input.assign({ i });
+        output_ugly_but_fast(net, input, output);
+        r_norm.emplace_back(i, output[0]);
+    }
+    return r_norm;
+}
+
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Net>
+reac_norm calculate_reaction_norm_with_modified_weight(const Net& net,
+                                                       const range& cue_range,
+                                                       const int& n_data_points,
+                                                       size_t layer_index,
+                                                       size_t node_index,
+                                                       size_t weight_index,
+                                                       double modified_weight)
+{
+    reac_norm r_norm;
+    r_norm.reserve(n_data_points);
+    std::vector<double> input;
+    std::vector<double> output;
     double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
+
     for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
     {
-        r_norm.insert({i, output(net, std::vector<double>{i}).at(0)});
+        input.assign({ i });
+        output_with_modified_weight(net,
+                                    input,
+                                    output,
+                                    layer_index,
+                                    node_index,
+                                    weight_index,
+                                    modified_weight);
+
+        r_norm.emplace_back(i, output[0]);
     }
+
     return r_norm;
 }
 

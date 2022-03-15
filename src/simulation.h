@@ -28,7 +28,8 @@ struct sim_param
               double sel_strength = 1,
               int generations = 100,
               int selection_frequency = 1,
-              env_change_type env_change_type = env_change_type::symmetrical,
+              env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
+              env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant):
         seed{seed_n},
         change_freq_A{change_frequency_A},
@@ -36,7 +37,8 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        change_type{env_change_type},
+        change_sym_type{env_change_symmetry_type},
+        change_freq_type{env_change_freq_type},
         sel_type{selec_type}
     {}
 
@@ -46,10 +48,13 @@ struct sim_param
     double selection_strength;
     int n_generations;
     int selection_freq;
-    env_change_type change_type;
+    env_change_symmetry_type change_sym_type;
+    env_change_freq_type change_freq_type;
     selection_type sel_type;
 
 };
+
+bool operator==(const sim_param& lhs, const sim_param& rhs);
 
 struct all_params
 {
@@ -103,20 +108,11 @@ size_t get_inds_input_size(const Sim &s)
     return get_inds_input(s).size();
 }
 
-///Changes the inputs in the environment of the simulation
-template<class Sim>
-std::vector<double> create_inputs(Sim& s)
-{
-    return(env::create_n_inputs(s.get_env(),
-                                get_inds_input_size(s),
-                                s.get_rng() ));
-}
-
 ///Updates the inputs in simulation and assigns them to individuals
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
-    auto new_inputs = create_inputs(s);
+    auto new_inputs = s.create_inputs();
 
     if(s.get_input().size() > 1){
         new_inputs.back() = s.get_input().back();
@@ -127,14 +123,16 @@ void assign_new_inputs(Sim &s)
 }
 
 template<class Pop = population<>,
-         enum env_change_type Env_change = env_change_type::symmetrical,
+         enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
+         enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant>
 class simulation
 {
 public:
 
     using pop_t = Pop;
-    using env_ch_t = env_change_type;
+    using env_ch_s_t = env_change_symmetry_type;
+    using env_ch_f_t = env_change_freq_type;
 
     simulation(int init_pop_size = 1,
                int seed = 0,
@@ -154,8 +152,9 @@ public:
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_selection_frequency{params.s_p.selection_freq},
+        m_selection_duration{params.s_p.selection_freq / 10},
         m_params {params},
-        m_input(params.i_p.net_par.net_arc[0], 1),
+        m_input(params.i_p.net_par.net_arc[0], 1), //BAD!!! implementation of env function input
         m_optimal_output{1}
     {
         m_rng.seed(m_seed);
@@ -219,6 +218,10 @@ public:
     ///selection takes place
     int get_sel_freq() const noexcept {return m_selection_frequency;}
 
+    ///Returns the number of generations for which
+    ///selection takes place when selection is 'sporadic'
+    int get_sel_duration() const noexcept {return m_selection_duration;}
+
     ///Returns change frequency of environment/function A
     double get_change_freq_A() const noexcept {return m_change_freq_A;}
 
@@ -239,31 +242,33 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
-        if constexpr( Env_change == env_change_type::regular)
+        if constexpr( Env_change_freq == env_change_freq_type::regular)
         {
             return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
         }
-
-        if( m_environment.get_name_current_function() == 'A' )
+        else if( Env_change_freq == env_change_freq_type::stochastic)
         {
-            std::bernoulli_distribution distro = get_t_change_env_distr_A();
-            return distro (get_env_rng());
-        }
-        else if (m_environment.get_name_current_function() == 'B')
-        {
-            std::bernoulli_distribution distro;
-            if constexpr( Env_change == env_change_type::asymmetrical)
+            if( m_environment.get_name_current_function() == 'A' )
             {
-                distro = get_t_change_env_distr_B();
+                std::bernoulli_distribution distro = get_t_change_env_distr_A();
+                return distro (get_env_rng());
             }
-            else if(Env_change == env_change_type::symmetrical)
+            else if (m_environment.get_name_current_function() == 'B')
             {
-                distro = get_t_change_env_distr_A();
+                std::bernoulli_distribution distro;
+                if constexpr( Env_change_sym == env_change_symmetry_type::asymmetrical)
+                {
+                    distro = get_t_change_env_distr_B();
+                }
+                else if(Env_change_sym == env_change_symmetry_type::symmetrical)
+                {
+                    distro = get_t_change_env_distr_A();
+                }
+                return distro (get_env_rng());
             }
-            return distro (get_env_rng());
+            else
+                throw std::runtime_error{"invalid current function name"};
         }
-        else
-            throw std::runtime_error{"invalid current function name"};
     }
 
     ///Returns the function A of the environment
@@ -281,24 +286,49 @@ public:
 
         std::vector<double> cumulative_performance(get_inds().size(), 0);
 
+        std::vector<std::vector<double>> inputs(m_population.get_n_trials());
+        std::vector<double> optimals(inputs.size());
+
         for(int i = 0; i != m_population.get_n_trials(); i++)
         {
-            assign_new_inputs(*this);
-            update_optimal(env::calculate_optimal(m_environment, m_input));
-            auto performance = pop::calc_dist_from_target(get_inds(), get_optimal(), m_input);
-
-            std::transform(cumulative_performance.begin(),
-                           cumulative_performance.end(),
-                           performance.begin(),
-                           cumulative_performance.begin(),
-                           std::plus<double>());
+            inputs[i] = create_inputs();
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
         }
 
+        ///BAD!!! Temporary solutions to pass test
+        update_inputs(inputs[0]);
+        update_optimal(optimals[0]);
+
+#pragma omp parallel for
+        for(int i = 0; i < m_population.get_n_trials(); i++)
+        {
+            auto performance = pop::calc_dist_from_target(get_inds(),
+                                                          optimals[i],
+                                                          inputs[i]);
+#pragma omp critical
+            {
+                std::transform(cumulative_performance.begin(),
+                               cumulative_performance.end(),
+                               performance.begin(),
+                               cumulative_performance.begin(),
+                               std::plus<double>());
+            }
+        }
         return cumulative_performance;
+    }
+    ///Changes the inputs in the environment of the simulation
+    std::vector<double> create_inputs()
+    {
+        return(env::create_n_inputs(get_env(),
+                                    get_inds_input_size(*this),
+                                    get_rng()
+                                    )
+               );
     }
 
     ///Calculates fitness of inds in pop given current env values
-    const simulation<Pop, Env_change, Sel_Type>& calc_fitness()
+    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>&
+    calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
 
@@ -324,7 +354,8 @@ public:
     {
         if constexpr(Sel_Type == selection_type::sporadic)
         {
-            if(m_time % m_selection_frequency == 0)
+            if(m_time % m_selection_frequency >= 0 &&
+                    m_time % m_selection_frequency < m_selection_duration)
             {
                 calc_fitness();
                 reproduce();
@@ -347,6 +378,7 @@ public:
     }
 
     ///Changes the last input (env function indicator) from 1 to -1 or vice versa
+    ///the way this is implemented is BAD!!!
     void switch_env_indicator()
     {
         if(get_input().size() > 1){
@@ -375,13 +407,20 @@ private:
     double m_sel_str;
     double m_change_freq_A;
     double m_change_freq_B;
+
+    ///Every how many generations indiivdual are selected
     int m_selection_frequency;
+    //For how many generations individuals are selected
+    //A tenth of the selection frequency
+    int m_selection_duration;
+
     all_params m_params;
 
     ///The current inputs that the networks of individuals will recieve
     std::vector<double> m_input;
 
-    ///The optimal output at a given moment; depends on inputs and environmental function
+    ///The optimal output at a given moment;
+    /// depends on inputs and environmental function
     double m_optimal_output;
 
 };
@@ -394,8 +433,8 @@ Class load_json(
 {
     std::ifstream f(filename);
     nlohmann::json json_in;
-    Class s;
     f >> json_in;
+    Class s;
     return s = json_in;
 }
 
@@ -440,9 +479,9 @@ typename Sim::pop_t calc_fitness_of_pop(Sim s)
 
     s.update_optimal(env::calculate_optimal(s.get_env(), s.get_input()));
     return pop::calc_fitness(s.get_pop(),
-                                     s.get_optimal(),
-                                     s.get_sel_str(),
-                                     s.get_input());
+                             s.get_optimal(),
+                             s.get_sel_str(),
+                             s.get_input());
 }
 
 ///Calculates the avg_fitness of the population

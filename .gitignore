@@ -33,6 +33,7 @@
 *.pro.user
 *.pro.user
 *CMakeLists.user.*
+*.txt.user
 *.autsave
 *.autosave
 .qmake.stash

@@ -58,10 +58,23 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
                 results["sel_freq"].as<int>(),
-                string_to_env_change_map.find(results["env_change_type"].as<std::string>())->second,
+                string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
+                string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
     };
 }
+///NOT tested!!!
+obs_param convert_obs_args(const cxxopts::ParseResult& results)
+{
+    return obs_param{
+        results["top_inds_proportion"].as<int>(),
+                results["top_inds_registration_freq"].as<int>(),
+                results["top_spec_registration_freq"].as<int>(),
+                results["n_reac_norm_points"].as<int>(),
+                results["n_mutations"].as<int>()
+    };
+}
+
 ///NOT tested!!!
 cxxopts::Options create_parser(){
 
@@ -105,9 +118,12 @@ cxxopts::Options create_parser(){
             ("c,change_freq_B",
              "the probability with which the target function B will change",
              cxxopts::value<double>()->default_value("0.01"))
-            ("e,env_change_type",
-             "type of environmental change that a simulation will undergo",
+            ("e,env_change_sym_type",
+             "type of symmetry of the environmental change that a simulation will undergo",
              cxxopts::value<std::string>()->default_value("symmetrical"))
+            ("z,env_change_freq_type",
+             "type of frequency environmental change that a simulation will undergo",
+             cxxopts::value<std::string>()->default_value("stochastic"))
             ("S,seed",
              "the seed of the rng",
              cxxopts::value<int>()->default_value("0"))
@@ -129,6 +145,21 @@ cxxopts::Options create_parser(){
             ("f,sel_freq",
              "the number of generations after which selection happens in the sporadic selection scenario",
              cxxopts::value<int>()->default_value("1"))
+            ("i,top_inds_proportion",
+             "the number of the top n indiivduals that will eb stored",
+             cxxopts::value<int>()->default_value("1"))
+            ("R,top_inds_registration_freq",
+             "the number of generations after which top individuals will be selected",
+             cxxopts::value<int>()->default_value("1000"))
+            ("r,top_spec_registration_freq",
+             "the number of generations after which the mutational spectrum of individuals will be recorded",
+             cxxopts::value<int>()->default_value("0"))
+            ("p,n_reac_norm_points",
+             "the number of inputs on which the reaction norm of an individual will be measured",
+             cxxopts::value<int>()->default_value("100"))
+            ("u,n_mutations",
+             "the number of mutations each locus will undergo when measuring a mutational spectrum",
+             cxxopts::value<int>()->default_value("1000"))
             ("s,sel_type",
              "the type of seelction regime of the simulation can be 'constant' or 'sporadic'",
              cxxopts::value<std::string>()->default_value("constant"))
@@ -144,3 +175,16 @@ cxxopts::Options create_parser(){
 #ifndef NDEBUG
 
 #endif
+
+all_params convert_all_params(const cxxopts::ParseResult &results)
+{
+    auto env = convert_env_args(results);
+    auto ind = convert_ind_args(results);
+    auto pop = convert_pop_args(results);
+    auto sim = convert_sim_args(results);
+
+    return all_params {
+        env, ind, pop, sim
+    };
+
+}

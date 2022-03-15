@@ -3,8 +3,8 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop, enum env_change_type E, enum selection_type S>
-simulation<Pop, E, S>::simulation(int init_pop_size,
+template<class Pop, enum env_change_symmetry_type Es, enum env_change_freq_type Ef, enum selection_type S>
+simulation<Pop, Es, Ef, S>::simulation(int init_pop_size,
                                   int seed,
                                   double t_change_interval,
                                   std::vector<int> net_arch,
@@ -27,6 +27,24 @@ simulation<Pop, E, S>::simulation(int init_pop_size,
     {
         ind = individual{net_param{net_arch, linear, net_arch}};
     }
+}
+
+bool operator==(const sim_param& lhs, const sim_param& rhs)
+{
+    bool seeds = lhs.seed == rhs.seed;
+    bool change_freq_A = lhs.change_freq_A == rhs.change_freq_A;
+    bool change_freq_B = lhs.change_freq_B == rhs.change_freq_B;
+    bool selection_strength = lhs.selection_strength == rhs.selection_strength;
+    bool n_generations = lhs.n_generations == rhs.n_generations;
+    bool selection_freq = lhs.selection_freq == rhs.selection_freq;
+    bool change_sym_type = lhs.change_sym_type == rhs.change_sym_type;
+    bool change_freq_type = lhs.change_freq_type == rhs.change_freq_type;
+    bool sel_type = lhs.sel_type == rhs.sel_type;
+
+    return seeds && change_freq_A && change_freq_B &&
+            selection_strength && n_generations &&
+            selection_freq && change_sym_type &&
+            change_freq_type && sel_type;
 }
 
 namespace sim {
@@ -414,7 +432,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     {
         //create a non-default simulaiton
         env_param e_p{};
-        e_p.cue_distrib = range{-0.123,0.123};
+        e_p.cue_range = range{-0.123,0.123};
         net_param n_p;
         n_p.net_arc = {1,2,3,4,5,6};
         n_p.max_arc = {1,2,3,4,5,6};
@@ -551,7 +569,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s {};
         auto sim_inp_t1 = s.get_input();
 
-        s.update_inputs(create_inputs(s));
+        s.update_inputs(s.create_inputs());
         auto sim_inp_t2 = s.get_input();
 
         assert(sim_inp_t1 != sim_inp_t2);
@@ -575,7 +593,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         for(int i = 0; i != repeats; i++)
         {
             const auto sim_inputs_t1 = s.get_input();
-            const auto new_inputs = create_inputs(s);
+            const auto new_inputs = s.create_inputs();
 
             assert(sim_inputs_t1 != new_inputs);
             assert(new_inputs.size() == get_inds_input_size(s));
@@ -692,13 +710,14 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.selection_freq = selection_freq;
         s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 10000;
+        p_p.number_of_inds = 30000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
 
         simulation<population<>,
-                env_change_type::symmetrical,
+                env_change_symmetry_type::symmetrical,
+                env_change_freq_type::stochastic,
                 selection_type::sporadic> s{a_p};
 
 
@@ -712,14 +731,19 @@ void test_simulation() noexcept//!OCLINT test may be many
             avg_pop = pop::avg_fitness(s.get_pop());
             avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
-            if(s.get_time() % s.get_sel_freq() == 0)
+            if(s.get_time() % s.get_sel_freq() >= 0 &&
+                 s.get_time() % s.get_sel_freq() < s.get_sel_duration())
             {
                 assert(avg_prev_pop < avg_pop);
-                assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+                assert(!are_equal_with_high_tolerance(avg_prev_pop,
+                                                      avg_pop)
+                       );
             }
             else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
             {
-                assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+                assert(are_equal_with_high_tolerance(avg_prev_pop,
+                                                     avg_pop)
+                       );
             }
         }
         std::cout << "   end test issue 263" << std::endl;
@@ -735,7 +759,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.change_freq_B = 0.01;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_type::asymmetrical> s_asym{a_p};
+        simulation<population<>, env_change_symmetry_type::asymmetrical> s_asym{a_p};
         int repeats = 1000000;
 
         int n_switches_A = 0;
@@ -767,7 +791,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         ///Test that in symmetrical mode changes from one env to the other
         /// happen with same frequency for both environments
 
-        simulation<population<>, env_change_type::symmetrical> s_sym{a_p};
+        simulation<population<>, env_change_symmetry_type::symmetrical> s_sym{a_p};
 
         n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
@@ -802,8 +826,8 @@ void test_simulation() noexcept//!OCLINT test may be many
 
 #define FIX_ISSUE_261
 #ifdef FIX_ISSUE_261
+    ///Environment can change regularly instead of stochastically
     {
-        std::cout << "   test issue 261" << std::endl;
 
         int repeats = 1000;
         sim_param s_p{};
@@ -812,7 +836,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.n_generations = repeats;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_type::regular> regular_sim{a_p};
+        simulation<population<>, env_change_symmetry_type::symmetrical, env_change_freq_type::regular> regular_sim{a_p};
 
         auto current_function_name = get_name_current_function(regular_sim);
         for(int i = 0; i !=  s_p.n_generations; i++)
@@ -825,7 +849,6 @@ void test_simulation() noexcept//!OCLINT test may be many
             }
 
         }
-        std::cout << "   end test issue 261" << std::endl;
 
     }
 #endif
@@ -852,7 +875,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         assert(p_p1.n_trials < p_p2.n_trials);
 
         env_param e_p;
-        e_p.cue_distrib = {1,1};
+        e_p.cue_range = {1,1};
         all_params a_p1{e_p, ind_param{}, p_p1, sim_param{}};
         all_params a_p2{e_p, ind_param{}, p_p2, sim_param{}};
 

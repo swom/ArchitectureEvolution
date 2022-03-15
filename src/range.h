@@ -15,4 +15,5 @@ struct range
     double m_end;
 };
 
+bool operator==(const range& lhs, const range& rhs);
 #endif // RANGE_H
