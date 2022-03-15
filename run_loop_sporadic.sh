@@ -14,10 +14,10 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=6	
 #SBATCH --mem=1G
 #SBATCH --job-name=arc_evo_sim
 #SBATCH --output=arc_evo_%j.log
-
 echo "seed: "$1
 echo "architecture: "$2
 echo "max_architecture: "$3
@@ -28,5 +28,6 @@ echo "selection type: "${7}
 echo "selection frequency: "${8}
 echo "record top ind frequency: "$9
 echo "number of observations in reaction norms: "${10}
+echo "number of trials: "${11}
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11}

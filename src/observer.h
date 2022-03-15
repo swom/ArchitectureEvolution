@@ -293,7 +293,7 @@ void exec(Sim& s , observer<Sim>& o)
         {
             o.store_network_spectrum_n_best(s); //take out unrealistic amount of data, convert to summary x weight
         }
-        if(s.get_time() % 1 == 0)
+        if(s.get_time() % 1000 == 0)
         {
             auto lap_ms = my_watch.lap<sw::ms>();
             std::cout << "Cycle " << s.get_time() << " --Lap time in ms: " << lap_ms << std::endl;
