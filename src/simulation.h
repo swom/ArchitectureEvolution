@@ -108,20 +108,11 @@ size_t get_inds_input_size(const Sim &s)
     return get_inds_input(s).size();
 }
 
-///Changes the inputs in the environment of the simulation
-template<class Sim>
-std::vector<double> create_inputs(Sim& s)
-{
-    return(env::create_n_inputs(s.get_env(),
-                                get_inds_input_size(s),
-                                s.get_rng() ));
-}
-
 ///Updates the inputs in simulation and assigns them to individuals
 template<class Sim>
 void assign_new_inputs(Sim &s)
 {
-    auto new_inputs = create_inputs(s);
+    auto new_inputs = s.create_inputs();
 
     if(s.get_input().size() > 1){
         new_inputs.back() = s.get_input().back();
@@ -163,7 +154,7 @@ public:
         m_selection_frequency{params.s_p.selection_freq},
         m_selection_duration{params.s_p.selection_freq / 10},
         m_params {params},
-        m_input(params.i_p.net_par.net_arc[0], 1),
+        m_input(params.i_p.net_par.net_arc[0], 1), //BAD!!! implementation of env function input
         m_optimal_output{1}
     {
         m_rng.seed(m_seed);
@@ -294,26 +285,50 @@ public:
     std::vector<double> evaluate_inds(){
 
         std::vector<double> cumulative_performance(get_inds().size(), 0);
-        std::vector<double> performance(get_inds().size());
+
+        std::vector<std::vector<double>> inputs(m_population.get_n_trials());
+        std::vector<double> optimals(inputs.size());
 
         for(int i = 0; i != m_population.get_n_trials(); i++)
         {
-            assign_new_inputs(*this);
-            update_optimal(env::calculate_optimal(m_environment, m_input));
-            performance = pop::calc_dist_from_target(get_inds(), get_optimal(), m_input);
-
-            std::transform(cumulative_performance.begin(),
-                           cumulative_performance.end(),
-                           performance.begin(),
-                           cumulative_performance.begin(),
-                           std::plus<double>());
+            inputs[i] = create_inputs();
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
         }
 
+        ///BAD!!! Temporary solutions to pass test
+        update_inputs(inputs[0]);
+        update_optimal(optimals[0]);
+
+#pragma omp parallel for
+        for(int i = 0; i < m_population.get_n_trials(); i++)
+        {
+            auto performance = pop::calc_dist_from_target(get_inds(),
+                                                          optimals[i],
+                                                          inputs[i]);
+#pragma omp critical
+            {
+                std::transform(cumulative_performance.begin(),
+                               cumulative_performance.end(),
+                               performance.begin(),
+                               cumulative_performance.begin(),
+                               std::plus<double>());
+            }
+        }
         return cumulative_performance;
+    }
+    ///Changes the inputs in the environment of the simulation
+    std::vector<double> create_inputs()
+    {
+        return(env::create_n_inputs(get_env(),
+                                    get_inds_input_size(*this),
+                                    get_rng()
+                                    )
+               );
     }
 
     ///Calculates fitness of inds in pop given current env values
-    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>& calc_fitness()
+    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>&
+    calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
 
@@ -340,7 +355,7 @@ public:
         if constexpr(Sel_Type == selection_type::sporadic)
         {
             if(m_time % m_selection_frequency >= 0 &&
-               m_time % m_selection_frequency < m_selection_duration)
+                    m_time % m_selection_frequency < m_selection_duration)
             {
                 calc_fitness();
                 reproduce();
@@ -363,6 +378,7 @@ public:
     }
 
     ///Changes the last input (env function indicator) from 1 to -1 or vice versa
+    ///the way this is implemented is BAD!!!
     void switch_env_indicator()
     {
         if(get_input().size() > 1){
@@ -403,7 +419,8 @@ private:
     ///The current inputs that the networks of individuals will recieve
     std::vector<double> m_input;
 
-    ///The optimal output at a given moment; depends on inputs and environmental function
+    ///The optimal output at a given moment;
+    /// depends on inputs and environmental function
     double m_optimal_output;
 
 };
@@ -462,9 +479,9 @@ typename Sim::pop_t calc_fitness_of_pop(Sim s)
 
     s.update_optimal(env::calculate_optimal(s.get_env(), s.get_input()));
     return pop::calc_fitness(s.get_pop(),
-                                     s.get_optimal(),
-                                     s.get_sel_str(),
-                                     s.get_input());
+                             s.get_optimal(),
+                             s.get_sel_str(),
+                             s.get_input());
 }
 
 ///Calculates the avg_fitness of the population

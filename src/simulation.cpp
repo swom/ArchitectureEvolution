@@ -569,7 +569,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s {};
         auto sim_inp_t1 = s.get_input();
 
-        s.update_inputs(create_inputs(s));
+        s.update_inputs(s.create_inputs());
         auto sim_inp_t2 = s.get_input();
 
         assert(sim_inp_t1 != sim_inp_t2);
@@ -593,7 +593,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         for(int i = 0; i != repeats; i++)
         {
             const auto sim_inputs_t1 = s.get_input();
-            const auto new_inputs = create_inputs(s);
+            const auto new_inputs = s.create_inputs();
 
             assert(sim_inputs_t1 != new_inputs);
             assert(new_inputs.size() == get_inds_input_size(s));
@@ -710,7 +710,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.selection_freq = selection_freq;
         s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 10000;
+        p_p.number_of_inds = 30000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
