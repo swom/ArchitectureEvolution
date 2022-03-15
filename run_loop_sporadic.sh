@@ -27,5 +27,6 @@ echo "mutation type: "$6
 echo "selection type: "${7}
 echo "selection frequency: "${8}
 echo "record top ind frequency: "$9
+echo "number of observations in reaction norms: "${10}
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10}
