@@ -15,9 +15,10 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=6	
-#SBATCH --mem=1G
+#SBATCH --mem=500MB
 #SBATCH --job-name=arc_evo_sim
 #SBATCH --output=arc_evo_%j.log
+
 echo "seed: "$1
 echo "architecture: "$2
 echo "max_architecture: "$3
