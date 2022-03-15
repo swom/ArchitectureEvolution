@@ -299,13 +299,13 @@ public:
         update_inputs(inputs[0]);
         update_optimal(optimals[0]);
 
-//#pragma omp parallel for
+#pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
         {
             auto performance = pop::calc_dist_from_target(get_inds(),
                                                           optimals[i],
                                                           inputs[i]);
-//#pragma omp critical
+#pragma omp critical
             {
                 std::transform(cumulative_performance.begin(),
                                cumulative_performance.end(),
