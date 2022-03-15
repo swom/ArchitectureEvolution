@@ -212,7 +212,7 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
 {
     std::vector<double> distance_from_target(inds.size());
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int i = 0 ; i < int(inds.size()); i++)
     {
         auto sqr_distance = ind::calc_sqr_distance(inds[i], env_value, input);
