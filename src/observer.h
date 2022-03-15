@@ -291,7 +291,7 @@ void exec(Sim& s , observer<Sim>& o)
         }
         if( o.get_record_freq_spectrum() != 0 && s.get_time() % o.get_record_freq_spectrum() == 0)
         {
-            o.store_network_spectrum_n_best(s);
+            o.store_network_spectrum_n_best(s); //take out unrealistic amount of data, convert to summary x weight
         }
         if(s.get_time() % 1 == 0)
         {

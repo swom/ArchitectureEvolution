@@ -731,14 +731,19 @@ void test_simulation() noexcept//!OCLINT test may be many
             avg_pop = pop::avg_fitness(s.get_pop());
             avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
-            if(s.get_time() % s.get_sel_freq() == 0)
+            if(s.get_time() % s.get_sel_freq() >= 0 &&
+                 s.get_time() % s.get_sel_freq() < s.get_sel_duration())
             {
                 assert(avg_prev_pop < avg_pop);
-                assert(!are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+                assert(!are_equal_with_high_tolerance(avg_prev_pop,
+                                                      avg_pop)
+                       );
             }
             else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
             {
-                assert(are_equal_with_high_tolerance(avg_prev_pop, avg_pop));
+                assert(are_equal_with_high_tolerance(avg_prev_pop,
+                                                     avg_pop)
+                       );
             }
         }
         std::cout << "   end test issue 263" << std::endl;

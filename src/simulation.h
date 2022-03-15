@@ -161,6 +161,7 @@ public:
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_selection_frequency{params.s_p.selection_freq},
+        m_selection_duration{params.s_p.selection_freq / 10},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1),
         m_optimal_output{1}
@@ -225,6 +226,10 @@ public:
     ///Returns the number of generations after which
     ///selection takes place
     int get_sel_freq() const noexcept {return m_selection_frequency;}
+
+    ///Returns the number of generations for which
+    ///selection takes place when selection is 'sporadic'
+    int get_sel_duration() const noexcept {return m_selection_duration;}
 
     ///Returns change frequency of environment/function A
     double get_change_freq_A() const noexcept {return m_change_freq_A;}
@@ -334,7 +339,8 @@ public:
     {
         if constexpr(Sel_Type == selection_type::sporadic)
         {
-            if(m_time % m_selection_frequency == 0)
+            if(m_time % m_selection_frequency >= 0 &&
+               m_time % m_selection_frequency < m_selection_duration)
             {
                 calc_fitness();
                 reproduce();
@@ -385,7 +391,13 @@ private:
     double m_sel_str;
     double m_change_freq_A;
     double m_change_freq_B;
+
+    ///Every how many generations indiivdual are selected
     int m_selection_frequency;
+    //For how many generations individuals are selected
+    //A tenth of the selection frequency
+    int m_selection_duration;
+
     all_params m_params;
 
     ///The current inputs that the networks of individuals will recieve
