@@ -26,5 +26,6 @@ echo "number of total generations: "$5
 echo "mutation type: "$6
 echo "selection type: "${7}
 echo "selection frequency: "${8}
+echo "record top ind frequency: "$9
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9

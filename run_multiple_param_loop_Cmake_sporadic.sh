@@ -36,6 +36,7 @@ declare -a gen=(1000000)
 declare -a mut_types=("weights")
 declare -a sel_types=("sporadic")
 declare -a sel_freqs=(100 1000 10000)
+declare record_top_ind_freq=100
 
 for seed in $(seq 1 10)
 do
@@ -55,7 +56,7 @@ do
 							do
 									echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
               
-									sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
+									sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq
 							done
 						done
 					done
