@@ -10,11 +10,11 @@
 #   sbatch ./run_multiple_param_loop.sh
 #
 # Peregrine directives:
-#SBATCH --time=4:00:00
+#SBATCH --time=00:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --mem=1G
+#SBATCH --mem=1M
 #SBATCH --job-name=run_arc_evo_loop
 #SBATCH --output=run_arc_evo_loop.log
 
