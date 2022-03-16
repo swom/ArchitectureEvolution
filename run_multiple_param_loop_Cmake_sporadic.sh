@@ -37,7 +37,7 @@ declare -a mut_types=("weights")
 declare -a sel_types=("sporadic")
 declare -a sel_freqs=(100 1000 10000)
 declare record_top_ind_freq=1000
-declare n_observations_reaction_norm =100
+declare n_observations_reaction_norm=100
 declare n_trials=10
 
 for seed in $(seq 1 10)
