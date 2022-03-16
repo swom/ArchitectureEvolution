@@ -140,6 +140,17 @@ std::vector<double> response(const Ind& ind,
     return output(ind.get_net(),input);
 }
 
+///Lets a network send out an ouput signal
+/// using scratch memory vectors
+template<class Ind>
+void response_scratch(const Ind& ind,
+                                     std::vector<double>& input,
+                                     std::vector<double>& ouput
+                                     )
+{
+    return output_ugly_but_fast(ind.get_net(),input, ouput);
+}
+
 ///Calculates the distance of a response of a network
 /// and a given value
 template<class Ind>
@@ -148,6 +159,30 @@ double calc_sqr_distance(const Ind &i,
                          const std::vector<double>& input)
 {
     auto output = response(i, input);
+    return (output[0] - env_value) * (output[0] - env_value);
+}
+
+///Calculates the distance of a response of a network
+/// and a given value using scratch memory vectors
+template<class Ind>
+double calc_sqr_distance_scratch(const Ind &i,
+                         double env_value,
+                         const std::vector<double>& input)
+{
+    auto output = response(i, input);
+    return (output[0] - env_value) * (output[0] - env_value);
+}
+
+///Calculates the distance of a response of a network
+/// and a given value using scratch memory vectors
+template<class Ind>
+double calc_sqr_distance_scratch(const Ind &i,
+                         double env_value,
+                         std::vector<double>& input,
+                         std::vector<double>& output
+                         )
+{
+    response_scratch(i, input, output);
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
