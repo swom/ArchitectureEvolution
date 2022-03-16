@@ -140,6 +140,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_sel_str" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
             "_max_arc" + convert_arc_to_string(p.i_p.net_par.max_arc) +
             "_sel_type" + convert_selection_type_to_string(p.s_p.sel_type) +
+            "_sel_freq" + std::to_string(p.s_p.selection_freq) +
             "_" + std::to_string(p.s_p.seed) + ".json";
 
 }

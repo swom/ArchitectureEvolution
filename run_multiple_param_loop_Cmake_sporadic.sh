@@ -10,11 +10,11 @@
 #   sbatch ./run_multiple_param_loop.sh
 #
 # Peregrine directives:
-#SBATCH --time=4:00:00
+#SBATCH --time=00:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --mem=1G
+#SBATCH --mem=1M
 #SBATCH --job-name=run_arc_evo_loop
 #SBATCH --output=run_arc_evo_loop.log
 
@@ -32,13 +32,15 @@ cmake --build .
 declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0)
-declare -a gen=(1000000)
+declare -a gen=(10000)
 declare -a mut_types=("weights")
 declare -a sel_types=("sporadic")
-declare -a sel_freqs=(100 1000 10000)
-declare record_top_ind_freq=100
+declare -a sel_freqs=(100)
+declare record_top_ind_freq=1000
+declare n_observations_reaction_norm=100
+declare n_trials=10
 
-for seed in $(seq 1 10)
+for seed in $(seq 1 1)
 do
 	for arc in "${architectures[@]}"
 	do
@@ -56,7 +58,7 @@ do
 							do
 									echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq
               
-									sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq
+									sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials
 							done
 						done
 					done
