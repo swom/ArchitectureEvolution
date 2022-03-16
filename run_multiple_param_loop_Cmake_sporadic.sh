@@ -32,7 +32,7 @@ cmake --build .
 declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0)
-declare -a gen=(1000000)
+declare -a gen=(1000)
 declare -a mut_types=("weights")
 declare -a sel_types=("sporadic")
 declare -a sel_freqs=(100 1000 10000)
