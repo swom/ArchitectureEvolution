@@ -333,8 +333,11 @@ void select_new_pop(population<Ind>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
                     std::mt19937_64& rng)
 {
-    for( size_t i = 0; i != p.get_inds().size(); i++)
+//#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
     {
+//#pragma omp critical
+        {
         auto selected_ind_index = mut_dist(rng);
         auto selected_ind = p.get_inds()[selected_ind_index];
         p.get_new_inds()[i] = selected_ind;
@@ -343,6 +346,7 @@ void select_new_pop(population<Ind>& p,
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
+        }
     }
 }
 
@@ -353,8 +357,11 @@ void select_new_pop_randomly(population<Ind>& p,
 {
     auto max_index_inds = p.get_inds().size() - 1;
     std::uniform_int_distribution<> index_distr(0, int(max_index_inds));
-    for( size_t i = 0; i != p.get_inds().size(); i++)
+//#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
     {
+//#pragma omp critical
+        {
         auto selected_ind_index = index_distr(rng);
         auto selected_ind = p.get_inds()[selected_ind_index];
         p.get_new_inds()[i] = selected_ind;
@@ -363,6 +370,7 @@ void select_new_pop_randomly(population<Ind>& p,
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
+        }
     }
 }
 ///Swaps a vector of new_inds with the vector of old inds

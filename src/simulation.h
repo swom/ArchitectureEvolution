@@ -21,7 +21,11 @@ struct sim_param
                                    change_freq_B,
                                    selection_strength,
                                    n_generations,
-                                   selection_freq)
+                                   selection_freq,
+                                   change_sym_type,
+                                   change_freq_type,
+                                   sel_type)
+
 
     sim_param(int seed_n = 0,
               double change_frequency_A = 0.1,
@@ -52,7 +56,6 @@ struct sim_param
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
-
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
@@ -60,6 +63,7 @@ bool operator==(const sim_param& lhs, const sim_param& rhs);
 struct all_params
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
+                                   e_p,
                                    i_p,
                                    p_p,
                                    s_p)

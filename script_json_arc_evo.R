@@ -8,12 +8,13 @@ library(ggpubr)
 
 ####read data####
 
-# dir = dirname(rstudioapi::getActiveDocumentContext()$path)
+dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release"
+# dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release"
 setwd(dir)
 all_simple_res = data.frame()
-pattern = "*json$"
+pattern = '^m.*json$'
+list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
 results <- fromJSON(file = i)
@@ -23,23 +24,27 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                              var = "gen")
 
 i = str_replace(i, "weights_and_activation", "weightsandactivation")
-ID = data.frame(i) %>% 
- separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq_A","change_freq_B","change_type", "selection_strength", "max_arc","seed"), sep = '_')%>% 
-  separate(seed, c("seed",NA))
+a_p = results$m_params
 
-ID$architecture = as.factor(ID$architecture)
-ID$seed = as.factor(ID$seed)
-ID$max_arc = as.factor(ID$max_arc)
-ID$change_freq_A = as.factor(ID$change_freq_A)
-ID$change_freq_B = as.factor(ID$change_freq_B)
-ID$mut_rate_act = as.factor(ID$mut_rate_act)
-ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
-ID$selection_strength = as.factor(ID$selection_strength)
-ID$change_type = as.factor(ID$change_type)
+as_tibble(a_p$s_p)
+as_tibble(a_p$e_p)
+as_tibble(a_p$p_p)
+as_tibble(a_p$i_p)
 
+ID = data.frame(NA)
+ID$architecture <- toString(a_p$i_p$net_par$net_arc)
+ID$seed = as.factor(a_p$s_p$seed)
+ID$max_arc = toString(a_p$i_p$net_par$max_arc)
+ID$change_freq_A = as.factor(a_p$s_p$change_freq_A)
+ID$change_freq_B = as.factor(a_p$s_p$change_freq_B)
+ID$mut_rate_act = as.factor(a_p$p_p$mut_rate_activation)
+ID$mut_rate_dup = as.factor(a_p$p_p$mut_rate_duplication)
+ID$selection_strength = as.factor(a_p$s_p$selection_strength)
+ID$change_type = as.factor(a_p$s_p$change_freq_type)
+ID = ID[-1]
 
-simple_res = cbind(simple_res, ID)
-all_simple_res = rbind(all_simple_res, simple_res)
+simple_res_ID = cbind(simple_res, ID)
+all_simple_res = rbind(all_simple_res, simple_res_ID)
 }
 
 
