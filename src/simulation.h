@@ -5,6 +5,7 @@
 #include "env_change_type.h"
 #include "environment.h"
 #include "population.h"
+#include <omp.h>
 
 #include <fstream>
 #include <vector>
@@ -302,6 +303,7 @@ public:
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
         {
+            std::cout << "the number of threads used is "<<omp_get_num_threads() <<std::endl;
             auto performance = pop::calc_dist_from_target(get_inds(),
                                                           optimals[i],
                                                           inputs[i]);
