@@ -14,7 +14,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --mem=1M
+#SBATCH --mem=1GB
 #SBATCH --job-name=run_arc_evo_loop
 #SBATCH --output=run_arc_evo_loop.log
 
