@@ -5,7 +5,7 @@
 #include "env_change_type.h"
 #include "environment.h"
 #include "population.h"
-#include <omp.h>
+//#include <omp.h>
 
 #include <fstream>
 #include <vector>
