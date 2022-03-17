@@ -3,7 +3,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-  add_compile_options(-march=native -Wa,-mbig)
+  add_compile_options(-march=native)
   # add_compile_options(-Weffc++)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # MSVC
@@ -11,7 +11,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 if(MINGW)
-  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g)
+  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -g -Wa,-mbig-obj)
   add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
   # add_compile_options(-Weffc++)
 endif()
