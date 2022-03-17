@@ -61,6 +61,7 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
                 string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
+                string_to_adapt_period_map.find(results["adapt_p"].as<std::string>())->second
     };
 }
 ///NOT tested!!!
@@ -163,6 +164,11 @@ cxxopts::Options create_parser(){
             ("s,sel_type",
              "the type of seelction regime of the simulation can be 'constant' or 'sporadic'",
              cxxopts::value<std::string>()->default_value("constant"))
+            ("A,adapt_p",
+             "if set to 'on' half of the runtime of a simulation"
+             " will be spent in a stable environmetn and the other "
+             "half will have changing environments",
+             cxxopts::value<std::string>()->default_value("off"))
             ("t,test",
              "run all tests")
             ("h, help",

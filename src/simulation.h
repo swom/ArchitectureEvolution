@@ -301,6 +301,7 @@ public:
             else
                 throw std::runtime_error{"invalid current function name"};
         }
+        return false;
     }
 
     ///Returns the function A of the environment

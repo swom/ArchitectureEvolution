@@ -1,10 +1,10 @@
 #include <stdexcept>
 #include "adaptation_period.h"
-std::string convert_adapt_perios_to_string(adaptation_period e)
+std::string convert_adapt_periods_to_string(adaptation_period a)
 {
     std::string string;
 
-    switch (e) {
+    switch (a) {
     case adaptation_period::on :
         string = "on";
         return string;

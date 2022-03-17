@@ -10,7 +10,7 @@ library(ggnetwork)
 library(networkD3)
 library(magick)
 
-dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release/release/store/Mutation rate"
+dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
 setwd(dir)
 
 results=list()

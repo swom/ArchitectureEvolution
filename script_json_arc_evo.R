@@ -13,8 +13,8 @@ library(ggpubr)
 dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
 setwd(dir)
 all_simple_res = data.frame()
-# pattern = '^m.*json$'
-pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
+pattern = '^m.*json$'
+# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -52,7 +52,7 @@ ggplot(data = all_simple_res
   geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(s_p.selection_freq~.)
+  facet_grid(s_p.selection_freq~s_p.seed)
 
 ####Adaptation time
 
