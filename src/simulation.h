@@ -3,6 +3,7 @@
 
 #include "selection_type.h"
 #include "env_change_type.h"
+#include "adaptation_period.h"
 #include "environment.h"
 #include "population.h"
 //#include <omp.h>
@@ -24,7 +25,8 @@ struct sim_param
                                    selection_freq,
                                    change_sym_type,
                                    change_freq_type,
-                                   sel_type)
+                                   sel_type,
+                                   adaptation_per)
 
 
     sim_param(int seed_n = 0,
@@ -35,7 +37,8 @@ struct sim_param
               int selection_frequency = 1,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
-              selection_type selec_type = selection_type::constant):
+              selection_type selec_type = selection_type::constant,
+              adaptation_period adapt_per = adaptation_period::off):
         seed{seed_n},
         change_freq_A{change_frequency_A},
         change_freq_B{change_frequency_B},
@@ -44,7 +47,8 @@ struct sim_param
         selection_freq{selection_frequency},
         change_sym_type{env_change_symmetry_type},
         change_freq_type{env_change_freq_type},
-        sel_type{selec_type}
+        sel_type{selec_type},
+        adaptation_per{adapt_per}
     {}
 
     int seed;
@@ -56,6 +60,7 @@ struct sim_param
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
+    adaptation_period adaptation_per;
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
@@ -130,7 +135,8 @@ void assign_new_inputs(Sim &s)
 template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
-         enum selection_type Sel_Type = selection_type::constant>
+         enum selection_type Sel_Type = selection_type::constant,
+         enum adaptation_period Adapt_per = adaptation_period::off>
 class simulation
 {
 public:
@@ -247,9 +253,30 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
+        if constexpr (Adapt_per == adaptation_period::on)
+        {
+            if(m_time < m_n_generations / 2)
+            return false;
+        }
         if constexpr( Env_change_freq == env_change_freq_type::regular)
         {
-            return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+            if( m_environment.get_name_current_function() == 'A' )
+            {
+                return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+            }
+            else if (m_environment.get_name_current_function() == 'B')
+            {
+                bool change;
+                if constexpr( Env_change_sym == env_change_symmetry_type::asymmetrical)
+                {
+                    change = std::fmod(get_time(), 1.0/m_change_freq_B)  == 0;
+                }
+                else if(Env_change_sym == env_change_symmetry_type::symmetrical)
+                {
+                    change = std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+                }
+                return change;
+            }
         }
         else if( Env_change_freq == env_change_freq_type::stochastic)
         {
@@ -332,7 +359,11 @@ public:
     }
 
     ///Calculates fitness of inds in pop given current env values
-    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>&
+    const simulation<Pop,
+    Env_change_sym,
+    Env_change_freq,
+    Sel_Type,
+    Adapt_per>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
@@ -570,13 +601,13 @@ double sum_of_fitnesses(const Sim& s)
 template<class Sim>
 void tick(Sim &s)
 {
-    s.increase_time();
-
     if(s.is_environment_changing()){
         perform_environment_change(s);
     }
 
     s.select_inds();
+
+    s.increase_time();
 }
 
 ///Calculates the standard devaition of the population fitness

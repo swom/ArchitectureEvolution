@@ -335,7 +335,43 @@ void test_observer()
             assert(original == calculated_from_upload);
         }
     }
+    ///A simulation can be run so that half of the time
+    /// is an 'adaptation period' where evolution happens in a stable environment
+    {
+        using sim_t = simulation<population<>,
+        env_change_symmetry_type::asymmetrical,
+        env_change_freq_type::regular,
+        selection_type::constant,
+        adaptation_period::on>;
 
+        ///When change is allowed
+        /// the enviromental function
+        /// will alwys be b
+        sim_param s_p;
+        s_p.change_freq_A = 1;
+        s_p.change_freq_B = 0;
+        s_p.n_generations = 4;
+
+        obs_param o_p;
+        o_p.m_spectrum_reg_freq = 0;
+        o_p.m_top_ind_reg_freq = 0;
+
+        sim_t s{{{},{},{},s_p}};
+        observer<sim_t> o{o_p, s.get_params()};
+
+        exec(s,o);
+
+        for(size_t i = 0; i != o.get_env_funcs().size(); i++ )
+        {
+            if(i < o.get_env_funcs().size() / 2)
+            {
+                assert(o.get_env_funcs()[i] == 'A');
+                continue;
+            }
+            assert(o.get_env_funcs()[i] == 'B');
+        }
+
+    }
 }
 #endif
 

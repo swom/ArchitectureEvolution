@@ -268,7 +268,7 @@ void exec(Sim& s , observer<Sim>& o)
 {
     if(s.get_params() != o.get_params())
     {
-        throw std::runtime_error{"Observer was not initialized correctly with simulation parameters"};
+        throw std::runtime_error{"During exec(): Observer was not initialized correctly with simulation parameters"};
     }
 
     namespace sw = stopwatch;
