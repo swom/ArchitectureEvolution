@@ -164,7 +164,7 @@ cxxopts::Options create_parser(){
             ("s,sel_type",
              "the type of seelction regime of the simulation can be 'constant' or 'sporadic'",
              cxxopts::value<std::string>()->default_value("constant"))
-            ("A,adapt_p",
+            ("H,adapt_p",
              "if set to 'on' half of the runtime of a simulation"
              " will be spent in a stable environmetn and the other "
              "half will have changing environments",
