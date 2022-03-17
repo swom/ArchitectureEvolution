@@ -9,48 +9,38 @@ library(ggraph)
 library(ggnetwork)
 library(networkD3)
 library(magick)
+library(patchwork)
 
 dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
 setwd(dir)
 
 results=list()
-pattern = "*json$"
+# pattern = "*json$"
+pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
+list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern)){
   
   ###Making a data tibble with all top individuals' data 
-  
   results <- fromJSON(file = i)
-  names(results$m_top_inds) = seq(from=0, by=1000, length.out=length(results$m_top_inds))
-  results_df = results$m_top_inds %>% 
-  unlist(recursive=FALSE)#%>%
-  results_df = as_tibble(results_df)%>%
-  add_column(var = c("fitness", "input_values", "network"))%>%
-  gather(key = gen, value = value, 1:length(results$m_top_inds)) %>% 
-  pivot_wider(names_from = var, values_from = value)
+  
+  results_unnest = as.data.frame(do.call(rbind,do.call(rbind, results$m_top_inds)))
+  results_unnest$generation = do.call(rbind,results_unnest$generation)
+  m_ind = as.data.frame(do.call(rbind, results_unnest$m_ind)) 
+  results_df = results_unnest %>% 
+    select(-c(m_ind, m_reac_norm)) %>%
+    cbind(m_ind) %>%
+    rename(network = "m_network")
   
   i = str_replace(i, "weights_and_activation", "weightsandactivation")
-  ID = data.frame(i) %>% 
-    separate(i, c("mut_type","architecture","mut_rate_act","mut_rate_dup","change_freq", "selection_strength", "max_arc","seed"), sep = '_')%>% 
-    separate(seed, c("seed",NA))
   
-  ID$architecture = as.factor(ID$architecture)
-  ID$seed = as.factor(ID$seed)
-  ID$max_arc = as.factor(ID$max_arc)
-  ID$change_freq = as.factor(ID$change_freq)
-  ID$mut_rate_act = as.factor(ID$mut_rate_act)
-  ID$mut_rate_dup = as.factor(ID$mut_rate_dup)
-  ID$selection_strength = as.factor(ID$selection_strength)
+  results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
+  results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
+  ID = as.data.frame(results$m_params)
   
   name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
   assign(name1, cbind(results_df, ID))
   
-  ###Making a number vector out of the architecture
-  if(levels(get(name1)$max_arc)[1] == ""){
-    architecture = strsplit(levels(get(name1)$architecture)[1], "-")[[1]]
-  } else {
-    architecture = strsplit(levels(get(name1)$max_arc)[1], "-")[[1]]
-  }
-   architecture = as.integer(architecture)
+  architecture = as.integer(strsplit(get(name1)$i_p.net_par.max_arc, ",")[[1]])
   
   
   ###Keeping only network architecture, expanding to have each connection as a row
@@ -68,7 +58,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
     drop_na()%>%
     unnest_wider(col = "value")%>%
     mutate(w_sign = if_else(m_weight < 0, 1, 2))
-  top_inds_net$gen = as.factor(top_inds_net$gen)
+  top_inds_net$generation = as.factor(top_inds_net$generation)
   top_inds_net$w_sign = as.factor(top_inds_net$w_sign)
   
   name2 = paste("top_inds_net", str_replace(i, ".json", ""), sep = "_")
@@ -106,59 +96,85 @@ for (i in  list.files(path = '.', pattern = pattern)){
     from = c(from, rep(filter(node_tibble, layer == j)$id, nrow(filter(node_tibble, layer == j+1))))
     to = c(to, sort(rep(filter(node_tibble, layer == j+1)$id, nrow(filter(node_tibble, layer == j))), decreasing = F))
   }
+  edge_tibble = as_tibble(cbind(from, to))
+  
+  
+  highest_weights = data.frame(generation = 0, max_weigth = 0)
+  avg_fitness = data.frame(generation = 0, avg_fitness = 0)
   
   #Now let's loop through generations
-  
-  for(j in levels(get(name2)$gen)){
-  
-  #adding weights, weight sign, activation to the edge list
-  edge_tibble = as_tibble(cbind(from, to))
-  ind = filter(get(name2), gen == j)
-  edge_tibble = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign)
-  
-  node_tibble = as_tibble(cbind(id, layer, node))
-  node_active = c(TRUE, subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)
-  node_tibble = cbind(node_tibble, node_active)
-  
-  # ###plot network####
-  ##create igraph or ggraph object
-  network_d <- igraph::graph_from_data_frame(d = edge_tibble,
-                                             vertices = node_tibble,
-                                             directed = T)
-  
-  E(network_d)$color = as.factor(edge_tibble$`ind$w_sign`)
-  E(network_d)$weight = if_else(edge_tibble$`ind$m_is_active` == T,  edge_tibble$`ind$m_weight`, 0)
-  network_d = network_d - E(network_d)[E(network_d)$weight == 0]
-  V(network_d)$color = factor(node_tibble$node_active, levels=c("FALSE", "TRUE"))
-  
+  for(j in levels(get(name2)$generation)){
+    #adding weights, weight sign, activation to the edge list
+    ind = filter(get(name2), generation == j)
+    edge_tibble_ind = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign)
+    
+    node_active = c(TRUE, subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)
+    node_tibble_ind = cbind(node_tibble, node_active)
+    
+    # ###plot network####
+    ##create igraph or ggraph object
+    network_d <- igraph::graph_from_data_frame(d = edge_tibble_ind,
+                                               vertices = node_tibble_ind,
+                                               directed = T)
+    
+    E(network_d)$color = as.factor(edge_tibble_ind$`ind$w_sign`)
+    E(network_d)$weight = if_else(edge_tibble_ind$`ind$m_is_active` == T,  edge_tibble_ind$`ind$m_weight`, 0)
+    network_d = network_d - E(network_d)[E(network_d)$weight == 0]
+    V(network_d)$color = factor(node_tibble_ind$node_active, levels=c("FALSE", "TRUE"))
+    
+    ###create data fora plot for the highest value of the weights
+    highest_weights = rbind(highest_weights, 
+                            data.frame(generation = j,
+                                       max_weigth = max(abs(edge_tibble_ind$`ind$m_weight`))
+                            )
+    ) 
+    ###create a plot for the highest value of the weights
+    avg_fitness = rbind(avg_fitness, 
+                            data.frame(generation = j,
+                                       avg_fitness = ind$m_fitness[[1]]
+                                       )
+                            )
+    
+    
+    jpeg(paste("Plot",
+               ind$i_p.m_mutation_type,
+               "s",ind$s_p.seed,
+               "arch",ind$i_p.net_par.max_arc,
+               "cycle", as.numeric(j),
+               "changefreq", ind$s_p.change_freq_A,
+               ".png", sep = "_")
+         ,width = 700,
+         height = 700)
+    
+    title = paste("Generation ", ind$generation[1])
+    
+    par(mfrow=c(2,2))
+    plot(tail(highest_weights$generation,1000), tail(highest_weights$max_weigth,1000), type = 'l',
+         main = "max_weight")  
+    plot(tail(avg_fitness$generation,1000), tail(avg_fitness$avg_fitness,1000), type = 'l',
+         main = "avg_fitness")
+    plot(network_d, layout = l,
+         edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
+         edge.arrow.width = 0.7,                          # Arrow width, defaults to 1
+         edge.arrow.height = 0.9,                          # Arrow width, defaults to 1
+         edge.lty = c("solid"),
+         edge.width = abs(E(network_d)$weight/max(abs(E(network_d)$weight)) * 10), 
+         main = title,
+         vertex.label = NA
+    )
 
-  jpeg(paste("Plot",ind$mut_type, "s",ind$seed,"arch",ind$architecture,
-             "cycle", paste(rep("0",max(nchar(levels(ind$gen)))-(nchar(j))),j, sep=""),"changefreq", 
-             ind$change_freq,"duprate",ind$mut_rate_dup,"actrate", ind$mut_rate_act, ".png", sep = "_")
-       ,width = 700,
-       height = 700)
-  
-  title = paste("Generation ", ind$gen[1])
-  
-  plot(network_d, layout = l,
-       edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
-       edge.arrow.width = 0.7,                          # Arrow width, defaults to 1
-       edge.arrow.height = 0.9,                          # Arrow width, defaults to 1
-       edge.lty = c("solid"),
-       edge.width = abs(E(network_d)$weight/max(abs(E(network_d)$weight)) * 10), 
-       main = title,
-       vertex.label = NA
-       )
-  dev.off()
-  
+    
+    
+    dev.off()
+    
   }  
-
+  
   ####Create gif
   ## list file names and read in
   imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-                   list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
-                   list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
-                   list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
+                                                 list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
+                                       list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
+                             list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
                    list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
   img_list = lapply(imgs, image_read)
   
@@ -173,6 +189,5 @@ for (i in  list.files(path = '.', pattern = pattern)){
   image_write(image = img_animated,
               path = path)
   
-
+  
 }
- 

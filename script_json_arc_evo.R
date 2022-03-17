@@ -27,7 +27,7 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
 i = str_replace(i, "weights_and_activation", "weightsandactivation")
 
 results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
-results$m_params$i_p$net_par$net_arc = toString(a_p$i_p$net_par$net_arc)
+results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
 ID = as.data.frame(results$m_params)
 
 simple_res_ID = cbind(simple_res, ID)

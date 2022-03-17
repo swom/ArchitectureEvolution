@@ -163,7 +163,7 @@ public:
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_selection_frequency{params.s_p.selection_freq},
-        m_selection_duration{params.s_p.selection_freq / 10},
+        m_selection_duration{params.s_p.selection_freq == 0 ? 0 : params.s_p.selection_freq / 10},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1), //BAD!!! implementation of env function input
         m_optimal_output{1}
@@ -391,8 +391,18 @@ public:
     {
         if constexpr(Sel_Type == selection_type::sporadic)
         {
+            if constexpr(Adapt_per == adaptation_period::on)
+            {
+                if(m_time < m_n_generations / 2)
+                {
+                    calc_fitness();
+                    reproduce();
+                    return;
+                }
+            }
             if(m_time % m_selection_frequency >= 0 &&
-                    m_time % m_selection_frequency < m_selection_duration)
+                    m_time % m_selection_frequency < m_selection_duration &&
+                    m_selection_frequency != 0)
             {
                 calc_fitness();
                 reproduce();
