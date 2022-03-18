@@ -3,8 +3,12 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop, enum env_change_symmetry_type Es, enum env_change_freq_type Ef, enum selection_type S>
-simulation<Pop, Es, Ef, S>::simulation(int init_pop_size,
+template<class Pop,
+         enum env_change_symmetry_type Es,
+         enum env_change_freq_type Ef,
+         enum selection_type S,
+         enum adaptation_period A>
+simulation<Pop, Es, Ef, S, A>::simulation(int init_pop_size,
                                   int seed,
                                   double t_change_interval,
                                   std::vector<int> net_arch,

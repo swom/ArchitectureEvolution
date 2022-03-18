@@ -34,6 +34,9 @@ struct env_param
         env_function_B{fun_B},
         cue_range{env_cue_range.front(),env_cue_range.back()}
     {}
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
+                                   cue_range)
+
 std::function<double(std::vector<double>)> env_function_A;
 std::function<double(std::vector<double>)> env_function_B;
 range cue_range;

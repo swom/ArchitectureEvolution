@@ -3,12 +3,14 @@
 
 #include "selection_type.h"
 #include "env_change_type.h"
+#include "adaptation_period.h"
 #include "environment.h"
 #include "population.h"
 //#include <omp.h>
 
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 
 double identity_first_element(const std::vector<double>& vector);
@@ -21,7 +23,12 @@ struct sim_param
                                    change_freq_B,
                                    selection_strength,
                                    n_generations,
-                                   selection_freq)
+                                   selection_freq,
+                                   change_sym_type,
+                                   change_freq_type,
+                                   sel_type,
+                                   adaptation_per)
+
 
     sim_param(int seed_n = 0,
               double change_frequency_A = 0.1,
@@ -31,7 +38,8 @@ struct sim_param
               int selection_frequency = 1,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
-              selection_type selec_type = selection_type::constant):
+              selection_type selec_type = selection_type::constant,
+              adaptation_period adapt_per = adaptation_period::off):
         seed{seed_n},
         change_freq_A{change_frequency_A},
         change_freq_B{change_frequency_B},
@@ -40,7 +48,8 @@ struct sim_param
         selection_freq{selection_frequency},
         change_sym_type{env_change_symmetry_type},
         change_freq_type{env_change_freq_type},
-        sel_type{selec_type}
+        sel_type{selec_type},
+        adaptation_per{adapt_per}
     {}
 
     int seed;
@@ -52,7 +61,7 @@ struct sim_param
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
-
+    adaptation_period adaptation_per;
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
@@ -60,6 +69,7 @@ bool operator==(const sim_param& lhs, const sim_param& rhs);
 struct all_params
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
+                                   e_p,
                                    i_p,
                                    p_p,
                                    s_p)
@@ -126,7 +136,8 @@ void assign_new_inputs(Sim &s)
 template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
-         enum selection_type Sel_Type = selection_type::constant>
+         enum selection_type Sel_Type = selection_type::constant,
+         enum adaptation_period Adapt_per = adaptation_period::off>
 class simulation
 {
 public:
@@ -153,7 +164,7 @@ public:
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_selection_frequency{params.s_p.selection_freq},
-        m_selection_duration{params.s_p.selection_freq / 10},
+        m_selection_duration{params.s_p.selection_freq == 0 ? 0 : params.s_p.selection_freq / 10},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1), //BAD!!! implementation of env function input
         m_optimal_output{1}
@@ -243,9 +254,30 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
+        if constexpr (Adapt_per == adaptation_period::on)
+        {
+            if(m_time < m_n_generations / 2)
+            return false;
+        }
         if constexpr( Env_change_freq == env_change_freq_type::regular)
         {
-            return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+            if( m_environment.get_name_current_function() == 'A' )
+            {
+                return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+            }
+            else if (m_environment.get_name_current_function() == 'B')
+            {
+                bool change;
+                if constexpr( Env_change_sym == env_change_symmetry_type::asymmetrical)
+                {
+                    change = std::fmod(get_time(), 1.0/m_change_freq_B)  == 0;
+                }
+                else if(Env_change_sym == env_change_symmetry_type::symmetrical)
+                {
+                    change = std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+                }
+                return change;
+            }
         }
         else if( Env_change_freq == env_change_freq_type::stochastic)
         {
@@ -270,6 +302,7 @@ public:
             else
                 throw std::runtime_error{"invalid current function name"};
         }
+        return false;
     }
 
     ///Returns the function A of the environment
@@ -303,8 +336,7 @@ public:
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
         {
-//            std::cout << "the number of threads used is "<< omp_get_num_threads() << std::endl;
-            auto performance = pop::calc_dist_from_target(get_inds(),
+           auto performance = pop::calc_dist_from_target(get_inds(),
                                                           optimals[i],
                                                           inputs[i]);
 #pragma omp critical
@@ -329,7 +361,11 @@ public:
     }
 
     ///Calculates fitness of inds in pop given current env values
-    const simulation<Pop, Env_change_sym, Env_change_freq, Sel_Type>&
+    const simulation<Pop,
+    Env_change_sym,
+    Env_change_freq,
+    Sel_Type,
+    Adapt_per>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
@@ -356,8 +392,20 @@ public:
     {
         if constexpr(Sel_Type == selection_type::sporadic)
         {
-            if(m_time % m_selection_frequency >= 0 &&
-                    m_time % m_selection_frequency < m_selection_duration)
+            if constexpr(Adapt_per == adaptation_period::on)
+            {
+                if(m_time < m_n_generations / 2)
+                {
+                    calc_fitness();
+                    reproduce();
+                    return;
+                }
+            }
+
+            if( m_selection_frequency != 0 &&
+                    m_time % m_selection_frequency >= 0 &&
+                    m_time % m_selection_frequency < m_selection_duration
+                   )
             {
                 calc_fitness();
                 reproduce();
@@ -444,10 +492,25 @@ Class load_json(
 template<class Class>
 void save_json(const Class& s, const std::string& filename)
 {
-    std::ofstream  f(filename);
+    auto path = std::filesystem::current_path();
+    path /= filename;
+    if(std::filesystem::exists(path))
+    {
+        std::cout << "overriding previous results" << std::endl;
+    }
+    std::ofstream f;
+    f.open(filename);
+    if(f.is_open())
+    {
     nlohmann::json json_out;
     json_out = s;
     f << json_out;
+    }
+    else
+    {
+        throw std::runtime_error{"could not open output stream for saving!"};
+    }
+    f.close();
 }
 
 namespace sim {
@@ -567,13 +630,13 @@ double sum_of_fitnesses(const Sim& s)
 template<class Sim>
 void tick(Sim &s)
 {
-    s.increase_time();
-
     if(s.is_environment_changing()){
         perform_environment_change(s);
     }
 
     s.select_inds();
+
+    s.increase_time();
 }
 
 ///Calculates the standard devaition of the population fitness

@@ -6,7 +6,6 @@ enum class env_change_symmetry_type
 {
     symmetrical,
     asymmetrical,
-    regular
 };
 
 enum class env_change_freq_type

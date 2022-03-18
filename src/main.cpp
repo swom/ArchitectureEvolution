@@ -46,7 +46,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         assert(1 == 2);
 #endif
 
-       run_simulation_given_env_freq_type(results);
+       run_simulation_given_adaptation_period(results);
 
     }  catch (int exc) {
         if(exc==2)
