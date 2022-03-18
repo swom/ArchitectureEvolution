@@ -401,9 +401,11 @@ public:
                     return;
                 }
             }
-            if(m_time % m_selection_frequency >= 0 &&
-                    m_time % m_selection_frequency < m_selection_duration &&
-                    m_selection_frequency != 0)
+
+            if( m_selection_frequency != 0 &&
+                    m_time % m_selection_frequency >= 0 &&
+                    m_time % m_selection_frequency < m_selection_duration
+                   )
             {
                 calc_fitness();
                 reproduce();
