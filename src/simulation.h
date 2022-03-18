@@ -22,6 +22,7 @@ struct sim_param
                                    change_freq_A,
                                    change_freq_B,
                                    selection_strength,
+                                   selection_duration,
                                    n_generations,
                                    selection_freq,
                                    change_sym_type,
@@ -46,6 +47,7 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
+        selection_duration{selection_freq == 0 ? 0 : selection_freq / 10},
         change_sym_type{env_change_symmetry_type},
         change_freq_type{env_change_freq_type},
         sel_type{selec_type},
@@ -58,6 +60,7 @@ struct sim_param
     double selection_strength;
     int n_generations;
     int selection_freq;
+    int selection_duration;
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
@@ -145,6 +148,8 @@ public:
     using pop_t = Pop;
     using env_ch_s_t = env_change_symmetry_type;
     using env_ch_f_t = env_change_freq_type;
+    using sel_t = selection_type;
+    using adapt_p = adaptation_period;
 
     simulation(int init_pop_size = 1,
                int seed = 0,
@@ -164,7 +169,7 @@ public:
         m_change_freq_A {static_cast<double>(params.s_p.change_freq_A)},
         m_change_freq_B {static_cast<double>(params.s_p.change_freq_B)},
         m_selection_frequency{params.s_p.selection_freq},
-        m_selection_duration{params.s_p.selection_freq == 0 ? 0 : params.s_p.selection_freq / 10},
+        m_selection_duration{params.s_p.selection_duration},
         m_params {params},
         m_input(params.i_p.net_par.net_arc[0], 1), //BAD!!! implementation of env function input
         m_optimal_output{1}
