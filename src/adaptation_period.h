@@ -15,6 +15,6 @@ static std::map<std::string, adaptation_period> string_to_adapt_period_map
     {"off", adaptation_period::off},
 };
 
-std::string convert_adapt_perios_to_string(adaptation_period e);
+std::string convert_adapt_periods_to_string(adaptation_period a);
 
 #endif // ADAPTATION_PERIOD_H

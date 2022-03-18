@@ -1,5 +1,7 @@
 #include <stdexcept>
+
 #include "adaptation_period.h"
+
 std::string convert_adapt_periods_to_string(adaptation_period a)
 {
     std::string string;

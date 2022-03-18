@@ -6,7 +6,7 @@
 struct obs_param{
     obs_param(int top_prop = 1,
               int top_ind_reg_freq = 1,
-              int spectrum_reg_freq = 1,
+              int spectrum_reg_freq = 0,
               int n_data_points_for_reac_norm = 100,
               int n_mutations_for_mutational_spectrum = 1000):
         m_top_proportion{top_prop},
@@ -57,6 +57,7 @@ class observer : public base_observer
     using Net = typename Ind::net_t;
     using Net_Spect = network_spectrum<Net>;
 
+
 private:
 
     std::vector<double> m_avg_fitnesses;
@@ -78,6 +79,7 @@ public:
         m_obs_param(params),
         m_params{sim_params}
     {
+
     }
 
 
@@ -100,6 +102,15 @@ public:
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
+
+    ///Returns the type of enviromental change frequency used in simulation
+    auto get_e_change_f_type() const noexcept{return m_params.s_p.change_freq_type;}
+
+    ///Returns the selection_duration used in simulation
+    int get_selection_duration() const noexcept {return m_params.s_p.selection_duration;}
+
+    ///Returns the type of selection used in simulation
+    auto get_sel_type() const noexcept{return m_params.s_p.sel_type;}
 
     ///Returns const ref to record frequency
     /// of top individuals
@@ -271,6 +282,13 @@ void exec(Sim& s , observer<Sim>& o)
         throw std::runtime_error{"During exec(): Observer was not initialized correctly with simulation parameters"};
     }
 
+    int rec_freq_shift = 0;
+    if(o.get_sel_type() == selection_type::sporadic &&
+            o.get_e_change_f_type() == env_change_freq_type::regular)
+    {
+        rec_freq_shift += o.get_selection_duration();
+    }
+
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;
 
@@ -284,14 +302,15 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_optimal(s);
         o.store_avg_fit(s);
 
-
-        if(o.get_record_freq_top_inds() != 0 && s.get_time() %  o.get_record_freq_top_inds() == 0)
+        if(o.get_record_freq_top_inds() != 0 &&
+                s.get_time() %  (o.get_record_freq_top_inds() + rec_freq_shift) == 0)
         {
             o.store_top_n_inds(s);
         }
-        if( o.get_record_freq_spectrum() != 0 && s.get_time() % o.get_record_freq_spectrum() == 0)
+        if( o.get_record_freq_spectrum() != 0 &&
+                s.get_time() % (o.get_record_freq_spectrum() + rec_freq_shift) == 0)
         {
-            o.store_network_spectrum_n_best(s); //take out unrealistic amount of data, convert to summary x weight
+            o.store_network_spectrum_n_best(s); //take out, unrealistic amount of data, convert to summary x weight
         }
         if(s.get_time() % 1000 == 0)
         {

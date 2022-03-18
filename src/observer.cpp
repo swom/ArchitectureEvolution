@@ -133,6 +133,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type) +
             "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
             "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
+            "_a_p_" + convert_adapt_periods_to_string(p.s_p.adaptation_per) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
             "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
@@ -370,6 +371,50 @@ void test_observer()
             }
             assert(o.get_env_funcs()[i] == 'B');
         }
+
+    }
+
+    ///If selection is sporadic and happens at regular intervals
+    /// Then the individuals will be recorded
+    /// following the indicated recording frequency
+    /// but with an appropriate delay, so to capture individuals
+    /// that have eundergone selection
+    {
+        using sim_t = simulation<population<>,
+        env_change_symmetry_type::asymmetrical,
+        env_change_freq_type::regular,
+        selection_type::sporadic,
+        adaptation_period::off>;
+
+        int selection_freq = 2;
+
+        sim_param s_p;
+        s_p.sel_type = selection_type::sporadic;
+        s_p.change_freq_type = env_change_freq_type::regular;
+        s_p.n_generations = 10;
+        s_p.selection_freq = selection_freq;
+        s_p.selection_duration = selection_freq / 2;
+
+        obs_param o_p;
+        o_p.m_top_ind_reg_freq = selection_freq;
+
+
+        sim_t s{{{},{},{},{s_p}}};
+        observer<sim_t> o(o_p, s.get_params());
+
+        exec(s,o);
+
+        bool is_registered_at_the_end_of_sleection_period = false;
+
+        ///BAD!!!
+        for(const auto& top_ind : o.get_top_inds())
+        {
+            if(top_ind[0].generation % (s_p.selection_freq + o.get_selection_duration() - 1) == 0)
+            {
+                is_registered_at_the_end_of_sleection_period = true;
+            }
+        }
+        assert(is_registered_at_the_end_of_sleection_period);
 
     }
 }
