@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 
 double identity_first_element(const std::vector<double>& vector);
@@ -489,10 +490,25 @@ Class load_json(
 template<class Class>
 void save_json(const Class& s, const std::string& filename)
 {
-    std::ofstream  f(filename);
+    auto path = std::filesystem::current_path();
+    path /= filename;
+    if(std::filesystem::exists(path))
+    {
+        std::cout << "overriding previous results" << std::endl;
+    }
+    std::ofstream f;
+    f.open(filename);
+    if(f.is_open())
+    {
     nlohmann::json json_out;
     json_out = s;
     f << json_out;
+    }
+    else
+    {
+        throw std::runtime_error{"could not open output stream for saving!"};
+    }
+    f.close();
 }
 
 namespace sim {
