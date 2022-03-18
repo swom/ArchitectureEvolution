@@ -35,7 +35,8 @@ declare -a change_freq_As=(0)
 declare -a gen=(1000000)
 declare -a mut_types=("weights")
 declare -a sel_types=("sporadic")
-declare -a adaptation_periods=("on")
+declare -a change_freq_types=("regular")
+declare -a adaptation_periods=("on" "off")
 declare -a sel_freqs=(0 100 1000 10000)
 declare record_top_ind_freq=1000
 declare n_observations_reaction_norm=100
@@ -59,9 +60,12 @@ do
 							do			
 								for adaptation_period in "${adaptation_periods[@]}"
 								do
-										echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period
-				  
-										sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period
+									for change_freq_type in "${change_freq_types[@]}"
+									do
+											echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_types
+					  
+											sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type
+									done
 								done
 							done
 						done
