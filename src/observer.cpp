@@ -129,19 +129,19 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
 std::string create_save_name_from_params(const all_params& p)
 {
 
-    return "mut_type_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
-            "_start_arc" + convert_arc_to_string(p.i_p.net_par.net_arc) +
-            "_act_r" + std::to_string(p.p_p.mut_rate_activation).substr(0, 8) +
-            "_dup_r" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 8) +
-            "_ch_A" + std::to_string(p.s_p.change_freq_A).substr(0, 8) +
-            "_ch_B" + std::to_string(p.s_p.change_freq_B).substr(0, 8) +
-            "_ch_type" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
-            "_ch_type" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
-            "_sel_str" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
-            "_max_arc" + convert_arc_to_string(p.i_p.net_par.max_arc) +
-            "_sel_type" + convert_selection_type_to_string(p.s_p.sel_type) +
-            "_sel_freq" + std::to_string(p.s_p.selection_freq) +
-            "_" + std::to_string(p.s_p.seed) + ".json";
+    return "mut_t_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
+            "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type) +
+            "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
+            "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
+            "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
+            "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
+            "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
+            "_dup_r_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
+            "_ch_A_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
+            "_ch_B_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
+            "_s_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
+            "_s_f_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
+            "_seed" + std::to_string(p.s_p.seed) + ".json";
 
 }
 #ifndef NDEBUG
@@ -335,7 +335,43 @@ void test_observer()
             assert(original == calculated_from_upload);
         }
     }
+    ///A simulation can be run so that half of the time
+    /// is an 'adaptation period' where evolution happens in a stable environment
+    {
+        using sim_t = simulation<population<>,
+        env_change_symmetry_type::asymmetrical,
+        env_change_freq_type::regular,
+        selection_type::constant,
+        adaptation_period::on>;
 
+        ///When change is allowed
+        /// the enviromental function
+        /// will alwys be b
+        sim_param s_p;
+        s_p.change_freq_A = 1;
+        s_p.change_freq_B = 0;
+        s_p.n_generations = 4;
+
+        obs_param o_p;
+        o_p.m_spectrum_reg_freq = 0;
+        o_p.m_top_ind_reg_freq = 0;
+
+        sim_t s{{{},{},{},s_p}};
+        observer<sim_t> o{o_p, s.get_params()};
+
+        exec(s,o);
+
+        for(size_t i = 0; i != o.get_env_funcs().size(); i++ )
+        {
+            if(i < o.get_env_funcs().size() / 2)
+            {
+                assert(o.get_env_funcs()[i] == 'A');
+                continue;
+            }
+            assert(o.get_env_funcs()[i] == 'B');
+        }
+
+    }
 }
 #endif
 

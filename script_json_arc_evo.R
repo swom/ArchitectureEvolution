@@ -8,12 +8,13 @@ library(ggpubr)
 
 ####read data####
 
-dir = dirname(rstudioapi::getActiveDocumentContext()$path)
+# dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-# dir = "C:/Users/Clem/build-arc_evo-Desktop_Qt_6_1_0_MinGW_64_bit-Release"
+dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
+# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -24,24 +25,10 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                              var = "gen")
 
 i = str_replace(i, "weights_and_activation", "weightsandactivation")
-a_p = results$m_params
 
-as_tibble(a_p$s_p)
-as_tibble(a_p$e_p)
-as_tibble(a_p$p_p)
-as_tibble(a_p$i_p)
-
-ID = data.frame(NA)
-ID$architecture <- toString(a_p$i_p$net_par$net_arc)
-ID$seed = as.factor(a_p$s_p$seed)
-ID$max_arc = toString(a_p$i_p$net_par$max_arc)
-ID$change_freq_A = as.factor(a_p$s_p$change_freq_A)
-ID$change_freq_B = as.factor(a_p$s_p$change_freq_B)
-ID$mut_rate_act = as.factor(a_p$p_p$mut_rate_activation)
-ID$mut_rate_dup = as.factor(a_p$p_p$mut_rate_duplication)
-ID$selection_strength = as.factor(a_p$s_p$selection_strength)
-ID$change_type = as.factor(a_p$s_p$change_freq_type)
-ID = ID[-1]
+results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
+results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
+ID = as.data.frame(results$m_params)
 
 simple_res_ID = cbind(simple_res, ID)
 all_simple_res = rbind(all_simple_res, simple_res_ID)
@@ -65,7 +52,7 @@ ggplot(data = all_simple_res
   geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(change_freq_A~.)
+  facet_grid(s_p.selection_freq~s_p.seed)
 
 ####Adaptation time
 
