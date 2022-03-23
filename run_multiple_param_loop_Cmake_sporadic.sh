@@ -21,6 +21,7 @@
 
 # to get arc_evo.pro command interface 
 #run arc_evo.exe with command line argument -h 
+module load git
 module load CMake
 module load binutils
 mkdir build
@@ -63,7 +64,6 @@ do
 									for change_freq_type in "${change_freq_types[@]}"
 									do
 											echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_types
-					  
 											sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type
 									done
 								done
