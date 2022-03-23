@@ -24,8 +24,8 @@
 module load git
 module load CMake
 module load binutils
-mkdir build
-cd build
+mkdir build_plasticity
+cd build_plasticity
 cmake ..
 cmake --build . 
 
@@ -33,13 +33,14 @@ cmake --build .
 declare -a architectures=("2,2,2,2,1")
 declare -a max_architectures=("2,2,2,2,1")
 declare -a change_freq_As=(0.1)
-declare -a change_freq_Bs=(0.01)
+declare -a change_freq_Bs=(0.01 0.001)
 declare -a gen=(1000000)
 declare -a mut_types=("weights")
 declare -a sel_types=("constant")
+declare -a change_sym_types=("asymmetrical")
 declare -a change_freq_types=("regular")
 declare -a adaptation_periods=("on" "off")
-declare -a sel_freqs=(0 100 1000 10000)
+declare -a sel_freqs=(0)
 declare record_top_ind_freq=1000
 declare n_observations_reaction_norm=100
 declare n_trials=10
@@ -64,8 +65,14 @@ do
 								do
 									for change_freq_type in "${change_freq_types[@]}"
 									do
-											echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_types
-											sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type
+										for change_sym_type in "${change_sym_types[@]}"
+										do
+											for change_freq_B in "${change_freq_Bs[@]}"
+											do
+											echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_type $change_sym_type $change_freq_B
+													sbatch ../run_loop_plastic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $change_sym_type $change_freq_B
+											done
+										done
 									done
 								done
 							done
