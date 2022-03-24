@@ -27,7 +27,7 @@ module load binutils
 mkdir build
 cd build
 cmake ..
-cmake --build . 
+cmake --build . --config Release
 
 
 declare -a architectures=("1,2,2,2,1")

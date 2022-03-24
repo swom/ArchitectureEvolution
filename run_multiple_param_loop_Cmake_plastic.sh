@@ -27,7 +27,7 @@ module load binutils
 mkdir build_plasticity
 cd build_plasticity
 cmake ..
-cmake --build . 
+cmake --build . --config Release
 
 
 declare -a architectures=("2,2,2,2,1")

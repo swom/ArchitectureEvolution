@@ -10,11 +10,13 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
+dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22/3_23_22"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
 # pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
+# pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
+  
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -23,8 +25,6 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                                                  "m_env_functions",
                                                  "m_var_fitnesses")]),
                              var = "gen")
-
-i = str_replace(i, "weights_and_activation", "weightsandactivation")
 
 results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
 results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
