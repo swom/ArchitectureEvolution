@@ -261,7 +261,7 @@ public:
     bool is_environment_changing(){
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time < m_n_generations / 2)
+            if(m_time < (m_n_generations / 2))
             return false;
         }
         if constexpr( Env_change_freq == env_change_freq_type::regular)
@@ -275,11 +275,11 @@ public:
                 bool change;
                 if constexpr( Env_change_sym == env_change_symmetry_type::asymmetrical)
                 {
-                    change = std::fmod(get_time(), 1.0/m_change_freq_B)  == 0;
+                    change = std::fmod(get_time(), 1.0/m_change_freq_B) == 0;
                 }
                 else if(Env_change_sym == env_change_symmetry_type::symmetrical)
                 {
-                    change = std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+                    change = std::fmod(get_time(), 1.0/m_change_freq_A) == 0;
                 }
                 return change;
             }
