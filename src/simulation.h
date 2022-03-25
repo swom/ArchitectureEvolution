@@ -259,11 +259,14 @@ public:
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
+        if(m_time == 0) return false;
+
         if constexpr (Adapt_per == adaptation_period::on)
         {
             if(m_time < (m_n_generations / 2))
             return false;
         }
+
         if constexpr( Env_change_freq == env_change_freq_type::regular)
         {
             if( m_environment.get_name_current_function() == 'A' )
