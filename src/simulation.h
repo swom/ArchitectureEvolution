@@ -1,5 +1,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
+#include <filesystem>
+#include <fstream>
+#include <vector>
 
 #include "selection_type.h"
 #include "env_change_type.h"
@@ -8,9 +11,6 @@
 #include "population.h"
 //#include <omp.h>
 
-#include <fstream>
-#include <vector>
-#include <filesystem>
 
 
 double identity_first_element(const std::vector<double>& vector);
