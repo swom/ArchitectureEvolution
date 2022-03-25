@@ -639,7 +639,6 @@ template<class Sim>
 void tick(Sim &s)
 {
     if(s.is_environment_changing()){
-    std::cout << "environment changes at time: " << s.get_time() << std::endl;
     perform_environment_change(s);
     }
 
