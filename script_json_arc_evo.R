@@ -10,13 +10,13 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22/3_23_22"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_24_22/"
 setwd(dir)
 all_simple_res = data.frame()
-pattern = '^m.*json$'
-# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
+# pattern = '^m.*json$'
 # pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
-  
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
+pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -39,21 +39,26 @@ all_simple_res = rbind(all_simple_res, simple_res_ID)
 save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
+jpeg("fitness_plots.jpg",
+     width = 700,
+     height = 700)
 
-ggplot(data = all_simple_res 
-       #%>%filter(mut_type == "NRduplication")  
-       #%>% slice_min(gen,n = 1000)
-       ) +
-  geom_rect(aes(xmin = gen - 1, xmax = gen,
+filter_gen = 1000
+p <- ggplot(data = all_simple_res %>% 
+              filter(gen %% 1000 == 0) %>% 
+              slice_max(gen, n = 1000)) +
+  geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,
                 fill = as.factor(m_env_functions),
                 alpha = 0.5))+
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
   geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
-  stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
-  stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(s_p.selection_freq~s_p.seed)
+  # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
+  # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
+  facet_grid(s_p.selection_freq ~ s_p.seed + s_p.adaptation_per )
 
+print(p)
+dev.off()
 ####Adaptation time
 
 d = all_simple_res %>%

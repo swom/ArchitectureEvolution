@@ -11,12 +11,13 @@ library(networkD3)
 library(magick)
 library(patchwork)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_24_22/"
 setwd(dir)
 
 results=list()
 # pattern = "*json$"
-pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
+# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
+pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_100_seed1.json"
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern)){
   
@@ -118,7 +119,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
                                                directed = T)
     
     E(network_d)$color = as.factor(edge_tibble_ind$`ind$w_sign`)
-    E(network_d)$weight = if_else(edge_tibble_ind$`ind$m_is_active` == T,  edge_tibble_ind$`ind$m_weight`, 0)
+    E(network_d)$weight = if_else(edge_tibble_ind$`ind$m_is_active` == T, 
+                                  edge_tibble_ind$`ind$m_weight`, 
+                                  0)
     network_d = network_d - E(network_d)[E(network_d)$weight == 0]
     V(network_d)$color = factor(node_tibble_ind$node_active, levels=c("FALSE", "TRUE"))
     
@@ -149,9 +152,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
     title = paste("Generation ", ind$generation[1])
     
     par(mfrow=c(2,2))
-    plot(tail(highest_weights$generation,1000), tail(highest_weights$max_weigth,1000), type = 'l',
+    plot(highest_weights$generation, highest_weights$max_weigth, type = 'l',
          main = "max_weight")  
-    plot(tail(avg_fitness$generation,1000), tail(avg_fitness$avg_fitness,1000), type = 'l',
+    plot(avg_fitness$generation, avg_fitness$avg_fitness, type = 'l',
          main = "avg_fitness")
     plot(network_d, layout = l,
          edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
@@ -168,26 +171,26 @@ for (i in  list.files(path = '.', pattern = pattern)){
     dev.off()
     
   }  
-  
-  ####Create gif
-  ## list file names and read in
-  imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-                                                 list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
-                                       list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
-                             list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
-                   list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
-  img_list = lapply(imgs, image_read)
-  
-  ## join the images together
-  img_joined <- image_join(img_list)
-  
-  ## animate at 2 frames per second
-  img_animated <- image_animate(img_joined, fps = 2)
-  
-  ## save to disk
-  path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
-  image_write(image = img_animated,
-              path = path)
+  # 
+  # ####Create gif
+  # ## list file names and read in
+  # imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
+  #                                                list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
+  #                                      list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
+  #                            list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
+  #                  list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
+  # img_list = lapply(imgs, image_read)
+  # 
+  # ## join the images together
+  # img_joined <- image_join(img_list)
+  # 
+  # ## animate at 2 frames per second
+  # img_animated <- image_animate(img_joined, fps = 2)
+  # 
+  # ## save to disk
+  # path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
+  # image_write(image = img_animated,
+  #             path = path)
   
   
 }
