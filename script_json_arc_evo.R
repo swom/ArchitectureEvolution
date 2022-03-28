@@ -10,13 +10,13 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/3_24_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_28_22/"
 setwd(dir)
 all_simple_res = data.frame()
-# pattern = '^m.*json$'
+pattern = '^m.*json$'
 # pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
-pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -43,10 +43,15 @@ jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
 
-filter_gen = 1000
+filter_gen = 10
+wanted_freqs = c(100, 1000)
 p <- ggplot(data = all_simple_res %>% 
-              filter(gen %% 1000 == 0) %>% 
-              slice_max(gen, n = 1000)) +
+              # filter(gen %% filter_gen == 0) %>% 
+              filter (s_p.adaptation_per == 0) %>%
+              filter (s_p.selection_freq %in% wanted_freqs) %>%
+              group_by(s_p.seed) %>% 
+              slice_max(gen, n = s_p.selection_freq * 10)
+) +
   geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,
                 fill = as.factor(m_env_functions),
