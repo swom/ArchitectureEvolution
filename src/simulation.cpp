@@ -785,6 +785,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches_B = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_asym.increase_time();
             if(s_asym.is_environment_changing())
             {
                 n_switches_B++;
@@ -802,6 +803,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_sym.increase_time();
             if(s_sym.is_environment_changing())
             {
                 n_switches_A++;
@@ -816,6 +818,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         n_switches_B = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_sym.increase_time();
             if(s_sym.is_environment_changing())
             {
                 n_switches_B++;
@@ -847,12 +850,14 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto current_function_name = get_name_current_function(regular_sim);
         for(int i = 0; i !=  s_p.n_generations; i++)
         {
-            tick(regular_sim);
-            if(std::fmod(regular_sim.get_time(), 1.0/s_p.change_freq_A)  ==  0)
+            if(std::fmod(regular_sim.get_time() - 1, 1.0/s_p.change_freq_A) == 0 &&
+                    regular_sim.get_time() != 1)
             {
                 assert(current_function_name != get_name_current_function(regular_sim));
                 current_function_name = get_name_current_function(regular_sim);
             }
+            tick(regular_sim);
+
 
         }
 

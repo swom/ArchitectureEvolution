@@ -271,7 +271,7 @@ public:
         {
             if( m_environment.get_name_current_function() == 'A' )
             {
-                return std::fmod(get_time(), 1.0/m_change_freq_A)  == 0;
+                return std::fmod(get_time(), 1.0/m_change_freq_A) == 0;
             }
             else if (m_environment.get_name_current_function() == 'B')
             {

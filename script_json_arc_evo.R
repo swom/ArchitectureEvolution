@@ -43,14 +43,14 @@ jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
 
-filter_gen = 10
+filter_gen = 1000
 wanted_freqs = c(100, 1000, 10000)
 p <- ggplot(data = all_simple_res %>% 
-              # filter(gen %% filter_gen == 0) %>% 
+              filter(gen %% filter_gen == 0) %>%
               # filter (s_p.adaptation_per == 0) %>%
               filter (s_p.selection_freq %in% wanted_freqs) %>%
-              group_by(s_p.seed, s_p.selection_freq) %>% 
-              slice_max(gen, n = 1000)
+              group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength) %>% 
+              slice_min(gen, n = 1000)
 ) +
   geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,
@@ -60,7 +60,7 @@ p <- ggplot(data = all_simple_res %>%
   geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(s_p.selection_freq ~ s_p.seed + s_p.adaptation_per )
+  facet_grid(s_p.selection_freq + s_p.selection_strength ~ s_p.seed + s_p.adaptation_per )
 
 print(p)
 dev.off()
