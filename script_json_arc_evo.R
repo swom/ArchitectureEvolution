@@ -50,7 +50,7 @@ p <- ggplot(data = all_simple_res %>%
               # filter (s_p.adaptation_per == 0) %>%
               filter (s_p.selection_freq %in% wanted_freqs) %>%
               group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength) %>% 
-              slice_min(gen, n = 1000)
+              slice_max(gen, n = 10000)
 ) +
   geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,
