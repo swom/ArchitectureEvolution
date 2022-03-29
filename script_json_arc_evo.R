@@ -10,7 +10,7 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/3_28_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_29_22/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
@@ -44,13 +44,13 @@ jpeg("fitness_plots.jpg",
      height = 700)
 
 filter_gen = 10
-wanted_freqs = c(100, 1000)
+wanted_freqs = c(100, 1000, 10000)
 p <- ggplot(data = all_simple_res %>% 
               # filter(gen %% filter_gen == 0) %>% 
-              filter (s_p.adaptation_per == 0) %>%
+              # filter (s_p.adaptation_per == 0) %>%
               filter (s_p.selection_freq %in% wanted_freqs) %>%
-              group_by(s_p.seed) %>% 
-              slice_max(gen, n = s_p.selection_freq * 10)
+              group_by(s_p.seed, s_p.selection_freq) %>% 
+              slice_max(gen, n = 1000)
 ) +
   geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,

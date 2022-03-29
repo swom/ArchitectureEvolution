@@ -15,7 +15,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1	
-#SBATCH --mem=500MB
+#SBATCH --mem=350MB
 #SBATCH --job-name=arc_evo_sim
 #SBATCH --output=arc_evo_%j.log
 

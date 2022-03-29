@@ -363,6 +363,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s.increase_time();
             if(s.is_environment_changing())
             {
                 n_switches++;
@@ -769,6 +770,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_asym.increase_time();
             if(s_asym.is_environment_changing())
             {
                 n_switches_A++;
