@@ -934,6 +934,22 @@ void test_network() //!OCLINT
     }
 #endif
 
+    ///Networks can be templated to be plastic and have thus one extra input
+    {
+        int n_inputs = 1;
+        int n_outputs = 1;
+
+        net_param n_p{};
+        n_p.net_arc = {n_inputs,n_outputs};
+        n_p.max_arc = {n_inputs,n_outputs};
+
+        network<mutation_type::weights, response_type::plastic> n_plastic{n_p};
+        network<mutation_type::weights, response_type::constitutive> n_constitutive{n_p};
+
+        assert(n_plastic.get_max_arc[0] == n_constitutive.get_max_arc[0] + 1);
+        assert(n_plastic.get_net_arc[0] == n_constitutive.get_net_arc[0] + 1);
+        assert(n_plastic.get_net_weights[0].size() == n_constitutive.get_net_weights[0].size() + 1);
+    }
 
 }
 #endif

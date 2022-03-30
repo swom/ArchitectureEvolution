@@ -358,6 +358,7 @@ public:
         }
         return cumulative_performance;
     }
+
     ///Changes the inputs in the environment of the simulation
     std::vector<double> create_inputs()
     {

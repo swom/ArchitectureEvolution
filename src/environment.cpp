@@ -82,13 +82,13 @@ double calculate_optimal(const environment &e, std::vector<double> input)
   return e.get_current_function()(input);
 }
 
+///Creates n random inputs
 std::vector<double> create_n_inputs(int n_inputs)
 {
-  std::vector<double> input_vector;
-
-  for(int i = 0; i != n_inputs; ++i){
-      input_vector.push_back(1234.0);
-    }
+  std::vector<double> input_vector(n_inputs);
+  std::normal_distribution<double> dist(0,0.3);
+  std::mt19937_64 rng;
+  std::generate(input_vector.begin(), input_vector.end(), [&rng, &dist](){return dist(rng);});
   return input_vector;
 }
 
