@@ -907,6 +907,32 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     }
 
+    ///A simulation that is templated with a plastic response_type
+    /// will create an extra_input that refers to the current environmental function
+    {
+        using sim_t = simulation<population<>,
+        env_change_symmetry_type::symmetrical,
+        env_change_freq_type::regular,
+        selection_type::constant,
+        adaptation_period::off,
+        response_type::plastic>;
+
+        sim_param s_p;
+        s_p.n_generations = 10;
+        s_p.change_freq_A = 1;
+
+        pop_param p_p;
+        p_p.number_of_inds = 1;
+
+        sim_t s{all_params{{},{}, p_p, s_p}};
+
+        while(s.get_time() != s.get_n_gen())
+        {
+            tick(s);
+            assert(s.create_inputs().back() == s.get_number_for_current_env_function());
+            assert(s.create_inputs().size() == s.get_ind_input_size())
+        }
+    }
 #endif
 
 }
