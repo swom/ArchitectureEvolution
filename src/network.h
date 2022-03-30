@@ -8,6 +8,7 @@
 #include <mutex>
 #include "node.h"
 #include "mutation_type.h"
+#include "response_type.h"
 #include "netwrok_spectrum.h"
 
 double sigmoid(double x);
@@ -211,7 +212,7 @@ void mutate_biases(Net& n, const double& mut_rate,
 }
 
 
-template<mutation_type M = mutation_type::weights>
+template<mutation_type M = mutation_type::weights, response_type R = response_type::constitutive>
 class network
 {
 
@@ -238,8 +239,33 @@ private:
         return rn;
     }
 public:
+
     network(std::vector<int> nodes_per_layer,
-            std::function<double(double)> activation_function = &linear);
+            std::function<double(double)> activation_function = &linear):
+        m_network_weights{},
+        m_input_size{nodes_per_layer[0]},
+        m_activation_function{activation_function},
+        m_current_arc{nodes_per_layer},
+        m_max_arc{nodes_per_layer}
+    {
+
+        for (size_t i = 1; i != nodes_per_layer.size(); i++ )
+        {
+            std::vector<node>temp_layer_vector;
+            size_t n_nodes_prev_layer = nodes_per_layer[i-1];
+            for(int j = 0; j != nodes_per_layer[i]; j++)
+            {
+                std::vector<weight> temp_weights(n_nodes_prev_layer);
+                node temp_node(temp_weights);
+                temp_layer_vector.push_back(temp_node);
+            }
+
+
+            //A vector of the size of the number of connections is pushed back in the weight matrix
+            m_network_weights.push_back(temp_layer_vector);
+
+        }
+    }
 
 
     network(const net_param &n_p):
@@ -249,20 +275,28 @@ public:
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
+        ///Change architecture by adding one extra input for environment if response is plastic
+        if constexpr (R == response_type::plastic)
+        {
+            m_input_size ++;
+            m_current_arc[0] ++;
+            m_max_arc[0] ++;
+        }
+
         if(!net_arc_and_max_arc_are_compatible(m_current_arc, m_max_arc)){
             throw std::runtime_error{"starting and maximum architecture are not compatible"};
         }
 
-        for (size_t i = 1; i != n_p.net_arc.size(); i++ )
+        for (size_t i = 1; i != m_current_arc.size(); i++ )
         {
             std::vector<node>temp_layer_vector;
-            size_t n_nodes_prev_layer = n_p.max_arc[i-1];
-            for(int j = 0; j != n_p.max_arc[i]; j++)
+            size_t n_nodes_prev_layer = m_max_arc[i-1];
+            for(int j = 0; j != m_max_arc[i]; j++)
             {
                 std::vector<weight> temp_weights(n_nodes_prev_layer);
 
                 node temp_node(temp_weights);
-                if((j+1) <= n_p.net_arc[i]){
+                if((j+1) <= m_current_arc[i]){
                     temp_node.activate();
                 }
                 temp_layer_vector.push_back(temp_node);
@@ -546,7 +580,16 @@ public:
     ///Returns the maximum architecture
     const std::vector<int>& get_max_arc() const noexcept{return m_max_arc;}
 
-    void change_network_arc(std::vector<int> new_arc);
+    ///Changes the current arc of a network to a new one
+    void change_network_arc(std::vector<int> new_arc){
+        if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
+            m_current_arc = new_arc;
+        }
+        else
+        {
+            throw std::invalid_argument{"The current and maximum architectures are not compatible"};
+        }
+    }
 
 
     //make a public function of net
@@ -593,7 +636,7 @@ public:
                     //                                           [&]( const tbb::blocked_range<size_t> &x)
                     //                        {
                     //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
-                    #pragma omp parallel for
+#pragma omp parallel for
                     for (int mut = 0; mut < int(mutations.size()); mut++)
                     {
                         auto new_weight = current_layer[node_index].get_vec_weights()[weight_index].get_weight() + mutations[mut];

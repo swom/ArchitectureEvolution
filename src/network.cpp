@@ -11,36 +11,6 @@ bool operator==(const net_param& lhs, const net_param& rhs)
     return max_arcs && net_arcs;
 }
 
-template<mutation_type M>
-network<M>::network(std::vector<int> nodes_per_layer, std::function<double(double)> activation_function):
-    m_network_weights{},
-    m_input_size{nodes_per_layer[0]},
-    m_activation_function{activation_function},
-    m_current_arc{nodes_per_layer},
-    m_max_arc{nodes_per_layer}
-{ 
-
-    for (size_t i = 1; i != nodes_per_layer.size(); i++ )
-    {
-        std::vector<node>temp_layer_vector;
-        size_t n_nodes_prev_layer = nodes_per_layer[i-1];
-        for(int j = 0; j != nodes_per_layer[i]; j++)
-        {
-            std::vector<weight> temp_weights(n_nodes_prev_layer);
-            node temp_node(temp_weights);
-            temp_layer_vector.push_back(temp_node);
-        }
-
-
-        //A vector of the size of the number of connections is pushed back in the weight matrix
-        m_network_weights.push_back(temp_layer_vector);
-
-    }
-}
-
-
-
-
 template<class Net>
 std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
@@ -160,18 +130,6 @@ int get_number_weights(const Net &n)
     }
     return (int) number_weights;
 }
-
-template<mutation_type M>
-void network<M>::change_network_arc(std::vector<int> new_arc){
-    if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
-        m_current_arc = new_arc;
-    }
-    else
-    {
-        throw std::invalid_argument{"The current and maximum architectures are not compatible"};
-    }
-}
-
 
 #ifndef NDEBUG
 void test_network() //!OCLINT
@@ -946,9 +904,20 @@ void test_network() //!OCLINT
         network<mutation_type::weights, response_type::plastic> n_plastic{n_p};
         network<mutation_type::weights, response_type::constitutive> n_constitutive{n_p};
 
-        assert(n_plastic.get_max_arc[0] == n_constitutive.get_max_arc[0] + 1);
-        assert(n_plastic.get_net_arc[0] == n_constitutive.get_net_arc[0] + 1);
-        assert(n_plastic.get_net_weights[0].size() == n_constitutive.get_net_weights[0].size() + 1);
+        assert(n_plastic.get_max_arc()[0] == n_constitutive.get_max_arc()[0] + 1);
+        assert(n_plastic.get_current_arc()[0] == n_constitutive.get_current_arc()[0] + 1);
+
+        //check that nodes in first layer have one more weight
+        ///that connects to extra input in plastic network
+
+        auto  nodes_in_constitutive = n_constitutive.get_net_weights()[0];
+        auto  nodes_in_plastic = n_plastic.get_net_weights()[0];
+
+        assert(nodes_in_plastic.size() == nodes_in_constitutive.size());
+        for(int node = 0; node !=  n_plastic.get_net_weights()[0].size(); node++)
+        {
+            assert(nodes_in_constitutive[node].get_vec_weights().size() + 1 == nodes_in_plastic[node].get_vec_weights().size());
+        }
     }
 
 }
