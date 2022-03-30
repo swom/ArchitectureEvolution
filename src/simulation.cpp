@@ -611,24 +611,6 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_138
-#ifdef FIX_ISSUE_138
-
-    ///There should be an input to signal whihc environment function is being used to calculate the optima
-    {
-        std::vector<int> net_arch{2,2,1};
-        all_params params{{},{{net_arch, linear, net_arch}}, {}, {}};
-        simulation s{params};
-
-        environment& e = s.get_env();
-
-        assert(e.get_name_current_function() == 'A' && s.get_input().back() == 1);
-        perform_environment_change(s);
-        assign_inputs(s);
-        assert(e.get_name_current_function() == 'B' && s.get_input().back() == -1);
-    }
-#endif
-
 #define FIX_ISSUE_152
 #ifdef FIX_ISSUE_152
 
@@ -900,8 +882,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         while(s.get_time() != s.get_n_gen())
         {
             tick(s);
-            assert(s.create_inputs().back() == s.get_number_for_current_env_function());
-            assert(s.create_inputs().size() == get_inds_input_size(s));
+            auto created_input = s.create_inputs();
+            assert( created_input.back() == s.get_number_for_current_env_function());
+            assert(created_input.size() == get_inds_input_size(s));
         }
     }
 #endif

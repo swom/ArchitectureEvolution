@@ -95,7 +95,7 @@ void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
 template<class Sim>
 void assign_inputs(Sim &s)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), s.get_input());
+    pop::assign_new_inputs_to_inds(s.get_pop(), s.create_inputs() );
 }
 
 ///Returns the individuals in the simualtion
@@ -346,6 +346,22 @@ public:
     ///Updates the inputs of the simulation with new calculated inputs
     void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
+    ///Changes the inputs in the environment of the simulation
+    std::vector<double> create_inputs()
+    {
+        auto inputs = env::create_n_inputs(get_env(),
+                        get_inds_input_size(*this),
+                        get_rng()
+                        );
+
+        if constexpr(Resp_type == response_type::plastic)
+        {
+            inputs.push_back(get_number_for_current_env_function());
+        }
+
+        return inputs;
+    }
+
     ///Evaluates the operformance of all indiivduals in a population
     std::vector<double> evaluate_inds(){
 
@@ -380,16 +396,6 @@ public:
             }
         }
         return cumulative_performance;
-    }
-
-    ///Changes the inputs in the environment of the simulation
-    std::vector<double> create_inputs()
-    {
-        return(env::create_n_inputs(get_env(),
-                                    get_inds_input_size(*this),
-                                    get_rng()
-                                    )
-               );
     }
 
     ///Calculates fitness of inds in pop given current env values
@@ -457,15 +463,6 @@ public:
         else
         {
             throw std::runtime_error{"wrong type of selection"};
-        }
-    }
-
-    ///Changes the last input (env function indicator) from 1 to -1 or vice versa
-    ///the way this is implemented is BAD!!!
-    void switch_env_indicator()
-    {
-        if(get_input().size() > 1){
-            m_input.back() = -m_input.back();
         }
     }
 
@@ -639,8 +636,8 @@ template<class Sim>
 void perform_environment_change(Sim &s)
 {
     switch_optimal_function(s);
-    s.switch_env_indicator();
 }
+
 ///checks if the individuals in the populations from 2 different simulations
 ///have exactly the same fitness values
 template<class Sim>
