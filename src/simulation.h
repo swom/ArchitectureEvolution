@@ -12,7 +12,6 @@
 //#include <omp.h>
 
 
-
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -48,13 +47,13 @@ struct sim_param
         n_generations{generations},
         selection_freq{selection_frequency},
         selection_duration{selection_freq == 0 ? 0 : selection_freq / 10},
-        change_sym_type{env_change_symmetry_type},
-        change_freq_type{env_change_freq_type},
-        sel_type{selec_type},
-        adaptation_per{adapt_per}
+                           change_sym_type{env_change_symmetry_type},
+                           change_freq_type{env_change_freq_type},
+                           sel_type{selec_type},
+                           adaptation_per{adapt_per}
     {}
 
-    int seed;
+                           int seed;
     double change_freq_A;
     double change_freq_B;
     double selection_strength;
@@ -140,7 +139,8 @@ template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
-         enum adaptation_period Adapt_per = adaptation_period::off>
+         enum adaptation_period Adapt_per = adaptation_period::off,
+         enum response_type Resp_type = response_type::constitutive>
 class simulation
 {
 public:
@@ -156,7 +156,25 @@ public:
                double t_change_interval = 0.1,
                std::vector<int> net_arch = {1,2,1},
                double sel_str = 2,
-               int number_of_generations = 1000);
+               int number_of_generations = 1000):
+        m_environment{},
+        m_population{init_pop_size},
+        m_n_generations{number_of_generations},
+        m_seed{seed},
+        m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
+        m_t_change_env_distr_B{static_cast<double>(t_change_interval)},
+        m_sel_str{sel_str},
+        m_change_freq_A{static_cast<double>(t_change_interval)},
+        m_change_freq_B{static_cast<double>(t_change_interval)},
+        m_input(net_arch[0], 1),
+        m_optimal_output{1}
+    {
+        m_rng.seed(m_seed);
+        for(auto& ind : m_population.get_inds_nonconst())
+        {
+            ind = individual{net_param{net_arch, linear, net_arch}};
+        }
+    }
 
     simulation(const all_params& params):
         m_environment{params.e_p},
@@ -264,7 +282,7 @@ public:
         if constexpr (Adapt_per == adaptation_period::on)
         {
             if(m_time < (m_n_generations / 2))
-            return false;
+                return false;
         }
 
         if constexpr( Env_change_freq == env_change_freq_type::regular)
@@ -317,6 +335,11 @@ public:
     const std::function<double(std::vector<double>)> &get_env_function_A() const noexcept
     {return get_env().get_env_function_A();}
 
+    ///Returns the number corresponding to the current environmental function
+    ///0 for env_function 'A'
+    ///1 for env_function 'B'
+    int get_number_for_current_env_function() const noexcept {return m_environment.get_name_current_function() - 'A';}
+
     ///Updates the optimal to the given value
     void update_optimal(double new_optimal) {m_optimal_output = new_optimal;}
 
@@ -344,7 +367,7 @@ public:
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
         {
-           auto performance = pop::calc_dist_from_target(get_inds(),
+            auto performance = pop::calc_dist_from_target(get_inds(),
                                                           optimals[i],
                                                           inputs[i]);
 #pragma omp critical
@@ -374,7 +397,8 @@ public:
     Env_change_sym,
     Env_change_freq,
     Sel_Type,
-    Adapt_per>&
+    Adapt_per,
+    Resp_type>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
@@ -414,7 +438,7 @@ public:
             if( m_selection_frequency != 0 &&
                     m_time % m_selection_frequency >= 0 &&
                     m_time % m_selection_frequency < m_selection_duration
-                   )
+                    )
             {
                 calc_fitness();
                 reproduce();
@@ -511,9 +535,9 @@ void save_json(const Class& s, const std::string& filename)
     f.open(filename);
     if(f.is_open())
     {
-    nlohmann::json json_out;
-    json_out = s;
-    f << json_out;
+        nlohmann::json json_out;
+        json_out = s;
+        f << json_out;
     }
     else
     {
@@ -640,7 +664,7 @@ template<class Sim>
 void tick(Sim &s)
 {
     if(s.is_environment_changing()){
-    perform_environment_change(s);
+        perform_environment_change(s);
     }
 
     s.select_inds();

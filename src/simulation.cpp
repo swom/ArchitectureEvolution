@@ -3,35 +3,6 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop,
-         enum env_change_symmetry_type Es,
-         enum env_change_freq_type Ef,
-         enum selection_type S,
-         enum adaptation_period A>
-simulation<Pop, Es, Ef, S, A>::simulation(int init_pop_size,
-                                  int seed,
-                                  double t_change_interval,
-                                  std::vector<int> net_arch,
-                                  double sel_str,
-                                  int number_of_generations):
-    m_environment{},
-    m_population{init_pop_size},
-    m_n_generations{number_of_generations},
-    m_seed{seed},
-    m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
-    m_t_change_env_distr_B{static_cast<double>(t_change_interval)},
-    m_sel_str{sel_str},
-    m_change_freq_A{static_cast<double>(t_change_interval)},
-    m_change_freq_B{static_cast<double>(t_change_interval)},
-    m_input(net_arch[0], 1),
-    m_optimal_output{1}
-{
-    m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds_nonconst())
-    {
-        ind = individual{net_param{net_arch, linear, net_arch}};
-    }
-}
 
 bool operator==(const sim_param& lhs, const sim_param& rhs)
 {
@@ -930,7 +901,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         {
             tick(s);
             assert(s.create_inputs().back() == s.get_number_for_current_env_function());
-            assert(s.create_inputs().size() == s.get_ind_input_size());
+            assert(s.create_inputs().size() == get_inds_input_size(s));
         }
     }
 #endif
