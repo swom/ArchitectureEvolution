@@ -930,7 +930,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         {
             tick(s);
             assert(s.create_inputs().back() == s.get_number_for_current_env_function());
-            assert(s.create_inputs().size() == s.get_ind_input_size())
+            assert(s.create_inputs().size() == s.get_ind_input_size());
         }
     }
 #endif
