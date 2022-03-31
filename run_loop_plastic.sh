@@ -22,7 +22,7 @@
 echo "seed: "$1
 echo "architecture: "$2
 echo "max_architecture: "$3
-echo "change frequency: " $4
+echo "change frequency A: " $4
 echo "number of total generations: "$5
 echo "mutation type: "$6
 echo "selection type: "${7}
@@ -32,7 +32,9 @@ echo "number of observations in reaction norms: "${10}
 echo "number of trials: "${11}
 echo "adaptation period: "${12}
 echo "change frequency type: "${13}
-echo "selection strength: "${14}
-echo "response type: "${15}
+echo "change symmetry type: "${14}
+echo "change frequency B: "${15}
+echo "selection strength: "${16}
+echo "response type: "${17}
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -e ${14} -c${15} -T${14} -q${15}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -e ${14} -c${15} -T${16} -q${17}
