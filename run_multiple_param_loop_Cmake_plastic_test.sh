@@ -25,7 +25,7 @@ module load git
 module load CMake
 module load binutils
 mkdir build_test
-cd build_plasticity
+cd build_test
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 
