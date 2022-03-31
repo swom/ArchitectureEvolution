@@ -215,7 +215,8 @@ void mutate_biases(Net& n, const double& mut_rate,
 }
 
 
-template<mutation_type M = mutation_type::weights, response_type R = response_type::constitutive>
+template<mutation_type M = mutation_type::weights,
+         response_type R = response_type::constitutive>
 class network
 {
 
