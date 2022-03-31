@@ -31,21 +31,22 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
     return net_param{
         results["net_arc"].as<std::vector<int>>(),
                 string_to_act_func_map.find(results["act_func"].as<std::string>())->second,
-                results["max_arc"].as<std::vector<int>>()
+                results["max_arc"].as<std::vector<int>>(),
+                string_to_response_type_map.find(results["response_type"].as<std::string>())->second
     };
-    }
+}
 
-    ///NOT tested!!!
-    pop_param convert_pop_args(const cxxopts::ParseResult& results)
-    {
+///NOT tested!!!
+pop_param convert_pop_args(const cxxopts::ParseResult& results)
+{
     return pop_param{
-    results["pop_size"].as<int>(),
-    results["mut_rate_weight"].as<double>(),
-    results["mut_step"].as<double>(),
-    results["mut_rate_act"].as<double>(),
-    results["mut_rate_dup"].as<double>(),
-    results["num_trials"].as<int>(),
-};
+        results["pop_size"].as<int>(),
+                results["mut_rate_weight"].as<double>(),
+                results["mut_step"].as<double>(),
+                results["mut_rate_act"].as<double>(),
+                results["mut_rate_dup"].as<double>(),
+                results["num_trials"].as<int>(),
+    };
 }
 
 ///NOT tested!!!
@@ -169,6 +170,11 @@ cxxopts::Options create_parser(){
              " will be spent in a stable environmetn and the other "
              "half will have changing environments",
              cxxopts::value<std::string>()->default_value("off"))
+            ("q, response_type",
+             "the type of response the network will have:"
+             "'consitutive' if the network does not receive a signal about the environmental function"
+             "'plastic' if the network receives an additional signal representing the environmetnal function",
+             cxxopts::value<std::string>()->default_value("constitutive"))
             ("t,test",
              "run all tests")
             ("h, help",

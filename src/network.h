@@ -4,7 +4,6 @@
 #include <iostream>
 #include <random>
 #include <nlohmann/json.hpp>
-//#include <tbb/parallel_for.h>
 #include <mutex>
 #include "node.h"
 #include "mutation_type.h"
@@ -24,20 +23,24 @@ struct net_param
 {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
                                    net_arc,
-                                   max_arc
+                                   max_arc,
+                                   resp_type
                                    )
 
     net_param(const std::vector<int>& net_arch = {1,2,1},
               std::function<double(double)> func = linear,
-              const std::vector<int>& max_arch = {1,8,1}):
+              const std::vector<int>& max_arch = {1,8,1},
+              response_type response_type = response_type::constitutive):
         net_arc{net_arch},
         function{func},
-        max_arc{max_arch}
+        max_arc{max_arch},
+        resp_type{response_type}
     {};
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
     std::vector<int> max_arc;
+    response_type resp_type;
 };
 
 bool operator==(const net_param& lhs, const net_param& rhs);
