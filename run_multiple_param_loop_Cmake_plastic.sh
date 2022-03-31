@@ -30,16 +30,18 @@ cmake ..
 cmake --build . --config Release
 
 
-declare -a architectures=("2,2,2,2,1")
-declare -a max_architectures=("2,2,2,2,1")
+declare -a architectures=("1,2,2,2,1")
+declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0.1)
 declare -a change_freq_Bs=(0.01 0.001)
+declare -a sel_strs=(0.1 0.5 1 2)
 declare -a gen=(1000000)
 declare -a mut_types=("weights")
 declare -a sel_types=("constant")
 declare -a change_sym_types=("asymmetrical")
 declare -a change_freq_types=("regular")
 declare -a adaptation_periods=("on" "off")
+declare -a type_of_responses=("plastic" "constitutive")
 declare -a sel_freqs=(0)
 declare record_top_ind_freq=1000
 declare n_observations_reaction_norm=100
@@ -69,8 +71,14 @@ do
 										do
 											for change_freq_B in "${change_freq_Bs[@]}"
 											do
-											echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_type $change_sym_type $change_freq_B
-													sbatch ../run_loop_plastic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $change_sym_type $change_freq_B
+												for sel_str in "${sel_strs[@]}"
+												do
+													for type_of_response in "${type_of_responses[@]}"
+													do
+													echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_type $change_sym_type $change_freq_B $sel_str $type_of_response
+															sbatch ../run_loop_plastic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $change_sym_type $change_freq_B $sel_str $type_of_response
+													done
+												done
 											done
 										done
 									done
