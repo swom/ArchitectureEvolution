@@ -17,9 +17,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::weights, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -30,9 +30,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::activation, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -43,9 +43,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::weights_and_activation, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -56,9 +56,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::duplication, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -69,9 +69,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::NRduplication, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -82,9 +82,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::addition, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,
@@ -95,9 +95,9 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         using net_t = network<mutation_type::NRaddition, R>;
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
-        using sim_t = simulation<pop_t, S, F, Sel, A, R>;
+        using sim_t = simulation<pop_t, S, F, Sel, A>;
 
-        auto s = create_simulation<pop_t, S, F, Sel, A, R>(results);
+        auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
         save_json(o,

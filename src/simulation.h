@@ -139,8 +139,7 @@ template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
-         enum adaptation_period Adapt_per = adaptation_period::off,
-         enum response_type Resp_type = response_type::constitutive>
+         enum adaptation_period Adapt_per = adaptation_period::off>
 class simulation
 {
 public:
@@ -150,6 +149,7 @@ public:
     using env_ch_f_t = env_change_freq_type;
     using sel_t = selection_type;
     using adapt_p = adaptation_period;
+    static constexpr response_type Resp_type = pop_t::ind_t::net_t::response_t;
 
     simulation(int init_pop_size = 1,
                int seed = 0,
@@ -405,8 +405,7 @@ public:
     Env_change_sym,
     Env_change_freq,
     Sel_Type,
-    Adapt_per,
-    Resp_type>&
+    Adapt_per>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();

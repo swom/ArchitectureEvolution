@@ -868,11 +868,11 @@ void test_simulation() noexcept//!OCLINT test may be many
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t,
-        env_change_symmetry_type::symmetrical,
-        env_change_freq_type::regular,
-        selection_type::constant,
-        adaptation_period::off,
-        response_type::plastic>;
+          env_change_symmetry_type::symmetrical,
+          env_change_freq_type::regular,
+          selection_type::constant,
+          adaptation_period::off
+        >;
 
         sim_param s_p;
         s_p.n_generations = 10;

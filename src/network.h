@@ -219,6 +219,9 @@ template<mutation_type M = mutation_type::weights,
          response_type R = response_type::constitutive>
 class network
 {
+public:
+  static constexpr mutation_type mutation_t = M;
+  static constexpr response_type response_t = R;
 
 private:
 
