@@ -863,7 +863,11 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///A simulation that is templated with a plastic response_type
     /// will create an extra_input that refers to the current environmental function
     {
-        using sim_t = simulation<population<>,
+
+        using net_t = network<mutation_type::weights, response_type::plastic>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t,
         env_change_symmetry_type::symmetrical,
         env_change_freq_type::regular,
         selection_type::constant,
@@ -877,14 +881,19 @@ void test_simulation() noexcept//!OCLINT test may be many
         pop_param p_p;
         p_p.number_of_inds = 1;
 
+        std::vector<int> arc = {3,1};
+        net_param n_p;
+        n_p.net_arc = arc;
+        n_p.max_arc = arc;
+
         sim_t s{all_params{{},{}, p_p, s_p}};
 
         while(s.get_time() != s.get_n_gen())
         {
             tick(s);
             auto created_input = s.create_inputs();
-            assert( created_input.back() == s.get_number_for_current_env_function());
-            assert(created_input.size() == get_inds_input_size(s));
+            assert(created_input.back() == s.get_number_for_current_env_function());
+            assert(created_input.size() == get_inds_input_size(s) + 1);
         }
     }
 #endif

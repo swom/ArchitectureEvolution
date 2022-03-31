@@ -95,7 +95,7 @@ void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
 template<class Sim>
 void assign_inputs(Sim &s)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), s.create_inputs() );
+    pop::assign_new_inputs_to_inds(s.get_pop(), s.create_inputs());
 }
 
 ///Returns the individuals in the simualtion
@@ -346,7 +346,8 @@ public:
     ///Updates the inputs of the simulation with new calculated inputs
     void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
-    ///Changes the inputs in the environment of the simulation
+    ///Gets inputs bsaed on the environment of the simulation
+    /// and updates the input stored in simulation
     std::vector<double> create_inputs()
     {
         auto inputs = env::create_n_inputs(get_env(),
@@ -359,6 +360,7 @@ public:
             inputs.push_back(get_number_for_current_env_function());
         }
 
+        m_input = inputs;
         return inputs;
     }
 
