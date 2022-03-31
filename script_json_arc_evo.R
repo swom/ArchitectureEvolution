@@ -10,11 +10,14 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++_3_17_22"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_30_22/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
-# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq100_1'
+# pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.1_s_f_0_seed3.json"
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern))
 {
@@ -23,8 +26,6 @@ simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                                                  "m_env_functions",
                                                  "m_var_fitnesses")]),
                              var = "gen")
-
-i = str_replace(i, "weights_and_activation", "weightsandactivation")
 
 results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
 results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
@@ -39,21 +40,33 @@ all_simple_res = rbind(all_simple_res, simple_res_ID)
 save(all_simple_res, file = "all_simple_res.R")
 load("all_simple_res.R")
 #### Plot ####
+jpeg("fitness_plots.jpg",
+     width = 700,
+     height = 700)
 
-ggplot(data = all_simple_res 
-       #%>%filter(mut_type == "NRduplication")  
-       #%>% slice_min(gen,n = 1000)
-       ) +
-  geom_rect(aes(xmin = gen - 1, xmax = gen,
+filter_gen = 10
+wanted_freqs = c( 0, 100, 1000, 10000)
+p <- ggplot(data = all_simple_res %>% 
+              # filter(gen < 500000) %>%
+              filter(gen %% filter_gen == 0) %>%
+              # filter (s_p.adaptation_per == 0) %>%
+              filter (s_p.selection_freq %in% wanted_freqs) %>%
+              group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength)
+            # %>% 
+            #   slice_max(gen, n = 200)
+) +
+  geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,
                 fill = as.factor(m_env_functions),
                 alpha = 0.5))+
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
   geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
-  stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
-  stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(s_p.selection_freq~s_p.seed)
+  # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
+  # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
+  facet_grid(s_p.selection_freq + s_p.selection_strength ~ s_p.seed + s_p.adaptation_per )
 
+print(p)
+dev.off()
 ####Adaptation time
 
 d = all_simple_res %>%

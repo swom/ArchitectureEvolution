@@ -3,35 +3,6 @@
 #include <cassert>
 #include <vector>
 
-template<class Pop,
-         enum env_change_symmetry_type Es,
-         enum env_change_freq_type Ef,
-         enum selection_type S,
-         enum adaptation_period A>
-simulation<Pop, Es, Ef, S, A>::simulation(int init_pop_size,
-                                  int seed,
-                                  double t_change_interval,
-                                  std::vector<int> net_arch,
-                                  double sel_str,
-                                  int number_of_generations):
-    m_environment{},
-    m_population{init_pop_size},
-    m_n_generations{number_of_generations},
-    m_seed{seed},
-    m_t_change_env_distr_A{static_cast<double>(t_change_interval)},
-    m_t_change_env_distr_B{static_cast<double>(t_change_interval)},
-    m_sel_str{sel_str},
-    m_change_freq_A{static_cast<double>(t_change_interval)},
-    m_change_freq_B{static_cast<double>(t_change_interval)},
-    m_input(net_arch[0], 1),
-    m_optimal_output{1}
-{
-    m_rng.seed(m_seed);
-    for(auto& ind : m_population.get_inds_nonconst())
-    {
-        ind = individual{net_param{net_arch, linear, net_arch}};
-    }
-}
 
 bool operator==(const sim_param& lhs, const sim_param& rhs)
 {
@@ -363,6 +334,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s.increase_time();
             if(s.is_environment_changing())
             {
                 n_switches++;
@@ -639,24 +611,6 @@ void test_simulation() noexcept//!OCLINT test may be many
     }
 #endif
 
-#define FIX_ISSUE_138
-#ifdef FIX_ISSUE_138
-
-    ///There should be an input to signal whihc environment function is being used to calculate the optima
-    {
-        std::vector<int> net_arch{2,2,1};
-        all_params params{{},{{net_arch, linear, net_arch}}, {}, {}};
-        simulation s{params};
-
-        environment& e = s.get_env();
-
-        assert(e.get_name_current_function() == 'A' && s.get_input().back() == 1);
-        perform_environment_change(s);
-        assign_inputs(s);
-        assert(e.get_name_current_function() == 'B' && s.get_input().back() == -1);
-    }
-#endif
-
 #define FIX_ISSUE_152
 #ifdef FIX_ISSUE_152
 
@@ -769,6 +723,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_asym.increase_time();
             if(s_asym.is_environment_changing())
             {
                 n_switches_A++;
@@ -783,6 +738,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         int n_switches_B = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_asym.increase_time();
             if(s_asym.is_environment_changing())
             {
                 n_switches_B++;
@@ -800,6 +756,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         n_switches_A = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_sym.increase_time();
             if(s_sym.is_environment_changing())
             {
                 n_switches_A++;
@@ -814,6 +771,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         n_switches_B = 0;
         for(int i = 0; i != repeats; i++)
         {
+            s_sym.increase_time();
             if(s_sym.is_environment_changing())
             {
                 n_switches_B++;
@@ -845,12 +803,14 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto current_function_name = get_name_current_function(regular_sim);
         for(int i = 0; i !=  s_p.n_generations; i++)
         {
-            tick(regular_sim);
-            if(std::fmod(regular_sim.get_time(), 1.0/s_p.change_freq_A)  ==  0)
+            if(std::fmod(regular_sim.get_time() - 1, 1.0/s_p.change_freq_A) == 0 &&
+                    regular_sim.get_time() != 1)
             {
                 assert(current_function_name != get_name_current_function(regular_sim));
                 current_function_name = get_name_current_function(regular_sim);
             }
+            tick(regular_sim);
+
 
         }
 
@@ -900,6 +860,42 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     }
 
+    ///A simulation that is templated with a plastic response_type
+    /// will create an extra_input that refers to the current environmental function
+    {
+
+        using net_t = network<mutation_type::weights, response_type::plastic>;
+        using ind_t = individual<net_t>;
+        using pop_t = population<ind_t>;
+        using sim_t = simulation<pop_t,
+          env_change_symmetry_type::symmetrical,
+          env_change_freq_type::regular,
+          selection_type::constant,
+          adaptation_period::off
+        >;
+
+        sim_param s_p;
+        s_p.n_generations = 10;
+        s_p.change_freq_A = 1;
+
+        pop_param p_p;
+        p_p.number_of_inds = 1;
+
+        std::vector<int> arc = {3,1};
+        net_param n_p;
+        n_p.net_arc = arc;
+        n_p.max_arc = arc;
+
+        sim_t s{all_params{{},{}, p_p, s_p}};
+
+        while(s.get_time() != s.get_n_gen())
+        {
+            tick(s);
+            auto created_input = s.create_inputs();
+            assert(created_input.back() == s.get_number_for_current_env_function());
+            assert(created_input.size() == get_inds_input_size(s) + 1);
+        }
+    }
 #endif
 
 }

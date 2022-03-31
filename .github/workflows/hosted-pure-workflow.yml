@@ -75,13 +75,31 @@ jobs:
       - name: Build (Debug)
         run: |
           cmake --build --preset ninja-multi-vcpkg-debug
+       
+       #- name: Setup OpenCppCoverage and add to PATh
+        # id: setup_opencppcoverage
+        # run: |
+          choco install OpenCppCoverage -y
+          echo "C:\Program Files\OpenCppCoverage" >> $env:GITHUB_PATH
           
-      - name: test executable?
+       #- name: Generate Report
+         #id: generate_test_report
+         #shell: cmd
+         #run: OpenCppCoverage.exe --sources HelloCov --export_type coverage:Arc_evo_coverage.xml -- "vstest.console.exe" Debug\HelloTest.dll
+       
+      # Run the tests using the command line argument
+      - name: test executable
         run : ./builds/ninja-multi-vcpkg/src/Debug/arc_evo -t
               
-        
+ 
       # Test the whole project with CTest.
       - name: Test (Debug)
         run: |
           ctest --preset ninja-multi-vcpkg-debug
       
+      -  #name: Upload Report to Codecov
+        # uses: codecov/codecov-action@v2
+         #with:
+          # files: ./HelloCov.xml
+           #fail_ci_if_error: true
+           #functionalities: fix   

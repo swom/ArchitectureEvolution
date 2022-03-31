@@ -304,7 +304,7 @@ const std::vector<Ind> get_best_n_inds(const population<Ind>& p, int nth)
 
     std::partial_sort_copy(p.get_inds().begin(), p.get_inds().end(),
                            top_inds.begin(), top_inds.end(),
-                           [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() < rhs.get_fitness();});
+                           [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
 
     return top_inds;
 }

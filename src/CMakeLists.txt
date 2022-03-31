@@ -11,7 +11,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 if(MINGW)
-  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror -Wa,-mbig-obj)
+  add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Werror)
+  add_compile_options(-Wa,-mbig-obj)
   add_compile_options("$<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Ofast>")
   # add_compile_options(-Weffc++)
 endif()
@@ -24,8 +25,6 @@ file(GLOB src
   )
 
 add_executable(arc_evo ${src})
-
-set_target_properties(arc_evo PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(arc_evo PUBLIC
   nlohmann_json::nlohmann_json

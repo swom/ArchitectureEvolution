@@ -303,12 +303,12 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_avg_fit(s);
 
         if(o.get_record_freq_top_inds() != 0 &&
-                s.get_time() %  (o.get_record_freq_top_inds() + rec_freq_shift) == 0)
+                (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0)
         {
             o.store_top_n_inds(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
-                s.get_time() % (o.get_record_freq_spectrum() + rec_freq_shift) == 0)
+                (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)
         {
             o.store_network_spectrum_n_best(s); //take out, unrealistic amount of data, convert to summary x weight
         }
