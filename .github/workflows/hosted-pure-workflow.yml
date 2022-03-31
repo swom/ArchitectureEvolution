@@ -79,8 +79,8 @@ jobs:
        #- name: Setup OpenCppCoverage and add to PATh
         # id: setup_opencppcoverage
         # run: |
-          choco install OpenCppCoverage -y
-          echo "C:\Program Files\OpenCppCoverage" >> $env:GITHUB_PATH
+          #choco install OpenCppCoverage -y
+          #echo "C:\Program Files\OpenCppCoverage" >> $env:GITHUB_PATH
           
        #- name: Generate Report
          #id: generate_test_report
