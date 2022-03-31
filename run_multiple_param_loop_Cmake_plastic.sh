@@ -14,7 +14,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --mem=1GB
+#SBATCH --mem=3GB
 #SBATCH --job-name=run_arc_evo_loop
 #SBATCH --output=run_arc_evo_loop.log
 
@@ -24,11 +24,10 @@
 module load git
 module load CMake
 module load binutils
-mkdir build_plasticity
-cd build_plasticity
-cmake ..
-cmake --build . --config Release
-
+mkdir build_test
+cd build_test
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
 
 declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
