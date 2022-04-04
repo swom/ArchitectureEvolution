@@ -24,8 +24,8 @@
 module load git
 module load CMake
 module load binutils
-mkdir build_test
-cd build_test
+mkdir build_plasticity
+cd build_plasticity
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 
@@ -39,7 +39,7 @@ declare -a mut_types=("weights")
 declare -a sel_types=("constant")
 declare -a change_freq_types=("regular")
 declare -a change_sym_types=("asymmetrical")
-declare -a adaptation_periods=("on" "off")
+declare -a adaptation_periods=("on" "off")git pull
 declare -a type_of_responses=("plastic" "constitutive")
 declare -a sel_freqs=(1)
 declare record_top_ind_freq=1000
