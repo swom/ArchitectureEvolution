@@ -11,13 +11,14 @@ library(networkD3)
 library(magick)
 library(patchwork)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/3_24_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_30_22/"
 setwd(dir)
 
 results=list()
 # pattern = "*json$"
 # pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
 pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_100_seed1.json"
+pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.5_s_f_0_seed7"
 list.files(path = '.', pattern = pattern)
 for (i in  list.files(path = '.', pattern = pattern)){
   

@@ -10,7 +10,7 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/test_plasticity/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/28+29/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
@@ -44,12 +44,13 @@ jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
 
-filter_gen = 10
-wanted_freqs = c( 0, 100, 1000, 10000)
+filter_gen = 1000
+wanted_freqs = c(0)
 p <- ggplot(data = all_simple_res %>% 
+              filter(s_p.selection_strength == 0.5) %>% 
               # filter(gen < 500000) %>%
               filter(gen %% filter_gen == 0) %>%
-              # filter (s_p.adaptation_per == 0) %>%
+              # filter (s_p.adaptation_pegit pr == 0) %>%
               filter (s_p.selection_freq %in% wanted_freqs) %>%
               group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength)
             # %>% 
