@@ -30,6 +30,7 @@ target_link_libraries(arc_evo PUBLIC
   nlohmann_json::nlohmann_json
   cxxopts::cxxopts
   )
+
 if(OpenMP_CXX_FOUND)
     target_link_libraries(arc_evo PUBLIC OpenMP::OpenMP_CXX)
 endif()

@@ -134,6 +134,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
             "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
             "_a_p_" + convert_adapt_periods_to_string(p.s_p.adaptation_per) +
+            "_pl_" + convert_response_type_to_string(p.i_p.net_par.resp_type) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
             "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
