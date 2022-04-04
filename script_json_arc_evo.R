@@ -10,7 +10,7 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/3_29_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/3_30_22/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
