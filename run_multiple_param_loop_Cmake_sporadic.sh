@@ -24,10 +24,10 @@
 module load git
 module load CMake
 module load binutils
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
+mkdir build 
+cd build 
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
 
 
 declare -a architectures=("1,2,2,2,1")
