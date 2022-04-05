@@ -66,7 +66,15 @@ do
 									do
 										for sel_str in "${sel_strs[@]}"
 										do
-												echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_types $sel_str
+												echo $seed 
+												echo $arc 
+												echo $max_arc 
+												echo $change_freq_A 
+												echo $gen $mut_type 
+												echo $sel_type $sel_freq 
+												echo $adaptation_period 
+												echo $change_freq_types 
+												echo $sel_str
 												sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $sel_str
 										done
 									done

@@ -74,7 +74,20 @@ do
 												do
 													for type_of_response in "${type_of_responses[@]}"
 													do
-													echo $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $adaptation_period $change_freq_type $change_sym_type $change_freq_B $sel_str $type_of_response
+													echo $seed 
+													echo $arc 
+													echo $max_arc 
+													echo $change_freq_A 
+													echo $gen 
+													echo $mut_type 
+													echo $sel_type 
+													echo $sel_freq 
+													echo $adaptation_period 
+													echo $change_freq_type 
+													echo $change_sym_type 
+													echo $change_freq_B 
+													echo $sel_str 
+													echo $type_of_response
 															sbatch ../run_loop_plastic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $change_sym_type $change_freq_B $sel_str $type_of_response
 													done
 												done
