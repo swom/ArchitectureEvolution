@@ -67,8 +67,8 @@ private:
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
     obs_param m_obs_param;
     all_params m_params;
-    std::vector<std::vector<double>> m_input;
-    std::vector<double> m_optimal;
+    std::vector<std::vector<std::vector<double>>> m_input;
+    std::vector<std::vector<double>> m_optimal;
 
 public:
 
@@ -180,14 +180,14 @@ public:
         return get_generation(m_top_spectrums, generation);
     }
 
-    //Returns a const reference to the input vector given to individuals that generation
-    const std::vector<std::vector<double>>& get_input() const noexcept {return m_input;}
+    //Returns a const reference to the input vector given to individuals in the current or last trial
+    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
 
     ///Returns a const referernce to the paramteres used to initialize the simulation
     const all_params& get_params() const noexcept {return m_params;};
 
     ////returns a constant reference to the otpimal output value given to individuals that generation
-    const std::vector<double>& get_optimal() const noexcept {return m_optimal;}
+    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -261,9 +261,9 @@ public:
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
-    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_input());}
+    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
 
-    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_optimal());}
+    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
 };
 
 template<class Ind>

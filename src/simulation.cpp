@@ -234,7 +234,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         //give simulation a simple input
         //this will be used to calculate optimum
         //and also fed to individuals
-        s.update_inputs({1});
+        s.update_inputs({{1}});
         //give inputs to inds
         assign_inputs(s);
 
@@ -298,7 +298,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         //give simulation a simple input
         //this will be used to calculate optimum
         //and also fed to individuals
-        s.update_inputs({1});
+        s.update_inputs({{1}});
         //give inputs to inds
         assign_inputs(s);
 

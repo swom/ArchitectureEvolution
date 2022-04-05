@@ -184,15 +184,15 @@ void test_observer()
 
             if(!o.get_input().empty() && !o.get_optimal().empty())
             {
-                assert(o.get_input().back() != s.get_input());
-                assert(o.get_optimal().back() != s.get_optimal());
+                assert(o.get_input().back() != s.get_stored_inputs());
+                assert(o.get_optimal().back() != s.get_stored_optimals());
             }
 
             o.store_input(s);
             o.store_optimal(s);
 
-            assert(o.get_input().back() == s.get_input());
-            assert(o.get_optimal().back() == s.get_optimal());
+            assert(o.get_input().back() == s.get_stored_inputs());
+            assert(o.get_optimal().back() == s.get_stored_optimals());
         }
 
         auto name = "obs_save_test";
