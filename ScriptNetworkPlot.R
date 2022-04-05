@@ -11,15 +11,16 @@ library(networkD3)
 library(magick)
 library(patchwork)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/3_30_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/28+29/"
 setwd(dir)
 
 results=list()
 # pattern = "*json$"
 # pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
-pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_100_seed1.json"
-pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.5_s_f_0_seed7"
+# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_100_seed1.json"
+pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.5_s_f_1000_seed10"
 list.files(path = '.', pattern = pattern)
+
 for (i in  list.files(path = '.', pattern = pattern)){
   
   ###Making a data tibble with all top individuals' data 
@@ -27,6 +28,10 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   results_unnest = as.data.frame(do.call(rbind,do.call(rbind, results$m_top_inds)))
   results_unnest$generation = do.call(rbind,results_unnest$generation)
+ 
+  reac_norms = results_unnest %>% 
+    select(c(generation, m_reac_norm))
+
   m_ind = as.data.frame(do.call(rbind, results_unnest$m_ind)) 
   results_df = results_unnest %>% 
     select(-c(m_ind, m_reac_norm)) %>%
@@ -100,14 +105,20 @@ for (i in  list.files(path = '.', pattern = pattern)){
   }
   edge_tibble = as_tibble(cbind(from, to))
   
-  
+  ####Create empty data frames and global variables to be used in the plotting loop below
+  mismatch = data.frame(generation = 0, mismatch = 0)
+  sum_of_weights = data.frame(generation = 0, sum_of_weights = 0)
   highest_weights = data.frame(generation = 0, max_weigth = 0)
-  avg_fitness = data.frame(generation = 0, avg_fitness = 0)
+  top_ind_fit = data.frame(generation = 0, top_ind_fit = 0)
+  o_rn = reac_norms %>% slice_max(gen, n = 1) %>% select(m_reac_norm)
+  optimal_rn = as.data.frame(do.call(rbind,do.call(rbind,o_rn$m_reac_norm))) %>% mutate(m_y = as.numeric(m_x) * as.numeric(m_x))
+  worst_rn = o_rn %>% mutate(m_y = -1)
+  max_dist = as.numeric(dist(rbind(as.array(worst_rn$m_y), as.array(optimal_rn$m_y))))
   
   #Now let's loop through generations
-  for(j in levels(get(name2)$generation)){
+  for(gen in levels(get(name2)$generation)){
     #adding weights, weight sign, activation to the edge list
-    ind = filter(get(name2), generation == j)
+    ind = filter(get(name2), generation == gen)
     edge_tibble_ind = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign)
     
     node_active = c(TRUE, subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)
@@ -128,23 +139,34 @@ for (i in  list.files(path = '.', pattern = pattern)){
     
     ###create data fora plot for the highest value of the weights
     highest_weights = rbind(highest_weights, 
-                            data.frame(generation = j,
+                            data.frame(generation = gen,
                                        max_weigth = max(abs(edge_tibble_ind$`ind$m_weight`))
                             )
     ) 
     ###create a plot for the highest value of the weights
-    avg_fitness = rbind(avg_fitness, 
-                            data.frame(generation = j,
-                                       avg_fitness = ind$m_fitness[[1]]
+    top_ind_fit = rbind(top_ind_fit, 
+                            data.frame(generation = gen,
+                                       top_ind_fit = ind$m_fitness[[1]]
                                        )
                             )
+    ###plot reaction norm
+    rn = reac_norms %>% filter(generation == as.numeric(gen)) %>% select(m_reac_norm)
+    rn_d = as.data.frame(do.call(rbind,do.call(rbind,rn$m_reac_norm)))
     
-    
+    ###create data for plot that shows mismatch level between reaction norm and optimal funciton 
+    mismatch = rbind(mismatch,
+                     data.frame(generation = gen,
+                                mismatch = 1 - as.numeric(dist(rbind(as.array(rn_d$m_y), as.array(optimal_rn$m_y))))/max_dist))
+    ###create data for plot that shows the sum of the weights of the network
+    sum_of_weights = rbind(sum_of_weights,
+                           data.frame(generation = gen,
+                                      sum_of_weights = sum(edge_tibble_ind$`ind$m_weight`)))
+
     jpeg(paste("Plot",
                ind$i_p.m_mutation_type,
                "s",ind$s_p.seed,
                "arch",ind$i_p.net_par.max_arc,
-               "cycle", as.numeric(j),
+               "cycle", as.numeric(gen),
                "changefreq", ind$s_p.change_freq_A,
                ".png", sep = "_")
          ,width = 700,
@@ -152,11 +174,27 @@ for (i in  list.files(path = '.', pattern = pattern)){
     
     title = paste("Generation ", ind$generation[1])
     
-    par(mfrow=c(2,2))
-    plot(highest_weights$generation, highest_weights$max_weigth, type = 'l',
+    par(mfrow=c(3,2))
+  
+      plot(highest_weights$generation, highest_weights$max_weigth, type = 'l',
          main = "max_weight")  
-    plot(avg_fitness$generation, avg_fitness$avg_fitness, type = 'l',
-         main = "avg_fitness")
+   
+     plot(sum_of_weights$generation, sum_of_weights$sum_of_weights, type = 'l',
+         main = "sum of weights")
+  
+      plot(top_ind_fit$generation, top_ind_fit$top_ind_fit, type = 'l',
+         main = "top_ind_fit")
+   
+     plot(mismatch$generation, mismatch$mismatch, type = 'l',
+         main = "Match")
+  
+      plot(rn_d$m_x, rn_d$m_y,
+         xlim=c(-1,1),
+         ylim=c(-1,1),
+         type = 'l',
+              main = "reac_norm") 
+    lines(rn_d$m_x,optimal_rn$m_y,col="green")
+
     plot(network_d, layout = l,
          edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
          edge.arrow.width = 0.7,                          # Arrow width, defaults to 1
@@ -166,9 +204,6 @@ for (i in  list.files(path = '.', pattern = pattern)){
          main = title,
          vertex.label = NA
     )
-
-    
-    
     dev.off()
     
   }  
@@ -195,3 +230,4 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   
 }
+

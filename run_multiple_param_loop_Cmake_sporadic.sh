@@ -16,7 +16,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=3GB
 #SBATCH --job-name=run_arc_evo_loop
-#SBATCH --output=run_arc_evo_loop.log
+#SBATCH --output=run_arc_evo_loop_sporadic.log
 
 
 # to get arc_evo.pro command interface 

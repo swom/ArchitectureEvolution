@@ -52,9 +52,8 @@ p <- ggplot(data = all_simple_res %>%
               filter(gen %% filter_gen == 0) %>%
               # filter (s_p.adaptation_pegit pr == 0) %>%
               filter (s_p.selection_freq %in% wanted_freqs) %>%
-              group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength)
-            # %>% 
-            #   slice_max(gen, n = 200)
+              group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength) %>%
+              slice_min(gen, n = 200)
 ) +
   geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
                 ymin = 0, ymax = 1.5,

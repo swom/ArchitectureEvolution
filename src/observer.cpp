@@ -129,7 +129,7 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
 std::string create_save_name_from_params(const all_params& p)
 {
 
-    return "mut_t_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
+    std::string name = "mut_t_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
             "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type) +
             "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
             "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
@@ -145,6 +145,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_s_f_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
+    return name;
 }
 #ifndef NDEBUG
 void test_observer()

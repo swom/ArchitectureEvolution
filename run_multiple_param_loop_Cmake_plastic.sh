@@ -16,7 +16,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=3GB
 #SBATCH --job-name=run_arc_evo_loop
-#SBATCH --output=run_arc_evo_loop.log
+#SBATCH --output=run_arc_evo_loop_plastic.log
 
 
 # to get arc_evo.pro command interface 
@@ -33,7 +33,7 @@ declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0.1)
 declare -a change_freq_Bs=(0.01 0.001)
-declare -a sel_strs=(0.1 0.5 1 2)
+declare -a sel_strs=(0.1 0.5 1.0 2.0)
 declare -a gen=(500000)
 declare -a mut_types=("weights")
 declare -a sel_types=("constant")
