@@ -22,6 +22,7 @@ void run_simulation_given_mut_type(const cxxopts::ParseResult& results)
         auto s = create_simulation<pop_t, S, F, Sel, A>(results);
         observer<sim_t> o{convert_obs_args(results), s.get_params()};
         exec<sim_t>(s, o) ;
+        std::cout <<"sel_str = " << o.get_params().s_p.selection_strength;
         save_json(o,
                   create_save_name_from_params(o.get_params()));
     }

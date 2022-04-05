@@ -141,7 +141,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_dup_r_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
             "_ch_A_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
             "_ch_B_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
-            "_s_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
+            "_s_st_" + std::to_string(p.s_p.selection_strength).substr(0, 5) +
             "_s_f_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
