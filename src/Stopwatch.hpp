@@ -86,6 +86,10 @@ private:
          const auto s_count = (ns_count /1000000000) + up;
          return s_count;
       }
+      default:
+      {
+          throw std::invalid_argument{"Stopwatch: time unit type not recognized"};
+      }
       }
     }
 };
