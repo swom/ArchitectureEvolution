@@ -37,4 +37,4 @@ echo "change frequency B: "${15}
 echo "selection strength: "${16}
 echo "response type: "${17}
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -e ${14} -c${15} -T${16} -q${17}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -e ${14} -c ${15} -T ${16} -q ${17}
