@@ -269,11 +269,17 @@ public:
     ///Returns a reference to the vector of individuals
     const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
 
-    ///Returns the current inputs in the simulation
+    ///Returns the current inputs in the simulation for the current or last trial
     const std::vector<double> &get_input() const noexcept {return m_input;}
+
+    //Returns a const reference to the inputs given to individuals in this generation
+    const std::vector<std::vector<double>>& get_stored_inputs() const noexcept {return m_stored_inputs;}
 
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
+
+    //Returns a const reference to the inputs given to individuals in this generation
+    const std::vector<double>& get_stored_optimals() const noexcept {return m_stored_optimal_output;}
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
@@ -346,6 +352,12 @@ public:
     ///Updates the inputs of the simulation with new calculated inputs
     void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
+    ///Updates the optimal to the given value
+    void store_optimals(std::vector<double> new_optimal) {m_stored_optimal_output = new_optimal;}
+
+    ///Updates the inputs of the simulation with new calculated inputs
+    void store_inputs(std::vector<std::vector<double>> new_inputs){m_stored_inputs = new_inputs;}
+
     ///Gets inputs bsaed on the environment of the simulation
     /// and updates the input stored in simulation
     std::vector<double> create_inputs()
@@ -378,9 +390,8 @@ public:
             optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
         }
 
-        ///BAD!!! Temporary solutions to pass test
-        update_inputs(inputs[0]);
-        update_optimal(optimals[0]);
+        store_inputs(inputs);
+        store_optimals(optimals);
 
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
@@ -497,12 +508,18 @@ private:
 
     all_params m_params;
 
-    ///The current inputs that the networks of individuals will recieve
+    ///The current inputs that the networks of individuals will recieve in a given trial
     std::vector<double> m_input;
 
-    ///The optimal output at a given moment;
+    ///The optimal output at a given trial;
     /// depends on inputs and environmental function
     double m_optimal_output;
+
+    ///The series of inputs individuals will receive during one update of the simulation
+    std::vector<std::vector<double>> m_stored_inputs;
+
+    ///The optimal phenotypic outputs for one simulation update
+    std::vector<double> m_stored_optimal_output;
 
 };
 
