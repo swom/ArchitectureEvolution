@@ -46,7 +46,7 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        selection_duration{selection_freq == 0 ? 0 : selection_freq / 10},
+        selection_duration{selection_freq == 0 ? 0 : selection_freq / 100},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
