@@ -419,6 +419,17 @@ void test_observer()
         assert(is_registered_at_the_end_of_sleection_period);
 
     }
+
+    //An observer can store the inputs and the optimal values of a the last generation run in the simulation
+    {
+        simulation s;
+        observer o;
+        exec(s,o);
+        o.store_inputs_and_optimals(s);
+        assert(get_nth_gen_inputs(o,s.get_time()) == s.get_stored_inputs());
+        assert(get_nth_gen_optimals(o,s.get_time()) == s.get_stored_optimals());
+        assert(o.get_inputs_and_optimals().back().m_gen == s.get_time());
+    }
 }
 #endif
 

@@ -3,6 +3,25 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+struct inputs_optimals{
+    inputs_optimals(std::vector<std::vector<double>> inputs,
+                    std::vector<double> optimals,
+                    int gen):
+        m_inputs{inputs},
+        m_optimals{optimals},
+        m_gen{gen}
+    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(inputs_optimals,
+                                   m_inputs,
+                                   m_optimals,
+                                   m_gen)
+
+    std::vector<std::vector<double>> m_inputs;
+    std::vector<double> m_optimals;
+    int m_gen;
+};
+
 struct obs_param{
     obs_param(int top_prop = 1,
               int top_ind_reg_freq = 1,
@@ -69,6 +88,7 @@ private:
     all_params m_params;
     std::vector<std::vector<std::vector<double>>> m_input;
     std::vector<std::vector<double>> m_optimal;
+    std::vector<inputs_optimals> m_inputs_optimals;
 
 public:
 
@@ -111,6 +131,9 @@ public:
 
     ///Returns the type of selection used in simulation
     auto get_sel_type() const noexcept{return m_params.s_p.sel_type;}
+
+    ///returns the inputs and optimals
+    const std::vector<inputs_optimals>& get_inputs_and_optimals() const noexcept {return m_inputs_optimals;}
 
     ///Returns const ref to record frequency
     /// of top individuals
@@ -195,6 +218,10 @@ public:
         m_avg_fitnesses.push_back(sim::avg_fitness(s));
     }
 
+    ///Stores the inputs and optimals provided to indivudals and records also in which genration
+    void store_inputs_and_optimals(const Sim& s){m_inputs_optimals.push_back(inputs_optimals{s.get_stored_inputs(),
+                                                                                 s.get_stored_optimals(),
+                                                                                 s.get_time()});}
     ///Saves the variance of the fitness
     void store_var_fit(const Sim& s)
     {
@@ -273,6 +300,9 @@ bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
 
+///Creates a unique saving name based on the parameters
+std::string create_save_name_from_params(const all_params& p);
+
 ///Executes a simulation for n generations
 template<class Sim>
 void exec(Sim& s , observer<Sim>& o)
@@ -298,8 +328,8 @@ void exec(Sim& s , observer<Sim>& o)
 
         o.store_env_func(s);
         o.store_var_fit(s);
-        o.store_input(s);
-        o.store_optimal(s);
+//        o.store_input(s);
+//        o.store_optimal(s);
         o.store_avg_fit(s);
 
         if(o.get_record_freq_top_inds() != 0 &&
@@ -331,7 +361,22 @@ std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
     return gens;
 }
 
-std::string create_save_name_from_params(const all_params& p);
+///Gets the inputs  of the nth generation
+template<class O>
+const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
+{
+return std::find_if(o.get_inputs_and_optimals().begin(),
+          o.get_inputs_and_optimals().end(),
+                 [&gen](const inputs_optimals& io){return io.m_gen == gen;})->m_inputs;
+}
+
+///Gets the optimals of the nth generation
+template<class O>
+const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
+{
+    return std::find_if(o.get_inputs_and_optimals().begin(),
+              o.get_inputs_and_optimals().end(),[gen](const inputs_optimals& io){return io.m_gen == gen;})->m_optimals;
+}
 
 ///load an observer of correct type based on selection frequency type
 template<mutation_type M, selection_type S, env_change_freq_type F>
