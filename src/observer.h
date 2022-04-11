@@ -369,7 +369,7 @@ const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
 {
     auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
                                           o.get_inputs_and_optimals().end(),
-                                          [&gen](const inputs_optimals& io){return io.m_gen == gen;});
+                                          [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
     if( generation != o.get_inputs_and_optimals().end())
     {
         return generation->m_inputs;
@@ -387,7 +387,7 @@ const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
 
     auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
                                           o.get_inputs_and_optimals().end(),
-                                          [&gen](const inputs_optimals& io){return io.m_gen == gen;});
+                                          [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
 
     if(generation != o.get_inputs_and_optimals().end())
     {
