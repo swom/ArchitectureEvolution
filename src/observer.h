@@ -209,11 +209,11 @@ public:
     ///Returns a const referernce to the paramteres used to initialize the simulation
     const all_params& get_params() const noexcept {return m_params;};
 
-//    //Returns a const reference to the input vector given to individuals in the current or last trial
-//    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
+    //    //Returns a const reference to the input vector given to individuals in the current or last trial
+    //    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
 
-//    ////returns a constant reference to the otpimal output value given to individuals that generation
-//    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
+    //    ////returns a constant reference to the otpimal output value given to individuals that generation
+    //    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -223,8 +223,8 @@ public:
 
     ///Stores the inputs and optimals provided to indivudals and records also in which genration
     void store_inputs_and_optimals(const Sim& s){m_inputs_optimals.push_back(inputs_optimals{s.get_stored_inputs(),
-                                                                                 s.get_stored_optimals(),
-                                                                                 s.get_time()});}
+                                                                                             s.get_stored_optimals(),
+                                                                                             s.get_time()});}
     ///Saves the variance of the fitness
     void store_var_fit(const Sim& s)
     {
@@ -291,9 +291,9 @@ public:
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
-//    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
+    //    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
 
-//    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
+    //    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
 };
 
 template<class Ind>
@@ -367,17 +367,36 @@ std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
 template<class O>
 const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
 {
-return std::find_if(o.get_inputs_and_optimals().begin(),
-          o.get_inputs_and_optimals().end(),
-                 [&gen](const inputs_optimals& io){return io.m_gen == gen;})->m_inputs;
+    auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
+                                          o.get_inputs_and_optimals().end(),
+                                          [&gen](const inputs_optimals& io){return io.m_gen == gen;});
+    if( generation != o.get_inputs_and_optimals().end())
+    {
+        return generation->m_inputs;
+    }
+    else
+    {
+        return std::vector<std::vector<double>>{};
+    }
 }
 
 ///Gets the optimals of the nth generation
 template<class O>
 const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
 {
-    return std::find_if(o.get_inputs_and_optimals().begin(),
-              o.get_inputs_and_optimals().end(),[gen](const inputs_optimals& io){return io.m_gen == gen;})->m_optimals;
+
+    auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
+                                          o.get_inputs_and_optimals().end(),
+                                          [&gen](const inputs_optimals& io){return io.m_gen == gen;});
+
+    if(generation != o.get_inputs_and_optimals().end())
+    {
+        return generation->m_optimals;
+    }
+    else
+    {
+        return std::vector<double>{};
+    }
 }
 
 ///load an observer of correct type based on selection frequency type
