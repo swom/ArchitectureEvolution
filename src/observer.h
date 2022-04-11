@@ -4,9 +4,9 @@
 #include "Stopwatch.hpp"
 
 struct inputs_optimals{
-    inputs_optimals(std::vector<std::vector<double>> inputs,
-                    std::vector<double> optimals,
-                    int gen):
+    inputs_optimals(std::vector<std::vector<double>> inputs = {},
+                    std::vector<double> optimals = {},
+                    int gen = 0):
         m_inputs{inputs},
         m_optimals{optimals},
         m_gen{gen}
@@ -17,10 +17,16 @@ struct inputs_optimals{
                                    m_optimals,
                                    m_gen)
 
+    ///The inputs given at a certain generation
     std::vector<std::vector<double>> m_inputs;
+    ///The optimal values corresponding to the inputs given at a certain generation
     std::vector<double> m_optimals;
+    ///The generation at whihc the data is collected
     int m_gen;
 };
+
+bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs);
+bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs);
 
 struct obs_param{
     obs_param(int top_prop = 1,
@@ -86,8 +92,6 @@ private:
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
     obs_param m_obs_param;
     all_params m_params;
-    std::vector<std::vector<std::vector<double>>> m_input;
-    std::vector<std::vector<double>> m_optimal;
     std::vector<inputs_optimals> m_inputs_optimals;
 
 public:
@@ -110,9 +114,8 @@ public:
                                    m_top_spectrums,
                                    m_env_functions,
                                    m_params,
-                                   m_input,
-                                   m_optimal,
-                                   m_obs_param)
+                                   m_obs_param,
+                                   m_inputs_optimals)
 
     ///adds a network spectrum to the vector of network spectrums
     void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
@@ -203,14 +206,14 @@ public:
         return get_generation(m_top_spectrums, generation);
     }
 
-    //Returns a const reference to the input vector given to individuals in the current or last trial
-    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
-
     ///Returns a const referernce to the paramteres used to initialize the simulation
     const all_params& get_params() const noexcept {return m_params;};
 
-    ////returns a constant reference to the otpimal output value given to individuals that generation
-    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
+//    //Returns a const reference to the input vector given to individuals in the current or last trial
+//    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
+
+//    ////returns a constant reference to the otpimal output value given to individuals that generation
+//    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -288,9 +291,9 @@ public:
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
-    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
+//    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
 
-    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
+//    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
 };
 
 template<class Ind>

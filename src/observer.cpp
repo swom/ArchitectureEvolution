@@ -1,6 +1,19 @@
 #include "observer.h"
 #include <fstream>
 
+bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs)
+{
+    bool inputs = lhs.m_inputs == rhs.m_inputs;
+    bool optimals = lhs.m_optimals == rhs.m_optimals;
+    bool gen = lhs.m_gen == rhs.m_gen;
+    return inputs && optimals && gen;
+}
+
+bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs)
+{
+    return !(lhs == rhs);
+}
+
 bool operator==(const all_params& lhs, const all_params& rhs)
 {
     bool ind_par = lhs.i_p == rhs.i_p;
@@ -15,16 +28,14 @@ template<class Sim>
 bool operator==(const observer<Sim>& lhs, const observer<Sim>& rhs)
 {
     auto same_par = lhs.get_params() ==  rhs.get_params();
-    auto same_env_inputs = lhs.get_input() == rhs.get_input();
-    auto same_env_optimum =lhs.get_optimal() == rhs.get_optimal();
+    auto same_inputs_and_optimals = lhs.get_inputs_and_optimals() == rhs.get_inputs_and_optimals();
     auto same_avg_fitness = lhs.get_avg_fitness() == rhs.get_avg_fitness();
     auto same_fit_var = lhs.get_var_fitness() == rhs.get_var_fitness();
     auto same_top_inds = lhs.get_top_inds() == rhs.get_top_inds();
     auto same_env_func = lhs.get_env_funcs() == rhs.get_env_funcs();
 
     return same_par &&
-            same_env_inputs &&
-            same_env_optimum &&
+            same_inputs_and_optimals &&
             same_env_func &&
             same_avg_fitness &&
             same_fit_var &&
@@ -182,17 +193,16 @@ void test_observer()
         for(int i = 0; i != n_repeats; ++i){
             sim::tick(s);
 
-            if(!o.get_input().empty() && !o.get_optimal().empty())
+            if(!o.get_inputs_and_optimals().empty())
             {
-                assert(o.get_input().back() != s.get_stored_inputs());
-                assert(o.get_optimal().back() != s.get_stored_optimals());
+                assert(get_nth_gen_inputs(o, s.get_time()) != s.get_stored_inputs());
+                assert(get_nth_gen_optimals(o, s.get_time()) != s.get_stored_optimals());
             }
 
-            o.store_input(s);
-            o.store_optimal(s);
+            o.store_inputs_and_optimals(s);
 
-            assert(o.get_input().back() == s.get_stored_inputs());
-            assert(o.get_optimal().back() == s.get_stored_optimals());
+            assert(get_nth_gen_inputs(o, s.get_time())  == s.get_stored_inputs());
+            assert(get_nth_gen_optimals(o, s.get_time()) == s.get_stored_optimals());
         }
 
         auto name = "obs_save_test";
@@ -246,16 +256,11 @@ void test_observer()
         assert(o3 != o2);
 
         auto o4 = o3;
-        assert(o4.get_input().empty());
-        o4.store_input(s);
+        assert(o4.get_inputs_and_optimals().empty());
+        o4.store_inputs_and_optimals(s);
         assert(o3 != o2);
 
         auto o5 = o4;
-        assert(o5.get_optimal().empty());
-        o5.store_optimal(s);
-        assert(o5 != o4);
-
-        auto o6 = o5;
         assert(o5.get_env_funcs().empty());
         o5.store_env_func(s);
         assert(o5 != o4);
@@ -279,8 +284,7 @@ void test_observer()
 
         assert( o.get_avg_fitness() == loaded_o.get_avg_fitness());
         assert( o.get_env_funcs() == loaded_o.get_env_funcs());
-        assert( o.get_input() == loaded_o.get_input());
-        assert( o.get_optimal() == loaded_o.get_optimal());
+        assert( o.get_inputs_and_optimals() == loaded_o.get_inputs_and_optimals());
         assert( o.get_params() == loaded_o.get_params());
         assert( o.get_top_inds().size() == loaded_o.get_top_inds().size());
         for( size_t i = 0 ;  i != o.get_top_inds().size(); i++)
