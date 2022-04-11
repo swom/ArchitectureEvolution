@@ -130,11 +130,11 @@ std::string create_save_name_from_params(const all_params& p)
 {
 
     std::string name = "mut_t_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
-            "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type) +
-            "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type) +
-            "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type) +
-            "_a_p_" + convert_adapt_periods_to_string(p.s_p.adaptation_per) +
-            "_r_t_" + convert_response_type_to_string(p.i_p.net_par.resp_type) +
+            "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
+            "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
+            "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
+            "_a_p_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
+            "_r_t_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
             "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +

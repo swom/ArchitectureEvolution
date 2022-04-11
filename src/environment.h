@@ -7,22 +7,35 @@
 #include "utilities.h"
 
 static double env_func_1(std::vector<double> input){
-  return input[0] * input[0];
+    return input[0] * input[0];
 }
 
 static double env_func_2(std::vector<double> input){
-  return input[0]  * input[0] * input[0];
+    return input[0]  * input[0] * input[0];
+}
+
+static double env_func_3(std::vector<double> input){
+    return input[0] * input[0] * input[0] * input[0] +
+            input[0] * input[0] * input[0] +
+            input[0] * input[0] +
+            input[0];
+}
+
+static double env_func_4(std::vector<double> input){
+    return input[0] * input[0] * input[0] +
+            input[0] * input[0] +
+            input[0];
 }
 
 
 
 
-static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map
-{
+static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map{
 {"1", env_func_1},
-{"2", env_func_2}
-};
-
+{"2", env_func_2},
+{"3", env_func_3},
+{"4", env_func_4}
+                                                                         };
 
 
 struct env_param
@@ -37,9 +50,9 @@ struct env_param
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
                                    cue_range)
 
-std::function<double(std::vector<double>)> env_function_A;
-std::function<double(std::vector<double>)> env_function_B;
-range cue_range;
+    std::function<double(std::vector<double>)> env_function_A;
+    std::function<double(std::vector<double>)> env_function_B;
+    range cue_range;
 };
 
 bool operator==(const env_param& lhs, const env_param& rhs);
