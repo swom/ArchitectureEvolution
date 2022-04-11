@@ -430,6 +430,16 @@ void test_observer()
         assert(get_nth_gen_optimals(o,s.get_time()) == s.get_stored_optimals());
         assert(o.get_inputs_and_optimals().back().m_gen == s.get_time());
     }
+
+    ///Inputs and optimals are stored only when individuals are stored
+    {
+        simulation s;
+        observer o;
+        exec(s,o);
+        auto n_recorded_inds = o.get_top_inds().size();
+        auto n_recorded_inputs_outputs = o.get_inputs_and_optimals().size();
+        assert( n_recorded_inds == n_recorded_inputs_outputs);
+    }
 }
 #endif
 

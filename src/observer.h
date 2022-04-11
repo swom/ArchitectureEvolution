@@ -328,14 +328,13 @@ void exec(Sim& s , observer<Sim>& o)
 
         o.store_env_func(s);
         o.store_var_fit(s);
-//        o.store_input(s);
-//        o.store_optimal(s);
         o.store_avg_fit(s);
 
         if(o.get_record_freq_top_inds() != 0 &&
                 (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0)
         {
             o.store_top_n_inds(s);
+            o.store_inputs_and_optimals(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
                 (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)
