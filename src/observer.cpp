@@ -441,11 +441,21 @@ void test_observer()
 
     ///Observers can record the avg robustness of the population and its stdandard deviation
     {
+        int num_inds = 2;
+        double mut_rate = 1;
+        double mut_step = 1;
+        pop_param(num_inds,
+                  mut_rate,
+                  mut_step);
         simulation s;
         observer o;
         assert(o.get_avg_robustness().empty());
         o.store_avg_robustness(s);
         assert(!o.get_avg_robustness().empty());
+        sim::tick(s);
+        o.store_avg_robustness(s);
+        assert(o.get_avg_robustness().back() > o.get_avg_robustness().front());
+
     }
 }
 #endif
