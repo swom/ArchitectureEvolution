@@ -193,12 +193,6 @@ void test_observer()
         for(int i = 0; i != n_repeats; ++i){
             sim::tick(s);
 
-            if(!o.get_inputs_and_optimals().empty())
-            {
-                assert(get_nth_gen_inputs(o, s.get_time()) != s.get_stored_inputs());
-                assert(get_nth_gen_optimals(o, s.get_time()) != s.get_stored_optimals());
-            }
-
             o.store_inputs_and_optimals(s);
 
             assert(get_nth_gen_inputs(o, s.get_time())  == s.get_stored_inputs());
@@ -443,6 +437,15 @@ void test_observer()
         auto n_recorded_inds = o.get_top_inds().size();
         auto n_recorded_inputs_outputs = o.get_inputs_and_optimals().size();
         assert( n_recorded_inds == n_recorded_inputs_outputs);
+    }
+
+    ///Observers can record the avg robustness of the population and its stdandard deviation
+    {
+        simulation s;
+        observer o;
+        assert(o.get_avg_robustness().empty());
+        o.store_avg_robustness(s);
+        assert(!o.get_avg_robustness().empty());
     }
 }
 #endif

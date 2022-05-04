@@ -86,6 +86,7 @@ class observer : public base_observer
 private:
 
     std::vector<double> m_avg_fitnesses;
+    std::vector<double> m_avg_robustnesses;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
@@ -122,6 +123,9 @@ public:
 
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
+
+    ///Returns the vector containing the avg robustness of the population for every generation
+    const std::vector<double>& get_avg_robustness() const noexcept {return m_avg_robustnesses;}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
@@ -214,6 +218,11 @@ public:
 
     //    ////returns a constant reference to the otpimal output value given to individuals that generation
     //    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
+
+    void store_avg_robustness(const Sim) noexcept
+    {
+        m_avg_robustnesses.push_back(1);
+    }
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -376,7 +385,7 @@ const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
     {
         throw std::invalid_argument{"In observer, requested to acces inputs "
                                     "from a generation that has no recorded"
-                                    " inputs pr does not exist"};
+                                    " inputs or that does not exist"};
     }
 
     return generation->m_inputs;
@@ -395,7 +404,7 @@ const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
     {
         throw std::invalid_argument{"In observer, requested to acces optimals "
                                     "from a generation that has no recorded"
-                                    " inputs pr does not exist"};
+                                    " inputs or that does not exist"};
     }
 
     return generation->m_optimals;
