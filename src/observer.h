@@ -312,7 +312,9 @@ void exec(Sim& s , observer<Sim>& o)
 {
     if(s.get_params() != o.get_params())
     {
-        throw std::runtime_error{"During exec(): Observer was not initialized correctly with simulation parameters"};
+        throw std::runtime_error{"During exec(): "
+                                 "Observer was not initialized "
+                                 "correctly with simulation parameters"};
     }
 
     int rec_freq_shift = 0;
@@ -370,14 +372,14 @@ const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
     auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
                                           o.get_inputs_and_optimals().end(),
                                           [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
-    if( generation != o.get_inputs_and_optimals().end())
+    if( generation == o.get_inputs_and_optimals().end())
     {
-        return generation->m_inputs;
+        throw std::invalid_argument{"In observer, requested to acces inputs "
+                                    "from a generation that has no recorded"
+                                    " inputs pr does not exist"};
     }
-    else
-    {
-        return std::vector<std::vector<double>>{};
-    }
+
+    return generation->m_inputs;
 }
 
 ///Gets the optimals of the nth generation
@@ -389,14 +391,14 @@ const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
                                           o.get_inputs_and_optimals().end(),
                                           [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
 
-    if(generation != o.get_inputs_and_optimals().end())
+    if(generation == o.get_inputs_and_optimals().end())
     {
-        return generation->m_optimals;
+        throw std::invalid_argument{"In observer, requested to acces optimals "
+                                    "from a generation that has no recorded"
+                                    " inputs pr does not exist"};
     }
-    else
-    {
-        return std::vector<double>{};
-    }
+
+    return generation->m_optimals;
 }
 
 ///load an observer of correct type based on selection frequency type

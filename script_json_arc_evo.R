@@ -18,52 +18,77 @@ pattern = '^m.*json$'
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.1_s_f_0_seed3.json"
+# pattern = "mut_t_weights_sel_t_constant_sym_t_asymmetrical_fr_t_regular_a_p_off_r_t_constitutive_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.100_ch_B_0.001_s_st_0.1_s_f_1_seed1.json"
+
 list.files(path = '.', pattern = pattern)
-for (i in  list.files(path = '.', pattern = pattern))
-{
-results <- fromJSON(file = i)
-simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
-                                                 "m_env_functions",
-                                                 "m_var_fitnesses")]),
-                             var = "gen")
-
-results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
-results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
-ID = as.data.frame(results$m_params)
-
-simple_res_ID = cbind(simple_res, ID)
-all_simple_res = rbind(all_simple_res, simple_res_ID)
-}
 
 
 ####save load####
-save(all_simple_res, file = "all_simple_res.R")
-load("all_simple_res.R")
+if(file.exists("all_simple_res.R")){
+  load("all_simple_res.R")
+}else{
+  
+  for (i in  list.files(path = '.', pattern = pattern))
+  {
+    results <- fromJSON(file = i)
+    simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
+                                                     "m_env_functions",
+                                                     "m_var_fitnesses")]),
+                                 var = "gen")
+    
+    results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
+    results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
+    ID = as.data.frame(results$m_params)
+    
+    simple_res_ID = cbind(simple_res, ID)
+    all_simple_res = rbind(all_simple_res, simple_res_ID)
+  }
+  
+  save(all_simple_res, file = "all_simple_res.R")
+}
 #### Plot ####
 jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
 
 filter_gen = 1000
-wanted_freqs = c(0)
-p <- ggplot(data = all_simple_res %>% 
-              filter(s_p.selection_strength == 0.5) %>% 
-              # filter(gen < 500000) %>%
-              filter(gen %% filter_gen == 0) %>%
-              # filter (s_p.adaptation_pegit pr == 0) %>%
-              filter (s_p.selection_freq %in% wanted_freqs) %>%
-              group_by(s_p.seed, s_p.selection_freq, s_p.selection_strength) %>%
-              slice_min(gen, n = 200)
+show_last_n_gen = 1000000
+wanted_freqs = c(0,100,1000)
+wanted_seed = c(1,2)
+wanted_sel_str = c(0.1, 0.5, 1)
+p <- all_simple_res %>% 
+  filter(gen > max(gen) - show_last_n_gen #&
+           # s_p.seed %in% wanted_seed &
+           # gen %% filter_gen == 0 &
+           # s_p.selection_strength %in% wanted_sel_str
+  ) %>% 
+  ggplot() +
+  ###print all environments
+geom_rect(data = . %>%
+            group_by(s_p.change_freq_B, s_p.adaptation_per) %>%
+            distinct(gen, m_env_functions) %>%
+            filter(gen == min(gen) |
+                     gen == max(gen) |
+                     m_env_functions != lag(m_env_functions)) %>%
+            mutate(gen_max = lead(gen)) %>%
+            mutate(gen_max = ifelse(is.na(gen_max),
+                                    max(gen),
+                                    gen_max)),
+          aes(xmin = gen, xmax = gen_max,
+              ymin = 0, ymax = 1,
+              fill = as.factor(m_env_functions),
+          )
 ) +
-  geom_rect(aes(xmin = gen - filter_gen, xmax = gen,
-                ymin = 0, ymax = 1.5,
-                fill = as.factor(m_env_functions),
-                alpha = 0.5))+
-  geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
+geom_line(data = . %>% filter(gen %% filter_gen == 0),
+  aes(x = gen, y = m_avg_fitnesses)
+) +
+  # geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
-  facet_grid(s_p.selection_freq + s_p.selection_strength ~ s_p.seed + s_p.adaptation_per )
+  # facet_grid(s_p.change_freq_B + s_p.selection_strength ~
+  #              s_p.seed + s_p.adaptation_per + i_p.net_par.resp_type)
+  facet_grid(s_p.selection_freq + s_p.selection_strength ~
+               s_p.seed + s_p.adaptation_per)
 
 print(p)
 dev.off()
@@ -83,20 +108,20 @@ d = all_simple_res %>%
       TRUE ~ FALSE
     )
   ) %>%
-select(-change) %>%
-group_by(mut_type, seed, n_change) %>%
-summarise(env = as.factor(unique(m_env_functions)),
-  gen = min(gen),
-  time = sum(m_avg_fitnesses < 0.9),
-          time_in = sum(m_avg_fitnesses > 0.9)) %>%
-subset(time_in > 0) %>%
-select(-time_in)
+  select(-change) %>%
+  group_by(mut_type, seed, n_change) %>%
+  summarise(env = as.factor(unique(m_env_functions)),
+            gen = min(gen),
+            time = sum(m_avg_fitnesses < 0.9),
+            time_in = sum(m_avg_fitnesses > 0.9)) %>%
+  subset(time_in > 0) %>%
+  select(-time_in)
 
 options(scipen=999)
 
 ggplot(d,
        aes(x = gen, y = time, color = env, fill = env)) +
- geom_col() +
+  geom_col() +
   geom_smooth(method='lm')+
   stat_regline_equation(aes(label = ..eq.label..)) +
   stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.65,label.y.npc = 0.945)+
@@ -120,19 +145,19 @@ d = all_simple_res %>%
     )
   ) %>%
   group_by(mut_type, seed, n_change) %>%
-    mutate (n_adapted = cumsum (adapted),
-            n_gen = cumsum (change == F) + 1,
-            adapt_prop = n_adapted/n_gen)%>%
+  mutate (n_adapted = cumsum (adapted),
+          n_gen = cumsum (change == F) + 1,
+          adapt_prop = n_adapted/n_gen)%>%
   slice_tail(n=1)%>% 
   select(-change, -adapted)
 
 
 ggplot(d, aes(x = n_change, y = adapt_prop, color = as.factor(m_env_functions), fill = as.factor(m_env_functions))) +
-         geom_point()+ 
-         facet_grid(mut_type ~ .)+
-        stat_smooth(method='lm')+
-          stat_regline_equation(aes(label = ..eq.label..),label.y.npc = 0.3) +
-         stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)
+  geom_point()+ 
+  facet_grid(mut_type ~ .)+
+  stat_smooth(method='lm')+
+  stat_regline_equation(aes(label = ..eq.label..),label.y.npc = 0.3) +
+  stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)
 
 
 
@@ -167,7 +192,7 @@ for(i in 1:nrow(d)){
 }
 
 d = filter(d, gen%%time ==0) %>% distinct()
- 
+
 ggplot(d, aes(x = gen, y = avg, color = as.factor(m_env_functions), fill = as.factor(m_env_functions))) +
   geom_point()+ 
   facet_grid(change_freq_A ~ .)+

@@ -363,9 +363,9 @@ public:
     std::vector<double> create_inputs()
     {
         auto inputs = env::create_n_inputs(get_env(),
-                        get_inds_input_size(*this),
-                        get_rng()
-                        );
+                                           get_inds_input_size(*this),
+                                           get_rng()
+                                           );
 
         if constexpr(Resp_type == response_type::plastic)
         {
@@ -376,14 +376,11 @@ public:
         return inputs;
     }
 
-    ///Evaluates the operformance of all indiivduals in a population
-    std::vector<double> evaluate_inds(){
-
-        std::vector<double> cumulative_performance(get_inds().size(), 0);
-
-        std::vector<std::vector<double>> inputs(m_population.get_n_trials());
-        std::vector<double> optimals(inputs.size());
-
+    ///Creates and stores the ininputs and optimal values for those
+    /// inputs to be then used inthe evaluation of individuals
+    void create_and_store_inputs_and_optimals(std::vector<std::vector<double>>& inputs,
+                                              std::vector<double>& optimals)
+    {
         for(int i = 0; i != m_population.get_n_trials(); i++)
         {
             inputs[i] = create_inputs();
@@ -392,6 +389,17 @@ public:
 
         store_inputs(inputs);
         store_optimals(optimals);
+    }
+
+
+    ///Evaluates the operformance of all indiivduals in a population
+    std::vector<double> evaluate_inds(){
+
+        std::vector<std::vector<double>> inputs(m_population.get_n_trials());
+        std::vector<double> optimals(inputs.size());
+        create_and_store_inputs_and_optimals(inputs, optimals);
+
+        std::vector<double> cumulative_performance(get_inds().size(), 0);
 
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
@@ -408,6 +416,7 @@ public:
                                std::plus<double>());
             }
         }
+
         return cumulative_performance;
     }
 
