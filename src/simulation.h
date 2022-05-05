@@ -70,6 +70,16 @@ bool operator==(const sim_param& lhs, const sim_param& rhs);
 
 struct all_params
 {
+    all_params(const env_param& e_p = env_param{},
+               const ind_param& i_p = ind_param{},
+               const pop_param& p_p = pop_param{},
+               const sim_param& s_p = sim_param{}):
+        e_p{e_p},
+        i_p{i_p},
+        p_p{p_p},
+        s_p{s_p}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
                                    e_p,
                                    i_p,
@@ -203,6 +213,24 @@ public:
                                    m_change_freq_B,
                                    m_sel_str,
                                    m_seed)
+
+    ///Changes all the weights of a given individual to a given value
+    void change_all_weights_nth_ind(size_t ind_index, double new_weight)
+    {
+        auto new_net = change_all_weights_values_and_activations(pop::get_nth_ind_net(m_population,
+                                                                                 ind_index),
+                                                                 new_weight);
+        pop::change_nth_ind_net(m_population,
+                                ind_index,
+                                new_net);
+    }
+
+    ///Changes weights of all individuals
+    void changel_all_inds_weights(double new_weight)
+    {
+        for(int ind = 0; ind != get_inds().size(); ind++)
+            change_all_weights_nth_ind(ind, new_weight);
+    }
 
     ///Returns const ref ot population memeber
     const Pop& get_pop() const noexcept {return m_population;}
@@ -613,10 +641,6 @@ double avg_fitness(const Sim& s)
     return pop::avg_fitness(s.get_pop());
 }
 
-///Changes all the weights of a given individual to a given value
-template<class Sim>
-void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight);
-
 ///Changes the network of the nth individual for a given network
 template<class Pop>
 void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net_t &n)
@@ -646,10 +670,12 @@ char get_name_current_function(const Sim& s) noexcept
 template<class Sim>
 double get_nth_ind_fitness(const Sim& s, const size_t ind_index);
 
-///Returns const or non-onst ref to the network of the nth individual in the
-/// popoulation member of a simulation
+///Returns the net of the nth individual in the population
 template<class Sim>
-const typename Sim::pop_t::ind_t::net_t& get_nth_ind_net(const Sim& s, size_t ind_index);
+const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
+{
+    return pop::get_nth_ind_net(s.get_pop(), ind_index);
+}
 
 ///Switches the function of the environment used to calculate the optimal output
 template<class Sim>

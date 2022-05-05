@@ -219,9 +219,9 @@ public:
     //    ////returns a constant reference to the otpimal output value given to individuals that generation
     //    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
 
-    void store_avg_robustness(const Sim) noexcept
+    void store_avg_robustness(const Sim& s) noexcept
     {
-        m_avg_robustnesses.push_back(1);
+        m_avg_robustnesses.push_back(calculate_avg_robustness(s));
     }
 
     ///Saves the avg fitness
@@ -311,6 +311,10 @@ bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
+
+///Calculates the average robustness of a population in a simulation
+double calc_avg_robustness(simulation<> s);
+
 
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);

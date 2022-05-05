@@ -16,6 +16,7 @@ public:
                                    m_bias)
 
     const bool &is_active() const noexcept {return m_active;}
+    bool is_inactive() const noexcept {return !m_active;}
     const double &get_bias() const noexcept {return m_bias;}
     const std::vector<weight> &get_vec_weights() const noexcept {return m_weights;}
     void change_nth_weight(weight new_weight, size_t index) {m_weights[index] = new_weight;}
@@ -35,8 +36,11 @@ bool operator== (const node& lhs, const node& rhs);
 
 bool operator!= (const node& lhs, const node& rhs);
 
+///returns true if the node is active
+bool is_active(node node);
+
 ///returns true if the node is inactive
-bool node_is_inactive(node node);
+bool is_inactive(const node& node);
 
 void test_node() noexcept;
 

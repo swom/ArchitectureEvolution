@@ -158,6 +158,17 @@ std::string create_save_name_from_params(const all_params& p)
 
     return name;
 }
+
+double calc_avg_robustness(simulation<> s)
+{
+    {
+    //    std::vector<double> robustnesses;
+    //    for(const auto& ind : s.get_inds())
+    //        robustnesses.push_back(calc_robustness(ind, s.get_pop_params()));
+        return weights_sum(s.get_inds()[0].get_net());
+    }
+}
+
 #ifndef NDEBUG
 void test_observer()
 {
@@ -440,22 +451,40 @@ void test_observer()
     }
 
     ///Observers can record the avg robustness of the population and its stdandard deviation
-    {
-        int num_inds = 2;
-        double mut_rate = 1;
-        double mut_step = 1;
-        pop_param(num_inds,
-                  mut_rate,
-                  mut_step);
-        simulation s;
-        observer o;
-        assert(o.get_avg_robustness().empty());
-        o.store_avg_robustness(s);
-        assert(!o.get_avg_robustness().empty());
-        sim::tick(s);
-        o.store_avg_robustness(s);
-        assert(o.get_avg_robustness().back() > o.get_avg_robustness().front());
+    //    {
+    //        int num_inds = 2;
+    //        double mut_rate = 1;
+    //        double mut_step = 1;
 
+    //        pop_param p_p(num_inds,
+    //                      mut_rate,
+    //                      mut_step);
+    //        all_params a_p(env_param{},ind_param{}, p_p);
+
+    //        simulation s(a_p);
+    //        observer o;
+
+    //        assert(o.get_avg_robustness().empty());
+    //        o.store_avg_robustness(s);
+    //        assert(!o.get_avg_robustness().size() == 1);
+
+    //        sim::tick(s);
+    //        o.store_avg_robustness(s);
+    //        assert(o.get_avg_robustness().back() > o.get_avg_robustness().front());
+
+    //    }
+
+    ///It is possible to calculate the avg robustness of a population in a simulation
+    {
+        simulation robust_sim;
+        robust_sim.changel_all_inds_weights(10);
+
+        simulation frail_sim;
+
+        auto robust = calc_avg_robustness(robust_sim);
+        auto frail = calc_avg_robustness(frail_sim);
+
+        assert(robust > frail);
     }
 }
 #endif

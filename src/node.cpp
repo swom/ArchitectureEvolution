@@ -20,9 +20,14 @@ bool operator!= (const node& lhs, const node& rhs)
     return !(lhs == rhs);
 }
 
-bool node_is_inactive(node node)
+bool is_active(node node)
 {
-    return !node.is_active();
+    return node.is_active();
+}
+
+bool is_inactive(const node& node)
+{
+    return !is_active(node);
 }
 
 #ifndef NDEBUG

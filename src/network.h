@@ -51,27 +51,34 @@ void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
                     std::mt19937_64& rng)
 {
-    if(mut_rate != 0){
+    if(mut_rate != 0)
+    {
         std::bernoulli_distribution mut_p{mut_rate};
         std::normal_distribution<double> mut_st{0,mut_step};
 
-        for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-            for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-                auto &current_node = n.get_net_weights()[i][j];
-                if(current_node.is_active()){
-                    for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+        for(size_t layer = 0; layer != n.get_net_weights().size(); ++layer)
+        {
+            auto& current_layer = n.get_net_weights()[layer];
+            for(size_t node = 0; node != current_layer.size(); ++node)
+            {
+                auto &current_node = current_layer[node];
+                if(current_node.is_active())
+                {
+                    for(size_t weights = 0; weights != current_node.get_vec_weights().size(); ++weights)
                     {
-                        if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                            const auto &current_weight = current_node.get_vec_weights().at(k);
+                        if(mut_p(rng) &&
+                                (layer == 0 ? true : n.get_net_weights()[layer -1][weights].is_active()))
+                        {
+                            const auto &current_weight = current_node.get_vec_weights().at(weights);
                             weight mutated_weight(current_weight.get_weight() + mut_st(rng),
                                                   current_weight.is_active());
-                            current_node.change_nth_weight(mutated_weight, k);
+                            current_node.change_nth_weight(mutated_weight, weights);
                         }
                     }
                 }
             }
+        }
     }
-
 }
 
 ///Mutates the nodes of a network via duplication
@@ -220,8 +227,8 @@ template<mutation_type M = mutation_type::weights,
 class network
 {
 public:
-  static constexpr mutation_type mutation_t = M;
-  static constexpr response_type response_t = R;
+    static constexpr mutation_type mutation_t = M;
+    static constexpr response_type response_t = R;
 
 private:
 
@@ -282,7 +289,8 @@ public:
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
-        ///Change architecture by adding one extra input for environment if response is plastic
+        ///Change architecture by adding one extra input
+        ///for environment if response is plastic
         if constexpr (R == response_type::plastic)
         {
             m_input_size ++;
@@ -294,18 +302,33 @@ public:
             throw std::runtime_error{"starting and maximum architecture are not compatible"};
         }
 
-        for (size_t i = 1; i != m_current_arc.size(); i++ )
+        for (size_t layer = 1; layer != m_current_arc.size(); layer++ )
         {
             std::vector<node>temp_layer_vector;
-            size_t n_nodes_prev_layer = m_max_arc[i-1];
-            for(int j = 0; j != m_max_arc[i]; j++)
+            size_t n_nodes_prev_layer = m_max_arc[layer-1];
+            for(int node = 0; node != m_max_arc[layer]; node++)
             {
                 std::vector<weight> temp_weights(n_nodes_prev_layer);
 
-                node temp_node(temp_weights);
-                if((j+1) <= m_current_arc[i]){
+                class node temp_node(temp_weights);
+                if(node < m_current_arc[layer])
+                {
                     temp_node.activate();
                 }
+
+//                for(int weight = 0;
+//                    weight != temp_node.get_vec_weights().size();
+//                    weight++)
+//                {
+//                    if(layer > 1 &&
+//                            is_inactive(m_network_weights.back()[weight]))
+//                    {
+//                        class weight w;
+//                        w.change_activation(false);
+//                        temp_node.change_nth_weight(w, weight);
+//                    }
+//                }
+
                 temp_layer_vector.push_back(temp_node);
             }
 
@@ -386,7 +409,7 @@ public:
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
     {
         std::vector<node> &layer = get_net_weights()[l];
-        return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+        return std::find_if(layer.begin(), layer.end(), is_inactive);
     }
 
 
@@ -499,7 +522,9 @@ public:
                 }
             }
             else{
-                if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+                if(std::count(indexes_to_activate.begin(),
+                              indexes_to_activate.end(), i))
+                {
                     w.change_activation(true);
                     w.change_weight(dist_in(rng));
                     added_node.change_nth_weight(w,i);
@@ -828,7 +853,49 @@ bool all_weigths_are_active(const Net &n);
 
 ///Checks that all weights have a certain value
 template<class Net>
-bool all_weigths_have_value(const Net &n, double value);
+bool all_weigths_have_value(const Net &n, double value)
+{
+    auto weights = n.get_net_weights();
+
+    for(auto &layer : weights ){
+        for(auto &node : layer){
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                weight current_weight = node.get_vec_weights()[i];
+                if(current_weight.get_weight() != value)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+///Checks that all weights have an absolute value higher than a certain amount
+template<class Net>
+bool all_weigths_have_higher_abs_value(const Net &n, double value);
+//{
+//    auto weights = n.get_net_weights();
+
+//    for(const auto &layer : weights )
+//    {
+//        for(const auto &node : layer)
+//        {
+//            if(is_active(node))
+//            {
+//                for(const auto& current_weight : node.get_vec_weights())
+//                {
+//                    if(is_active(current_weight) &&
+//                            std::abs(current_weight.get_weight()) < value)
+//                    {
+//                        return false;
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return true;
+//}
 
 ///Checks that the registered_mutations correspond to the given mutation rate
 template<class Net>
@@ -1238,6 +1305,22 @@ reac_norm calculate_reaction_norm_with_modified_weight(const Net& net,
     return r_norm;
 }
 
+template<class N>
+double weights_sum(const N& network)
+{
+    double sum = 0;
+    for(const auto& layer : network.get_net_weights())
+    {
+        for(const auto& node : layer)
+        {
+            for(const auto& weight : node.get_vec_weights())
+            {
+                sum += weight.get_weight();
+            }
+        }
+    }
+    return sum;
+}
 void test_network();
 
 #endif // NETWORK_H

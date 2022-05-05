@@ -81,24 +81,7 @@ bool all_weigths_are_active(const Net &n)
     return true;
 }
 
-template<class Net>
-bool all_weigths_have_value(const Net &n, double value)
-{
-    auto weights = n.get_net_weights();
 
-    for(auto &layer : weights ){
-        for(auto &node : layer){
-            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
-                weight current_weight = node.get_vec_weights()[i];
-                if(current_weight.get_weight() != value)
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
-}
 
 template<class Net>
 bool on_average_an_nth_of_the_weights_are_inactive(const Net &n,

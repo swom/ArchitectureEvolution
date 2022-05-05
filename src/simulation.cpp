@@ -37,12 +37,7 @@ bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
     return pop && env && time && sel_str && change_freq_A && change_freq_B;
 }
 
-template<class Sim>
-void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight)
-{
-    auto new_net = change_all_weights_values_and_activations(get_nth_ind_net(s, ind_index), new_weight);
-    change_nth_ind_net(s, ind_index, new_net);
-}
+
 
 template<class Sim>
 const typename Sim::pop_t::ind_t & get_nth_ind(const Sim& s, size_t ind_index)
@@ -56,11 +51,6 @@ double get_nth_ind_fitness(const Sim& s, const size_t ind_index)
     return pop::get_nth_ind_fitness(s.get_pop(), ind_index);
 }
 
-template<class Sim>
-const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
-{
-    return pop::get_nth_ind_net(s.get_pop(), ind_index);
-}
 
 template<class Sim>
 double find_min_fitness(const Sim &s)
@@ -622,7 +612,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s{params};
 
         //Otherwise all weights are 0 and the response is always 0
-        change_all_weights_nth_ind(s, 0, 1);
+        s.change_all_weights_nth_ind( 0, 1);
 
         ///The response should change when the environment changes.
 
