@@ -338,10 +338,24 @@ public:
         }
     }
 
+    ///Checks if hhe layer has no nodes
     inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
                     m_network_weights.begin(),
                     m_network_weights.end(),
                     [] (const auto& i) {return i.size() == 0;});}
+
+    ///Changes the value of all weights in the network to a certain value
+    void change_all_weights_values(double new_weight)
+    {
+        for(auto& layer : m_network_weights)
+            for(auto& node : layer)
+                for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
+                {
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    weight changed_weight(new_weight, current_weight.is_active());
+                    node.change_nth_weight(changed_weight, i);
+                }
+    }
 
     void mutate(const double& mut_rate_weight,
                 const double& mut_step,
@@ -775,6 +789,13 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
             lhs.get_net_weights() == rhs.get_net_weights();
 }
 
+///Calculates the robustness of a network
+template<class Net>
+double calc_robustness(const Net& net)
+{
+    return std::abs(weights_sum(net));
+}
+
 template<class Net>
 Net change_all_weights_values(Net n, double new_weight)
 {
@@ -860,7 +881,7 @@ bool all_weigths_have_value(const Net &n, double value)
     for(auto &layer : weights ){
         for(auto &node : layer){
             for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
-                weight current_weight = node.get_vec_weights()[i];
+                const class weight& current_weight = node.get_vec_weights()[i];
                 if(current_weight.get_weight() != value)
                 {
                     return false;

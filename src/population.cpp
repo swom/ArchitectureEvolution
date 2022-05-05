@@ -10,7 +10,7 @@ population<Ind>::population(int init_nr_indiv,
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
                 individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
-                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
+                    individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_mut_rate_weight{mut_rate},
     m_mut_step{mut_step}
 {}
@@ -44,6 +44,17 @@ bool all_nets_equals_to(const population<Ind>& p, const typename Ind::net_t& n)
                        [n](const Ind& i)
     {return i.get_net() == n;});
 }
+
+std::vector<double> calc_robustness_all_inds(const std::vector<individual<>>& inds)
+{
+    std::vector<double> robustnesses;
+    robustnesses.reserve(inds.size());
+    for(const auto& ind : inds)
+    {
+        robustnesses.push_back(calc_robustness(ind.get_net()));
+    }
+    return robustnesses;
+};
 
 std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_from_target,
                                                 double selection_strength)
@@ -95,6 +106,17 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
 
     return fitness_inds;
 }
+
+bool all_inds_weights_have_value(const population<> &pop, double weight_value)
+{
+    for(const auto& ind : pop.get_inds())
+    {
+        if(!all_weigths_have_value(ind.get_net(), weight_value))
+            return false;
+    }
+    return true;
+}
+
 }
 
 
@@ -186,5 +208,23 @@ void test_population() noexcept
                are_equal_with_tolerance(p.get_mut_step(), mut_step));
     }
 
+    ///It is possible to obtain a vector of robustness measures from
+    /// a vector of individuals
+    {
+        double robust_weight = 10;
+        double frail_weight = 0;
+
+        population robust_p;
+        robust_p.change_all_inds_weights(robust_weight);
+
+        population frail_p;
+        assert(pop::all_inds_weights_have_value(frail_p, frail_weight));
+
+        auto robust_inds_robustness = pop::calc_robustness_all_inds(robust_p.get_inds());
+        auto frail_inds_robustness = pop::calc_robustness_all_inds(frail_p.get_inds());
+
+        assert(pairwise_comparison_for_majority(robust_inds_robustness,
+                                                frail_inds_robustness));
+    }
 }
 #endif

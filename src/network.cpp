@@ -114,6 +114,7 @@ int get_number_weights(const Net &n)
     return (int) number_weights;
 }
 
+
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {

@@ -35,6 +35,10 @@ bool are_same_distribution(std::uniform_real_distribution<double> lhs,
 ///Checks if two environmental functions are the same
 bool are_same_env_functions(const std::function<double(std::vector<double>)> &lhs,
                             const std::function<double(std::vector<double>)> &rhs, int n_repeats = 1000);
-
+///For 2 vectors of equal size
+/// Checks that all elements int the first vector
+/// are > than their corresponding element in the second vector
+bool pairwise_comparison_for_majority(const std::vector<double>& first,
+                                      const std::vector<double>& second);
 
 #endif // UTILITIES_H

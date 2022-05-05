@@ -73,6 +73,12 @@ public:
         m_network = n;
     }
 
+    ///Changes all weights of a network to a given value
+    void change_all_weights(double new_weight)
+    {
+        m_network.change_all_weights_values(new_weight);
+    }
+
     ///Returns copy of fitness
     const double& get_fitness() const noexcept {return m_fitness;}
 
@@ -187,6 +193,7 @@ double calc_sqr_distance_scratch(const Ind &i,
 }
 
 }
+
 
 void test_individual();
 

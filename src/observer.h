@@ -27,6 +27,13 @@ struct inputs_optimals{
 
 bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs);
 bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs);
+///Calculates the average robustness of a population in a simulation
+template<class Sim>
+double calc_avg_robustness(const Sim& s)
+{
+    return calc_mean(pop::calc_robustness_all_inds(s.get_inds()));
+}
+
 
 struct obs_param{
     obs_param(int top_prop = 1,
@@ -221,7 +228,7 @@ public:
 
     void store_avg_robustness(const Sim& s) noexcept
     {
-        m_avg_robustnesses.push_back(calculate_avg_robustness(s));
+        m_avg_robustnesses.push_back(calc_avg_robustness(s));
     }
 
     ///Saves the avg fitness
@@ -311,10 +318,6 @@ bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
-
-///Calculates the average robustness of a population in a simulation
-double calc_avg_robustness(simulation<> s);
-
 
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);

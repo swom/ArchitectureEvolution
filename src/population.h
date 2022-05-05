@@ -73,6 +73,14 @@ public:
         m_vec_indiv[ind_index].change_net(n);
     }
 
+    ///Chenges all the weights of all inds to a given value
+    void change_all_inds_weights(double new_weight)
+    {
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.change_all_weights(new_weight);
+        }
+    }
 
     ///Get const ref to vector of individuals
     const std::vector<Ind>& get_inds() const noexcept{return m_vec_indiv;}
@@ -166,6 +174,9 @@ double avg_fitness(const population<Ind>& p){
     return avg_fitness(p.get_inds());
 }
 
+//Checks that all individuals have all the weihgts of their network equal to the same value
+bool all_inds_weights_have_value(const population<>& pop, double weight_value);
+
 ///Checks if fitness of all individuals equals a certain value
 template<class Ind>
 bool all_fitnesses_are(double value, const population<Ind>& p)
@@ -201,6 +212,19 @@ void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
     for(auto& ind : p.get_inds_nonconst()){
         ind.assign_input(inputs);
     }
+}
+
+///Calculates the robustness of each individual of the population and returns the values
+template<class Ind>
+std::vector<double> calc_robustness_all_inds(const std::vector<Ind>& inds)
+{
+    std::vector<double> robustnesses;
+    robustnesses.reserve(inds.size());
+    for(const auto& ind : inds)
+    {
+        robustnesses.push_back(calc_robustness(ind.get_net()));
+    }
+    return robustnesses;
 }
 
 ///Calculates the distance from the output of one individual's network
