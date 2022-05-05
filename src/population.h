@@ -175,8 +175,16 @@ double avg_fitness(const population<Ind>& p){
 }
 
 //Checks that all individuals have all the weihgts of their network equal to the same value
-bool all_inds_weights_have_value(const population<>& pop, double weight_value);
-
+template<class Pop>
+bool all_inds_weights_have_value(const Pop &pop, double weight_value)
+{
+    for(const auto& ind : pop.get_inds())
+    {
+        if(!all_weigths_have_value(ind.get_net(), weight_value))
+            return false;
+    }
+    return true;
+}
 ///Checks if fitness of all individuals equals a certain value
 template<class Ind>
 bool all_fitnesses_are(double value, const population<Ind>& p)

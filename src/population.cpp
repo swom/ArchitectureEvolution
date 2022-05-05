@@ -107,16 +107,6 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
     return fitness_inds;
 }
 
-bool all_inds_weights_have_value(const population<> &pop, double weight_value)
-{
-    for(const auto& ind : pop.get_inds())
-    {
-        if(!all_weigths_have_value(ind.get_net(), weight_value))
-            return false;
-    }
-    return true;
-}
-
 }
 
 

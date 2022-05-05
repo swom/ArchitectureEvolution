@@ -441,35 +441,44 @@ void test_observer()
     }
 
     ///Observers can record the avg robustness of the population and its stdandard deviation
-        {
-            int num_inds = 2;
-            double mut_rate = 1;
-            double mut_step = 1;
+    {
+        double robust_weight = 10;
+        double frail_weight = 0;
 
-            pop_param p_p(num_inds,
-                          mut_rate,
-                          mut_step);
-            all_params a_p(env_param{},ind_param{}, p_p);
+        simulation robust_sim;
+        robust_sim.changel_all_inds_weights(robust_weight);
 
-            simulation s(a_p);
-            observer o;
+        simulation frail_sim;
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+                                                frail_weight));
 
-            assert(o.get_avg_robustness().empty());
-            o.store_avg_robustness(s);
-            assert(o.get_avg_robustness().size() == 1);
+        observer o_frail;
+        observer o_robust;
 
-            sim::tick(s);
-            o.store_avg_robustness(s);
-            assert(o.get_avg_robustness().back() > o.get_avg_robustness().front());
+        assert(o_frail.get_avg_robustness().empty());
+        o_frail.store_avg_robustness(frail_sim);
+        assert(o_frail.get_avg_robustness().size() == 1);
 
-        }
+        assert(o_robust.get_avg_robustness().empty());
+        o_robust.store_avg_robustness(robust_sim);
+        assert(o_robust.get_avg_robustness().size() == 1);
+
+        assert(pairwise_comparison_for_majority(o_robust.get_avg_robustness(),
+                                                o_frail.get_avg_robustness()));
+
+    }
 
     ///It is possible to calculate the avg robustness of a population in a simulation
     {
+        double robust_weight = 10;
+        double frail_weight = 0;
+
         simulation robust_sim;
-        robust_sim.changel_all_inds_weights(10);
+        robust_sim.changel_all_inds_weights(robust_weight);
 
         simulation frail_sim;
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+                                                frail_weight));
 
         double robust = calc_avg_robustness(robust_sim);
         double frail = calc_avg_robustness(frail_sim);
