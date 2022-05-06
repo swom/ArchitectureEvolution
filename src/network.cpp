@@ -114,7 +114,16 @@ int get_number_weights(const Net &n)
     return (int) number_weights;
 }
 
+///Priduces a very simple 1-1 network
+/// not plastic
+/// can only mutate weights and biases
+network<> produce_simple_network()
+{
+    std::vector<int> simple_architecture{1,1};
+    auto simple_net_param = net_param(simple_architecture, {}, simple_architecture);
 
+    return network{simple_net_param};
+}
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {
@@ -910,21 +919,35 @@ void test_network() //!OCLINT
 /// N random mutations per weight
 /// of S step size
 /// on the value of its weights
+///
+/// In this test we check that the same network is more robust to few small utations
+/// than t many big mutations
     {
-        std::vector<int> simple_architecture{1,1};
-        auto simple_net_param = net_param(simple_architecture, {}, simple_architecture);
         double standard_weight = 1;
         int few_mutations = 1;
         double small_mutation_step = 0.1;
         auto many_mutations = few_mutations * 100;
         double big_mutation_step = small_mutation_step * 100;
 
-        network net{simple_net_param};
+        auto net = produce_simple_network();
         net.change_all_weights_values(standard_weight);
 
         auto robustness_to_weak_mutation = calc_robustness(net, few_mutations, small_mutation_step);
         auto robustness_to_strong_mutation = calc_robustness(net, many_mutations, big_mutation_step);
         assert(robustness_to_weak_mutation > robustness_to_strong_mutation);
+    }
+
+///The robustness of a network is the average distance from its reaction norm
+/// to the reaction norm it produces when it is randomly mutated
+    {
+        auto no_mutation = 0;
+        double no_unit_step = 0;
+
+        auto net = produce_simple_network();
+
+        double robustness = calc_robustness(net, no_mutation, no_unit_step);
+
+        assert(are_equal_with_tolerance(robustness, 0));
     }
 
 }

@@ -783,11 +783,14 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
 
 ///Calculates the robustness of a network
 template<class Net>
-double calc_robustness(const Net& net, int n_mutations, double mutation_step)
+double calc_robustness(const Net& net,
+                       int n_mutations,
+                       double mutation_step,
+                       const range& input_range = {-1,1},
+                       int n_points = 100)
 {
-    auto dividend = std::abs(weights_sum(net));
-    auto divisor = n_mutations * mutation_step;
-    return (dividend / divisor);
+//return std::abs(weights_sum(net)) / n_mutations * mutation_step;
+    return calculate_avg_distance_mut_rn_from_orig_rn(net, input_range, n_points, n_mutations, mutation_step)                              );
 }
 
 template<class Net>
@@ -818,6 +821,20 @@ Net change_all_weights_values_and_activations(Net n, weight new_weight)
     return n;
 }
 
+///Counts the number of weights and biases (mutable loci by standard mode of mutation)
+/// in a network
+template<class Net>
+int count_weights_and_biases(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count++;
+            count += node.get_vec_weights().size();
+        }
+    return count;
+}
 
 ///Mutates a network n times with given mutation
 /// rate and step and returns vector all mutated weights

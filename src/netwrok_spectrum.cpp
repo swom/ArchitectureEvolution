@@ -5,3 +5,10 @@ bool operator==(const react_norm_t& lhs, const react_norm_t& rhs)
     auto ys = lhs.m_y == rhs.m_y;
     return xs && ys;
 }
+
+#ifndef NDEBUG
+void test_spectrum()
+{
+
+}
+#endif

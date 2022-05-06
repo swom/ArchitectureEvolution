@@ -40,7 +40,7 @@ using net_act_mut_spectrum = std::vector<layer_act_mut_spectrum>;
 using layer_mut_spectrum = std::vector<reac_norm>;
 using net_node_level_mutation_mut_spectrum = std::vector<layer_mut_spectrum>;
 
-template<class Network>
+template<class Network = network>
 class network_spectrum
 {
 public:
