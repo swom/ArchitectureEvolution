@@ -790,7 +790,7 @@ double calc_robustness(const Net& net,
                        int n_points = 100)
 {
 //return std::abs(weights_sum(net)) / n_mutations * mutation_step;
-    return calculate_avg_distance_mut_rn_from_orig_rn(net, input_range, n_points, n_mutations, mutation_step)                              );
+    return calculate_avg_distance_mut_rn_from_orig_rn(net, input_range, n_points, n_mutations, mutation_step);                              );
 }
 
 template<class Net>
