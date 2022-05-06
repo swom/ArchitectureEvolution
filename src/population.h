@@ -222,19 +222,6 @@ void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
     }
 }
 
-///Calculates the robustness of each individual of the population and returns the values
-template<class Ind>
-std::vector<double> calc_robustness_all_inds(const std::vector<Ind>& inds)
-{
-    std::vector<double> robustnesses;
-    robustnesses.reserve(inds.size());
-    for(const auto& ind : inds)
-    {
-        robustnesses.push_back(calc_robustness(ind.get_net()));
-    }
-    return robustnesses;
-}
-
 ///Calculates the distance from the output of one individual's network
 /// to the optimal output given a series of inputs
 template<class Ind>
@@ -278,6 +265,20 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
         set_nth_ind_fitness(p, i, fitness_vector[i]);
     }
 }
+
+///Calculates the robustnesses of all individuals in a population and returns them in a vector
+template <class Pop>
+std::vector<double> calc_robustness_all_inds(const Pop& p, int n_mutations)
+{
+    auto inds = p.get_inds();
+    std::vector<double> robustnesses;
+    robustnesses.reserve(inds.size());
+    for(const auto& ind : inds)
+    {
+        robustnesses.push_back(calc_robustness(ind.get_net(), n_mutations, p.get_mut_step()));
+    }
+    return robustnesses;
+};
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>

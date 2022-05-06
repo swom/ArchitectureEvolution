@@ -472,6 +472,7 @@ void test_observer()
     {
         double robust_weight = 10;
         double frail_weight = 0;
+        int n_mutations = 10;
 
         simulation robust_sim;
         robust_sim.changel_all_inds_weights(robust_weight);
@@ -480,8 +481,8 @@ void test_observer()
         assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
                                                 frail_weight));
 
-        double robust = calc_avg_robustness(robust_sim);
-        double frail = calc_avg_robustness(frail_sim);
+        double robust = calc_avg_robustness(robust_sim, n_mutations);
+        double frail = calc_avg_robustness(frail_sim, n_mutations);
 
         assert(robust > frail);
     }

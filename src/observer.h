@@ -29,9 +29,9 @@ bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs);
 bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs);
 ///Calculates the average robustness of a population in a simulation
 template<class Sim>
-double calc_avg_robustness(const Sim& s)
+double calc_avg_robustness(const Sim& s, int n_mutations)
 {
-    return calc_mean(pop::calc_robustness_all_inds(s.get_inds()));
+    return calc_mean(pop::calc_robustness_all_inds(s.get_pop(), n_mutations));
 }
 
 
@@ -228,7 +228,7 @@ public:
 
     void store_avg_robustness(const Sim& s) noexcept
     {
-        m_avg_robustnesses.push_back(calc_avg_robustness(s));
+        m_avg_robustnesses.push_back(calc_avg_robustness(s, m_obs_param.m_n_mutations_per_locus));
     }
 
     ///Saves the avg fitness

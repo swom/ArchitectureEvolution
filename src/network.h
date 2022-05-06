@@ -677,11 +677,6 @@ public:
                     ++weight_index)
                 {
                     if(!current_layer[node_index].get_vec_weights()[weight_index].is_active()) continue;
-
-                    //                        tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
-                    //                                           [&]( const tbb::blocked_range<size_t> &x)
-                    //                        {
-                    //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
 #pragma omp parallel for
                     for (int mut = 0; mut < int(mutations.size()); mut++)
                     {
@@ -695,11 +690,8 @@ public:
                                                                           weight_index
                                                                           );
                     }
-                    //                        });
-
                     node_spectrum[weight_index] = weight_spectrum;
                 }
-
                 layer_spectrum[node_index] = node_spectrum;
             }
             network_weights_spectrum[layer_index] = layer_spectrum;
@@ -791,9 +783,11 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
 
 ///Calculates the robustness of a network
 template<class Net>
-double calc_robustness(const Net& net)
+double calc_robustness(const Net& net, int n_mutations, double mutation_step)
 {
-    return std::abs(weights_sum(net));
+    auto dividend = std::abs(weights_sum(net));
+    auto divisor = n_mutations * mutation_step;
+    return (dividend / divisor);
 }
 
 template<class Net>

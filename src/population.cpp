@@ -45,16 +45,6 @@ bool all_nets_equals_to(const population<Ind>& p, const typename Ind::net_t& n)
     {return i.get_net() == n;});
 }
 
-std::vector<double> calc_robustness_all_inds(const std::vector<individual<>>& inds)
-{
-    std::vector<double> robustnesses;
-    robustnesses.reserve(inds.size());
-    for(const auto& ind : inds)
-    {
-        robustnesses.push_back(calc_robustness(ind.get_net()));
-    }
-    return robustnesses;
-};
 
 std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_from_target,
                                                 double selection_strength)
@@ -203,6 +193,7 @@ void test_population() noexcept
     {
         double robust_weight = 10;
         double frail_weight = 0;
+        int n_mutations = 10;
 
         population robust_p;
         robust_p.change_all_inds_weights(robust_weight);
@@ -210,8 +201,8 @@ void test_population() noexcept
         population frail_p;
         assert(pop::all_inds_weights_have_value(frail_p, frail_weight));
 
-        auto robust_inds_robustness = pop::calc_robustness_all_inds(robust_p.get_inds());
-        auto frail_inds_robustness = pop::calc_robustness_all_inds(frail_p.get_inds());
+        auto robust_inds_robustness = pop::calc_robustness_all_inds(robust_p, n_mutations);
+        auto frail_inds_robustness = pop::calc_robustness_all_inds(frail_p, n_mutations);
 
         assert(pairwise_comparison_for_majority(robust_inds_robustness,
                                                 frail_inds_robustness));

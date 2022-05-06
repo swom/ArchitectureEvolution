@@ -903,6 +903,27 @@ void test_network() //!OCLINT
             assert(nodes_in_constitutive[node].get_vec_weights().size() + 1 == nodes_in_plastic[node].get_vec_weights().size());
         }
     }
+///It is possible to calcuate the robustness of a netwrok
+/// measured as the average distance from the current reaction norm
+/// of the reaction norm the netwrok would generate if it
+/// subjected to
+/// N random mutations per weight
+/// of S step size
+/// on the value of its weights
+    {
+        double standard_weight = 1;
+        int few_mutations = 1;
+        double small_mutation_step = 0.1;
+        auto many_mutations = few_mutations * 100;
+        double big_mutation_step = small_mutation_step * 100;
+
+        network net{net_param({1,1}, {}, {1,1})};
+        net.change_all_weights_values(standard_weight);
+
+        auto robustness_to_weak_mutation = calc_robustness(net, few_mutations, small_mutation_step);
+        auto robustness_to_strong_mutation = calc_robustness(net, many_mutations, big_mutation_step);
+        assert(robustness_to_weak_mutation > robustness_to_strong_mutation);
+    }
 
 }
 #endif

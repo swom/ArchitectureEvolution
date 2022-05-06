@@ -161,7 +161,7 @@ cxxopts::Options create_parser(){
              cxxopts::value<int>()->default_value("100"))
             ("u,n_mutations",
              "the number of mutations each locus will undergo when measuring a mutational spectrum",
-             cxxopts::value<int>()->default_value("1000"))
+             cxxopts::value<int>()->default_value("100"))
             ("s,sel_type",
              "the type of seelction regime of the simulation can be 'constant' or 'sporadic'",
              cxxopts::value<std::string>()->default_value("constant"))
