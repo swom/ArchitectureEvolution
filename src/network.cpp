@@ -911,13 +911,15 @@ void test_network() //!OCLINT
 /// of S step size
 /// on the value of its weights
     {
+        std::vector<int> simple_architecture{1,1};
+        auto simple_net_param = net_param(simple_architecture, {}, simple_architecture);
         double standard_weight = 1;
         int few_mutations = 1;
         double small_mutation_step = 0.1;
         auto many_mutations = few_mutations * 100;
         double big_mutation_step = small_mutation_step * 100;
 
-        network net{net_param({1,1}, {}, {1,1})};
+        network net{simple_net_param};
         net.change_all_weights_values(standard_weight);
 
         auto robustness_to_weak_mutation = calc_robustness(net, few_mutations, small_mutation_step);
