@@ -316,18 +316,18 @@ public:
                     temp_node.activate();
                 }
 
-//                for(int weight = 0;
-//                    weight != temp_node.get_vec_weights().size();
-//                    weight++)
-//                {
-//                    if(layer > 1 &&
-//                            is_inactive(m_network_weights.back()[weight]))
-//                    {
-//                        class weight w;
-//                        w.change_activation(false);
-//                        temp_node.change_nth_weight(w, weight);
-//                    }
-//                }
+                //                for(int weight = 0;
+                //                    weight != temp_node.get_vec_weights().size();
+                //                    weight++)
+                //                {
+                //                    if(layer > 1 &&
+                //                            is_inactive(m_network_weights.back()[weight]))
+                //                    {
+                //                        class weight w;
+                //                        w.change_activation(false);
+                //                        temp_node.change_nth_weight(w, weight);
+                //                    }
+                //                }
 
                 temp_layer_vector.push_back(temp_node);
             }
@@ -789,8 +789,35 @@ double calc_robustness(const Net& net,
                        const range& input_range = {-1,1},
                        int n_points = 100)
 {
-//return std::abs(weights_sum(net)) / n_mutations * mutation_step;
-    return calculate_avg_distance_mut_rn_from_orig_rn(net, input_range, n_points, n_mutations, mutation_step);                              );
+    //return std::abs(weights_sum(net)) / n_mutations * mutation_step;
+
+    std::vector<double> distances;
+    distances.reserve(n_mutations * count_weights_and_biases(net));
+    std::vector<double> mutations = create_mutations(n_mutations, mutation_step);
+    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+
+    auto scratch_net = net;
+    reac_norm scratch_mut_reac_norm(n_points);
+
+    for(const auto& mutation : mutations)
+        for(auto& layer : scratch_net.get_net_weights())
+            for(auto& node : layer)
+            {
+                node.mutate_bias(mutation);
+                calculate_reaction_norm(net, input_range, n_points, scratch_mut_reac_norm);
+                node.reverse_mutate_bias(mutation);
+                distances.push_back(distance(base_reac_norm, scratch_mut_reac_norm));
+
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    current_weight.mutate_weight(mutation);
+                    calculate_reaction_norm_modified_weight(net, mutation_step, n_mutations,
+                                                            input_range, n_points, scratch_mut_reac_norm);
+                    current_weight.reverse_mutate_weight(mutation);
+                    distances.push_back(distance(base_reac_norm, scratch_mut_reac_norm));
+                }
+            }
+    return calc_mean(distances);
 }
 
 template<class Net>
