@@ -11,6 +11,19 @@ bool operator==(const net_param& lhs, const net_param& rhs)
     return max_arcs && net_arcs;
 }
 
+std::vector<double> create_mutations(int n_mutations, double mutation_step)
+{
+    rndutils::xorshift128 rng;
+    std::normal_distribution<double> dist(0, mutation_step);
+    std::vector<double> mutations(n_mutations);
+
+    for(auto& mutation : mutations)
+    {
+        mutation = dist(rng);
+    }
+    return mutations;
+}
+
 template<class Net>
 std::vector<weight> register_n_weight_mutations(Net n, double mut_rate, double mut_step, std::mt19937_64& rng, int repeats)
 {
@@ -120,10 +133,23 @@ int get_number_weights(const Net &n)
 network<> produce_simple_network()
 {
     std::vector<int> simple_architecture{1,1};
-    auto simple_net_param = net_param(simple_architecture, {}, simple_architecture);
+    auto simple_net_param = net_param(simple_architecture, sigmoid, simple_architecture);
 
     return network{simple_net_param};
 }
+
+
+
+
+double rn_distance(const reac_norm &lhs, const reac_norm &rhs)
+{
+    auto sum_of_sqr_distances = std::inner_product(lhs.begin(), lhs.end(), rhs.begin(), 0.0,
+                                                   std::plus<>(),
+                                                   [](const react_norm_t& lhs, const react_norm_t& rhs)
+    {return (lhs.m_y - rhs.m_y) * (lhs.m_y - rhs.m_y);});
+    return std::sqrt(sum_of_sqr_distances);
+}
+
 #ifndef NDEBUG
 void test_network() //!OCLINT
 {
@@ -251,19 +277,19 @@ void test_network() //!OCLINT
 
     }
 
-//    ///A network can be initialized with one bias per node
-//    /// stored by layer and by node in a vector of vectors
-//    {
-//        std::vector<int> net_arch{1,2,2,3,1};
-//        network n{net_arch};
-//        for(size_t i = 1; i != net_arch.size(); i++)
-//        {
-//            auto n_biases = n.get_biases()[i - 1].size();
-//            auto n_nodes = static_cast<size_t>(net_arch[i]);
-//            assert(n_biases == n_nodes);
-//        }
+    //    ///A network can be initialized with one bias per node
+    //    /// stored by layer and by node in a vector of vectors
+    //    {
+    //        std::vector<int> net_arch{1,2,2,3,1};
+    //        network n{net_arch};
+    //        for(size_t i = 1; i != net_arch.size(); i++)
+    //        {
+    //            auto n_biases = n.get_biases()[i - 1].size();
+    //            auto n_nodes = static_cast<size_t>(net_arch[i]);
+    //            assert(n_biases == n_nodes);
+    //        }
 
-//    }
+    //    }
     //This is no longer relevant as biases are stored in nodes
 
 #define FIX_ISSUE_98
@@ -371,7 +397,7 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_159
 #ifdef FIX_ISSUE_159
-  ///Network has a (current) network architecture *and* a maximum architecture
+    ///Network has a (current) network architecture *and* a maximum architecture
     {
         std::vector<int> start_arc{1,2,2,1};
         std::vector<int> max_arc{1,8,8,1};
@@ -391,7 +417,7 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_187
 #ifdef FIX_ISSUE_187
-  ///There is a way to change the current architecture to another architecture, as long as it is compatible with the max_architecture
+    ///There is a way to change the current architecture to another architecture, as long as it is compatible with the max_architecture
     {
         network n{net_param{}};
         bool exception_thrown = false;
@@ -399,29 +425,29 @@ void test_network() //!OCLINT
         std::vector<int> invalid_new_arc{1,10,1}; //default max_arc is 1-8-1
 
         try{
-        n.change_network_arc(new_arc);
+            n.change_network_arc(new_arc);
         }
         catch(const std::invalid_argument& e){
             std::cerr << e.what() << std::endl;
             exception_thrown = true;
-          }
+        }
         assert(exception_thrown == false);
         assert(n.get_current_arc() == new_arc);
 
         try{
-        n.change_network_arc(invalid_new_arc);
+            n.change_network_arc(invalid_new_arc);
         }
         catch(const std::invalid_argument& e){
             std::cerr << e.what() << std::endl;
             exception_thrown = true;
-          }
+        }
         assert(exception_thrown == true);
     }
 #endif
 
 #define FIX_ISSUE_198
 #ifdef FIX_ISSUE_198
-  ///A node can be duplicated into an inactive node
+    ///A node can be duplicated into an inactive node
     {
         net_param n_p{};
         n_p.net_arc = {1,2,1};
@@ -484,7 +510,7 @@ void test_network() //!OCLINT
         for(size_t i = 0; i != 2; ++i){
             for(int j = 0; j != basic_arc[i+1]; ++j){
                 for(int k = 0; k != basic_arc[i]; ++k){
-                 assert(n_simple.get_net_weights()[i][j].get_vec_weights()[k] == n_dup.get_net_weights()[i][j].get_vec_weights()[k]);
+                    assert(n_simple.get_net_weights()[i][j].get_vec_weights()[k] == n_dup.get_net_weights()[i][j].get_vec_weights()[k]);
                 }
             }
         }
@@ -538,9 +564,9 @@ void test_network() //!OCLINT
         assert(n_w.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
         assert(n_w.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
         assert(n_w.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+                n_before.get_net_weights()[1][0].get_vec_weights()[0]);
         assert(n_w.get_net_weights()[1][0].get_vec_weights()[1] ==
-               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+                n_before.get_net_weights()[1][0].get_vec_weights()[1]);
 
         assert(n_b.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
         assert(n_b.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
@@ -548,9 +574,9 @@ void test_network() //!OCLINT
         assert(n_a.get_net_weights()[0][0] != n_before.get_net_weights()[0][0]);
         assert(n_a.get_net_weights()[0][1] == n_before.get_net_weights()[0][1]);
         assert(n_a.get_net_weights()[1][0].get_vec_weights()[0] !=
-               n_before.get_net_weights()[1][0].get_vec_weights()[0]);
+                n_before.get_net_weights()[1][0].get_vec_weights()[0]);
         assert(n_a.get_net_weights()[1][0].get_vec_weights()[1] ==
-               n_before.get_net_weights()[1][0].get_vec_weights()[1]);
+                n_before.get_net_weights()[1][0].get_vec_weights()[1]);
 
     }
 #endif
@@ -561,37 +587,37 @@ void test_network() //!OCLINT
     ///There is a function that randomy adds a node to the network with the correct number of connections
     /// With a number of edges depending on the average degree
     {
-    net_param n_p{};
-    n_p.net_arc = {1,2,1};
-    n_p.max_arc = {1,3,1};
+        net_param n_p{};
+        n_p.net_arc = {1,2,1};
+        n_p.max_arc = {1,3,1};
 
-    network n{n_p};
+        network n{n_p};
 
-    std::mt19937_64 rng;
+        std::mt19937_64 rng;
 
-    assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
-    auto empty_node_iterator = n.get_empty_node_in_layer(0);
+        assert(*n.get_empty_node_in_layer(0) == n.get_net_weights()[0][2]); //This should be in third position (index 2)
+        auto empty_node_iterator = n.get_empty_node_in_layer(0);
 
-    n.add_node(0, empty_node_iterator, rng);
+        n.add_node(0, empty_node_iterator, rng);
 
-    auto added_node = *empty_node_iterator;
+        auto added_node = *empty_node_iterator;
 
-    ///Checking that the node is now active
-    assert(added_node.is_active());
+        ///Checking that the node is now active
+        assert(added_node.is_active());
 
-    ///Checking that it has the right number of active incoming connections
-    size_t n_in_con = 0;
-    for(const auto &con : added_node.get_vec_weights())
-      if(con.is_active()) ++n_in_con;
+        ///Checking that it has the right number of active incoming connections
+        size_t n_in_con = 0;
+        for(const auto &con : added_node.get_vec_weights())
+            if(con.is_active()) ++n_in_con;
 
-    assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
+        assert(n_in_con == std::round(average_number_incoming_weights(n, 0)));
 
-    ///Checking that it has the right number of active outgoing connections
-    size_t n_out_con = 0;
-    for(const auto &node : n.get_net_weights()[1])
-      if(node.get_vec_weights()[2].is_active()) ++n_out_con;
+        ///Checking that it has the right number of active outgoing connections
+        size_t n_out_con = 0;
+        for(const auto &node : n.get_net_weights()[1])
+            if(node.get_vec_weights()[2].is_active()) ++n_out_con;
 
-    assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
+        assert(n_out_con == std::round(average_number_outgoing_weights(n, 0))); //0 corresponds to the layer
 
     }
 #endif
@@ -600,56 +626,56 @@ void test_network() //!OCLINT
 #ifdef FIX_ISSUE_210
     ///When adding a node to a network randomly, which nodes it is connected to is random
     {
-    net_param n_p{};
-    n_p.net_arc = {1,8,1,8,1};
-    n_p.max_arc = {1,8,2,8,1};
+        net_param n_p{};
+        n_p.net_arc = {1,8,1,8,1};
+        n_p.max_arc = {1,8,2,8,1};
 
-    network n1{n_p};
-    std::mt19937_64 rng1(0);
-    std::mt19937_64 rng2(1);
+        network n1{n_p};
+        std::mt19937_64 rng1(0);
+        std::mt19937_64 rng2(1);
 
-    for(int i=0; i!= 100; ++i){
-        mutate_activation(n1, 0.2, rng1);
-      }
+        for(int i=0; i!= 100; ++i){
+            mutate_activation(n1, 0.2, rng1);
+        }
 
 
-    network n2 = n1;
+        network n2 = n1;
 
-    auto empty_node_iterator1 = n1.get_empty_node_in_layer(1);
-    auto empty_node_iterator2 = n2.get_empty_node_in_layer(1);
+        auto empty_node_iterator1 = n1.get_empty_node_in_layer(1);
+        auto empty_node_iterator2 = n2.get_empty_node_in_layer(1);
 
-    n1.add_node(1, empty_node_iterator1, rng1);
-    n2.add_node(1, empty_node_iterator2, rng2);
+        n1.add_node(1, empty_node_iterator1, rng1);
+        n2.add_node(1, empty_node_iterator2, rng2);
 
-    auto added_node1 = *empty_node_iterator1;
-    auto added_node2 = *empty_node_iterator2;
+        auto added_node1 = *empty_node_iterator1;
+        auto added_node2 = *empty_node_iterator2;
 
-    ///Checking that the node is now active in both cases
-    assert(added_node1.is_active() && added_node2.is_active());
+        ///Checking that the node is now active in both cases
+        assert(added_node1.is_active() && added_node2.is_active());
 
-    ///Checking that the incoming connections are different in activation
-    int dif = 0;
-    for(size_t i=0; i != added_node1.get_vec_weights().size(); ++i){
-        weight w1 = added_node1.get_vec_weights()[i];
-        weight w2 = added_node2.get_vec_weights()[i];
-        if(w1.is_active() != w2.is_active()){
-            ++dif;
-          }
-      }
-    assert(dif != 0);
+        ///Checking that the incoming connections are different in activation
+        int dif = 0;
+        for(size_t i=0; i != added_node1.get_vec_weights().size(); ++i){
+            weight w1 = added_node1.get_vec_weights()[i];
+            weight w2 = added_node2.get_vec_weights()[i];
+            if(w1.is_active() != w2.is_active()){
+                ++dif;
+            }
+        }
+        assert(dif != 0);
 
-    ///Checking that the outgoing connections are different in activation
+        ///Checking that the outgoing connections are different in activation
 
-    dif = 0;
-    for(size_t i=0; i != n1.get_net_weights()[2].size(); ++i){
-        node node1 = n1.get_net_weights()[2][i];
-        node node2 = n2.get_net_weights()[2][i];
+        dif = 0;
+        for(size_t i=0; i != n1.get_net_weights()[2].size(); ++i){
+            node node1 = n1.get_net_weights()[2][i];
+            node node2 = n2.get_net_weights()[2][i];
 
-        if(node1.get_vec_weights()[1].is_active() != node2.get_vec_weights()[1].is_active()){
-            ++dif;
-          }
-      }
-    assert(dif != 0);
+            if(node1.get_vec_weights()[1].is_active() != node2.get_vec_weights()[1].is_active()){
+                ++dif;
+            }
+        }
+        assert(dif != 0);
 
     }
 #endif
@@ -658,45 +684,45 @@ void test_network() //!OCLINT
 #ifdef FIX_ISSUE_211
     ///When adding a new node to a network randomly, the value of the weights and of its bias are chosen randomly
     {
-    net_param n_p{};
-    n_p.net_arc = {1,2,1};
-    n_p.max_arc = {1,3,1};
-    std::mt19937_64 rng;
+        net_param n_p{};
+        n_p.net_arc = {1,2,1};
+        n_p.max_arc = {1,3,1};
+        std::mt19937_64 rng;
 
-    network n1{n_p};
-    mutate_biases(n1, 1, 0.5, rng);
-    mutate_weights(n1, 1, 0.5, rng);
+        network n1{n_p};
+        mutate_biases(n1, 1, 0.5, rng);
+        mutate_weights(n1, 1, 0.5, rng);
 
-    network n2 = n1;
-    std::mt19937_64 rng1(0);
-    std::mt19937_64 rng2(1);
+        network n2 = n1;
+        std::mt19937_64 rng1(0);
+        std::mt19937_64 rng2(1);
 
-    auto empty_node_iterator1 = n1.get_empty_node_in_layer(0);
-    auto empty_node_iterator2 = n2.get_empty_node_in_layer(0);
+        auto empty_node_iterator1 = n1.get_empty_node_in_layer(0);
+        auto empty_node_iterator2 = n2.get_empty_node_in_layer(0);
 
-    n1.add_node(0, empty_node_iterator1, rng1);
-    n2.add_node(0, empty_node_iterator2, rng2);
+        n1.add_node(0, empty_node_iterator1, rng1);
+        n2.add_node(0, empty_node_iterator2, rng2);
 
-    auto added_node1 = *empty_node_iterator1;
-    auto added_node2 = *empty_node_iterator2;
+        auto added_node1 = *empty_node_iterator1;
+        auto added_node2 = *empty_node_iterator2;
 
-    ///Checking that the node is now active in both cases
-    assert(added_node1.is_active() && added_node1.is_active());
+        ///Checking that the node is now active in both cases
+        assert(added_node1.is_active() && added_node1.is_active());
 
-    ///Checking that the incoming connections are different in weight value
-    weight w1 = added_node1.get_vec_weights()[0];
-    weight w2 = added_node2.get_vec_weights()[0];
-    assert(w1.get_weight() != w2.get_weight());
+        ///Checking that the incoming connections are different in weight value
+        weight w1 = added_node1.get_vec_weights()[0];
+        weight w2 = added_node2.get_vec_weights()[0];
+        assert(w1.get_weight() != w2.get_weight());
 
-    ///Checking that the outgoing connections are different in weight value
-    node node1 = n1.get_net_weights()[1][0];
-    node node2 = n2.get_net_weights()[1][0];
-    assert(node1.get_vec_weights()[2].get_weight() != node2.get_vec_weights()[2].get_weight());
+        ///Checking that the outgoing connections are different in weight value
+        node node1 = n1.get_net_weights()[1][0];
+        node node2 = n2.get_net_weights()[1][0];
+        assert(node1.get_vec_weights()[2].get_weight() != node2.get_vec_weights()[2].get_weight());
 
-    ///Checking that the bias value of the nodes is different
-    assert(added_node1.get_bias() != added_node2.get_bias());
+        ///Checking that the bias value of the nodes is different
+        assert(added_node1.get_bias() != added_node2.get_bias());
     }
-  #endif
+#endif
 
 #define FIX_ISSUE_212
 #ifdef FIX_ISSUE_212
@@ -729,31 +755,31 @@ void test_network() //!OCLINT
 
 #define FIX_ISSUE_231
 #ifdef FIX_ISSUE_231
-  ///There is a function that deletes a given node
-  {
-  net_param n_p{};
-  n_p.net_arc = {1,2,1};
+    ///There is a function that deletes a given node
+    {
+        net_param n_p{};
+        n_p.net_arc = {1,2,1};
 
-  network n{n_p};
+        network n{n_p};
 
-  n.delete_node(0, 0); //Deleting the first node of the middle layer
+        n.delete_node(0, 0); //Deleting the first node of the middle layer
 
-  auto deleted_node = n.get_net_weights()[0][0];
+        auto deleted_node = n.get_net_weights()[0][0];
 
-  ///Checking that the node has been inactivated, its bias put back to 0 and all its weights reset
-  assert(!deleted_node.is_active());
-  assert(deleted_node.get_bias() == 0);
-  weight w_theo{};
-  for(const auto &weight: deleted_node.get_vec_weights()){
-      assert(weight == w_theo);
+        ///Checking that the node has been inactivated, its bias put back to 0 and all its weights reset
+        assert(!deleted_node.is_active());
+        assert(deleted_node.get_bias() == 0);
+        weight w_theo{};
+        for(const auto &weight: deleted_node.get_vec_weights()){
+            assert(weight == w_theo);
+        }
+
+
+        ///Checking that outgoing weights have also been reset
+        for(const auto &node : n.get_net_weights()[1]){
+            assert(node.get_vec_weights()[0] == w_theo);
+        }
     }
-
-
-  ///Checking that outgoing weights have also been reset
-  for(const auto &node : n.get_net_weights()[1]){
-      assert(node.get_vec_weights()[0] == w_theo);
-    }
-  }
 #endif
 
 #define FIX_ISSUE_234
@@ -817,34 +843,34 @@ void test_network() //!OCLINT
     ///The range from which new nodes bias and weights are drawn during random addition
     /// depend on min and max of existing values
     {
-    net_param n_p{};
-    n_p.net_arc = {1,7,1};
-    network n{n_p};
-    std::mt19937_64 rng;
-    mutate_biases(n, 1, 0.5, rng);
-    mutate_weights(n, 1, 0.5, rng);
+        net_param n_p{};
+        n_p.net_arc = {1,7,1};
+        network n{n_p};
+        std::mt19937_64 rng;
+        mutate_biases(n, 1, 0.5, rng);
+        mutate_weights(n, 1, 0.5, rng);
 
-    for(int i = 0; i != 100; ++i){
-        network n_copy = n;
-        std::mt19937_64 rng_2(i);
+        for(int i = 0; i != 100; ++i){
+            network n_copy = n;
+            std::mt19937_64 rng_2(i);
 
-        auto empty_node_iterator = n_copy.get_empty_node_in_layer(0);
-        n_copy.add_node(0, empty_node_iterator, rng_2);
+            auto empty_node_iterator = n_copy.get_empty_node_in_layer(0);
+            n_copy.add_node(0, empty_node_iterator, rng_2);
 
-        const auto &node = n_copy.get_net_weights()[0][7];
-        assert(node.get_bias() > min_bias_in_layer(n_copy, 0));
-        assert(node.get_bias() < max_bias_in_layer(n_copy, 0));
+            const auto &node = n_copy.get_net_weights()[0][7];
+            assert(node.get_bias() > min_bias_in_layer(n_copy, 0));
+            assert(node.get_bias() < max_bias_in_layer(n_copy, 0));
 
-        for(const auto &weight : node.get_vec_weights()){
-            assert(weight.get_weight() > min_weight_in_layer(n_copy, 0));
-            assert(weight.get_weight() < max_weight_in_layer(n_copy, 0));
-          }
+            for(const auto &weight : node.get_vec_weights()){
+                assert(weight.get_weight() > min_weight_in_layer(n_copy, 0));
+                assert(weight.get_weight() < max_weight_in_layer(n_copy, 0));
+            }
 
-        const auto &node_next_l = n_copy.get_net_weights()[1][0];
-        const auto &outgoing_weight = node_next_l.get_vec_weights()[7];
-        assert(outgoing_weight.get_weight() > min_weight_in_layer(n_copy, 1));
-        assert(outgoing_weight.get_weight() < max_weight_in_layer(n_copy, 1));
-      }
+            const auto &node_next_l = n_copy.get_net_weights()[1][0];
+            const auto &outgoing_weight = node_next_l.get_vec_weights()[7];
+            assert(outgoing_weight.get_weight() > min_weight_in_layer(n_copy, 1));
+            assert(outgoing_weight.get_weight() < max_weight_in_layer(n_copy, 1));
+        }
     }
 #endif
 
@@ -854,34 +880,34 @@ void test_network() //!OCLINT
     /// when calculating the average number of active ingoing/ outgoing connections,
     /// this should only take into account those to and from active nodes.
     {
-    net_param n_p{};
-    n_p.net_arc = {1,2,2,2,1};
-    n_p.max_arc = {1,3,3,3,1};
-    network n{n_p};
-    std::mt19937_64 rng;
+        net_param n_p{};
+        n_p.net_arc = {1,2,2,2,1};
+        n_p.max_arc = {1,3,3,3,1};
+        network n{n_p};
+        std::mt19937_64 rng;
 
-    //Set up so that the active nodes each have one deactivated connection
+        //Set up so that the active nodes each have one deactivated connection
 
-    for(size_t i = 1; i != 3; ++i){
-        for(size_t j = 0; j !=2; ++j){
-            auto &node = n.get_net_weights()[i][j];
-            weight w(0, false);
-            node.change_nth_weight(w, 0);
-          }
-      }
+        for(size_t i = 1; i != 3; ++i){
+            for(size_t j = 0; j !=2; ++j){
+                auto &node = n.get_net_weights()[i][j];
+                weight w(0, false);
+                node.change_nth_weight(w, 0);
+            }
+        }
 
-    for(int i = 0; i != 100; ++i){
-    auto n_copy = n;
-    auto empty_node_iterator = n_copy.get_empty_node_in_layer(1);
-    n_copy.add_node(1, empty_node_iterator, rng);
-    weight w{};
+        for(int i = 0; i != 100; ++i){
+            auto n_copy = n;
+            auto empty_node_iterator = n_copy.get_empty_node_in_layer(1);
+            n_copy.add_node(1, empty_node_iterator, rng);
+            weight w{};
 
-    auto added_node = n_copy.get_net_weights()[1][2];
-    assert(added_node.get_vec_weights()[2] == w);
+            auto added_node = n_copy.get_net_weights()[1][2];
+            assert(added_node.get_vec_weights()[2] == w);
 
-    auto empty_node = n_copy.get_net_weights()[2][2];
-    assert(empty_node.get_vec_weights()[2] == w);
-      }
+            auto empty_node = n_copy.get_net_weights()[2][2];
+            assert(empty_node.get_vec_weights()[2] == w);
+        }
     }
 #endif
 
@@ -912,42 +938,50 @@ void test_network() //!OCLINT
             assert(nodes_in_constitutive[node].get_vec_weights().size() + 1 == nodes_in_plastic[node].get_vec_weights().size());
         }
     }
-///It is possible to calcuate the robustness of a netwrok
-/// measured as the average distance from the current reaction norm
-/// of the reaction norm the netwrok would generate if it
-/// subjected to
-/// N random mutations per weight
-/// of S step size
-/// on the value of its weights
-///
-/// In this test we check that the same network is more robust to few small utations
-/// than t many big mutations
+    ///It is possible to calcuate the robustness of a netwrok
+    /// measured as the average distance from the current reaction norm
+    /// of the reaction norm the netwrok would generate if it
+    /// subjected to
+    /// N random mutations per weight
+    /// of S step size
+    /// on the value of its weights
+    ///
+    /// In this test we check that the same network is more robust to few small utations
+    /// than t many big mutations
     {
-        double standard_weight = 1;
         int few_mutations = 1;
         double small_mutation_step = 0.1;
         auto many_mutations = few_mutations * 100;
         double big_mutation_step = small_mutation_step * 100;
+        int n_points = 2;
+        range input_range{-0.1, 0.1};
 
         auto net = produce_simple_network();
-        net.change_all_weights_values(standard_weight);
 
-        auto robustness_to_weak_mutation = calc_robustness(net, few_mutations, small_mutation_step);
-        auto robustness_to_strong_mutation = calc_robustness(net, many_mutations, big_mutation_step);
-        assert(robustness_to_weak_mutation > robustness_to_strong_mutation);
+        auto susceptibility_to_weak_mutation = calc_mutational_susceptibility(net,
+                                                                              few_mutations,
+                                                                              small_mutation_step,
+                                                                              input_range,
+                                                                              n_points);
+        auto susceptibility_to_strong_mutation = calc_mutational_susceptibility(net,
+                                                                                many_mutations,
+                                                                                big_mutation_step,
+                                                                                input_range,
+                                                                                n_points);
+        assert(susceptibility_to_weak_mutation <  susceptibility_to_strong_mutation);
     }
 
-///The robustness of a network is the average distance from its reaction norm
-/// to the reaction norm it produces when it is randomly mutated
+    ///The robustness of a network is the average distance from its reaction norm
+    /// to the reaction norm it produces when it is randomly mutated
     {
         auto no_mutation = 0;
-        double no_unit_step = 0;
+        double almost_no_unit_step = 0.00000000000001;
 
         auto net = produce_simple_network();
 
-        double robustness = calc_robustness(net, no_mutation, no_unit_step);
+        double mutation_susceptibility = calc_mutational_susceptibility(net, no_mutation, almost_no_unit_step);
 
-        assert(are_equal_with_tolerance(robustness, 0));
+        assert(are_equal_with_tolerance(mutation_susceptibility, 0));
     }
 
 }

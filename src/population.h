@@ -275,7 +275,7 @@ std::vector<double> calc_robustness_all_inds(const Pop& p, int n_mutations)
     robustnesses.reserve(inds.size());
     for(const auto& ind : inds)
     {
-        robustnesses.push_back(calc_robustness(ind.get_net(), n_mutations, p.get_mut_step()));
+        robustnesses.push_back(calc_mutational_susceptibility(ind.get_net(), n_mutations, p.get_mut_step()));
     }
     return robustnesses;
 };

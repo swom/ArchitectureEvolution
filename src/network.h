@@ -7,6 +7,7 @@
 #include <mutex>
 #include "node.h"
 #include "mutation_type.h"
+#include "rndutils.hpp"
 #include "response_type.h"
 #include "netwrok_spectrum.h"
 
@@ -781,43 +782,54 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
             lhs.get_net_weights() == rhs.get_net_weights();
 }
 
+///Creates N mutation values given a mutation step S
+std::vector<double> create_mutations(int n_mutations,
+                                     double mutation_step);
+
+///Calculates the distance between the y elements of 2 reaction norms
+double rn_distance(const reac_norm& lhs, const reac_norm& rhs);
+
 ///Calculates the robustness of a network
 template<class Net>
-double calc_robustness(const Net& net,
+double calc_mutational_susceptibility(const Net& net,
                        int n_mutations,
                        double mutation_step,
                        const range& input_range = {-1,1},
                        int n_points = 100)
 {
-    //return std::abs(weights_sum(net)) / n_mutations * mutation_step;
 
     std::vector<double> distances;
     distances.reserve(n_mutations * count_weights_and_biases(net));
     std::vector<double> mutations = create_mutations(n_mutations, mutation_step);
     auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    auto scratch_mut_reac_norm = base_reac_norm;
 
     auto scratch_net = net;
-    reac_norm scratch_mut_reac_norm(n_points);
 
     for(const auto& mutation : mutations)
         for(auto& layer : scratch_net.get_net_weights())
             for(auto& node : layer)
             {
                 node.mutate_bias(mutation);
-                calculate_reaction_norm(net, input_range, n_points, scratch_mut_reac_norm);
+                calculate_reaction_norm_scratch(scratch_net,
+                                                input_range,
+                                                scratch_mut_reac_norm);
                 node.reverse_mutate_bias(mutation);
-                distances.push_back(distance(base_reac_norm, scratch_mut_reac_norm));
+
+                distances.push_back(rn_distance(base_reac_norm, scratch_mut_reac_norm));
 
                 for(auto& current_weight : node.get_vec_mutable_weights())
                 {
                     current_weight.mutate_weight(mutation);
-                    calculate_reaction_norm_modified_weight(net, mutation_step, n_mutations,
-                                                            input_range, n_points, scratch_mut_reac_norm);
+                    calculate_reaction_norm_scratch(scratch_net,
+                                                    input_range,
+                                                    scratch_mut_reac_norm);
                     current_weight.reverse_mutate_weight(mutation);
-                    distances.push_back(distance(base_reac_norm, scratch_mut_reac_norm));
+
+                    distances.push_back(rn_distance(base_reac_norm, scratch_mut_reac_norm));
                 }
             }
-    return calc_mean(distances);
+    return distances.empty() ? 0 : calc_mean(distances);
 }
 
 template<class Net>
@@ -1307,15 +1319,6 @@ reac_norm calculate_reaction_norm(const Net& net,
                                   const range& cue_range,
                                   const int& n_data_points)
 {
-    //reac_norm r_norm;
-    //r_norm.reserve(n_data_points);
-    //double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
-    //for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
-    //{
-    //  r_norm.push_back({ i, output(net, std::vector<double>{i}).at(0) });
-    //}
-    //return r_norm;
-
     reac_norm r_norm;
     r_norm.reserve(n_data_points);
     std::vector<double> input;
@@ -1326,6 +1329,26 @@ reac_norm calculate_reaction_norm(const Net& net,
         input.assign({ i });
         output_ugly_but_fast(net, input, output);
         r_norm.emplace_back(i, output[0]);
+    }
+    return r_norm;
+}
+
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Net>
+reac_norm calculate_reaction_norm_scratch(const Net& net,
+                                          const range& cue_range,
+                                          reac_norm& r_norm
+                                          )
+{
+    std::vector<double> input;
+    std::vector<double> output;
+    double step_size = (cue_range.m_end - cue_range.m_start) / r_norm.size();
+    for (int i = 0; i != r_norm.size(); i++)
+    {
+        input.assign({cue_range.m_start + i * step_size});
+        output_ugly_but_fast(net, input, output);
+        r_norm[i].m_y = output[0];
     }
     return r_norm;
 }
