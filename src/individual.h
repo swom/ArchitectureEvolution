@@ -88,6 +88,9 @@ public:
     ///Returns const ref to network
     const Net& get_net() const noexcept {return m_network;}
 
+    ///Returns const ref to network
+    Net& get_mutable_net() noexcept {return m_network;}
+
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
 

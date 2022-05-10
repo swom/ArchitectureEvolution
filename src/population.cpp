@@ -201,8 +201,8 @@ void test_population() noexcept
         population frail_p;
         assert(pop::all_inds_weights_have_value(frail_p, frail_weight));
 
-        auto robust_inds_robustness = pop::calc_robustness_all_inds(robust_p, n_mutations);
-        auto frail_inds_robustness = pop::calc_robustness_all_inds(frail_p, n_mutations);
+        auto robust_inds_robustness = pop::calc_mutation_sensibility_all_inds(robust_p, n_mutations);
+        auto frail_inds_robustness = pop::calc_mutation_sensibility_all_inds(frail_p, n_mutations);
 
         assert(pairwise_comparison_for_majority(robust_inds_robustness,
                                                 frail_inds_robustness));

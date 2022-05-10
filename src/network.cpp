@@ -68,7 +68,7 @@ std::vector<weight> register_n_activation_mutations(Net n, double mut_rate, std:
 
 double sigmoid(double x)
 {
-    return x / (1 + std::abs(x));
+    return x / (1 + std::fabs(x));
 }
 
 double linear(double x)
@@ -958,16 +958,16 @@ void test_network() //!OCLINT
 
         auto net = produce_simple_network();
 
-        auto susceptibility_to_weak_mutation = calc_mutational_susceptibility(net,
-                                                                              few_mutations,
-                                                                              small_mutation_step,
-                                                                              input_range,
-                                                                              n_points);
-        auto susceptibility_to_strong_mutation = calc_mutational_susceptibility(net,
-                                                                                many_mutations,
-                                                                                big_mutation_step,
-                                                                                input_range,
-                                                                                n_points);
+        auto susceptibility_to_weak_mutation = calc_mutational_sensibility(net,
+                                                                           create_mutations(few_mutations,
+                                                                                            small_mutation_step),
+                                                                           input_range,
+                                                                           n_points);
+        auto susceptibility_to_strong_mutation = calc_mutational_sensibility(net,
+                                                                             create_mutations(many_mutations,
+                                                                                              big_mutation_step),
+                                                                             input_range,
+                                                                             n_points);
         assert(susceptibility_to_weak_mutation <  susceptibility_to_strong_mutation);
     }
 
@@ -979,10 +979,30 @@ void test_network() //!OCLINT
 
         auto net = produce_simple_network();
 
-        double mutation_susceptibility = calc_mutational_susceptibility(net, no_mutation, almost_no_unit_step);
+        double mutation_susceptibility = calc_mutational_sensibility(net,
+                                                                     create_mutations(no_mutation,
+                                                                                      almost_no_unit_step));
 
         assert(are_equal_with_tolerance(mutation_susceptibility, 0));
     }
 
+    ///It is possible to measure the distance of the reaction norm
+    /// of a network from the reaction norm of the same netwrok if it had undergone
+    /// a mutation on one of its nodes biases
+    {
+        range simple_range{-1,1};
+        int n_points = 2;
+        int mutation = 1;
+
+        auto net = produce_simple_network();
+        auto rn = calculate_reaction_norm(net, simple_range, n_points);
+        assert(count_biases(net) == 1);
+        assert(calculate_rn_distance_for_bias_mut(net,
+                                                  net.get_first_node(),
+                                                  rn,
+                                                  mutation
+                                                  ));
+        assert(net == produce_simple_network());
+    }
 }
 #endif

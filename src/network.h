@@ -421,6 +421,11 @@ public:
 
     };
 
+    ///Returns reference to the first node of the first layer
+    node& get_first_node(){return m_network_weights[0][0];}
+
+
+    ///Returns the index of the first inactive node in the layer l
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
     {
         std::vector<node> &layer = get_net_weights()[l];
@@ -789,45 +794,73 @@ std::vector<double> create_mutations(int n_mutations,
 ///Calculates the distance between the y elements of 2 reaction norms
 double rn_distance(const reac_norm& lhs, const reac_norm& rhs);
 
+///Caluclates the distance from a base reaction norm
+/// of a netwrok when one of its eights undergoes a mutation
+template<class Net>
+double calc_rn_distance_for_weight_mut(Net& net,
+                                       weight& current_weight,
+                                       const reac_norm& base_reac_norm,
+                                       const double& mutation)
+{
+
+        current_weight.mutate_weight(mutation);
+        auto dist = calculate_reaction_norm_distance(net,
+                                                     base_reac_norm);
+        current_weight.reverse_mutate_weight(mutation);
+        return dist;
+}
+
+///Calculates the distances from a base reaction norm
+/// of a netwrok when the weights of one of its
+/// nodes undergo a mutation
+template<class Net>
+void  calc_rn_ditance_for_weights_mut(Net& net,
+                                      node& node,
+                                      const reac_norm& base_reac_norm,
+                                      const double& mutation,
+                                      std::vector<double>& distance)
+{
+    for(auto& current_weight : node.get_vec_mutable_weights())
+    {
+        distance.emplace_back(calc_rn_distance_for_weight_mut(net,
+                                                              current_weight,
+                                                              base_reac_norm,
+                                                              mutation));
+    }
+}
+
+///Calculates the distance from a base reaction norm
+/// of a network whose node's bias is mutated
+template<class Net>
+double calculate_rn_distance_for_bias_mut(Net& net,
+                                        node& node,
+                                        const reac_norm& base_reac_norm,
+                                        const double& mutation)
+{
+    node.mutate_bias(mutation);
+    auto dist = calculate_reaction_norm_distance(net, base_reac_norm);
+    node.reverse_mutate_bias(mutation);
+    return dist;
+}
+
 ///Calculates the robustness of a network
 template<class Net>
-double calc_mutational_susceptibility(const Net& net,
-                       int n_mutations,
-                       double mutation_step,
-                       const range& input_range = {-1,1},
-                       int n_points = 100)
+double calc_mutational_sensibility(Net& net,
+                                   const std::vector<double> mutations,
+                                   const range& input_range = {-1,1},
+                                   int n_points = 100)
 {
 
     std::vector<double> distances;
-    distances.reserve(n_mutations * count_weights_and_biases(net));
-    std::vector<double> mutations = create_mutations(n_mutations, mutation_step);
     auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
-    auto scratch_mut_reac_norm = base_reac_norm;
-
-    auto scratch_net = net;
 
     for(const auto& mutation : mutations)
-        for(auto& layer : scratch_net.get_net_weights())
+        for(auto& layer : net.get_net_weights())
             for(auto& node : layer)
             {
-                node.mutate_bias(mutation);
-                calculate_reaction_norm_scratch(scratch_net,
-                                                input_range,
-                                                scratch_mut_reac_norm);
-                node.reverse_mutate_bias(mutation);
+                distances.emplace_back(calculate_rn_distance_for_bias_mut(net, node, base_reac_norm, mutation));
 
-                distances.push_back(rn_distance(base_reac_norm, scratch_mut_reac_norm));
-
-                for(auto& current_weight : node.get_vec_mutable_weights())
-                {
-                    current_weight.mutate_weight(mutation);
-                    calculate_reaction_norm_scratch(scratch_net,
-                                                    input_range,
-                                                    scratch_mut_reac_norm);
-                    current_weight.reverse_mutate_weight(mutation);
-
-                    distances.push_back(rn_distance(base_reac_norm, scratch_mut_reac_norm));
-                }
+                calc_rn_ditance_for_weights_mut(net, node, base_reac_norm, mutation, distances);
             }
     return distances.empty() ? 0 : calc_mean(distances);
 }
@@ -858,6 +891,20 @@ Net change_all_weights_values_and_activations(Net n, weight new_weight)
             }
 
     return n;
+}
+
+///Counts the number of biases (mutable loci by standard mode of mutation)
+/// in a network
+template<class Net>
+int count_biases(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count++;
+        }
+    return count;
 }
 
 ///Counts the number of weights and biases (mutable loci by standard mode of mutation)
@@ -1056,26 +1103,31 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
     {
         throw std::runtime_error{ "One layer has 0 nodes" };
     }
-    for (size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+
+    auto n_layers = n.get_net_weights().size();
+    for (size_t layer = 0; layer != n_layers; layer++)
     {
-        output.clear();
-        for (size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
+      auto n_nodes = n.get_net_weights()[layer].size();
+        output.resize(n_nodes);
+        for (size_t node = 0; node != n_nodes; node++)
         {
-            const auto& current_node = n.get_net_weights().at(layer).at(node);
-            double node_value = 0;
+            const auto& current_node = n.get_net_weights()[layer][node];
             if (current_node.is_active())
             {
                 const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                node_value = current_node.get_bias() +
+                output[node] = n(current_node.get_bias() +
                         std::inner_product(input.begin(),
                                            input.end(),
                                            vec_w.begin(),
                                            0.0,
                                            [](double a, double b) { return a + b; },
                 [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
-                );
+                ));
             }
-            output.push_back(n(node_value));
+            else
+            {
+                output[node] = 0;
+            }
         }
         output.swap(input);
     }
@@ -1336,21 +1388,21 @@ reac_norm calculate_reaction_norm(const Net& net,
 ///Calculates the reaction_norm of an individual's network
 /// for a given range and a given number of data points
 template<class Net>
-reac_norm calculate_reaction_norm_scratch(const Net& net,
-                                          const range& cue_range,
-                                          reac_norm& r_norm
+double calculate_reaction_norm_distance(const Net& net,
+                                          const reac_norm& r_norm
                                           )
 {
+    double sqr_distance = 0;
     std::vector<double> input;
     std::vector<double> output;
-    double step_size = (cue_range.m_end - cue_range.m_start) / r_norm.size();
     for (int i = 0; i != r_norm.size(); i++)
     {
-        input.assign({cue_range.m_start + i * step_size});
+        input.assign({r_norm[i].m_x});
         output_ugly_but_fast(net, input, output);
-        r_norm[i].m_y = output[0];
+        sqr_distance += (r_norm[i].m_y - output[0]) *
+                (r_norm[i].m_y - output[0]);
     }
-    return r_norm;
+    return std::sqrt(sqr_distance);
 }
 
 ///Calculates the reaction_norm of an individual's network

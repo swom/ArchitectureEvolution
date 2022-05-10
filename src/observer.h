@@ -29,9 +29,9 @@ bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs);
 bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs);
 ///Calculates the average robustness of a population in a simulation
 template<class Sim>
-double calc_avg_robustness(const Sim& s, int n_mutations)
+double calc_avg_mutation_sensibility(Sim& s, int n_mutations)
 {
-    return calc_mean(pop::calc_robustness_all_inds(s.get_pop(), n_mutations));
+    return calc_mean(pop::calc_mutation_sensibility_all_inds(s.get_pop(), n_mutations));
 }
 
 
@@ -40,7 +40,7 @@ struct obs_param{
               int top_ind_reg_freq = 1,
               int spectrum_reg_freq = 0,
               int n_data_points_for_reac_norm = 100,
-              int n_mutations_for_mutational_spectrum = 1000):
+              int n_mutations_for_mutational_spectrum = 10):
         m_top_proportion{top_prop},
         m_top_ind_reg_freq{top_ind_reg_freq},
         m_spectrum_reg_freq{spectrum_reg_freq},
@@ -93,7 +93,7 @@ class observer : public base_observer
 private:
 
     std::vector<double> m_avg_fitnesses;
-    std::vector<double> m_avg_robustnesses;
+    std::vector<double> m_avg_mutation_sensibility;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
@@ -132,7 +132,7 @@ public:
     const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
 
     ///Returns the vector containing the avg robustness of the population for every generation
-    const std::vector<double>& get_avg_robustness() const noexcept {return m_avg_robustnesses;}
+    const std::vector<double>& get_avg_mutation_sensibility() const noexcept {return m_avg_mutation_sensibility;}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
@@ -226,9 +226,9 @@ public:
     //    ////returns a constant reference to the otpimal output value given to individuals that generation
     //    const std::vector<std::vector<double>>& get_optimal() const noexcept {return m_optimal;}
 
-    void store_avg_robustness(const Sim& s) noexcept
+    void store_avg_mut_sensibility(Sim& s) noexcept
     {
-        m_avg_robustnesses.push_back(calc_avg_robustness(s, m_obs_param.m_n_mutations_per_locus));
+        m_avg_mutation_sensibility.push_back(calc_avg_mutation_sensibility(s, m_obs_param.m_n_mutations_per_locus));
     }
 
     ///Saves the avg fitness
@@ -356,6 +356,7 @@ void exec(Sim& s , observer<Sim>& o)
         {
             o.store_top_n_inds(s);
             o.store_inputs_and_optimals(s);
+            o.store_avg_mut_sensibility(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
                 (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)

@@ -455,17 +455,25 @@ void test_observer()
         observer o_frail;
         observer o_robust;
 
-        assert(o_frail.get_avg_robustness().empty());
-        o_frail.store_avg_robustness(frail_sim);
-        assert(o_frail.get_avg_robustness().size() == 1);
+        assert(o_frail.get_avg_mutation_sensibility().empty());
+        o_frail.store_avg_mut_sensibility(frail_sim);
+        assert(o_frail.get_avg_mutation_sensibility().size() == 1);
 
-        assert(o_robust.get_avg_robustness().empty());
-        o_robust.store_avg_robustness(robust_sim);
-        assert(o_robust.get_avg_robustness().size() == 1);
+        assert(o_robust.get_avg_mutation_sensibility().empty());
+        o_robust.store_avg_mut_sensibility(robust_sim);
+        assert(o_robust.get_avg_mutation_sensibility().size() == 1);
 
-        assert(pairwise_comparison_for_majority(o_robust.get_avg_robustness(),
-                                                o_frail.get_avg_robustness()));
+        assert(pairwise_comparison_for_majority(o_robust.get_avg_mutation_sensibility(),
+                                                o_frail.get_avg_mutation_sensibility()));
 
+    }
+
+    ///The average sensibility to mutations is recorded every generation
+    {
+        observer o;
+        simulation s;
+        exec(s,o);
+        assert(o.get_avg_mutation_sensibility().size() == s.get_time());
     }
 
     ///It is possible to calculate the avg robustness of a population in a simulation
@@ -481,8 +489,8 @@ void test_observer()
         assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
                                                 frail_weight));
 
-        double robust = calc_avg_robustness(robust_sim, n_mutations);
-        double frail = calc_avg_robustness(frail_sim, n_mutations);
+        double robust = calc_avg_mutation_sensibility(robust_sim, n_mutations);
+        double frail = calc_avg_mutation_sensibility(frail_sim, n_mutations);
 
         assert(robust > frail);
     }

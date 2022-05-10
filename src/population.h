@@ -268,16 +268,18 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 
 ///Calculates the robustnesses of all individuals in a population and returns them in a vector
 template <class Pop>
-std::vector<double> calc_robustness_all_inds(const Pop& p, int n_mutations)
+std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations)
 {
-    auto inds = p.get_inds();
-    std::vector<double> robustnesses;
-    robustnesses.reserve(inds.size());
-    for(const auto& ind : inds)
+    auto inds = p.get_inds_nonconst();
+    std::vector<double> sensibilities_to_mutation;
+    sensibilities_to_mutation.resize(inds.size());
+    for(int i = 0;  i < inds.size(); i++)
     {
-        robustnesses.push_back(calc_mutational_susceptibility(ind.get_net(), n_mutations, p.get_mut_step()));
+        sensibilities_to_mutation[i] = calc_mutational_sensibility(inds[i].get_mutable_net(),
+                                                                        create_mutations(n_mutations,
+                                                                                         p.get_mut_step()));
     }
-    return robustnesses;
+    return sensibilities_to_mutation;
 };
 
 ///Calculates the fitness of inds in pop given a target env_value
