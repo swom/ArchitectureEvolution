@@ -40,7 +40,7 @@ struct obs_param{
               int top_ind_reg_freq = 1,
               int spectrum_reg_freq = 0,
               int n_data_points_for_reac_norm = 100,
-              int n_mutations_for_mutational_spectrum = 10):
+              int n_mutations_for_mutational_spectrum = 1):
         m_top_proportion{top_prop},
         m_top_ind_reg_freq{top_ind_reg_freq},
         m_spectrum_reg_freq{spectrum_reg_freq},

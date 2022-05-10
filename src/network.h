@@ -893,7 +893,7 @@ Net change_all_weights_values_and_activations(Net n, weight new_weight)
     return n;
 }
 
-///Counts the number of biases (mutable loci by standard mode of mutation)
+///Counts the number of biases
 /// in a network
 template<class Net>
 int count_biases(const Net& n)
@@ -903,6 +903,20 @@ int count_biases(const Net& n)
         for(const auto& node : layer)
         {
             count++;
+        }
+    return count;
+}
+
+///Counts the number of nodes
+/// in a network
+template<class Net>
+int count_nodes(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count += node.get_vec_weights().size();
         }
     return count;
 }

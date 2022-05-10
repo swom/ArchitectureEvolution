@@ -1003,6 +1003,17 @@ void test_network() //!OCLINT
                                                   mutation
                                                   ));
         assert(net == produce_simple_network());
+
+        assert(count_nodes(net) == 1);
+        std::vector<double> distance;
+        calc_rn_ditance_for_weights_mut(net,
+                                        net.get_first_node(),
+                                        rn,
+                                        mutation,
+                                        distance
+                                        );
+        assert(calc_mean(distance));
+        assert(net == produce_simple_network());
     }
 }
 #endif
