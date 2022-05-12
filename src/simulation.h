@@ -423,28 +423,37 @@ public:
     ///Evaluates the operformance of all indiivduals in a population
     std::vector<double> evaluate_inds(){
 
+        std::vector<double> cumulative_performance(get_inds().size(), 0);
+        std::vector<std::vector<double>> performances(m_population.get_n_trials(), std::vector<double>(cumulative_performance.size()));
+
         std::vector<std::vector<double>> inputs(m_population.get_n_trials());
         std::vector<double> optimals(inputs.size());
-        create_and_store_inputs_and_optimals(inputs, optimals);
 
-        std::vector<double> cumulative_performance(get_inds().size(), 0);
+        for(int i = 0; i != m_population.get_n_trials(); i++)
+        {
+            inputs[i] = create_inputs();
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+        }
+
+        store_inputs(inputs);
+        store_optimals(optimals);
 
 #pragma omp parallel for
         for(int i = 0; i < m_population.get_n_trials(); i++)
         {
-            auto performance = pop::calc_dist_from_target(get_inds(),
-                                                          optimals[i],
-                                                          inputs[i]);
-#pragma omp critical
-            {
-                std::transform(cumulative_performance.begin(),
-                               cumulative_performance.end(),
-                               performance.begin(),
-                               cumulative_performance.begin(),
-                               std::plus<double>());
-            }
+            performances[i] = pop::calc_dist_from_target(get_inds(),
+                                                         optimals[i],
+                                                         inputs[i]);
         }
 
+        for(auto& performance : performances)
+        {
+            std::transform(cumulative_performance.begin(),
+                           cumulative_performance.end(),
+                           performance.begin(),
+                           cumulative_performance.begin(),
+                           std::plus<double>());
+        }
         return cumulative_performance;
     }
 
