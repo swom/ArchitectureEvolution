@@ -789,7 +789,7 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
 
 ///Creates N mutation values given a mutation step S
 std::vector<double> create_mutations(int n_mutations,
-                                     double mutation_step);
+                                     double mutation_step, std::mt19937_64 &rng);
 
 ///Calculates the distance between the y elements of 2 reaction norms
 double rn_distance(const reac_norm& lhs, const reac_norm& rhs);

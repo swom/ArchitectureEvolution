@@ -233,6 +233,7 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
     std::vector<double> output_scratch;
     std::vector<double> input_scratch;
 
+#pragma omp parallel for
     for(int i = 0 ; i < int(inds.size()); i++)
     {
         input_scratch = input;
@@ -260,7 +261,8 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 {
     assert(p.get_inds().size() == fitness_vector.size());
 
-    for(size_t i = 0; i != fitness_vector.size(); i++)
+#pragma omp parallel for
+    for(int i = 0; i < fitness_vector.size(); i++)
     {
         set_nth_ind_fitness(p, i, fitness_vector[i]);
     }
@@ -268,16 +270,18 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 
 ///Calculates the robustnesses of all individuals in a population and returns them in a vector
 template <class Pop>
-std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations)
+std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, std::mt19937_64& rng)
 {
     auto inds = p.get_inds_nonconst();
+    std::vector<double> mutations = create_mutations(n_mutations,
+                                                     p.get_mut_step(),
+                                                     rng);
     std::vector<double> sensibilities_to_mutation;
     sensibilities_to_mutation.resize(inds.size());
     for(int i = 0;  i < inds.size(); i++)
     {
         sensibilities_to_mutation[i] = calc_mutational_sensibility(inds[i].get_mutable_net(),
-                                                                        create_mutations(n_mutations,
-                                                                                         p.get_mut_step()));
+                                                                   mutations);
     }
     return sensibilities_to_mutation;
 };

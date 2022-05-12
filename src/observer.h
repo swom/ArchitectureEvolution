@@ -31,7 +31,7 @@ bool operator!= (const inputs_optimals& lhs, const inputs_optimals& rhs);
 template<class Sim>
 double calc_avg_mutation_sensibility(Sim& s, int n_mutations)
 {
-    return calc_mean(pop::calc_mutation_sensibility_all_inds(s.get_pop(), n_mutations));
+    return calc_mean(pop::calc_mutation_sensibility_all_inds(s.get_pop(), n_mutations, s.get_rng()));
 }
 
 
@@ -306,10 +306,6 @@ public:
     }
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
-
-    //    void store_input(const Sim& s) noexcept {m_input.push_back(s.get_stored_inputs());}
-
-    //    void store_optimal(const Sim& s) noexcept {m_optimal.push_back(s.get_stored_optimals());}
 };
 
 template<class Ind>

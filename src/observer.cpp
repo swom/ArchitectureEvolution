@@ -308,8 +308,8 @@ void test_observer()
 
         int record_freq = 1;
         int top_inds_recorded = 1;
-        int n_data_points = 4;
-        int n_mutations = 10;
+        int n_data_points = 2;
+        int n_mutations = 1;
         observer o({top_inds_recorded,
                     record_freq,
                     record_freq,

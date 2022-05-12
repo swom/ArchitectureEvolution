@@ -46,15 +46,17 @@ bool all_nets_equals_to(const population<Ind>& p, const typename Ind::net_t& n)
 }
 
 
-std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_from_target,
+std::vector<double> create_rescaled_fitness_vec(const std::vector<double>& distance_from_target,
                                                 double selection_strength)
 {
-    std::vector<double> fitness_inds;
-    for(size_t i = 0; i != distance_from_target.size(); i++)
+    std::vector<double> fitness_inds(distance_from_target.size());
+
+#pragma omp parallel for
+    for(int i = 0; i < distance_from_target.size(); i++)
     {
         auto ind_fit = std::exp(-selection_strength * distance_from_target[i]);
 
-        fitness_inds.push_back(ind_fit);
+        fitness_inds[i] = ind_fit;
     }
 
     return fitness_inds;
@@ -194,6 +196,8 @@ void test_population() noexcept
         double robust_weight = 10;
         double frail_weight = 0;
         int n_mutations = 10;
+        std::mt19937_64 rng;
+        auto rng2 = rng;
 
         population robust_p;
         robust_p.change_all_inds_weights(robust_weight);
@@ -201,8 +205,8 @@ void test_population() noexcept
         population frail_p;
         assert(pop::all_inds_weights_have_value(frail_p, frail_weight));
 
-        auto robust_inds_robustness = pop::calc_mutation_sensibility_all_inds(robust_p, n_mutations);
-        auto frail_inds_robustness = pop::calc_mutation_sensibility_all_inds(frail_p, n_mutations);
+        auto robust_inds_robustness = pop::calc_mutation_sensibility_all_inds(robust_p, n_mutations, rng);
+        auto frail_inds_robustness = pop::calc_mutation_sensibility_all_inds(frail_p, n_mutations, rng2);
 
         assert(pairwise_comparison_for_majority(robust_inds_robustness,
                                                 frail_inds_robustness));

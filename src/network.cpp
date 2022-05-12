@@ -11,9 +11,8 @@ bool operator==(const net_param& lhs, const net_param& rhs)
     return max_arcs && net_arcs;
 }
 
-std::vector<double> create_mutations(int n_mutations, double mutation_step)
+std::vector<double> create_mutations(int n_mutations, double mutation_step, std::mt19937_64& rng)
 {
-    rndutils::xorshift128 rng;
     std::normal_distribution<double> dist(0, mutation_step);
     std::vector<double> mutations(n_mutations);
 
@@ -955,17 +954,19 @@ void test_network() //!OCLINT
         double big_mutation_step = small_mutation_step * 100;
         int n_points = 2;
         range input_range{-0.1, 0.1};
+        std::mt19937_64 rng;
+        auto rng2 = rng;
 
         auto net = produce_simple_network();
+        auto weak_mutations = create_mutations(few_mutations, small_mutation_step, rng);
+        auto strong_mutations = create_mutations(many_mutations, big_mutation_step, rng2);
 
         auto susceptibility_to_weak_mutation = calc_mutational_sensibility(net,
-                                                                           create_mutations(few_mutations,
-                                                                                            small_mutation_step),
+                                                                           weak_mutations,
                                                                            input_range,
                                                                            n_points);
         auto susceptibility_to_strong_mutation = calc_mutational_sensibility(net,
-                                                                             create_mutations(many_mutations,
-                                                                                              big_mutation_step),
+                                                                             strong_mutations,
                                                                              input_range,
                                                                              n_points);
         assert(susceptibility_to_weak_mutation <  susceptibility_to_strong_mutation);
@@ -976,12 +977,14 @@ void test_network() //!OCLINT
     {
         auto no_mutation = 0;
         double almost_no_unit_step = 0.00000000000001;
+        std::mt19937_64 rng;
+
+        auto no_mutations = create_mutations(no_mutation, almost_no_unit_step, rng);
 
         auto net = produce_simple_network();
 
         double mutation_susceptibility = calc_mutational_sensibility(net,
-                                                                     create_mutations(no_mutation,
-                                                                                      almost_no_unit_step));
+                                                                     no_mutations);
 
         assert(are_equal_with_tolerance(mutation_susceptibility, 0));
     }
