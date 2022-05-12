@@ -278,6 +278,7 @@ std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, 
                                                      rng);
     std::vector<double> sensibilities_to_mutation;
     sensibilities_to_mutation.resize(inds.size());
+   #pragma omp parallel for
     for(int i = 0;  i < inds.size(); i++)
     {
         sensibilities_to_mutation[i] = calc_mutational_sensibility(inds[i].get_mutable_net(),

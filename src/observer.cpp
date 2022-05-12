@@ -294,7 +294,7 @@ void test_observer()
     ///It is possible to calculate the spectrum of individuals from a given generation
     /// and adds it to the vector of Ind_spectrum data in observer
     {
-        //make mutation hapen but they do not change anything,
+        //make mutation happen but they do not change anything,
         //It is just required that the ouput of the two operations are the same
         double mut_step = 0.00000000000001;
         int length_of_simulation = 3;
@@ -304,11 +304,13 @@ void test_observer()
         a_p.s_p.n_generations = length_of_simulation;
         a_p.p_p.number_of_inds = n_inds;
         a_p.p_p.mut_step = mut_step;
+        a_p.i_p.net_par.net_arc = {1,1};
+        a_p.i_p.net_par.max_arc = {1,1};
         simulation s{a_p};
 
         int record_freq = 1;
         int top_inds_recorded = 1;
-        int n_data_points = 2;
+        int n_data_points = 1;
         int n_mutations = 1;
         observer o({top_inds_recorded,
                     record_freq,
