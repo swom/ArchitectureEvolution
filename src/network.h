@@ -891,24 +891,23 @@ double calc_fitness_mutational_sensibility(Net& net,
                                     int n_points = 100)
 {
 
-//    std::vector<double> distances_differences;
+    std::vector<double> distances_differences;
 
-//    auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
-//    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
+    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
 
-//    auto distance_base_rn_from_optimal_rn = calculate_distance_between_reaction_norms(optimal_reac_norm,base_reac_norm);
+    auto distance_base_rn_from_optimal_rn = calculate_distance_between_reaction_norms(optimal_reac_norm,base_reac_norm);
 
-//    for(const auto& mutation : mutations)
-//        for(auto& layer : net.get_net_weights())
-//            for(auto& node : layer)
-//            {
-//                distances_differences.emplace_back(distance_base_rn_from_optimal_rn - calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation));
+    for(const auto& mutation : mutations)
+        for(auto& layer : net.get_net_weights())
+            for(auto& node : layer)
+            {
+                distances_differences.emplace_back(distance_base_rn_from_optimal_rn - calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation));
 
-//                calc_delta_distance_for_weights_mut(net, node, optimal_reac_norm, mutation, distances_differences, distance_base_rn_from_optimal_rn);
-//            }
+                calc_delta_distance_for_weights_mut(net, node, optimal_reac_norm, mutation, distances_differences, distance_base_rn_from_optimal_rn);
+            }
 
-//    return distances_differences.empty() ? 0 : calc_mean(distances_differences);
-    return 1;
+    return distances_differences.empty() ? 0 : calc_mean(distances_differences);
 }
 
 ///Calculates the robustness of the phenotype produced by a network
