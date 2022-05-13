@@ -34,8 +34,8 @@ declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0.1)
 declare -a change_freq_Bs=(0.01)
-declare -a sel_strs=(0.1)
-declare -a gen=(1000)
+declare -a sel_strs=(0.1 0.5 1)
+declare -a gen=(10000)
 declare -a mut_types=("weights")
 declare -a sel_types=("constant")
 declare -a change_freq_types=("regular")
@@ -47,7 +47,7 @@ declare record_top_ind_freq=1000
 declare n_observations_reaction_norm=100
 declare n_trials=10
 
-for seed in $(seq 1 10)
+for seed in $(seq 1 1)
 do
 	for arc in "${architectures[@]}"
 	do

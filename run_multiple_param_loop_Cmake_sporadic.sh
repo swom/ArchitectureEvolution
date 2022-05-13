@@ -33,18 +33,23 @@ make
 declare -a architectures=("1,2,2,2,1")
 declare -a max_architectures=("1,2,2,2,1")
 declare -a change_freq_As=(0)
-declare -a gen=(500000)
+#declare -a gen=(500000)
+declare -a gen=(100000)
 declare -a mut_types=("weights")
+#declare -a sel_strs=(0.1 0.5 1)
 declare -a sel_strs=(0.1 0.5 1)
 declare -a sel_types=("sporadic")
 declare -a change_freq_types=("regular")
 declare -a adaptation_periods=("on" "off")
-declare -a sel_freqs=(0 100 1000 10000)
+declare -a sel_freqs=(100)
+#declare -a sel_freqs=(0 100 1000 10000)
 declare record_top_ind_freq=1000
 declare n_observations_reaction_norm=100
 declare n_trials=10
+declare n_mutations=100
 
-for seed in $(seq 1 5)
+#for seed in $(seq 1 5)
+for seed in $(seq 1 1)
 do
 	for arc in "${architectures[@]}"
 	do
@@ -75,7 +80,8 @@ do
 												echo $adaptation_period 
 												echo $change_freq_types 
 												echo $sel_str
-												sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $change_freq_type $sel_str
+												echo $n_mutations
+												sbatch ../run_loop_sporadic.sh $seed $arc $max_arc $change_freq_A $gen $mut_type $sel_type $sel_freq $record_top_ind_freq $n_observations_reaction_norm $n_trials $adaptation_period $n_,$change_freq_type $sel_str $n_mutations
 										done
 									done
 								done
