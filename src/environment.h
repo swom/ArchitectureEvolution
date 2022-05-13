@@ -28,8 +28,6 @@ static double env_func_4(std::vector<double> input){
 }
 
 
-
-
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map{
 {"1", env_func_1},
 {"2", env_func_2},

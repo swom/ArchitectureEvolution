@@ -75,6 +75,11 @@ double linear(double x)
     return x;
 }
 
+double constant_one(const std::vector<double>&)
+{
+    return 1;
+}
+
 template<class Net>
 bool all_weigths_are_active(const Net &n)
 {
@@ -129,7 +134,18 @@ int get_number_weights(const Net &n)
 ///Priduces a very simple 1-1 network
 /// not plastic
 /// can only mutate weights and biases
-network<> produce_simple_network()
+network<> produce_simple_linear_network()
+{
+    std::vector<int> simple_architecture{1,1};
+    auto simple_net_param = net_param(simple_architecture, linear, simple_architecture);
+
+    return network{simple_net_param};
+}
+
+///Priduces a very simple 1-1 network
+/// not plastic
+/// can only mutate weights and biases
+network<> produce_simple_sigmoid_network()
 {
     std::vector<int> simple_architecture{1,1};
     auto simple_net_param = net_param(simple_architecture, sigmoid, simple_architecture);
@@ -957,15 +973,15 @@ void test_network() //!OCLINT
         std::mt19937_64 rng;
         auto rng2 = rng;
 
-        auto net = produce_simple_network();
+        auto net = produce_simple_sigmoid_network();
         auto weak_mutations = create_mutations(few_mutations, small_mutation_step, rng);
         auto strong_mutations = create_mutations(many_mutations, big_mutation_step, rng2);
 
-        auto susceptibility_to_weak_mutation = calc_mutational_sensibility(net,
+        auto susceptibility_to_weak_mutation = calc_phenotype_mutational_sensibility(net,
                                                                            weak_mutations,
                                                                            input_range,
                                                                            n_points);
-        auto susceptibility_to_strong_mutation = calc_mutational_sensibility(net,
+        auto susceptibility_to_strong_mutation = calc_phenotype_mutational_sensibility(net,
                                                                              strong_mutations,
                                                                              input_range,
                                                                              n_points);
@@ -981,9 +997,9 @@ void test_network() //!OCLINT
 
         auto no_mutations = create_mutations(no_mutation, almost_no_unit_step, rng);
 
-        auto net = produce_simple_network();
+        auto net = produce_simple_sigmoid_network();
 
-        double mutation_susceptibility = calc_mutational_sensibility(net,
+        double mutation_susceptibility = calc_phenotype_mutational_sensibility(net,
                                                                      no_mutations);
 
         assert(are_equal_with_tolerance(mutation_susceptibility, 0));
@@ -997,15 +1013,16 @@ void test_network() //!OCLINT
         int n_points = 2;
         int mutation = 1;
 
-        auto net = produce_simple_network();
+        auto net = produce_simple_sigmoid_network();
         auto rn = calculate_reaction_norm(net, simple_range, n_points);
+
         assert(count_biases(net) == 1);
         assert(calculate_rn_distance_for_bias_mut(net,
                                                   net.get_first_node(),
                                                   rn,
                                                   mutation
                                                   ));
-        assert(net == produce_simple_network());
+        assert(net == produce_simple_sigmoid_network());
 
         assert(count_nodes(net) == 1);
         std::vector<double> distance;
@@ -1016,7 +1033,60 @@ void test_network() //!OCLINT
                                         distance
                                         );
         assert(calc_mean(distance));
-        assert(net == produce_simple_network());
+        assert(net == produce_simple_sigmoid_network());
+    }
+
+    ///It is possible to calculate the fitness-mutation sensitivty of a network
+    {
+        auto net = produce_simple_sigmoid_network();
+        std::vector<double> mutations{1};
+        assert(calc_fitness_mut_sensitivity(net, mutations, constant_one));
+    }
+
+    ///The fitness-mutation sensitivty of a network is measured as the avg of
+    ///distance(optimal reaction norm, mutated network reaction norm) - distance(optimal reaction norm, current reaction norm)
+    {
+        auto base_net = produce_simple_linear_network();
+
+        //create a net that returns -1
+        // for input 1
+        base_net.change_all_weights_values(-1);
+        auto negative_output_net = base_net;
+
+        //create a net that returns 1
+        // for input 1
+        base_net.change_all_weights_values(1);
+        auto positive_output_net = base_net;
+
+        std::vector<double> mutations{1};
+        range range{1,1};
+        int n_points = 1;
+        std::function<double(std::vector<double>)> const_optimal_function{constant_one};
+
+        assert(rn_is_equal_to_optimal_rn(positive_output_net,
+                                         const_optimal_function,
+                                         range,
+                                         n_points));
+
+        auto pos_net_sensitivity = calc_fitness_mut_sensitivity(positive_output_net,
+                                                                mutations,
+                                                                const_optimal_function,
+                                                                range,
+                                                                n_points);
+
+        assert(!rn_is_equal_to_optimal_rn(negative_output_net,
+                                          const_optimal_function,
+                                          range,
+                                          n_points));
+
+        auto neg_net_sensitivity = calc_fitness_mut_sensitivity(negative_output_net,
+                                                                mutations,
+                                                                const_optimal_function,
+                                                                range,
+                                                                n_points);
+        assert(pos_net_sensitivity < neg_net_sensitivity);
+
     }
 }
 #endif
+
