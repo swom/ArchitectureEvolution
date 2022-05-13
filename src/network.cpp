@@ -1058,33 +1058,65 @@ void test_network() //!OCLINT
         base_net.change_all_weights_values(1);
         auto positive_output_net = base_net;
 
+        //the optimal function we consider always returns 1
+        std::function<double(std::vector<double>)> optimal_function{constant_one};
+
         std::vector<double> mutations{1};
         range range{1,1};
         int n_points = 1;
-        std::function<double(std::vector<double>)> const_optimal_function{constant_one};
 
         assert(rn_is_equal_to_optimal_rn(positive_output_net,
-                                         const_optimal_function,
+                                         optimal_function,
                                          range,
                                          n_points));
 
         auto pos_net_sensitivity = calc_fitness_mutational_sensibility(positive_output_net,
                                                                 mutations,
-                                                                const_optimal_function,
+                                                                optimal_function,
                                                                 range,
                                                                 n_points);
 
         assert(!rn_is_equal_to_optimal_rn(negative_output_net,
-                                          const_optimal_function,
+                                          optimal_function,
                                           range,
                                           n_points));
 
         auto neg_net_sensitivity = calc_fitness_mutational_sensibility(negative_output_net,
                                                                 mutations,
-                                                                const_optimal_function,
+                                                                optimal_function,
                                                                 range,
                                                                 n_points);
         assert(pos_net_sensitivity < neg_net_sensitivity);
+        assert(pos_net_sensitivity < 0);
+        assert(0 < neg_net_sensitivity);
+
+    }
+
+    ///The sensitivity of a network with small weights is higher than that of a network with big weights
+    {
+        auto base_net = produce_simple_linear_network();
+
+        //create a net that returns -1
+        // for input 1
+        base_net.change_all_weights_values(10);
+        auto big_weights_net = base_net;
+
+        //create a net that returns 1
+        // for input 1
+        base_net.change_all_weights_values(0.1);
+        auto small_weights_net = base_net;
+
+        std::vector<double> mutations{1};
+
+        auto big_weights_net_sensitivity = calc_fitness_mutational_sensibility(big_weights_net,
+                                                                mutations,
+                                                                constant_one);
+
+        auto small_weights_net_sensitivity = calc_fitness_mutational_sensibility(small_weights_net,
+                                                                mutations,
+                                                                constant_one);
+
+        assert(big_weights_net_sensitivity < small_weights_net_sensitivity);
 
     }
 }
