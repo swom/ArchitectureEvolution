@@ -10,7 +10,7 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/28+29/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/14_4_22_pl/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
@@ -53,8 +53,7 @@ jpeg("fitness_plots.jpg",
 
 filter_gen = 1000
 show_last_n_gen = 1000000
-wanted_freqs = c(0,100,1000)
-wanted_seed = c(1,2)
+wanted_freqs = c(1)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
   filter(gen > max(gen) - show_last_n_gen #&

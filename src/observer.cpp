@@ -64,22 +64,22 @@ std::unique_ptr<base_observer> load_observer_json_mutation_type(const all_params
         return load_observer_selection_type<mutation_type::NRaddition>(pars);
         break;
     case mutation_type::NRduplication :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::NRduplication>(pars);
         break;
     case mutation_type::activation :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::activation>(pars);
         break;
     case mutation_type::addition :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::addition>(pars);
         break;
     case mutation_type::duplication :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::duplication>(pars);
         break;
     case mutation_type::weights :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::weights>(pars);
         break;
     case mutation_type::weights_and_activation :
-        return load_observer_selection_type<mutation_type::NRaddition>(pars);
+        return load_observer_selection_type<mutation_type::weights_and_activation>(pars);
         break;
     default:
         throw std::invalid_argument{"invalid mutation_type when loading observer"};
@@ -495,6 +495,20 @@ void test_observer()
         double frail = calc_avg_mutation_sensibility(frail_sim, n_mutations);
 
         assert(robust > frail);
+    }
+
+
+    ///The avg population mutation sensibility is saved
+    {
+
+        sim_param s_p;
+        s_p.n_generations = 1;
+        simulation s{{env_param{}, ind_param{}, pop_param{}, s_p}};
+        observer o({}, s.get_params());
+        exec(s,o);
+        save_json(o, "test_save");
+        auto loaded_o = load_default_observer_json("test_save");
+        assert(o.get_avg_mutation_sensibility() == loaded_o.get_avg_mutation_sensibility());
     }
 }
 #endif

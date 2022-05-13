@@ -123,7 +123,8 @@ public:
                                    m_env_functions,
                                    m_params,
                                    m_obs_param,
-                                   m_inputs_optimals)
+                                   m_inputs_optimals,
+                                   m_avg_mutation_sensibility)
 
     ///adds a network spectrum to the vector of network spectrums
     void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
