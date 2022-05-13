@@ -1026,7 +1026,7 @@ void test_network() //!OCLINT
 
         assert(count_nodes(net) == 1);
         std::vector<double> distance;
-        calc_rn_ditance_for_weights_mut(net,
+        calc_rn_distance_for_weights_mut(net,
                                         net.get_first_node(),
                                         rn,
                                         mutation,
@@ -1040,7 +1040,7 @@ void test_network() //!OCLINT
     {
         auto net = produce_simple_sigmoid_network();
         std::vector<double> mutations{1};
-        assert(calc_fitness_mut_sensitivity(net, mutations, constant_one));
+        assert(calc_fitness_mutational_sensibility(net, mutations, constant_one));
     }
 
     ///The fitness-mutation sensitivty of a network is measured as the avg of
@@ -1068,7 +1068,7 @@ void test_network() //!OCLINT
                                          range,
                                          n_points));
 
-        auto pos_net_sensitivity = calc_fitness_mut_sensitivity(positive_output_net,
+        auto pos_net_sensitivity = calc_fitness_mutational_sensibility(positive_output_net,
                                                                 mutations,
                                                                 const_optimal_function,
                                                                 range,
@@ -1079,7 +1079,7 @@ void test_network() //!OCLINT
                                           range,
                                           n_points));
 
-        auto neg_net_sensitivity = calc_fitness_mut_sensitivity(negative_output_net,
+        auto neg_net_sensitivity = calc_fitness_mutational_sensibility(negative_output_net,
                                                                 mutations,
                                                                 const_optimal_function,
                                                                 range,
