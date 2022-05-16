@@ -842,7 +842,7 @@ double calc_rn_distance_for_weight_mut(Net& net,
 
     current_weight.mutate_weight(mutation);
     auto dist = calculate_net_distance_from_reaction_norm(net,
-                                                 base_reac_norm);
+                                                          base_reac_norm);
     current_weight.reverse_mutate_weight(mutation);
     return dist;
 }
@@ -880,9 +880,9 @@ void  calc_delta_distances_for_weights_mut(Net& net,
     for(auto& current_weight : node.get_vec_mutable_weights())
     {
         distance.emplace_back(distance_from_base_norm - calc_rn_distance_for_weight_mut(net,
-                                                              current_weight,
-                                                              reac_norm,
-                                                              mutation));
+                                                                                        current_weight,
+                                                                                        reac_norm,
+                                                                                        mutation));
     }
 }
 
@@ -900,15 +900,41 @@ double calculate_rn_distance_for_bias_mut(Net& net,
     return dist;
 }
 
+////Calculates the reaction norm of a network with a mutated bias
+/// using a scratch reaction norm
+template<class Net>
+void calculate_rn_for_bias_mut(Net& net,
+                               node& node,
+                               reac_norm& scratch_reaction_norm,
+                               const double& mutation)
+{
+    node.mutate_bias(mutation);
+    recalculate_scratch_reaction_norm(net, scratch_reaction_norm);
+    node.reverse_mutate_bias(mutation);
+}
+
+////Calculates the reaction norm of a network with a mutated weights
+/// using a scratch reaction norm
+template<class Net>
+void calculate_rn_for_weights_mut(Net& net,
+                                  weight& weight,
+                                  reac_norm& scratch_reaction_norm,
+                                  const double& mutation)
+{
+    weight.mutate_weight(mutation);
+    recalculate_scratch_reaction_norm(net, scratch_reaction_norm);
+    weight.reverse_mutate_weight(mutation);
+}
+
 ///Calculates the robustness of the fitness
 /// of a network to a series of mutations
 /// on all its loci
 template<typename Func, class Net>
 double calc_fitness_mutational_sensibility(Net& net,
-                                    const std::vector<double> mutations,
-                                    Func optimal_function,
-                                    const range& input_range = {-1,1},
-                                    int n_points = 100)
+                                           const std::vector<double> mutations,
+                                           Func optimal_function,
+                                           const range& input_range = {-1,1},
+                                           int n_points = 100)
 {
 
     std::vector<double> distances_differences;
@@ -924,7 +950,15 @@ double calc_fitness_mutational_sensibility(Net& net,
             {
                 distances_differences.emplace_back(distance_base_rn_from_optimal_rn - calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation));
 
-                calc_delta_distances_for_weights_mut(net, node, optimal_reac_norm, mutation, distances_differences, distance_base_rn_from_optimal_rn);
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    auto distance_from_optimal_after_mut =  calc_rn_distance_for_weight_mut(net,
+                                                                                            current_weight,
+                                                                                            optimal_reac_norm,
+                                                                                            mutation);
+
+                    distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_mut);
+                }
             }
 
     return distances_differences.empty() ? 0 : calc_mean(distances_differences);
@@ -948,9 +982,54 @@ double calc_phenotype_mutational_sensibility(Net& net,
             {
                 distances.emplace_back(calculate_rn_distance_for_bias_mut(net, node, base_reac_norm, mutation));
 
-                calc_rn_distance_for_weights_mut(net, node, base_reac_norm, mutation, distances);
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    distances.emplace_back(calc_rn_distance_for_weight_mut(net,
+                                                                           current_weight,
+                                                                           base_reac_norm,
+                                                                           mutation));
+                }
             }
     return distances.empty() ? 0 : calc_mean(distances);
+}
+
+///Calculates the robustness of the phenotype produced by a network
+/// to a series of mutations on all its loci
+template<class Net, typename Func>
+phen_and_fit_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
+                                                      const std::vector<double> mutations,
+                                                      Func optimal_function,
+                                                      const range& input_range = {-1,1},
+                                                      int n_points = 100)
+{
+
+    std::vector<double> fitness_distances;
+    std::vector<double> phenptype_distances;
+    reac_norm scratch_reac_norm(n_points);
+
+    auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
+    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    auto distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
+
+    for(const auto& mutation : mutations)
+        for(auto& layer : net.get_net_weights())
+            for(auto& node : layer)
+            {
+                calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
+                fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                fitness_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
+                    fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                    fitness_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+
+                }
+            }
+
+    //    return phen_and_fit_sens_t{calc_fitness_mutational_sensibility(net, mutations, optimal_function, input_range, n_points),
+    //    calc_phenotype_mutational_sensibility(net, mutations, input_range, n_points)};
 }
 
 template<class Net>
@@ -1029,8 +1108,8 @@ int count_weights_and_biases(const Net& n)
 /// for a given range and a given number of data points
 template<class Func>
 reac_norm calculate_reaction_norm_from_function(const Func& func,
-                                          const range& cue_range,
-                                          const int& n_data_points)
+                                                const range& cue_range,
+                                                const int& n_data_points)
 {
     reac_norm r_norm;
     r_norm.reserve(n_data_points);
@@ -1533,6 +1612,24 @@ reac_norm calculate_reaction_norm(const Net& net,
         r_norm.emplace_back(i, output[0]);
     }
     return r_norm;
+}
+
+///Recalculates the reaction_norm of an individual's network
+///based on the inputs (.m_x) of a given reaction norm
+template<class Net>
+void recalculate_scratch_reaction_norm(const Net& net,
+                                       reac_norm& r_norm)
+{
+
+    std::vector<double> input;
+    std::vector<double> output;
+
+    for (int i = 0; i < r_norm.size(); i++)
+    {
+        input.assign({ r_norm[i].m_x });
+        output_ugly_but_fast(net, input, output);
+        r_norm[i].m_y = output[0];
+    }
 }
 
 

@@ -1096,13 +1096,9 @@ void test_network() //!OCLINT
     {
         auto base_net = produce_simple_linear_network();
 
-        //create a net that returns -1
-        // for input 1
         base_net.change_all_weights_values(10);
         auto big_weights_net = base_net;
 
-        //create a net that returns 1
-        // for input 1
         base_net.change_all_weights_values(0.1);
         auto small_weights_net = base_net;
 
@@ -1118,6 +1114,19 @@ void test_network() //!OCLINT
 
         assert(big_weights_net_sensitivity < small_weights_net_sensitivity);
 
+    }
+
+///To optimize, it is possible to clalculate sensibility of fitness and phenotype in one go
+    {
+        auto net = produce_simple_linear_network();
+        std::vector<double> mutations{1};
+        auto fitness_sensibility = calc_fitness_mutational_sensibility(net, mutations, constant_one);
+        auto phenotype_sensibility = calc_phenotype_mutational_sensibility(net, mutations);
+
+        phen_and_fit_sens_t fitness_and_phenotype_sensibilites = calc_phen_and_fit_mut_sensibility(net, mutations, constant_one);
+
+        assert(fitness_and_phenotype_sensibilites.m_fitness == fitness_sensibility);
+        assert(fitness_and_phenotype_sensibilites.m_phenotype == phenotype_sensibility);
     }
 }
 #endif

@@ -5,16 +5,23 @@
 #include <vector>
 #include "range.h"
 
+///Stores the phenpotype and fitness sensibilities to mutations of a network
+struct phen_and_fit_sens_t
+{
+    double m_fitness;
+    double m_phenotype;
+};
+
 struct react_norm_t { 
     react_norm_t(){};
     react_norm_t(double x, double y):
-    m_x{x},
-    m_y{y}
+        m_x{x},
+        m_y{y}
     {};
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, m_x, m_y);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, m_x, m_y);
 
-  double m_x;
-  double m_y;
+    double m_x;
+    double m_y;
 };
 bool operator==(const react_norm_t& lhs, const react_norm_t& rhs);
 
@@ -61,15 +68,15 @@ public:
     {};
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network_spectrum,
-                                       m_current_reac_norm,
-                                       m_net_spectrum_weights_for_weights_mutation
-                                       //                                       ,
-                                       //                                       m_net_spectrum_biases_for_weights_mutation,
-                                       //                                       m_net_spectrum_for_act_mutation,
-                                       //                                       m_net_spectrum_for_dup,
-                                       //                                       m_net_spectrum_for_nradd,
-                                       //                                       m_net_spectrum_for_del
-                                       )
+                                   m_current_reac_norm,
+                                   m_net_spectrum_weights_for_weights_mutation
+                                   //                                       ,
+                                   //                                       m_net_spectrum_biases_for_weights_mutation,
+                                   //                                       m_net_spectrum_for_act_mutation,
+                                   //                                       m_net_spectrum_for_dup,
+                                   //                                       m_net_spectrum_for_nradd,
+                                   //                                       m_net_spectrum_for_del
+                                   )
 
     ///
     ////// \brief get_reac_norm
