@@ -948,16 +948,17 @@ double calc_fitness_mutational_sensibility(Net& net,
         for(auto& layer : net.get_net_weights())
             for(auto& node : layer)
             {
-                distances_differences.emplace_back(distance_base_rn_from_optimal_rn - calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation));
+                auto distance_from_optimal_after_bias_mut = calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation);
+                distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_bias_mut);
 
                 for(auto& current_weight : node.get_vec_mutable_weights())
                 {
-                    auto distance_from_optimal_after_mut =  calc_rn_distance_for_weight_mut(net,
+                    auto distance_from_optimal_after_weight_mut =  calc_rn_distance_for_weight_mut(net,
                                                                                             current_weight,
                                                                                             optimal_reac_norm,
                                                                                             mutation);
 
-                    distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_mut);
+                    distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_weight_mut);
                 }
             }
 
@@ -994,9 +995,10 @@ double calc_phenotype_mutational_sensibility(Net& net,
 }
 
 ///Calculates the robustness of the phenotype produced by a network
+/// and its fitness
 /// to a series of mutations on all its loci
 template<class Net, typename Func>
-phen_and_fit_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
+fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
                                                       const std::vector<double> mutations,
                                                       Func optimal_function,
                                                       const range& input_range = {-1,1},
@@ -1005,10 +1007,11 @@ phen_and_fit_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
 
     std::vector<double> fitness_distances;
     std::vector<double> phenptype_distances;
-    reac_norm scratch_reac_norm(n_points);
 
     auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
     auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    reac_norm scratch_reac_norm = base_reac_norm;
+
     auto distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
 
     for(const auto& mutation : mutations)
@@ -1017,19 +1020,17 @@ phen_and_fit_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
             {
                 calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
                 fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                fitness_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+                phenptype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
 
                 for(auto& current_weight : node.get_vec_mutable_weights())
                 {
                     calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
                     fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                    fitness_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
-
+                    phenptype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
                 }
             }
 
-    //    return phen_and_fit_sens_t{calc_fitness_mutational_sensibility(net, mutations, optimal_function, input_range, n_points),
-    //    calc_phenotype_mutational_sensibility(net, mutations, input_range, n_points)};
+        return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenptype_distances)};
 }
 
 template<class Net>

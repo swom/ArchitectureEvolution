@@ -214,6 +214,16 @@ public:
                                    m_sel_str,
                                    m_seed)
 
+    ///Calculates the mutational sensibility to fitness and phenotype of all individuals in the population
+    std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations, int n_points)
+    {
+        return m_population.calculate_fit_phen_mut_sens_for_all_inds(n_mutations,
+                                                                     m_rng,
+                                                                     m_environment.get_name_current_function(),
+                                                                     m_params.e_p.cue_range,
+                                                                     n_points);
+    }
+
     ///Changes all the weights of a given individual to a given value
     void change_all_weights_nth_ind(size_t ind_index, double new_weight)
     {
@@ -623,6 +633,11 @@ bool all_individuals_have_same_input(const Sim &s)
     return pop::all_individuals_have_same_input(p);
 }
 
+template<class Sim>
+bool all_inds_have_fitness(double value, const Sim& s)
+{
+  return pop::all_fitnesses_are(value, s.get_pop());
+}
 
 ///Calculates the optimal output
 template<class Sim>

@@ -1120,10 +1120,12 @@ void test_network() //!OCLINT
     {
         auto net = produce_simple_linear_network();
         std::vector<double> mutations{1};
-        auto fitness_sensibility = calc_fitness_mutational_sensibility(net, mutations, constant_one);
-        auto phenotype_sensibility = calc_phenotype_mutational_sensibility(net, mutations);
+        range input_range{1,1};
+        int n_points = 1;
+        auto fitness_sensibility = calc_fitness_mutational_sensibility(net, mutations, constant_one, input_range, n_points);
+        auto phenotype_sensibility = calc_phenotype_mutational_sensibility(net, mutations, input_range, n_points);
 
-        phen_and_fit_sens_t fitness_and_phenotype_sensibilites = calc_phen_and_fit_mut_sensibility(net, mutations, constant_one);
+        fit_and_phen_sens_t fitness_and_phenotype_sensibilites = calc_phen_and_fit_mut_sensibility(net, mutations, constant_one, input_range, n_points);
 
         assert(fitness_and_phenotype_sensibilites.m_fitness == fitness_sensibility);
         assert(fitness_and_phenotype_sensibilites.m_phenotype == phenotype_sensibility);

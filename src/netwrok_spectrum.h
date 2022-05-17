@@ -6,7 +6,7 @@
 #include "range.h"
 
 ///Stores the phenpotype and fitness sensibilities to mutations of a network
-struct phen_and_fit_sens_t
+struct fit_and_phen_sens_t
 {
     double m_fitness;
     double m_phenotype;

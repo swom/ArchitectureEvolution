@@ -159,6 +159,18 @@ std::string create_save_name_from_params(const all_params& p)
     return name;
 }
 
+simulation<> create_simple_simulation()
+{
+    all_params a_p;
+    a_p.i_p.net_par.max_arc = {1,1};
+    a_p.i_p.net_par.net_arc = {1,1};
+    a_p.e_p.cue_range = {1,1};
+    a_p.e_p.env_function_A = constant_one;
+
+    return simulation{a_p};
+}
+
+
 #ifndef NDEBUG
 void test_observer()
 {
@@ -442,7 +454,7 @@ void test_observer()
         assert( n_recorded_inds == n_recorded_inputs_outputs);
     }
 
-    ///Observers can record the avg robustness of the population and its stdandard deviation
+    ///Observers can record the avg robustness of the population
     {
         double robust_weight = 10;
         double frail_weight = 0;
@@ -500,7 +512,6 @@ void test_observer()
 
     ///The avg population mutation sensibility is saved
     {
-
         sim_param s_p;
         s_p.n_generations = 1;
         simulation s{{env_param{}, ind_param{}, pop_param{}, s_p}};
@@ -510,7 +521,103 @@ void test_observer()
         auto loaded_o = load_default_observer_json("test_save");
         assert(o.get_avg_mutation_sensibility() == loaded_o.get_avg_mutation_sensibility());
     }
+
+    ///The fitness and phenotype mutation sensibility can be stored in observer
+    /// #1 when sensibilities are stored they are stored in 2 separate vectors
+    {
+        simulation s;
+        observer o;
+
+        assert( o.get_fit_phen_mut_sensibility().empty());
+        o.store_fit_phen_mut_sensibility(s);
+
+        assert( !o.get_fit_phen_mut_sensibility().empty());
+    }
+
+    ///The fitness and phenotype mutation sensibility can be stored in observer
+    /// #2 a value for each individual in the population is stored
+    {
+
+        all_params a_p;
+        a_p.p_p.number_of_inds = 2;
+        simulation s{a_p};
+        observer o;
+
+        o.store_fit_phen_mut_sensibility(s);
+
+        for(const auto& sensibilities : o.get_fit_phen_mut_sensibility())
+            assert(sensibilities.size() == s.get_inds().size());
+
+    }
+
+    ///The fitness and phenotype mutation sensibility can be stored in observer
+    /// #3 a population of inds with hihger weights should have a hihger mutational robustness
+    {
+        double robust_weight = 10;
+        double frail_weight = 0;
+
+        simulation robust_sim;
+        robust_sim.changel_all_inds_weights(robust_weight);
+
+        simulation frail_sim;
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+                                                frail_weight));
+
+        observer o_frail;
+        observer o_robust;
+
+        o_robust.store_fit_phen_mut_sensibility(robust_sim);
+        o_frail.store_fit_phen_mut_sensibility(frail_sim);
+
+        assert(lhs_has_lower_phen_mutation_sensibility_than_rhs(o_robust, o_frail));
+    }
+
+    ///The fitness and phenotype mutation sensibility can be stored in observer
+    /// #4 a population of inds on the fitness peak should have a lower mutational robustness
+    /// than a population not on the fitness peak if the weights are around the same megnitude
+    {
+        double optimal_weight = 1;
+        double non_optimal_weight = -1;
+
+        auto optimal_sim = create_simple_simulation();
+        optimal_sim.changel_all_inds_weights(optimal_weight);
+
+        simulation non_optimal_sim = create_simple_simulation();
+        non_optimal_sim.changel_all_inds_weights(non_optimal_weight);
+
+        optimal_sim.calc_fitness();
+        non_optimal_sim.calc_fitness();
+
+        assert(sim::all_inds_have_fitness(1, optimal_sim));
+        assert(!sim::all_inds_have_fitness(1, non_optimal_sim));
+
+        observer o_non_optimal;
+        observer o_optimal;
+
+        o_optimal.store_fit_phen_mut_sensibility(optimal_sim);
+        o_non_optimal.store_fit_phen_mut_sensibility(non_optimal_sim);
+
+        assert(lhs_has_higher_fit_mutation_sensibility_than_rhs(o_optimal, o_non_optimal));
+    }
+
+
+    ///The fitness and phenotype mutation sensibility can be stored in observer
+    /// #5 A population in which all inds are on the fitness peak
+    /// have all individuals with a negative fitness sensibility
+    {
+        double optimal_weight = 1;
+        auto optimal_sim = create_simple_simulation();
+        optimal_sim.changel_all_inds_weights(optimal_weight);
+        optimal_sim.calc_fitness();
+        assert(sim::all_inds_have_fitness(1, optimal_sim));
+
+        observer o;
+        o.store_fit_phen_mut_sensibility(optimal_sim);
+
+        assert(all_fit_mut_sens_are_negative(o));
+    }
 }
 #endif
+
 
 

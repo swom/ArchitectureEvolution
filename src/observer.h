@@ -94,6 +94,7 @@ private:
 
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_avg_mutation_sensibility;
+    std::vector<std::vector<fit_and_phen_sens_t>> m_fit_phen_mut_sensibility;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
@@ -134,6 +135,9 @@ public:
 
     ///Returns the vector containing the avg robustness of the population for every generation
     const std::vector<double>& get_avg_mutation_sensibility() const noexcept {return m_avg_mutation_sensibility;}
+
+    ///Returns the vector containing the fitness mutational sensibility of the population for every generation
+    const std::vector<std::vector<fit_and_phen_sens_t>>& get_fit_phen_mut_sensibility() const noexcept {return m_fit_phen_mut_sensibility;}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
@@ -232,6 +236,13 @@ public:
         m_avg_mutation_sensibility.push_back(calc_avg_mutation_sensibility(s, m_obs_param.m_n_mutations_per_locus));
     }
 
+    ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
+    void store_fit_phen_mut_sensibility(Sim& s) noexcept
+    {
+        m_fit_phen_mut_sensibility.push_back(s.calculate_fit_phen_mut_sens_for_all_inds(m_obs_param.m_n_mutations_per_locus,
+                                                                                        m_obs_param.m_reac_norm_n_points));
+    }
+
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
     {
@@ -316,6 +327,12 @@ bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
 
+///Creates a very simple simulation with 1 individual
+/// that has 1 connection and one bias
+/// with input range == 1
+/// with env function == y = 1
+simulation<> create_simple_simulation();
+
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);
 
@@ -384,8 +401,8 @@ template<class O>
 const std::vector<std::vector<double>>& get_nth_gen_inputs(const O& o, int gen)
 {
     auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
-                                          o.get_inputs_and_optimals().end(),
-                                          [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
+                                   o.get_inputs_and_optimals().end(),
+                                   [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
     if( generation == o.get_inputs_and_optimals().end())
     {
         throw std::invalid_argument{"In observer, requested to acces inputs "
@@ -402,8 +419,8 @@ const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
 {
 
     auto generation = std::find_if(o.get_inputs_and_optimals().begin(),
-                                          o.get_inputs_and_optimals().end(),
-                                          [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
+                                   o.get_inputs_and_optimals().end(),
+                                   [&gen] (const inputs_optimals& io) {return io.m_gen == gen;});
 
     if(generation == o.get_inputs_and_optimals().end())
     {
@@ -413,6 +430,70 @@ const std::vector<double>& get_nth_gen_optimals(const O& o, int gen)
     }
 
     return generation->m_optimals;
+}
+
+///Checks if one observer has
+/// as lower phenotypic mutation sensibility values stored
+/// than another
+template<class Obs>
+bool lhs_has_lower_phen_mutation_sensibility_than_rhs(const Obs& lhs, const Obs& rhs)
+{
+    assert(lhs.get_fit_phen_mut_sensibility().size() == rhs.get_fit_phen_mut_sensibility().size());
+
+    for(int i = 0; i != lhs.get_fit_phen_mut_sensibility().size(); i++)
+    {
+        assert(lhs.get_fit_phen_mut_sensibility()[i].size() == rhs.get_fit_phen_mut_sensibility()[i].size());
+
+        for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
+        {
+            if(lhs.get_fit_phen_mut_sensibility()[i][j].m_phenotype >= rhs.get_fit_phen_mut_sensibility()[i][j].m_phenotype)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+///Checks that all mutation fitness sensibilities
+/// are negative
+template<class Obs>
+bool all_fit_mut_sens_are_negative(const Obs& observer)
+{
+    for(const auto& sensibilities : observer.get_fit_phen_mut_sensibility())
+    {
+        for(const auto& sensibility : sensibilities)
+        {
+            if(sensibility.m_fitness >= 0)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+///Checks if one observer has
+/// as higher fitness mutational sensibility values stored
+/// than another
+template<class Obs>
+bool lhs_has_higher_fit_mutation_sensibility_than_rhs(const Obs& lhs, const Obs& rhs)
+{
+    assert(lhs.get_fit_phen_mut_sensibility().size() == rhs.get_fit_phen_mut_sensibility().size());
+
+    for(int i = 0; i != lhs.get_fit_phen_mut_sensibility().size(); i++)
+    {
+        assert(lhs.get_fit_phen_mut_sensibility()[i].size() == rhs.get_fit_phen_mut_sensibility()[i].size());
+
+        for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
+        {
+            if(lhs.get_fit_phen_mut_sensibility()[i][j].m_fitness <= rhs.get_fit_phen_mut_sensibility()[i][j].m_fitness)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 ///load an observer of correct type based on selection frequency type

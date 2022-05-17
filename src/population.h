@@ -67,6 +67,26 @@ public:
                                    m_mut_rate_act,
                                    m_mut_rate_dup);
 
+    ///Calculatesfitness and phenotype sensibilities to mutation  of all inds
+    template<typename Func>
+    std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations,
+                                                                              std::mt19937_64& rng,
+                                                                              Func optimal_function,
+                                                                              range input_range,
+                                                                              int n_points
+                                                                              )
+    {
+        std::vector<fit_and_phen_sens_t> sens(m_vec_indiv.size());
+        auto mutations = create_mutations(n_mutations, m_mut_step, rng);
+
+        for(int i = 0; i != m_vec_indiv.size(); i++)
+        {
+            sens[i] = calc_phen_and_fit_mut_sensibility(m_vec_indiv[i].get_net(), mutations, optimal_function, input_range, n_points);
+        }
+
+        return sens;
+    };
+
     ///Changes the network of the nth individual to a given network
     template<class Net>
     void change_nth_ind_net(size_t ind_index, const Net& n){
