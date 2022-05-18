@@ -219,7 +219,7 @@ public:
     {
         return m_population.calculate_fit_phen_mut_sens_for_all_inds(n_mutations,
                                                                      m_rng,
-                                                                     m_environment.get_name_current_function(),
+                                                                     m_environment.get_current_function(),
                                                                      m_params.e_p.cue_range,
                                                                      n_points);
     }
@@ -434,7 +434,8 @@ public:
     std::vector<double> evaluate_inds(){
 
         std::vector<double> cumulative_performance(get_inds().size(), 0);
-        std::vector<std::vector<double>> performances(m_population.get_n_trials(), std::vector<double>(cumulative_performance.size()));
+        std::vector<std::vector<double>> performances(m_population.get_n_trials(),
+                                                      std::vector<double>(cumulative_performance.size()));
 
         std::vector<std::vector<double>> inputs(m_population.get_n_trials());
         std::vector<double> optimals(inputs.size());

@@ -79,7 +79,6 @@ double constant_one(const std::vector<double>&)
 {
     return 1;
 }
-
 template<class Net>
 bool all_weigths_are_active(const Net &n)
 {

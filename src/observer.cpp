@@ -1,5 +1,17 @@
 #include "observer.h"
 #include <fstream>
+bool operator== (const sensibilities_to_mut& lhs, const sensibilities_to_mut& rhs)
+{
+    auto generation = lhs.m_generation == rhs.m_generation;
+    auto sensibilities = lhs.m_sensibilities == rhs.m_sensibilities;
+
+    return generation & sensibilities;
+}
+
+bool operator!= (const sensibilities_to_mut& lhs, const sensibilities_to_mut& rhs)
+{
+    return !(lhs == rhs);
+}
 
 bool operator== (const inputs_optimals& lhs, const inputs_optimals& rhs)
 {
@@ -162,10 +174,14 @@ std::string create_save_name_from_params(const all_params& p)
 simulation<> create_simple_simulation()
 {
     all_params a_p;
+    a_p.i_p.net_par.function = sigmoid;
     a_p.i_p.net_par.max_arc = {1,1};
     a_p.i_p.net_par.net_arc = {1,1};
+
     a_p.e_p.cue_range = {1,1};
-    a_p.e_p.env_function_A = constant_one;
+    a_p.e_p.env_function_A = sigmoid_env;
+
+    a_p.s_p.n_generations = 1;
 
     return simulation{a_p};
 }
@@ -556,10 +572,10 @@ void test_observer()
         double robust_weight = 10;
         double frail_weight = 0;
 
-        simulation robust_sim;
+        simulation robust_sim = create_simple_simulation();
         robust_sim.changel_all_inds_weights(robust_weight);
 
-        simulation frail_sim;
+        simulation frail_sim = create_simple_simulation();
         assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
                                                 frail_weight));
 
@@ -597,7 +613,7 @@ void test_observer()
         o_optimal.store_fit_phen_mut_sensibility(optimal_sim);
         o_non_optimal.store_fit_phen_mut_sensibility(non_optimal_sim);
 
-        assert(lhs_has_higher_fit_mutation_sensibility_than_rhs(o_optimal, o_non_optimal));
+        assert(lhs_is_more_sensible_to_mutation_effects_on_fitness_than_rhs(o_optimal, o_non_optimal));
     }
 
 
@@ -616,6 +632,46 @@ void test_observer()
 
         assert(all_fit_mut_sens_are_negative(o));
     }
+
+    ///The fitness and phenotype sensibilities to mutations of the population
+    /// are saved every N generations
+    /// toghether with the top individuals
+    {
+        auto s = create_simple_simulation();
+
+        int rec_freq_of_top_inds = 1;
+        obs_param o_p(1,rec_freq_of_top_inds);
+        observer o(o_p, s.get_params());
+
+        assert(o.get_top_inds().empty());
+        assert(o.get_fit_phen_mut_sensibility().empty());
+
+        exec(s,o);
+
+        assert(!o.get_top_inds().empty());
+        assert(!o.get_fit_phen_mut_sensibility().empty());
+
+        assert(o.get_first_fit_phen_mut_sens().m_generation == o.get_first_top_ind_of_first_gen().generation);
+    }
+
+    ///The fitness and phenotype sensibilities to mutations
+    /// can be saved by the observer
+    {
+        auto s = create_simple_simulation();
+
+        int rec_freq_of_top_inds = 1;
+        obs_param o_p(1,rec_freq_of_top_inds);
+        observer o(o_p, s.get_params());
+
+        exec(s,o);
+
+        std::string filename{"test"};
+        save_json(o, filename);
+        auto loaded_o = load_default_observer_json(filename);
+
+        assert(loaded_o.get_fit_phen_mut_sensibility() == o.get_fit_phen_mut_sensibility());
+    }
+
 }
 #endif
 

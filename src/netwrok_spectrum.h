@@ -8,9 +8,30 @@
 ///Stores the phenpotype and fitness sensibilities to mutations of a network
 struct fit_and_phen_sens_t
 {
+
+    fit_and_phen_sens_t(double fitness = 123456, double phenotype = 123456):
+        m_fitness{fitness},
+        m_phenotype{phenotype}
+    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(fit_and_phen_sens_t,
+                                   m_fitness,
+                                   m_phenotype)
+
+    ///The sensitibility of fitness to mutations,
+    /// negative values signify that mutations on average move
+    /// the network away from the fitness optima
+    /// positive values signify that mutations move it closer
     double m_fitness;
+
+    ///The sensitibility of the phenotype to mutations,
+    /// higher valuessignify that mutation on average
+    /// move the phenotype further away from its original state
     double m_phenotype;
 };
+
+bool operator== (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs);
+bool operator!= (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs);
 
 struct react_norm_t { 
     react_norm_t(){};

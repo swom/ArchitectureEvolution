@@ -3,6 +3,24 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+struct sensibilities_to_mut
+{
+    sensibilities_to_mut(int gen = -1, std::vector<fit_and_phen_sens_t> sensibilities = {}):
+        m_generation(gen),
+        m_sensibilities(sensibilities)
+    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(sensibilities_to_mut,
+                                   m_generation,
+                                   m_sensibilities)
+    int m_generation;
+    std::vector<fit_and_phen_sens_t> m_sensibilities;
+    size_t size() const noexcept {return m_sensibilities.size();}
+};
+
+bool operator== (const sensibilities_to_mut& lhs, const sensibilities_to_mut& rhs);
+bool operator!= (const sensibilities_to_mut& lhs, const sensibilities_to_mut& rhs);
+
 struct inputs_optimals{
     inputs_optimals(std::vector<std::vector<double>> inputs = {},
                     std::vector<double> optimals = {},
@@ -94,7 +112,7 @@ private:
 
     std::vector<double> m_avg_fitnesses;
     std::vector<double> m_avg_mutation_sensibility;
-    std::vector<std::vector<fit_and_phen_sens_t>> m_fit_phen_mut_sensibility;
+    std::vector<sensibilities_to_mut> m_fit_phen_mut_sensibility;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
@@ -125,7 +143,8 @@ public:
                                    m_params,
                                    m_obs_param,
                                    m_inputs_optimals,
-                                   m_avg_mutation_sensibility)
+                                   m_avg_mutation_sensibility,
+                                   m_fit_phen_mut_sensibility)
 
     ///adds a network spectrum to the vector of network spectrums
     void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
@@ -137,7 +156,10 @@ public:
     const std::vector<double>& get_avg_mutation_sensibility() const noexcept {return m_avg_mutation_sensibility;}
 
     ///Returns the vector containing the fitness mutational sensibility of the population for every generation
-    const std::vector<std::vector<fit_and_phen_sens_t>>& get_fit_phen_mut_sensibility() const noexcept {return m_fit_phen_mut_sensibility;}
+    const std::vector<sensibilities_to_mut>& get_fit_phen_mut_sensibility() const noexcept {return m_fit_phen_mut_sensibility;}
+
+    ///Returns the vector containing the fitness mutational sensibility of the population for every generation
+    const sensibilities_to_mut& get_first_fit_phen_mut_sens() const noexcept {return m_fit_phen_mut_sensibility.at(0);}
 
     ///returns const ref to vector of env_functions' names
     const std::vector<char>& get_env_funcs() const noexcept {return m_env_functions;}
@@ -175,7 +197,7 @@ public:
     ///returns const ref to the number of top individuals to be recorded
     const int& get_top_inds_proportion() const noexcept{return m_obs_param.m_top_proportion;}
 
-    ///Returns the vector whosgeneration element is of a certain value
+    ///Returns the vector whos generation element is of a certain value
     template<class ind_data_structure>
     const std::vector<ind_data_structure>& get_generation(const std::vector<std::vector<ind_data_structure>>& data, int generation)
     {
@@ -208,12 +230,20 @@ public:
     {
         return extract_inds(get_generation(m_top_inds, generation));
     }
+
     ///returns const ref to best_ind vector
     const std::vector<std::vector<Ind_Data<Ind>>>& get_top_inds() const noexcept{return m_top_inds;}
+
+    /// Returns the first top_individual from the first recorded batch
+    const Ind_Data<Ind>& get_first_top_ind_of_first_gen() const noexcept {return m_top_inds.at(0).at(0);}
 
     /// of the best individuals in various generations
     ///returns const ref to the vector of mutational spectrum
     const std::vector<std::vector<Ind_Spectrum<Ind>>>& get_top_spectrums() const noexcept{return m_top_spectrums;}
+
+    ///returns the time of the simulation taking in consioderation that tickhas just been run
+    /// and that therefore the time count is up by one
+    int get_time_before_tick(const Sim& s) const noexcept {return s.get_time() - 1;}
 
     ///returns const ref to the vector of mutational spectrum
     /// from individuals of a particular generation
@@ -239,8 +269,9 @@ public:
     ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
     void store_fit_phen_mut_sensibility(Sim& s) noexcept
     {
-        m_fit_phen_mut_sensibility.push_back(s.calculate_fit_phen_mut_sens_for_all_inds(m_obs_param.m_n_mutations_per_locus,
-                                                                                        m_obs_param.m_reac_norm_n_points));
+        m_fit_phen_mut_sensibility.push_back({get_time_before_tick(s),
+                                              s.calculate_fit_phen_mut_sens_for_all_inds(m_obs_param.m_n_mutations_per_locus,
+                                                                                        m_obs_param.m_reac_norm_n_points)});
     }
 
     ///Saves the avg fitness
@@ -265,7 +296,7 @@ public:
         m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, get_top_inds_proportion()),
                                                       s.get_env_cue_range(),
                                                       get_n_points_reac_norm(),
-                                                      s.get_time() - 1 //when this function is called timer is ticked,
+                                                      get_time_before_tick(s) //when this function is called timer is ticked,
                                                       //but we are still in the previous generation
                                                       )
                              );
@@ -278,7 +309,7 @@ public:
                                  sim::get_best_n_inds(s, proportion),
                                  s.get_env_cue_range(),
                                  get_n_points_reac_norm(),
-                                 s.get_time() - 1 //when this function is called timer is ticked,
+                                 get_time_before_tick(s) //when this function is called timer is ticked,
                                  //but we are still in the previous generation
                                  )
                              );
@@ -295,7 +326,7 @@ public:
                                             get_n_mut_mutational_spectrum(),
                                             s.get_env_cue_range(),
                                             get_n_points_reac_norm(),
-                                            s.get_time() - 1 //when this function is called timer is ticked,
+                                            get_time_before_tick(s) //when this function is called timer is ticked,
                                             //but we are still in the previous generation
                                             )
                     );
@@ -328,6 +359,7 @@ bool operator==(const all_params& lhs, const all_params& rhs);
 bool operator!=(const all_params& lhs, const all_params& rhs);
 
 ///Creates a very simple simulation with 1 individual
+/// that has a sigmoid transformation function
 /// that has 1 connection and one bias
 /// with input range == 1
 /// with env function == y = 1
@@ -371,6 +403,7 @@ void exec(Sim& s , observer<Sim>& o)
             o.store_top_n_inds(s);
             o.store_inputs_and_optimals(s);
             o.store_avg_mut_sensibility(s);
+            o.store_fit_phen_mut_sensibility(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
                 (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)
@@ -446,7 +479,8 @@ bool lhs_has_lower_phen_mutation_sensibility_than_rhs(const Obs& lhs, const Obs&
 
         for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
         {
-            if(lhs.get_fit_phen_mut_sensibility()[i][j].m_phenotype >= rhs.get_fit_phen_mut_sensibility()[i][j].m_phenotype)
+            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype >=
+                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype)
             {
                 return false;
             }
@@ -462,7 +496,7 @@ bool all_fit_mut_sens_are_negative(const Obs& observer)
 {
     for(const auto& sensibilities : observer.get_fit_phen_mut_sensibility())
     {
-        for(const auto& sensibility : sensibilities)
+        for(const auto& sensibility : sensibilities.m_sensibilities)
         {
             if(sensibility.m_fitness >= 0)
             {
@@ -477,7 +511,7 @@ bool all_fit_mut_sens_are_negative(const Obs& observer)
 /// as higher fitness mutational sensibility values stored
 /// than another
 template<class Obs>
-bool lhs_has_higher_fit_mutation_sensibility_than_rhs(const Obs& lhs, const Obs& rhs)
+bool lhs_is_more_sensible_to_mutation_effects_on_fitness_than_rhs(const Obs& lhs, const Obs& rhs)
 {
     assert(lhs.get_fit_phen_mut_sensibility().size() == rhs.get_fit_phen_mut_sensibility().size());
 
@@ -487,7 +521,8 @@ bool lhs_has_higher_fit_mutation_sensibility_than_rhs(const Obs& lhs, const Obs&
 
         for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
         {
-            if(lhs.get_fit_phen_mut_sensibility()[i][j].m_fitness <= rhs.get_fit_phen_mut_sensibility()[i][j].m_fitness)
+            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness >=
+                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness)
             {
                 return false;
             }

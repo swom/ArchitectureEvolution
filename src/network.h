@@ -15,6 +15,7 @@ double sigmoid(double x);
 double linear(double x);
 double constant_one(const std::vector<double>&);
 
+
 static std::map<std::string, std::function<double(double)>> string_to_act_func_map
 {
 {"linear", linear},
@@ -999,20 +1000,20 @@ double calc_phenotype_mutational_sensibility(Net& net,
 /// to a series of mutations on all its loci
 template<class Net, typename Func>
 fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
-                                                      const std::vector<double> mutations,
+                                                      const std::vector<double>& mutations,
                                                       Func optimal_function,
                                                       const range& input_range = {-1,1},
                                                       int n_points = 100)
 {
 
     std::vector<double> fitness_distances;
-    std::vector<double> phenptype_distances;
+    std::vector<double> phenotype_distances;
 
-    auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
-    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    reac_norm optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
+    reac_norm base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
     reac_norm scratch_reac_norm = base_reac_norm;
 
-    auto distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
+    double distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
 
     for(const auto& mutation : mutations)
         for(auto& layer : net.get_net_weights())
@@ -1020,17 +1021,17 @@ fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
             {
                 calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
                 fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                phenptype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+                phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
 
                 for(auto& current_weight : node.get_vec_mutable_weights())
                 {
                     calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
                     fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                    phenptype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+                    phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
                 }
             }
 
-        return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenptype_distances)};
+        return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenotype_distances)};
 }
 
 template<class Net>

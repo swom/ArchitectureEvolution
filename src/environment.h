@@ -27,6 +27,7 @@ static double env_func_4(std::vector<double> input){
             input[0];
 }
 
+double sigmoid_env(std::vector<double> x);
 
 static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map{
 {"1", env_func_1},

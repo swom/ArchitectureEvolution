@@ -3,6 +3,10 @@
 #include <cassert>
 #include <iostream>
 
+double sigmoid_env(std::vector<double> x)
+{
+    return x[0] / (1 + std::fabs(x[0]));
+}
 
 environment::environment(std::function<double(std::vector<double>)> env_functionA,
                          std::function<double(std::vector<double>)> env_functionB):
@@ -141,7 +145,6 @@ void switch_env_function(environment &e)
 }
 
 }
-
 
 void to_json(nlohmann::json& j, const environment& e)
 {

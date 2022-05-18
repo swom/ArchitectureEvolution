@@ -16,15 +16,22 @@ public:
                                    m_bias)
 
     const bool &is_active() const noexcept {return m_active;}
+
     bool is_inactive() const noexcept {return !m_active;}
+
     const double &get_bias() const noexcept {return m_bias;}
+
     ///returns the const reference to the woeight vector
     const std::vector<weight> &get_vec_weights() const noexcept {return m_weights;}
+
     ///Returns the reference to the weight vector should be used only when
     /// calculating reaction norms with a mutated weight
     std::vector<weight> &get_vec_mutable_weights() noexcept {return m_weights;}
+
     void change_nth_weight(weight new_weight, size_t index) {m_weights[index] = new_weight;}
+
     void mutate_bias(const double& mut){m_bias += mut;}
+
     void reverse_mutate_bias(const double& mut){m_bias -= mut;}
 
     ///Sets the value of the nodes to the given value
