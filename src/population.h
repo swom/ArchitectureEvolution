@@ -80,7 +80,8 @@ public:
 
         auto mutations = create_mutations(n_mutations, m_mut_step, rng);
 
-        for(int i = 0; i != m_vec_indiv.size(); i++)
+#pragma omp parallel for
+        for(int i = 0; i < m_vec_indiv.size(); i++)
         {
             sens[i] = calc_phen_and_fit_mut_sensibility(m_vec_indiv[i].get_mutable_net(),
                                                         mutations,
