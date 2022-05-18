@@ -402,7 +402,9 @@ void exec(Sim& s , observer<Sim>& o)
         {
             o.store_top_n_inds(s);
             o.store_inputs_and_optimals(s);
+#ifndef NDEBUG
             o.store_avg_mut_sensibility(s);
+#endif
             o.store_fit_phen_mut_sensibility(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
