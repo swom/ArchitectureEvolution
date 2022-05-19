@@ -125,10 +125,27 @@ bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
     return ind && reaction_norm;
 }
 
+///Finds the corresponding sensibility of an individual
+/// based on its fitness ranking
+template<class Ind>
+const fit_and_phen_sens_t& find_sensibility_for_ind(const Ind& ind,
+                                                    const sensibilities_to_mut& sensibilities)
+{
+    auto rank = ind.get_rank();
+
+    const fit_and_phen_sens_t& sens = *std::find_if(
+                sensibilities.m_sensibilities.begin(),
+                sensibilities.m_sensibilities.end(),
+                [rank](const fit_and_phen_sens_t& sensibility){return sensibility.m_rank == rank;});
+
+    return sens;
+}
+
 ///Calculates the reaction_norm of individuals' networks
 /// for a given range and a given number of data points
 template<class Ind, typename Func>
 std::vector<Ind_Data<Ind>> create_top_inds_data(std::vector<Ind> inds,
+                                                const sensibilities_to_mut& sensibilities,
                                                 const obs_param& o_params,
                                                 const all_params& a_params,
                                                 const int& generation,
@@ -148,11 +165,8 @@ std::vector<Ind_Data<Ind>> create_top_inds_data(std::vector<Ind> inds,
                                                            a_params.e_p.cue_range,
                                                            o_params.m_reac_norm_n_points);
 
-        inds_data[i].m_sensibilities = calc_phen_and_fit_mut_sensibility(inds[i].get_mutable_net(),
-                                                                         mutations,
-                                                                         optimal_function,
-                                                                         a_params.e_p.cue_range,
-                                                                         o_params.m_reac_norm_n_points);
+        inds_data[i].m_sensibilities = find_sensibility_for_ind(inds[i], sensibilities);
+
         inds_data[i].generation = generation;
     }
     return inds_data;
@@ -335,9 +349,12 @@ public:
     ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
     void store_fit_phen_mut_sensibility(Sim& s) noexcept
     {
-        m_fit_phen_mut_sensibility.push_back({get_time_before_tick(s),
-                                              s.calculate_fit_phen_mut_sens_for_all_inds(m_obs_param.m_n_mutations_per_locus,
-                                              m_obs_param.m_reac_norm_n_points)});
+        m_fit_phen_mut_sensibility.push_back(
+                    {get_time_before_tick(s),
+                     s.calculate_fit_phen_mut_sens_for_all_inds(
+                     m_obs_param.m_n_mutations_per_locus,
+                     m_obs_param.m_reac_norm_n_points)}
+                    );
     }
 
     ///Saves the avg fitness
@@ -356,10 +373,27 @@ public:
         m_var_fitnesses.push_back(sim::var_fitness(s));
     }
 
+    ///Stores the sensibilities and the top individuals toghether
+    /// the sensibilities are stored first so to eanble the assignment of
+    /// the correct sensibility to the correct top individual
+    void store_sensibilities_and_top_inds(Sim& s)
+    {
+        store_fit_phen_mut_sensibility(s);
+
+        if(get_fit_phen_mut_sensibility().size() != s.get_time())
+        {
+            throw std::runtime_error{"the sensibilities have not yet been recorded, "
+                                     "therefore the top individuals cannot be assigned a sensibility"};
+        }
+
+        store_top_n_inds(s);
+    }
+
     ///Saves the top_proportion nth best individuals in the population
     void store_top_n_inds(Sim& s)
     {
         m_top_inds.push_back(create_top_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
+                                                  m_fit_phen_mut_sensibility.back(),
                                                   m_obs_param,
                                                   m_params,
                                                   get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
@@ -454,12 +488,11 @@ void exec(Sim& s , observer<Sim>& o)
         if(o.get_record_freq_top_inds() != 0 &&
                 (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0)
         {
-            o.store_top_n_inds(s);
+            o.store_sensibilities_and_top_inds(s);
             o.store_inputs_and_optimals(s);
 #ifndef NDEBUG
             o.store_avg_mut_sensibility(s);
 #endif
-            o.store_fit_phen_mut_sensibility(s);
         }
         if( o.get_record_freq_spectrum() != 0 &&
                 (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)
@@ -484,11 +517,17 @@ std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
                    [](const auto& data_structure){return data_structure.at(0).generation;});
     return gens;
 }
+///Returns the sensibilities recorded from the individuals
+/// stored in the first time the sensibilites are recorded
+sensibilities_to_mut get_inds_sensibilities_of_first_record(const observer<>& o);
+
+///finds the sensibilities of the hihgest ranking individual in a given generation
+fit_and_phen_sens_t find_sensibilities_from_highest_ranking_ind(const sensibilities_to_mut& record);
 
 ///Returns the first top individual
 /// recorded in the first time top individuals are stores
 template<class O>
-Ind_Data<typename O::Ind> get_first_top_ind_of_first_gen(const O& obs)
+Ind_Data<typename O::Ind> get_first_top_ind_of_first_record(const O& obs)
 {
     return obs.get_top_inds().at(0).at(0);
 }

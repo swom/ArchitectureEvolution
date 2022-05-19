@@ -85,5 +85,11 @@ void test_individual()
         assert(typeid (i::net_t)  == typeid (n) );
   }
 
+    ///Individuals have a ranking memeber that determines their ranking in terms of fitness in the population
+    {
+        individual i;
+        assert(i.get_rank() >= 0);
+    }
+
 }
 #endif

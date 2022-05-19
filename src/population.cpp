@@ -101,6 +101,26 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
 
 }
 
+population<> produce_simple_pop()
+{
+
+    pop_param p_p;
+    p_p.number_of_inds = 2;
+
+    net_param n_p;
+    n_p.max_arc = {1,1};
+    n_p.net_arc = {1,1};
+
+    ind_param i_p;
+    i_p.net_par = n_p;
+
+    population p{p_p,{}};
+
+    std::mt19937_64 rng;
+    p.get_inds_nonconst().at(0).mutate(1, 1, rng, 0, 0);
+
+    return p;
+}
 
 #ifndef NDEBUG
 void test_population() noexcept
@@ -210,6 +230,26 @@ void test_population() noexcept
 
         assert(pairwise_comparison_for_majority(robust_inds_robustness,
                                                 frail_inds_robustness));
+    }
+
+    ///Individuals are ranked based on fitness
+    {
+       auto p = produce_simple_pop();
+
+        std::vector<double> input{1};
+        double optimal_value = 1;
+        double sel_str = 1;
+
+        pop::calc_fitness(p, optimal_value, sel_str, input);
+
+        assert(pop::all_fitnesses_are_not_equal(p.get_inds()));
+        assert(pop::is_sorted_by_fitness(p.get_inds()) &&
+               pop::is_sorted_by_rank(p.get_inds()));
+    }
+
+    ///The first rank is 0, the last is equal to the number of inds - 1
+    {
+
     }
 }
 #endif

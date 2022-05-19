@@ -256,12 +256,12 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
                                           const std::vector<double>& input)
 {
     std::vector<double> distance_from_target(inds.size());
-    std::vector<double> output_scratch;
-    std::vector<double> input_scratch;
 
 #pragma omp parallel for
     for(int i = 0 ; i < int(inds.size()); i++)
     {
+        std::vector<double> output_scratch;
+        std::vector<double> input_scratch;
         input_scratch = input;
         auto sqr_distance = ind::calc_sqr_distance_scratch(inds[i],
                                                            env_value,
@@ -313,6 +313,19 @@ std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, 
     return sensibilities_to_mutation;
 };
 
+///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
+template <class Ind>
+population<> sort_and_assign_ranks_by_fitness(population<Ind>& p)
+{
+    std::sort(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
+              [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
+
+    int rank = 0;
+    std::for_each(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
+                  [&rank](auto& ind){ind.set_rank(rank++);});
+
+   return p;
+}
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
 population<Ind>& calc_fitness(population<Ind>& p,
@@ -328,6 +341,8 @@ population<Ind>& calc_fitness(population<Ind>& p,
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 
     set_fitness_inds(p, fitness_vector);
+
+    sort_and_assign_ranks_by_fitness(p);
 
     return p;
 }
@@ -392,6 +407,39 @@ double get_nth_ind_fitness(const population<Ind>& p, const size_t& ind_index)
 template< class Ind>
 const typename Ind::net_t& get_nth_ind_net(const population<Ind>& p, size_t ind_index);
 
+
+///Checks that the individuals index position in the
+///population vector are sorted by decreasing fitness value
+ template<class Ind>
+bool is_sorted_by_fitness(const std::vector<Ind>& inds)
+{
+    return std::is_sorted(inds.begin(), inds.end(),
+                          [](const auto& lhs, const auto& rhs){return lhs.get_fitness() > rhs.get_fitness();});
+}
+
+///Checks that the individuals index position in the
+///population vector are sorted by decreasing rank
+ template<class Ind>
+bool is_sorted_by_rank(const std::vector<Ind>& inds)
+{
+    return std::is_sorted(inds.begin(), inds.end(),
+                          [](const auto& lhs, const auto& rhs){return lhs.get_rank() < rhs.get_rank();});
+}
+
+///Checks that all fitnesses are equal
+template<class Ind>
+bool all_fitnesses_are_equal(const std::vector<Ind>& inds)
+{
+    return  std::equal(inds.begin() + 1, inds.end(), inds.begin());
+}
+
+///Checks that all fitnesses are not equal
+template<class Ind>
+bool all_fitnesses_are_not_equal(const std::vector<Ind>& inds)
+{
+    return !all_fitnesses_are_equal(inds);
+}
+
 ///Select inds for new pop from old pop based on mutable dist
 /// and mutates them
 template< class Ind>
@@ -405,8 +453,7 @@ void select_new_pop(population<Ind>& p,
 //#pragma omp critical
         {
         auto selected_ind_index = mut_dist(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
+        p.get_new_inds()[i] = p.get_inds()[selected_ind_index];
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,

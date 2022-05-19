@@ -100,6 +100,12 @@ public:
     ///Returns ref to network USED FOR JSON SAVING
     Net& get_to_net() noexcept {return m_network;}
 
+    ///Returns the rank of the individual
+    const int& get_rank() const noexcept {return m_rank;}
+
+    ///Sets the rank of the individual
+    void set_rank(int rank) noexcept {m_rank =  rank;}
+
     ///Mutates the network of an individual
     void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
     {
@@ -125,6 +131,9 @@ private:
 
     ///The network of an individual
     Net m_network;
+
+    ///The rank in terms of fitness of the individual in the population
+    int m_rank = 0;
 };
 
 /// Checks if 2 individuals are the same

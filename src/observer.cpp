@@ -66,6 +66,17 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+fit_and_phen_sens_t find_sensibilities_from_highest_ranking_ind(const sensibilities_to_mut& record)
+{
+            auto best = std::max_element(record.m_sensibilities.begin(), record.m_sensibilities.end(),
+                            [](const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs){return lhs.m_rank < rhs.m_rank;});
+            return *best;
+}
+
+sensibilities_to_mut get_inds_sensibilities_of_first_record(const observer<>& o)
+{
+    return o.get_first_fit_phen_mut_sens();
+}
 
 ///load an observer of correct type based on mutation_type
 std::unique_ptr<base_observer> load_observer_json_mutation_type(const all_params &pars)
@@ -238,13 +249,13 @@ void test_observer()
         auto o1 = o;
         assert(o1.get_avg_fitness().empty());
         //store some inds in observer (not stored for now)
-        o1.store_top_n_inds(s);
+        o1.store_sensibilities_and_top_inds(s);
         assert(o1 != o);
 
         //store some fitnesses in observer (not stored for now)
         auto o2 = o1;
         assert(o2.get_var_fitness().empty());
-        o2.store_top_n_inds(s);
+        o2.store_sensibilities_and_top_inds(s);
         assert(o2 != o1);
     }
 #endif
@@ -676,16 +687,46 @@ void test_observer()
     }
 
     ///The best individuals also store their sensibilities to mutation
+    /// #1 Ind_data contain sensibilities and it is possible to retrieve them
+    ///    Ind_data when created also store a non default insantioation of fit_and_phen_sens_t
     {
         auto s = create_simple_simulation();
         observer o;
+        sim::calc_fitness_of_pop(s);
+
         o.store_top_n_inds(s);
 
-        auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_gen(o).m_sensibilities;
+        auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_record(o).m_sensibilities;
         assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
     }
+    ///The best individuals also store their sensibilities to mutation
+    /// The sensibilities stored in ind_data correspond to the one actually belonging to the best individual
+    {
+        auto s = create_simple_simulation();
+        observer o;
+        sim::calc_fitness_of_pop(s);
+
+        o.store_sensibilities_and_top_inds(s);
+
+        auto best_top_ind_of_first_record = get_first_top_ind_of_first_record(o);
+        auto sensibilities_first_record = get_inds_sensibilities_of_first_record(o);
+        auto sensibility_of_ind_with_highest_ranking_fitness = find_sensibilities_from_highest_ranking_ind(sensibilities_first_record);
+
+        assert(best_top_ind_of_first_record.m_sensibilities == sensibility_of_ind_with_highest_ranking_fitness);
+    }
+
+    ///The sensibilities are saved with the rest of the Ind_Data
+    {
+        fit_and_phen_sens_t non_default_sensibilities(78945,456987);
+        Ind_Data<individual<>> i;
+        i.m_sensibilities = non_default_sensibilities;
+
+        save_json(i, "test");
+        auto loaded_i = load_json<Ind_Data<individual<>>>("test");
+        assert(loaded_i.m_sensibilities == i.m_sensibilities);
+    }
+
 }
 #endif
-
 
 
