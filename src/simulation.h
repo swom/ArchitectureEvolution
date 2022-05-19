@@ -682,7 +682,11 @@ std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 
 ///Returns the current optimal function of the environment
 template<class Sim>
-std::function<double(std::vector<double>)> get_current_env_function(const Sim &s);
+std::function<double(std::vector<double>)> get_current_env_function(const Sim &s)
+{
+    auto e = s.get_env();
+    return e.get_current_function();
+}
 
 ///Gets the name of the current environmental function
 template<class Sim>

@@ -213,7 +213,9 @@ void test_observer()
 #ifdef FIX_ISSUE_81
     ///The observer stores inputs and optimal values
     {
-        observer o;
+        obs_param o_p;
+        o_p.m_top_proportion = 1;
+        observer o(o_p, {});
 
         //Give sim some non-default inputs and optimal
         simulation s{};
@@ -236,13 +238,13 @@ void test_observer()
         auto o1 = o;
         assert(o1.get_avg_fitness().empty());
         //store some inds in observer (not stored for now)
-        o1.store_top_n_inds(s,1);
+        o1.store_top_n_inds(s);
         assert(o1 != o);
 
         //store some fitnesses in observer (not stored for now)
         auto o2 = o1;
         assert(o2.get_var_fitness().empty());
-        o2.store_top_n_inds(s,1);
+        o2.store_top_n_inds(s);
         assert(o2 != o1);
     }
 #endif
@@ -257,8 +259,9 @@ void test_observer()
     /// vector of optimal values
     /// params
     {
-        observer o;
-
+        obs_param o_p;
+        o_p.m_top_proportion = 1;
+        observer o(o_p, {});
         simulation s{};
 
         sim::tick(s);
@@ -275,7 +278,7 @@ void test_observer()
 
         auto o3 = o2;
         assert(o3.get_top_inds().empty());
-        o3.store_top_n_inds(s, 1);
+        o3.store_top_n_inds(s);
         assert(o3 != o2);
 
         auto o4 = o3;
@@ -672,6 +675,15 @@ void test_observer()
         assert(loaded_o.get_fit_phen_mut_sensibility() == o.get_fit_phen_mut_sensibility());
     }
 
+    ///The best individuals also store their sensibilities to mutation
+    {
+//        auto s = create_simple_simulation();
+//        observer o;
+//        o.store_top_n_inds(s);
+
+//        auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_gen(o).m_sensibilites;
+//        assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
+    }
 }
 #endif
 

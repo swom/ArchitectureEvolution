@@ -3,6 +3,7 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+
 struct sensibilities_to_mut
 {
     sensibilities_to_mut(int gen = -1, std::vector<fit_and_phen_sens_t> sensibilities = {}):
@@ -92,6 +93,70 @@ struct obs_param{
     /// when calculating the mutational spectrum of an individual
     int m_n_mutations_per_locus;
 };
+
+template<class Ind>
+struct Ind_Data
+{
+    Ind_Data(){};
+    Ind_Data(Ind ind, reac_norm rn, fit_and_phen_sens_t sensibilities, int gen):
+        m_ind{ind},
+        m_reac_norm{rn},
+        m_sensibilities{sensibilities},
+        generation{gen}
+    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ind_Data,
+                                   m_ind,
+                                   m_reac_norm,
+                                   m_sensibilities,
+                                   generation)
+
+    Ind m_ind;
+    reac_norm m_reac_norm;
+    fit_and_phen_sens_t m_sensibilities;
+    int generation;
+};
+
+template<class Ind>
+bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
+{
+    auto ind = lhs.m_ind == rhs.m_ind;
+    auto reaction_norm = lhs.m_reac_norm == rhs.m_reac_norm;
+    return ind && reaction_norm;
+}
+
+///Calculates the reaction_norm of individuals' networks
+/// for a given range and a given number of data points
+template<class Ind, typename Func>
+std::vector<Ind_Data<Ind>> create_top_inds_data(std::vector<Ind> inds,
+                                                const obs_param& o_params,
+                                                const all_params& a_params,
+                                                const int& generation,
+                                                Func optimal_function,
+                                                std::mt19937_64& rng)
+{
+    auto mutations = create_mutations(o_params.m_n_mutations_per_locus,
+                                      a_params.p_p.mut_step,
+                                      rng);
+
+    std::vector<Ind_Data<Ind>> inds_data(inds.size());
+    for(auto i = 0; i != inds.size(); i++)
+    {
+        inds_data[i].m_ind = inds[i];
+
+        inds_data[i].m_reac_norm = calculate_reaction_norm(inds[i].get_net(),
+                                                           a_params.e_p.cue_range,
+                                                           o_params.m_reac_norm_n_points);
+
+        inds_data[i].m_sensibilities = calc_phen_and_fit_mut_sensibility(inds[i].get_mutable_net(),
+                                                                         mutations,
+                                                                         optimal_function,
+                                                                         a_params.e_p.cue_range,
+                                                                         o_params.m_reac_norm_n_points);
+        inds_data[i].generation = generation;
+    }
+    return inds_data;
+}
 
 class base_observer{
 public:
@@ -271,7 +336,7 @@ public:
     {
         m_fit_phen_mut_sensibility.push_back({get_time_before_tick(s),
                                               s.calculate_fit_phen_mut_sens_for_all_inds(m_obs_param.m_n_mutations_per_locus,
-                                                                                        m_obs_param.m_reac_norm_n_points)});
+                                              m_obs_param.m_reac_norm_n_points)});
     }
 
     ///Saves the avg fitness
@@ -291,27 +356,15 @@ public:
     }
 
     ///Saves the top_proportion nth best individuals in the population
-    void store_top_n_inds(const Sim& s)
+    void store_top_n_inds(Sim& s)
     {
-        m_top_inds.push_back(calculate_reaction_norms(sim::get_best_n_inds(s, get_top_inds_proportion()),
-                                                      s.get_env_cue_range(),
-                                                      get_n_points_reac_norm(),
-                                                      get_time_before_tick(s) //when this function is called timer is ticked,
-                                                      //but we are still in the previous generation
-                                                      )
-                             );
-    }
-
-    ///Saves the nth best individuals in the population
-    void store_top_n_inds(const Sim& s, int proportion)
-    {
-        m_top_inds.push_back(calculate_reaction_norms(
-                                 sim::get_best_n_inds(s, proportion),
-                                 s.get_env_cue_range(),
-                                 get_n_points_reac_norm(),
-                                 get_time_before_tick(s) //when this function is called timer is ticked,
-                                 //but we are still in the previous generation
-                                 )
+        m_top_inds.push_back(create_top_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
+                                                  m_obs_param,
+                                                  m_params,
+                                                  get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
+                                                  sim::get_current_env_function(s),
+                                                  s.get_rng()
+                                                  )
                              );
     }
 
@@ -429,6 +482,14 @@ std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
     std::transform(data_v.begin(), data_v.end(), gens.begin(),
                    [](const auto& data_structure){return data_structure.at(0).generation;});
     return gens;
+}
+
+///Returns the first top individual
+/// recorded in the first time top individuals are stores
+template<class O>
+Ind_Data<typename O::Ind> get_first_top_ind_of_first_gen(const O& obs)
+{
+    return obs.get_top_inds().at(0).at(0);
 }
 
 ///Gets the inputs  of the nth generation

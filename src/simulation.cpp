@@ -75,13 +75,6 @@ const std::vector<double> &get_current_input(const Sim &s)
     return s.get_input();
 }
 
-template<class Sim>
-std::function<double(std::vector<double>)> get_current_env_function(const Sim &s)
-{
-    auto e = s.get_env();
-    return e.get_current_function();
-}
-
 }
 
 double identity_first_element(const std::vector<double> &vector)
