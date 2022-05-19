@@ -677,12 +677,12 @@ void test_observer()
 
     ///The best individuals also store their sensibilities to mutation
     {
-//        auto s = create_simple_simulation();
-//        observer o;
-//        o.store_top_n_inds(s);
+        auto s = create_simple_simulation();
+        observer o;
+        o.store_top_n_inds(s);
 
-//        auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_gen(o).m_sensibilites;
-//        assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
+        auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_gen(o).m_sensibilities;
+        assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
     }
 }
 #endif

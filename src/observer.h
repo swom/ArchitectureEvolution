@@ -166,6 +166,7 @@ public:
 template<class Sim = simulation<>>
 class observer : public base_observer
 {
+public:
     using Sim_t = Sim;
     using Pop = typename Sim_t::pop_t;
     using Ind = typename Pop::ind_t;
