@@ -36,7 +36,7 @@ if(file.exists("all_simple_res.R")){
                                                      "m_var_fitnesses")]),
                                  var = "gen")
     
-    sensibilities = as.data.frame(do.call(rbind, as_tibble(results[c("m_fit_phen_mut_sensibility")])))
+    sensibilities = as.data.frame(do.call(rbind, results$m_fit_phen_mut_sensibility))
     results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
     results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
     ID = as.data.frame(results$m_params)
@@ -58,30 +58,30 @@ wanted_freqs = c(1)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
   filter(gen > max(gen) - show_last_n_gen #&
-           # s_p.seed %in% wanted_seed &
-           # gen %% filter_gen == 0 &
-           # s_p.selection_strength %in% wanted_sel_str
+         # s_p.seed %in% wanted_seed &
+         # gen %% filter_gen == 0 &
+         # s_p.selection_strength %in% wanted_sel_str
   ) %>% 
   ggplot() +
   ###print all environments
-geom_rect(data = . %>%
-            group_by(s_p.change_freq_B, s_p.adaptation_per) %>%
-            distinct(gen, m_env_functions) %>%
-            filter(gen == min(gen) |
-                     gen == max(gen) |
-                     m_env_functions != lag(m_env_functions)) %>%
-            mutate(gen_max = lead(gen)) %>%
-            mutate(gen_max = ifelse(is.na(gen_max),
-                                    max(gen),
-                                    gen_max)),
-          aes(xmin = gen, xmax = gen_max,
-              ymin = 0, ymax = 1,
-              fill = as.factor(m_env_functions),
-          )
-) +
-geom_line(data = . %>% filter(gen %% filter_gen == 0),
-  aes(x = gen, y = m_avg_fitnesses)
-) +
+  geom_rect(data = . %>%
+              group_by(s_p.change_freq_B, s_p.adaptation_per) %>%
+              distinct(gen, m_env_functions) %>%
+              filter(gen == min(gen) |
+                       gen == max(gen) |
+                       m_env_functions != lag(m_env_functions)) %>%
+              mutate(gen_max = lead(gen)) %>%
+              mutate(gen_max = ifelse(is.na(gen_max),
+                                      max(gen),
+                                      gen_max)),
+            aes(xmin = gen, xmax = gen_max,
+                ymin = 0, ymax = 1,
+                fill = as.factor(m_env_functions),
+            )
+  ) +
+  geom_line(data = . %>% filter(gen %% filter_gen == 0),
+            aes(x = gen, y = m_avg_fitnesses)
+  ) +
   # geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
@@ -94,8 +94,23 @@ print(p)
 dev.off()
 
 
-####Sensibilities
-sensibilities %>% filter(gen < 2000)
+lil_sens = sensibilities %>% filter(m_generation < 1000)
+
+extract_sensibilities <- function (x) {as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities)))}
+
+
+for (gen in sensibilities$m_generation)
+{
+  data = sensibilities %>%
+    filter(m_generation < 1000) %>% 
+    extract_sensibilities() 
+  ggplot(data = data) +
+    geom_density(aes(as.numeric(m_fitness)), bins = 100)
+  ggsave(paste("fitness_sens_plot",gen,sep = "_"))
+}
+
+
+
 ####Adaptation time
 
 d = all_simple_res %>%
