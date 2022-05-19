@@ -483,6 +483,8 @@ public:
 
         pop::set_fitness_inds(get_pop(), fitness_vector);
 
+        pop::sort_and_assign_ranks_by_fitness(m_population);
+
         return *this;
     }
     ///Reproduces inds to next gen based on their fitness

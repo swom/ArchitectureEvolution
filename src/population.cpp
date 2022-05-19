@@ -99,6 +99,21 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
     return fitness_inds;
 }
 
+
+const individual<>& find_best_ranking_ind(const population<>& p)
+{
+    return *std::min_element(p.get_inds().begin(),
+                     p.get_inds().end(),
+                     [](const auto& lhs, const auto& rhs){ return lhs.get_rank() < rhs.get_rank();});
+}
+
+const individual<>& find_worst_ranking_ind(const population<>& p)
+{
+    return *std::max_element(p.get_inds().begin(),
+                     p.get_inds().end(),
+                     [](const auto& lhs, const auto& rhs){ return lhs.get_rank() < rhs.get_rank();});
+}
+
 }
 
 population<> produce_simple_pop()
@@ -249,7 +264,15 @@ void test_population() noexcept
 
     ///The first rank is 0, the last is equal to the number of inds - 1
     {
+        auto p = produce_simple_pop();
 
+         std::vector<double> input{1};
+         double optimal_value = 1;
+         double sel_str = 1;
+
+         pop::calc_fitness(p, optimal_value, sel_str, input);
+         assert(pop::find_best_ranking_ind(p).get_rank() == 0);
+         assert(pop::find_worst_ranking_ind(p).get_rank() == p.get_inds().size() - 1);
     }
 }
 #endif

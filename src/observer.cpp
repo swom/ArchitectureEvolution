@@ -726,6 +726,11 @@ void test_observer()
         assert(loaded_i.m_sensibilities == i.m_sensibilities);
     }
 
+    ///Top individuals are stored by rank
+    {
+
+    }
+
 }
 #endif
 

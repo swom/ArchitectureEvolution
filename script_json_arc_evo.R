@@ -10,7 +10,7 @@ library(ggpubr)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/14_4_22_pl/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
 setwd(dir)
 all_simple_res = data.frame()
 pattern = '^m.*json$'
@@ -36,6 +36,7 @@ if(file.exists("all_simple_res.R")){
                                                      "m_var_fitnesses")]),
                                  var = "gen")
     
+    sensibilities = as.data.frame(do.call(rbind, as_tibble(results[c("m_fit_phen_mut_sensibility")])))
     results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
     results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
     ID = as.data.frame(results$m_params)
@@ -91,6 +92,10 @@ geom_line(data = . %>% filter(gen %% filter_gen == 0),
 
 print(p)
 dev.off()
+
+
+####Sensibilities
+sensibilities %>% filter(gen < 2000)
 ####Adaptation time
 
 d = all_simple_res %>%

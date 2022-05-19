@@ -316,7 +316,7 @@ std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, 
 
 ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
 template <class Ind>
-population<> sort_and_assign_ranks_by_fitness(population<Ind>& p)
+population<Ind> sort_and_assign_ranks_by_fitness(population<Ind>& p)
 {
     std::sort(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
               [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
@@ -327,6 +327,7 @@ population<> sort_and_assign_ranks_by_fitness(population<Ind>& p)
 
    return p;
 }
+
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
 population<Ind>& calc_fitness(population<Ind>& p,

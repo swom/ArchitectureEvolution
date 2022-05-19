@@ -12,19 +12,12 @@ library(networkD3)
 library(magick)
 library(patchwork)
 library(colorspace)
-dir = "C:/Users/p288427/Desktop/data_dollo_++/11_4_22_all_sel_dur_100th/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
 setwd(dir)
 
 results=list()
 # pattern = "*json$"
-# pattern = 'mut_type_weights_start_arc1-2-2-2-1_act_r0.001000_dup_r0.000500_ch_A0.000000_ch_B0.010000_ch_typesymmetrical_ch_typeregular_sel_str2.0_max_arc1-2-2-2-1_sel_typesporadic_sel_freq1000_1'
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_100_seed1.json"
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.5_s_f_1000_seed10"
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_10000_seed10.json"
-# pattern = "mut_t_weights_sel_t_constant_sym_t_asymmetrical_fr_t_regular_a_p_off_r_t_constitutive_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.100_ch_B_0.001_s_st_0.1_s_f_1_seed1.json"
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_r_t_constitutive_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.1_s_f_0_seed1.json"
-# pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_on_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.5_s_f_1000_seed1.json"
-pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_on_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed3.json"
+pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_on_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1.json"
 list.files(path = '.', pattern = pattern)
 
 for (i in  list.files(path = '.', pattern = pattern)){
@@ -122,9 +115,16 @@ for (i in  list.files(path = '.', pattern = pattern)){
   match_a = data.frame(generation = 0, match = 0)
   match_b = data.frame(generation = 0, match = 0)
   
+  
   sum_of_weights = data.frame(generation = 0, sum_of_weights = 0)
   
+  
+  
   highest_weights = data.frame(generation = 0, max_weigth = 0)
+  
+  phenotype_robustness = data.frame(generation = 0, phen_robust = 0)
+  
+  fitness_robustness = data.frame(generation = 0, fit_robust = 0)
   
   top_ind_fit = data.frame(generation = 0, top_ind_fit = 0)
   
@@ -232,24 +232,31 @@ for (i in  list.files(path = '.', pattern = pattern)){
                            data.frame(generation = gen,
                                       sum_of_weights = sum(edge_tibble_ind$`ind$m_weight`)))
     
+    phenotype_robustness = rbind(phenotype_robustness,
+                                 data.frame(generation = gen,
+                                            phen_robust = ind$m_sensibilities[[1]]$m_phenotype))
+    fitness_robustness = rbind(fitness_robustness,
+                                 data.frame(generation = gen,
+                                            fit_robust = ind$m_sensibilities[[1]]$m_fitness))
     #### create data to plot inputs on reaction norm plot
     # inputs = do.call(rbind,do.call(cbind,results$m_input[as.numeric(gen)]))[,1]
     # outputs = do.call(cbind,results$m_optimal[as.numeric(gen)])
     
+    
     jpeg(paste(subdir,paste("s",ind$s_p.seed,
-               "arch",ind$i_p.net_par.max_arc,
-               "cycle", as.numeric(gen),
-               "change_freq", ind$s_p.change_freq_A,
-               "s_f", ind$s_p.selection_freq,
-               "s_s", ind$s_p.selection_strength,
-               "a_p", ind$s_p.adaptation_per,
-               ".png", sep = "_"),sep = "/")
-         ,width = 700,
-         height = 700)
+                            "arch",ind$i_p.net_par.max_arc,
+                            "cycle", as.numeric(gen),
+                            "change_freq", ind$s_p.change_freq_A,
+                            "s_f", ind$s_p.selection_freq,
+                            "s_s", ind$s_p.selection_strength,
+                            "a_p", ind$s_p.adaptation_per,
+                            ".png", sep = "_"),sep = "/")
+         ,width = 2000,
+         height = 800)
     
     title = paste("Generation ", ind$generation[1])
     
-    par(mfrow=c(3,3))
+    par(mfrow=c(2,5))
     
     plot(highest_weights$generation, highest_weights$max_weigth, type = 'l',
          main = "max_weight")  
@@ -257,16 +264,13 @@ for (i in  list.files(path = '.', pattern = pattern)){
     plot(sum_of_weights$generation, sum_of_weights$sum_of_weights, type = 'l',
          main = "sum of weights")
     
-    plot(top_ind_fit$generation, top_ind_fit$top_ind_fit, type = 'l',
-         main = "top_ind_fit")
-    
     plot(match_a$generation, match_a$match, type = 'l',
          main = "Match_a") 
     
     plot(match_b$generation, match_b$match, type = 'l',
          main = "Match_b")
-    
-    #generation starts from 0 but arrays in R start from 1 so add 1 to gen
+      
+      #generation starts from 0 but arrays in R start from 1 so add 1 to gen
     if(results$m_env_functions[as.numeric(gen) + 1] == 65){
       plot(rn_d$m_x, rn_d$m_y,
            xlim=c(-1,1),
@@ -292,8 +296,19 @@ for (i in  list.files(path = '.', pattern = pattern)){
         abline(v=inputs, col = 'blue', ylim=c(-1,1))
         points(inputs, outputs)
       }
-    } 
+    }     
     
+    plot(phenotype_robustness$generation, phenotype_robustness$phen_robust,
+         type = 'l',
+         main = "Phenotypic robustness")
+   
+    plot(fitness_robustness$generation, fitness_robustness$fit_robust,
+         type = 'l',
+         main = "Fitness robustness")
+ 
+    
+    plot(top_ind_fit$generation, top_ind_fit$top_ind_fit, type = 'l',
+         main = "top_ind_fit")
     
     plot(network_d, layout = as.matrix(layout),
          edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
