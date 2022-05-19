@@ -88,6 +88,9 @@ public:
                                                         optimal_function,
                                                         input_range,
                                                         n_points);
+
+            sens[i].m_rank = m_vec_indiv[i].get_rank();
+
         }
 
         return sens;

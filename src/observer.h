@@ -346,16 +346,6 @@ public:
         m_avg_mutation_sensibility.push_back(calc_avg_mutation_sensibility(s, m_obs_param.m_n_mutations_per_locus));
     }
 
-    ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
-    void store_fit_phen_mut_sensibility(Sim& s) noexcept
-    {
-        m_fit_phen_mut_sensibility.push_back(
-                    {get_time_before_tick(s),
-                     s.calculate_fit_phen_mut_sens_for_all_inds(
-                     m_obs_param.m_n_mutations_per_locus,
-                     m_obs_param.m_reac_norm_n_points)}
-                    );
-    }
 
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
@@ -378,29 +368,9 @@ public:
     /// the correct sensibility to the correct top individual
     void store_sensibilities_and_top_inds(Sim& s)
     {
+        if(s.get_inds().empty()) return;
         store_fit_phen_mut_sensibility(s);
-
-        if(get_fit_phen_mut_sensibility().size() != s.get_time())
-        {
-            throw std::runtime_error{"the sensibilities have not yet been recorded, "
-                                     "therefore the top individuals cannot be assigned a sensibility"};
-        }
-
         store_top_n_inds(s);
-    }
-
-    ///Saves the top_proportion nth best individuals in the population
-    void store_top_n_inds(Sim& s)
-    {
-        m_top_inds.push_back(create_top_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
-                                                  m_fit_phen_mut_sensibility.back(),
-                                                  m_obs_param,
-                                                  m_params,
-                                                  get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
-                                                  sim::get_current_env_function(s),
-                                                  s.get_rng()
-                                                  )
-                             );
     }
 
     ///Stores the network spectrum of the top n best individuals
@@ -437,6 +407,39 @@ public:
     }
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
+
+private :
+    ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
+    void store_fit_phen_mut_sensibility(Sim& s) noexcept
+    {
+        m_fit_phen_mut_sensibility.push_back(
+                    {get_time_before_tick(s),
+                     s.calculate_fit_phen_mut_sens_for_all_inds(
+                     m_obs_param.m_n_mutations_per_locus,
+                     m_obs_param.m_reac_norm_n_points)}
+                    );
+    }
+
+    ///Saves the top_proportion nth best individuals in the population
+    void store_top_n_inds(Sim& s)
+    {
+        if(get_fit_phen_mut_sensibility().size() < m_top_inds.size() + 1)
+        {
+            throw std::runtime_error{"the sensibilities have not yet been recorded, "
+                                     "therefore the top individuals cannot be assigned "
+                                     "a sensibility"};
+        }
+
+        m_top_inds.push_back(create_top_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
+                                                  m_fit_phen_mut_sensibility.back(),
+                                                  m_obs_param,
+                                                  m_params,
+                                                  get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
+                                                  sim::get_current_env_function(s),
+                                                  s.get_rng()
+                                                  )
+                             );
+    }
 };
 
 template<class Ind>

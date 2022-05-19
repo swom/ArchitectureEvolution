@@ -289,7 +289,7 @@ void test_observer()
 
         auto o3 = o2;
         assert(o3.get_top_inds().empty());
-        o3.store_top_n_inds(s);
+        o3.store_sensibilities_and_top_inds(s);
         assert(o3 != o2);
 
         auto o4 = o3;
@@ -559,7 +559,7 @@ void test_observer()
         observer o;
 
         assert( o.get_fit_phen_mut_sensibility().empty());
-        o.store_fit_phen_mut_sensibility(s);
+        o.store_sensibilities_and_top_inds(s);
 
         assert( !o.get_fit_phen_mut_sensibility().empty());
     }
@@ -573,7 +573,7 @@ void test_observer()
         simulation s{a_p};
         observer o;
 
-        o.store_fit_phen_mut_sensibility(s);
+        o.store_sensibilities_and_top_inds(s);
 
         for(const auto& sensibilities : o.get_fit_phen_mut_sensibility())
             assert(sensibilities.size() == s.get_inds().size());
@@ -596,8 +596,8 @@ void test_observer()
         observer o_frail;
         observer o_robust;
 
-        o_robust.store_fit_phen_mut_sensibility(robust_sim);
-        o_frail.store_fit_phen_mut_sensibility(frail_sim);
+        o_robust.store_sensibilities_and_top_inds(robust_sim);
+        o_frail.store_sensibilities_and_top_inds(frail_sim);
 
         assert(lhs_has_lower_phen_mutation_sensibility_than_rhs(o_robust, o_frail));
     }
@@ -624,8 +624,8 @@ void test_observer()
         observer o_non_optimal;
         observer o_optimal;
 
-        o_optimal.store_fit_phen_mut_sensibility(optimal_sim);
-        o_non_optimal.store_fit_phen_mut_sensibility(non_optimal_sim);
+        o_optimal.store_sensibilities_and_top_inds(optimal_sim);
+        o_non_optimal.store_sensibilities_and_top_inds(non_optimal_sim);
 
         assert(lhs_is_more_sensible_to_mutation_effects_on_fitness_than_rhs(o_optimal, o_non_optimal));
     }
@@ -642,7 +642,7 @@ void test_observer()
         assert(sim::all_inds_have_fitness(1, optimal_sim));
 
         observer o;
-        o.store_fit_phen_mut_sensibility(optimal_sim);
+        o.store_sensibilities_and_top_inds(optimal_sim);
 
         assert(all_fit_mut_sens_are_negative(o));
     }
@@ -694,7 +694,7 @@ void test_observer()
         observer o;
         sim::calc_fitness_of_pop(s);
 
-        o.store_top_n_inds(s);
+        o.store_sensibilities_and_top_inds(s);
 
         auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_record(o).m_sensibilities;
         assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
