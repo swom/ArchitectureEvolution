@@ -440,7 +440,8 @@ public:
         std::vector<std::vector<double>> inputs(m_population.get_n_trials());
         std::vector<double> optimals(inputs.size());
 
-        for(int i = 0; i != m_population.get_n_trials(); i++)
+#pragma omp parallel for
+        for(int i = 0; i < m_population.get_n_trials(); i++)
         {
             inputs[i] = create_inputs();
             optimals[i] = env::calculate_optimal(m_environment, inputs[i]);

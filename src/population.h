@@ -67,7 +67,7 @@ public:
                                    m_mut_rate_act,
                                    m_mut_rate_dup);
 
-    ///Calculatesfitness and phenotype sensibilities to mutation  of all inds
+    ///Calculates fitness and phenotype sensibilities to mutation  of all inds
     template<typename Func>
     std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations,
                                                                               std::mt19937_64& rng,
@@ -259,12 +259,10 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
                                           const std::vector<double>& input)
 {
     std::vector<double> distance_from_target(inds.size());
-
-#pragma omp parallel for
+    std::vector<double> output_scratch;
+    std::vector<double> input_scratch;
     for(int i = 0 ; i < int(inds.size()); i++)
     {
-        std::vector<double> output_scratch;
-        std::vector<double> input_scratch;
         input_scratch = input;
         auto sqr_distance = ind::calc_sqr_distance_scratch(inds[i],
                                                            env_value,

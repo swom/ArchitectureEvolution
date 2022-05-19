@@ -651,7 +651,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.selection_freq = selection_freq;
         s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 30000;
+        p_p.number_of_inds = 3000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
