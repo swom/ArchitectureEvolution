@@ -13,6 +13,7 @@ library(ggpubr)
 dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
 setwd(dir)
 all_simple_res = data.frame()
+all_sensibilities = data.frame()
 pattern = '^m.*json$'
 # pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
@@ -36,16 +37,19 @@ if(file.exists("all_simple_res.R")){
                                                      "m_var_fitnesses")]),
                                  var = "gen")
     
-    sensibilities = as.data.frame(do.call(rbind, results$m_fit_phen_mut_sensibility))
     results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
     results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
     ID = as.data.frame(results$m_params)
     
     simple_res_ID = cbind(simple_res, ID)
     all_simple_res = rbind(all_simple_res, simple_res_ID)
+    
+    sensibilities = as.data.frame(do.call(rbind, results$m_fit_phen_mut_sensibility)) %>% mutate(ID = ID)
+    all_sensibilities = rbind(all_sensibilities, sensibilities)
   }
   
   save(all_simple_res, file = "all_simple_res.R")
+  save(all_sensibilities, file = "all_sensibilities.R")
 }
 #### Plot ####
 jpeg("fitness_plots.jpg",
@@ -94,19 +98,37 @@ print(p)
 dev.off()
 
 
-lil_sens = sensibilities %>% filter(m_generation < 1000)
+########Sensibilities
+extract_sensibilities <- function (x) {
+  as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities))) %>%
+    mutate(across(everything(), ~ as.numeric(.x)))
+}
 
-extract_sensibilities <- function (x) {as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities)))}
 
-
-for (gen in sensibilities$m_generation)
+for(gen in sensibilities$m_generation)
 {
   data = sensibilities %>%
-    filter(m_generation < 1000) %>% 
-    extract_sensibilities() 
+    filter(m_generation == gen) %>% 
+    extract_sensibilities()
+  
   ggplot(data = data) +
-    geom_density(aes(as.numeric(m_fitness)), bins = 100)
-  ggsave(paste("fitness_sens_plot",gen,sep = "_"))
+    geom_density(aes(m_fitness)) +
+    xlim(c(-0.2, 0.2)) +
+    ylim(c(-2000, 2000))
+  ggsave(paste(paste("fitness_sens_plot",gen,sep = "_"),".png"), device = "png")
+}
+
+for(gen in sensibilities$m_generation)
+{
+  data = sensibilities %>%
+    filter(m_generation == gen) %>% 
+    extract_sensibilities()
+  
+  ggplot(data = data) +
+    geom_density(aes(m_phenotype)) +
+    xlim(c(0, 0.8)) +
+    ylim(c(-2000, 2000))
+  ggsave(paste(paste("phenotype_sens_plot",gen,sep = "_"),".png"), device = "png")
 }
 
 

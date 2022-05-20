@@ -22,7 +22,7 @@ list.files(path = '.', pattern = pattern)
 
 for (i in  list.files(path = '.', pattern = pattern)){
   
-  ###Making a data tibble with all top individuals' data 
+###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
   
   results_unnest = as.data.frame(do.call(rbind,do.call(rbind, results$m_top_inds)))
