@@ -51,7 +51,7 @@ std::vector<double> create_rescaled_fitness_vec(const std::vector<double>& dista
 {
     std::vector<double> fitness_inds(distance_from_target.size());
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int i = 0; i < distance_from_target.size(); i++)
     {
         auto ind_fit = std::exp(-selection_strength * distance_from_target[i]);

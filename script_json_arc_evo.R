@@ -5,6 +5,15 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(ggpubr)
+library(patchwork)
+
+# load data.table
+library(data.table)
+
+extract_sensibilities <- function (x) {
+  as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities))) %>%
+    mutate(across(everything(), ~ as.numeric(.x)))
+}
 
 ####read data####
 
@@ -13,23 +22,26 @@ library(ggpubr)
 dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
 setwd(dir)
 all_simple_res = data.frame()
-all_sensibilities = data.frame()
+
 pattern = '^m.*json$'
 # pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
 # pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.1_s_f_0_seed3.json"
-# pattern = "mut_t_weights_sel_t_constant_sym_t_asymmetrical_fr_t_regular_a_p_off_r_t_constitutive_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.100_ch_B_0.001_s_st_0.1_s_f_1_seed1.json"
-
-list.files(path = '.', pattern = pattern)
-
+# pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_on_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed2.json"
 
 ####save load####
-if(file.exists("all_simple_res.R")){
-  load("all_simple_res.R")
+if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
+  all_simple_res <- readRDS("all_simple_res.Rds")
+  all_sensibilities <- readRDS("all_sensibilities.Rds")
 }else{
   
-  for (i in  list.files(path = '.', pattern = pattern))
+  filepaths = list.files(path = ".", pattern = pattern)
+  m_files = length(filepaths)
+  
+  all_sensibilities = list()
+  
+  for (i in  filepaths)
   {
     results <- fromJSON(file = i)
     simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
@@ -44,12 +56,34 @@ if(file.exists("all_simple_res.R")){
     simple_res_ID = cbind(simple_res, ID)
     all_simple_res = rbind(all_simple_res, simple_res_ID)
     
-    sensibilities = as.data.frame(do.call(rbind, results$m_fit_phen_mut_sensibility)) %>% mutate(ID = ID)
-    all_sensibilities = rbind(all_sensibilities, sensibilities)
+    # m fit suitability
+    tmp_ = results$m_fit_phen_mut_sensibility
+    
+    # convert to data.table with list column
+    tmp_ = lapply(tmp_, as.data.table)
+    
+    # deal with all gens
+    tmp_ = lapply(tmp_, function(df) {
+      df[, m_sensibilities := lapply(m_sensibilities, function(le) {
+        as.data.table(le)
+      })]
+      
+      df = df[, rbindlist(m_sensibilities), by = "m_generation"]
+      df
+    })
+    
+    tmp_ = rbindlist(tmp_)
+    tmp_[, names(ID) := ID]
+    
+    tmp_
+    all_sensibilities[[i]] = tmp_
+    
   }
   
-  save(all_simple_res, file = "all_simple_res.R")
-  save(all_sensibilities, file = "all_sensibilities.R")
+  all_sensibilities = rbindlist(all_sensibilities)
+  
+  saveRDS(all_simple_res, file = "all_simple_res.Rds")
+  saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
 }
 #### Plot ####
 jpeg("fitness_plots.jpg",
@@ -99,37 +133,56 @@ dev.off()
 
 
 ########Sensibilities
-extract_sensibilities <- function (x) {
-  as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities))) %>%
-    mutate(across(everything(), ~ as.numeric(.x)))
-}
 
 
-for(gen in sensibilities$m_generation)
+all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
+for(gen in levels(all_sensibilities$m_generation))
 {
-  data = sensibilities %>%
-    filter(m_generation == gen) %>% 
-    extract_sensibilities()
+  phen_x_lim = c(0,0.3)
+  fit_x_lim = c(-0.1,0.1)
+  y_lim = c(0,50)
   
-  ggplot(data = data) +
-    geom_density(aes(m_fitness)) +
-    xlim(c(-0.2, 0.2)) +
-    ylim(c(-2000, 2000))
-  ggsave(paste(paste("fitness_sens_plot",gen,sep = "_"),".png"), device = "png")
+  n_bins = 100
+  
+ gen = "251999"
+
+  gen_sens = all_sensibilities %>%
+    filter(m_generation == gen) %>% 
+    filter(s_p.adaptation_per == 0) %>% 
+    filter(s_p.seed == 1) %>% 
+    filter(s_p.selection_strength == 1) %>% 
+    filter(s_p.selection_freq == 100)
+  
+  p1 = ggplot(data = gen_sens) +
+    geom_histogram(aes(m_fitness), bins = n_bins) +
+    xlim(fit_x_lim) +
+    ylim(y_lim)
+  
+  
+  p2 = ggplot(data = gen_sens) +
+    geom_histogram(aes(m_phenotype), bins = n_bins) +
+    xlim(phen_x_lim) +
+    ylim(y_lim) +
+    coord_flip()
+  
+  p3 = 
+    ggplot(data = gen_sens) +
+    geom_point(aes(x = m_fitness, y = m_phenotype, color = m_rank, alpha = 1), alpha = 0.005) +
+    xlim(fit_x_lim) +
+    ylim(phen_x_lim)
+  
+  layout <- "
+AA##
+AA##
+CCDD
+CCDD" 
+
+p1 + p3 + p2  + 
+    plot_layout(design = layout,guides = 'collect', widths = 1) 
+
+  ggsave(paste(paste("phen_fit_sens_plot",gen,sep = "_"),".png"), device = "png")
 }
 
-for(gen in sensibilities$m_generation)
-{
-  data = sensibilities %>%
-    filter(m_generation == gen) %>% 
-    extract_sensibilities()
-  
-  ggplot(data = data) +
-    geom_density(aes(m_phenotype)) +
-    xlim(c(0, 0.8)) +
-    ylim(c(-2000, 2000))
-  ggsave(paste(paste("phenotype_sens_plot",gen,sep = "_"),".png"), device = "png")
-}
 
 
 

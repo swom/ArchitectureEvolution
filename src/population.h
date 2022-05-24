@@ -288,7 +288,7 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 {
     assert(p.get_inds().size() == fitness_vector.size());
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int i = 0; i < fitness_vector.size(); i++)
     {
         set_nth_ind_fitness(p, i, fitness_vector[i]);
@@ -305,11 +305,11 @@ std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, 
                                                      rng);
     std::vector<double> sensibilities_to_mutation;
     sensibilities_to_mutation.resize(inds.size());
-   #pragma omp parallel for
+#pragma omp parallel for
     for(int i = 0;  i < inds.size(); i++)
     {
         sensibilities_to_mutation[i] = calc_phenotype_mutational_sensibility(inds[i].get_mutable_net(),
-                                                                   mutations);
+                                                                             mutations);
     }
     return sensibilities_to_mutation;
 };
@@ -325,7 +325,7 @@ population<Ind> sort_and_assign_ranks_by_fitness(population<Ind>& p)
     std::for_each(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
                   [&rank](auto& ind){ind.set_rank(rank++);});
 
-   return p;
+    return p;
 }
 
 ///Calculates the fitness of inds in pop given a target env_value
@@ -412,7 +412,7 @@ const typename Ind::net_t& get_nth_ind_net(const population<Ind>& p, size_t ind_
 
 ///Checks that the individuals index position in the
 ///population vector are sorted by decreasing fitness value
- template<class Ind>
+template<class Ind>
 bool is_sorted_by_fitness(const std::vector<Ind>& inds)
 {
     return std::is_sorted(inds.begin(), inds.end(),
@@ -421,7 +421,7 @@ bool is_sorted_by_fitness(const std::vector<Ind>& inds)
 
 ///Checks that the individuals index position in the
 ///population vector are sorted by decreasing rank
- template<class Ind>
+template<class Ind>
 bool is_sorted_by_rank(const std::vector<Ind>& inds)
 {
     return std::is_sorted(inds.begin(), inds.end(),
@@ -449,19 +449,26 @@ void select_new_pop(population<Ind>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
                     std::mt19937_64& rng)
 {
-//#pragma omp parallel for
+
+    std::vector<int> selected_ind_index(p.get_inds().size());
     for( int i = 0; i < int(p.get_inds().size()); i++)
     {
-//#pragma omp critical
-        {
-        auto selected_ind_index = mut_dist(rng);
-        p.get_new_inds()[i] = p.get_inds()[selected_ind_index];
+        selected_ind_index[i] = mut_dist(rng);
+    }
+
+#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
+        p.get_new_inds()[i] = p.get_inds()[selected_ind_index[i]];
+    }
+
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
-        }
     }
 }
 
@@ -472,22 +479,29 @@ void select_new_pop_randomly(population<Ind>& p,
 {
     auto max_index_inds = p.get_inds().size() - 1;
     std::uniform_int_distribution<> index_distr(0, int(max_index_inds));
-//#pragma omp parallel for
+
+    std::vector<int> selected_ind_index(p.get_inds().size());
     for( int i = 0; i < int(p.get_inds().size()); i++)
     {
-//#pragma omp critical
-        {
-        auto selected_ind_index = index_distr(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
+        selected_ind_index[i] = index_distr(rng);
+    }
+
+#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
+        p.get_new_inds()[i] = p.get_inds()[selected_ind_index[i]];
+    }
+
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
-        }
     }
 }
+
 ///Swaps a vector of new_inds with the vector of old inds
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
