@@ -6,22 +6,14 @@ library(tidyr)
 library(stringr)
 library(ggpubr)
 library(patchwork)
-
-# load data.table
 library(data.table)
-
-extract_sensibilities <- function (x) {
-  as.data.frame(do.call(rbind,do.call(cbind, x$m_sensibilities))) %>%
-    mutate(across(everything(), ~ as.numeric(.x)))
-}
 
 ####read data####
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/5_24_22_long"
 setwd(dir)
-all_simple_res = data.frame()
 
 pattern = '^m.*json$'
 # pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
@@ -34,12 +26,14 @@ pattern = '^m.*json$'
 if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
   all_simple_res <- readRDS("all_simple_res.Rds")
   all_sensibilities <- readRDS("all_sensibilities.Rds")
+  all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
 }else{
   
   filepaths = list.files(path = ".", pattern = pattern)
   m_files = length(filepaths)
   
   all_sensibilities = list()
+  all_simple_res = data.frame()
   
   for (i in  filepaths)
   {
@@ -81,6 +75,7 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
   }
   
   all_sensibilities = rbindlist(all_sensibilities)
+  all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
   
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
   saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
@@ -134,24 +129,52 @@ dev.off()
 
 ########Sensibilities
 
+###Select one simulation only based on parameters
+adapt_per = 1
+seed = 1
+sel_str = 1
+sel_freq  = 100
 
-all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
-for(gen in levels(all_sensibilities$m_generation))
-{
+###subset to a specific simulation for now
+sim_sens = all_sensibilities %>%
+  filter(s_p.adaptation_per == adapt_per) %>% 
+  filter(s_p.seed == seed) %>% 
+  filter(s_p.selection_strength == sel_str) %>% 
+  filter(s_p.selection_freq == sel_freq)
+
+###get and plot fitnesses of the specific simulation 
+sim_fitness = all_simple_res %>%
+  filter(s_p.adaptation_per == adapt_per) %>% 
+  filter(s_p.seed == seed) %>% 
+  filter(s_p.selection_strength == sel_str) %>% 
+  filter(s_p.selection_freq == sel_freq) 
+
+fit_plot = ggplot(data = sim_fitness %>% filter(gen %in% all_sensibilities$m_generation)) +
+  geom_line(aes(x = gen, y = m_avg_fitnesses)) +
+  geom_ribbon( aes(x = gen, y = m_avg_fitnesses, ymax = m_avg_fitnesses + m_var_fitnesses, ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
+
+#create directory where to save images
+subdir = paste(
+  "phen_fit_sens_",
+  "s", unique(sim_sens$s_p.seed),
+  "s_f", unique(sim_sens$s_p.selection_freq),
+  "s_s", unique(sim_sens$s_p.selection_strength),
+  "a_p", unique(sim_sens$s_p.adaptation_per),
+  sep = "_")
+dir.create(file.path(dir, subdir), showWarnings = FALSE)
+
+
+for(generation in levels(all_sensibilities$m_generation)){
   phen_x_lim = c(0,0.3)
   fit_x_lim = c(-0.1,0.1)
   y_lim = c(0,50)
   
-  n_bins = 100
+  n_bins = 1000
   
- gen = "251999"
-
-  gen_sens = all_sensibilities %>%
-    filter(m_generation == gen) %>% 
-    filter(s_p.adaptation_per == 0) %>% 
-    filter(s_p.seed == 1) %>% 
-    filter(s_p.selection_strength == 1) %>% 
-    filter(s_p.selection_freq == 100)
+  gen_sens = sim_sens %>%
+    filter(m_generation == generation) 
+  
+  
   
   p1 = ggplot(data = gen_sens) +
     geom_histogram(aes(m_fitness), bins = n_bins) +
@@ -167,20 +190,27 @@ for(gen in levels(all_sensibilities$m_generation))
   
   p3 = 
     ggplot(data = gen_sens) +
-    geom_point(aes(x = m_fitness, y = m_phenotype, color = m_rank, alpha = 1), alpha = 0.005) +
+    geom_point(aes(x = m_fitness, y = m_phenotype, color = m_rank, alpha = 1), alpha = 0.5) +
     xlim(fit_x_lim) +
     ylim(phen_x_lim)
   
+  p4 = fit_plot + 
+    geom_hline(yintercept = as.numeric(sim_fitness %>% filter(gen == generation) %>% select(m_avg_fitnesses)), color = "red") +
+    geom_vline(xintercept = as.numeric(generation), color = "red")
+  
   layout <- "
-AA##
-AA##
+AAEE
+AAEE
 CCDD
 CCDD" 
-
-p1 + p3 + p2  + 
+  
+  p1 + p3 + p2 + p4 +
     plot_layout(design = layout,guides = 'collect', widths = 1) 
-
-  ggsave(paste(paste("phen_fit_sens_plot",gen,sep = "_"),".png"), device = "png")
+  
+  ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
+         device = "png", 
+         width = 30,
+         height = 15)
 }
 
 

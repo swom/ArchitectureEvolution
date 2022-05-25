@@ -66,8 +66,6 @@ struct obs_param{
         m_reac_norm_n_points{n_data_points_for_reac_norm},
         m_n_mutations_per_locus{n_mutations_for_mutational_spectrum}
     {
-        if(top_ind_reg_freq == 0)
-            throw std::invalid_argument{"the number of generations after which a recording should happen cannot be 0"};
         if(top_prop == 0)
             throw std::invalid_argument{"the number of indidivuduals recorderd cannot be 0"};
     }
@@ -456,12 +454,52 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 /// with env function == y = 1
 simulation<> create_simple_simulation();
 
+///Calculates the time to add to the seleciton frequency to record
+/// data at the end of a selection period
+template<class O>
+int calculate_selection_duration(const O& o)
+{
+    int rec_freq_shift = 0;
+
+    if(o.get_sel_type() == selection_type::sporadic &&
+            o.get_e_change_f_type() == env_change_freq_type::regular)
+    {
+        rec_freq_shift += o.get_selection_duration();
+    }
+
+    return rec_freq_shift;
+}
+
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);
 
-///Executes a simulation for n generations
-template<class Sim>
-void exec(Sim& s , observer<Sim>& o)
+///Check if it is the time at the end of a selection period
+template<class O, class S>
+bool is_end_of_selection_period(const O& o, const S& s, int rec_freq_shift)
+{
+    return o.get_record_freq_top_inds() != 0 &&
+            (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0;
+}
+
+///Check if it is the time at the start of a selection period
+template<class O, class S>
+bool is_start_of_selection_period(const O& o, const S& s)
+{
+    return o.get_record_freq_top_inds() != 0 &&
+            (s.get_time()) %  o.get_record_freq_top_inds() == 0;
+}
+
+///Check if it is the time to record the best individuals' mutation spectrum
+template<class O, class S>
+bool is_time_to_record_best_inds_mut_spectrum(const O& o, const S& s, int rec_freq_shift)
+{
+    return o.get_record_freq_spectrum() != 0 &&
+            (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0;
+}
+
+///?Checks that an observer and a simulation haev same parameters and if not throws an exception
+template<class O, class S>
+bool throw_if_obs_and_sim_do_not_have_same_param(const O& o, const S& s)
 {
     if(s.get_params() != o.get_params())
     {
@@ -469,16 +507,19 @@ void exec(Sim& s , observer<Sim>& o)
                                  "Observer was not initialized "
                                  "correctly with simulation parameters"};
     }
+}
 
-    int rec_freq_shift = 0;
-    if(o.get_sel_type() == selection_type::sporadic &&
-            o.get_e_change_f_type() == env_change_freq_type::regular)
-    {
-        rec_freq_shift += o.get_selection_duration();
-    }
-
+///Executes a simulation for n generations
+template<class Sim>
+void exec(Sim& s , observer<Sim>& o)
+{
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;
+
+
+    throw_if_obs_and_sim_do_not_have_same_param(o,s);
+
+    int selection_duration = calculate_selection_duration(o);
 
     while(s.get_time() !=  s.get_n_gen())
     {
@@ -488,8 +529,14 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_var_fit(s);
         o.store_avg_fit(s);
 
-        if(o.get_record_freq_top_inds() != 0 &&
-                (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0)
+        if(Sim::sel_t == selection_type::sporadic &&
+                is_start_of_selection_period(o,s))
+        {
+            o.store_sensibilities_and_top_inds(s);
+            o.store_inputs_and_optimals(s);
+        }
+
+        if(is_end_of_selection_period(o, s, selection_duration))
         {
             o.store_sensibilities_and_top_inds(s);
             o.store_inputs_and_optimals(s);
@@ -497,11 +544,21 @@ void exec(Sim& s , observer<Sim>& o)
             o.store_avg_mut_sensibility(s);
 #endif
         }
-        if( o.get_record_freq_spectrum() != 0 &&
-                (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0)
+
+        if(is_end_of_selection_period(o, s, selection_duration))
         {
-            o.store_network_spectrum_n_best(s); //take out, unrealistic amount of data, convert to summary x weight
+            o.store_sensibilities_and_top_inds(s);
+            o.store_inputs_and_optimals(s);
+#ifndef NDEBUG
+            o.store_avg_mut_sensibility(s);
+#endif
         }
+
+        if(is_time_to_record_best_inds_mut_spectrum(o, s, selection_duration))
+        {
+            o.store_network_spectrum_n_best(s);
+        }
+
         if(s.get_time() % 1000 == 0)
         {
             auto lap_ms = my_watch.lap<sw::ms>();
