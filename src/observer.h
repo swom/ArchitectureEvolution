@@ -345,6 +345,36 @@ public:
     }
 
 
+    ///Stores the data from simulation at the coorect times
+    void store_data(Sim& s, int selection_duration)
+    {
+        store_env_func(s);
+        store_var_fit(s);
+        store_avg_fit(s);
+
+        if(get_sel_type() == selection_type::sporadic &&
+                is_start_of_selection_period(*this,s))
+        {
+            store_sensibilities_and_top_inds(s);
+            store_inputs_and_optimals(s);
+        }
+
+        if(is_end_of_selection_period(*this, s, selection_duration))
+        {
+            store_sensibilities_and_top_inds(s);
+            store_inputs_and_optimals(s);
+#ifndef NDEBUG
+            store_avg_mut_sensibility(s);
+#endif
+        }
+
+        if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
+        {
+            store_network_spectrum_n_best(s);
+        }
+    }
+
+
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
     {
@@ -525,39 +555,7 @@ void exec(Sim& s , observer<Sim>& o)
     {
         sim::tick(s);
 
-        o.store_env_func(s);
-        o.store_var_fit(s);
-        o.store_avg_fit(s);
-
-        if(Sim::sel_t == selection_type::sporadic &&
-                is_start_of_selection_period(o,s))
-        {
-            o.store_sensibilities_and_top_inds(s);
-            o.store_inputs_and_optimals(s);
-        }
-
-        if(is_end_of_selection_period(o, s, selection_duration))
-        {
-            o.store_sensibilities_and_top_inds(s);
-            o.store_inputs_and_optimals(s);
-#ifndef NDEBUG
-            o.store_avg_mut_sensibility(s);
-#endif
-        }
-
-        if(is_end_of_selection_period(o, s, selection_duration))
-        {
-            o.store_sensibilities_and_top_inds(s);
-            o.store_inputs_and_optimals(s);
-#ifndef NDEBUG
-            o.store_avg_mut_sensibility(s);
-#endif
-        }
-
-        if(is_time_to_record_best_inds_mut_spectrum(o, s, selection_duration))
-        {
-            o.store_network_spectrum_n_best(s);
-        }
+        o.store_data(s, selection_duration);
 
         if(s.get_time() % 1000 == 0)
         {
