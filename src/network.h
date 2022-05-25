@@ -653,17 +653,15 @@ public:
     ///Changes the current arc of a network to a new one
     void change_network_arc(std::vector<int> new_arc){
 
-        try {
-            if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
-                m_current_arc = new_arc;
-            }
-            else
-            {
-                throw std::invalid_argument{"The current and maximum architectures are not compatible"};
-            }
-        } catch (const std::invalid_argument& e) {
-        std::cerr << e.what();
+
+        if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
+            m_current_arc = new_arc;
         }
+        else
+        {
+            throw std::invalid_argument{"The current and maximum architectures are not compatible"};
+        }
+
 
     }
 
@@ -961,9 +959,9 @@ double calc_fitness_mutational_sensibility(Net& net,
                 for(auto& current_weight : node.get_vec_mutable_weights())
                 {
                     auto distance_from_optimal_after_weight_mut =  calc_rn_distance_for_weight_mut(net,
-                                                                                            current_weight,
-                                                                                            optimal_reac_norm,
-                                                                                            mutation);
+                                                                                                   current_weight,
+                                                                                                   optimal_reac_norm,
+                                                                                                   mutation);
 
                     distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_weight_mut);
                 }
@@ -1037,7 +1035,7 @@ fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
                 }
             }
 
-        return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenotype_distances)};
+    return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenotype_distances)};
 }
 
 template<class Net>
