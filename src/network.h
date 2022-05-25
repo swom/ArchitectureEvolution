@@ -652,13 +652,19 @@ public:
 
     ///Changes the current arc of a network to a new one
     void change_network_arc(std::vector<int> new_arc){
-        if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
-            m_current_arc = new_arc;
+
+        try {
+            if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
+                m_current_arc = new_arc;
+            }
+            else
+            {
+                throw std::invalid_argument{"The current and maximum architectures are not compatible"};
+            }
+        } catch (const std::invalid_argument& e) {
+        std::cerr << e.what();
         }
-        else
-        {
-            throw std::invalid_argument{"The current and maximum architectures are not compatible"};
-        }
+
     }
 
 

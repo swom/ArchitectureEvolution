@@ -531,12 +531,22 @@ bool is_time_to_record_best_inds_mut_spectrum(const O& o, const S& s, int rec_fr
 template<class O, class S>
 bool throw_if_obs_and_sim_do_not_have_same_param(const O& o, const S& s)
 {
-    if(s.get_params() != o.get_params())
+
+    try
     {
-        throw std::runtime_error{"During exec(): "
-                                 "Observer was not initialized "
-                                 "correctly with simulation parameters"};
+        if(s.get_params() != o.get_params())
+        {
+            throw std::runtime_error{"During exec(): "
+                                     "Observer was not initialized "
+                                     "correctly with simulation parameters"};
+        }
+        return false;
     }
+    catch (std::runtime_error& e)
+    {
+        std::cerr << e.what();
+    }
+    return true;
 }
 
 ///Executes a simulation for n generations
