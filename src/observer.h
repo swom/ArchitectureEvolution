@@ -549,6 +549,17 @@ bool throw_if_obs_and_sim_do_not_have_same_param(const O& o, const S& s)
     return true;
 }
 
+template<class Sim>
+void print_elapsed_time_every_n_gen(const Sim& s, int n, stopwatch::Stopwatch& my_watch)
+{
+    if(s.get_time() % n == 0)
+    {
+        auto lap_ms = my_watch.lap<stopwatch::ms>();
+        std::cout << "Cycle " << s.get_time() << " --Lap time in ms: " << lap_ms << std::endl;
+    }
+}
+
+
 ///Executes a simulation for n generations
 template<class Sim>
 void exec(Sim& s , observer<Sim>& o)
@@ -567,11 +578,7 @@ void exec(Sim& s , observer<Sim>& o)
 
         o.store_data(s, selection_duration);
 
-        if(s.get_time() % 1000 == 0)
-        {
-            auto lap_ms = my_watch.lap<sw::ms>();
-            std::cout << "Cycle " << s.get_time() << " --Lap time in ms: " << lap_ms << std::endl;
-        }
+        print_elapsed_time_every_n_gen(s, 1000, my_watch);
 
     }
 }
