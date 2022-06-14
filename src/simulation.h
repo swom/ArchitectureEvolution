@@ -483,7 +483,7 @@ public:
 
         pop::set_fitness_inds(get_pop(), fitness_vector);
 
-        pop::sort_and_assign_ranks_by_fitness(m_population);
+        m_population.sort_and_assign_ranks_by_fitness();
 
         return *this;
     }

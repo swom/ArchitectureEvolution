@@ -76,6 +76,8 @@ public:
                                                                               int n_points
                                                                               )
     {
+        sort_and_assign_ranks_by_fitness();
+
         std::vector<fit_and_phen_sens_t> sens(m_vec_indiv.size());
 
         auto mutations = create_mutations(n_mutations, m_mut_step, rng);
@@ -139,6 +141,19 @@ public:
 
     ///Returns the number of trials for which individuals have to be evaluated
     int get_n_trials() const noexcept {return m_n_trials;}
+
+    ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
+    population<Ind> sort_and_assign_ranks_by_fitness()
+    {
+        std::sort(m_vec_indiv.begin(), m_vec_indiv.end(),
+                  [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
+
+        int rank = 0;
+        std::for_each(m_vec_indiv.begin(), m_vec_indiv.end(),
+                      [&rank](auto& ind){ind.set_rank(rank++);});
+
+        return *this;
+    }
 
     ///resets the fitness of the population to 0
     void reset_fitness()
@@ -314,19 +329,6 @@ std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, 
     return sensibilities_to_mutation;
 };
 
-///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
-template <class Ind>
-population<Ind> sort_and_assign_ranks_by_fitness(population<Ind>& p)
-{
-    std::sort(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
-              [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
-
-    int rank = 0;
-    std::for_each(p.get_inds_nonconst().begin(), p.get_inds_nonconst().end(),
-                  [&rank](auto& ind){ind.set_rank(rank++);});
-
-    return p;
-}
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
@@ -343,8 +345,6 @@ population<Ind>& calc_fitness(population<Ind>& p,
     auto fitness_vector = rescale_dist_to_fit(distance_from_target, sel_str);
 
     set_fitness_inds(p, fitness_vector);
-
-    sort_and_assign_ranks_by_fitness(p);
 
     return p;
 }
