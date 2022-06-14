@@ -704,7 +704,7 @@ void test_observer()
     {
         auto s = create_simple_simulation();
         observer o;
-        sim::calc_fitness_of_pop(s);
+        s.calc_fitness();
 
         o.store_sensibilities_and_top_inds(s);
 
@@ -715,6 +715,19 @@ void test_observer()
         assert(best_top_ind_of_first_record.m_sensibilities == sensibility_of_ind_with_highest_ranking_fitness);
     }
 
+    ///Sensibilities also store the fitness of the individual
+    {
+        auto s = create_simple_simulation();
+        observer o;
+        s.calc_fitness();
+
+        o.store_sensibilities_and_top_inds(s);
+        auto sensibilities_first_record = get_inds_sensibilities_of_first_record(o);
+        auto sensibility_of_ind_with_highest_ranking_fitness = find_sensibilities_from_highest_ranking_ind(sensibilities_first_record);
+
+        assert(sensibility_of_ind_with_highest_ranking_fitness.m_fitness ==
+               get_first_top_ind_of_first_record(o).m_ind.get_fitness());
+    }
     ///The sensibilities are saved with the rest of the Ind_Data
     {
         fit_and_phen_sens_t non_default_sensibilities(78945,456987);
@@ -724,11 +737,6 @@ void test_observer()
         save_json(i, "test");
         auto loaded_i = load_json<Ind_Data<individual<>>>("test");
         assert(loaded_i.m_sensibilities == i.m_sensibilities);
-    }
-
-    ///Top individuals are stored by rank
-    {
-
     }
 
 }

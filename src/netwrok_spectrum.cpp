@@ -3,8 +3,8 @@
 
 bool operator== (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs)
 {
-    auto phenotype = are_equal_with_tolerance(lhs.m_phenotype, rhs.m_phenotype);
-    auto fitness = are_equal_with_tolerance(lhs.m_fitness, rhs.m_fitness);
+    auto phenotype = are_equal_with_tolerance(lhs.m_phenotype_sens, rhs.m_phenotype_sens);
+    auto fitness = are_equal_with_tolerance(lhs.m_fitness_sens, rhs.m_fitness_sens);
 
     return phenotype && fitness;
 }

@@ -1126,8 +1126,8 @@ void test_network() //!OCLINT
 
         fit_and_phen_sens_t fitness_and_phenotype_sensibilites = calc_phen_and_fit_mut_sensibility(net, mutations, constant_one, input_range, n_points);
 
-        assert(fitness_and_phenotype_sensibilites.m_fitness == fitness_sensibility);
-        assert(fitness_and_phenotype_sensibilites.m_phenotype == phenotype_sensibility);
+        assert(fitness_and_phenotype_sensibilites.m_fitness_sens == fitness_sensibility);
+        assert(fitness_and_phenotype_sensibilites.m_phenotype_sens == phenotype_sensibility);
     }
 }
 #endif

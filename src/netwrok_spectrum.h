@@ -9,30 +9,37 @@
 struct fit_and_phen_sens_t
 {
 
-    fit_and_phen_sens_t(double fitness = 123456, double phenotype = 123456, int rank = -13456):
-        m_fitness{fitness},
-        m_phenotype{phenotype},
-        m_rank{rank}
+    fit_and_phen_sens_t(double fitness_sens = 123456,
+                        double phenotype_sens = 123456,
+                        int rank = -13456,
+                        double fitness = -11111):
+        m_fitness_sens{fitness_sens},
+        m_phenotype_sens{phenotype_sens},
+        m_rank{rank},
+        m_fitness{fitness}
     {}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(fit_and_phen_sens_t,
-                                   m_fitness,
-                                   m_phenotype,
+                                   m_fitness_sens,
+                                   m_phenotype_sens,
                                    m_rank)
 
     ///The sensitibility of fitness to mutations,
     /// negative values signify that mutations on average move
     /// the network away from the fitness optima
     /// positive values signify that mutations move it closer
-    double m_fitness;
+    double m_fitness_sens;
 
     ///The sensitibility of the phenotype to mutations,
     /// higher valuessignify that mutation on average
     /// move the phenotype further away from its original state
-    double m_phenotype;
+    double m_phenotype_sens;
 
     ///The rank of the individual from which the sensibilities are calculated
     int m_rank;
+
+    ///The fitness of the individual
+   double m_fitness;
 };
 
 bool operator== (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs);

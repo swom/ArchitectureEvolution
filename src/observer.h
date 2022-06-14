@@ -657,8 +657,8 @@ bool lhs_has_lower_phen_mutation_sensibility_than_rhs(const Obs& lhs, const Obs&
 
         for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
         {
-            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype >=
-                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype)
+            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype_sens >=
+                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_phenotype_sens)
             {
                 return false;
             }
