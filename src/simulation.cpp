@@ -651,7 +651,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.selection_freq = selection_freq;
         s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 3000;
+        p_p.number_of_inds = 4000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
@@ -675,10 +675,10 @@ void test_simulation() noexcept//!OCLINT test may be many
             if(s.get_time() % s.get_sel_freq() >= 0 &&
                  s.get_time() % s.get_sel_freq() < s.get_sel_duration())
             {
-                assert(avg_prev_pop < avg_pop);
                 assert(!are_equal_with_high_tolerance(avg_prev_pop,
                                                       avg_pop)
                        );
+                assert(avg_prev_pop < avg_pop);
             }
             else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
             {
@@ -880,7 +880,23 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
     }
 #endif
+    ///The population is sorted by fitness and individuals are assigned a rank
+    /// when mutational sensibilities are calculated
+    {
+        simulation s;
+        s.get_pop() = produce_simple_pop();
 
+         s.calc_fitness();
+         assert(sim::all_fitnesses_are_not_equal(s));
+
+         assert(!sim::is_sorted_by_fitness(s));
+         assert(!sim::all_ranks_are_equal(s));
+
+         s.calculate_fit_phen_mut_sens_for_all_inds(1,1);
+
+         assert(sim::is_sorted_by_fitness(s));
+         assert(sim::is_sorted_by_rank(s));
+    }
 }
 
 #endif

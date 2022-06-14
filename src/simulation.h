@@ -483,8 +483,6 @@ public:
 
         pop::set_fitness_inds(get_pop(), fitness_vector);
 
-        m_population.sort_and_assign_ranks_by_fitness();
-
         return *this;
     }
     ///Reproduces inds to next gen based on their fitness
@@ -637,10 +635,26 @@ bool all_individuals_have_same_input(const Sim &s)
     return pop::all_individuals_have_same_input(p);
 }
 
+///Checks that all fitnesses in the population are not equal
+template<class Sim>
+bool all_fitnesses_are_not_equal(const Sim& s)
+{
+    return pop::all_fitnesses_are_not_equal(s.get_pop().get_inds());
+}
+
+///Checks that individuals all have a specific fitness value
 template<class Sim>
 bool all_inds_have_fitness(double value, const Sim& s)
 {
   return pop::all_fitnesses_are(value, s.get_pop());
+}
+
+///Checks that the population in this simulation
+/// has individuals sorted by rank
+template<class Sim>
+bool all_ranks_are_equal(const Sim& s)
+{
+    return pop::all_ranks_are_equal(s.get_pop().get_inds());
 }
 
 ///Calculates the optimal output
@@ -707,6 +721,22 @@ template<class Sim>
 const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
 {
     return pop::get_nth_ind_net(s.get_pop(), ind_index);
+}
+
+///Checks that the population in this simulation
+/// has individuals sorted by fitness
+template<class Sim>
+bool is_sorted_by_fitness(const Sim& s)
+{
+   return pop::is_sorted_by_fitness(s.get_pop().get_inds());
+}
+
+///Checks that the population in this simulation
+/// has individuals sorted by rank
+template<class Sim>
+bool is_sorted_by_rank(const Sim& s)
+{
+   return pop::is_sorted_by_rank(s.get_pop().get_inds());
 }
 
 ///Switches the function of the environment used to calculate the optimal output

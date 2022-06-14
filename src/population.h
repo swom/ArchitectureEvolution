@@ -229,6 +229,16 @@ bool all_inds_weights_have_value(const Pop &pop, double weight_value)
     }
     return true;
 }
+
+///Checks that all ranks in the populaiton are the same
+template<class Ind>
+bool all_ranks_are_equal(const std::vector<Ind>& inds)
+{
+    return std::adjacent_find(inds.begin(), inds.end(),
+                       [](const Ind& lhs, const Ind &rhs)
+    {return lhs.get_rank() == rhs.get_rank();}) == inds.end();
+}
+
 ///Checks if fitness of all individuals equals a certain value
 template<class Ind>
 bool all_fitnesses_are(double value, const population<Ind>& p)
@@ -551,6 +561,9 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
 }
 
 }
+
+///Produce a simple population with default template argumetns and 2 different individuals
+population<> produce_simple_pop();
 
 void test_population() noexcept;
 

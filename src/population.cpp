@@ -247,7 +247,7 @@ void test_population() noexcept
                                                 frail_inds_robustness));
     }
 
-    ///Individuals are ranked based on fitness
+    ///Individuals can be  ranked based on fitness
     {
        auto p = produce_simple_pop();
 
@@ -256,6 +256,7 @@ void test_population() noexcept
         double sel_str = 1;
 
         pop::calc_fitness(p, optimal_value, sel_str, input);
+        p.sort_and_assign_ranks_by_fitness();
 
         assert(pop::all_fitnesses_are_not_equal(p.get_inds()));
         assert(pop::is_sorted_by_fitness(p.get_inds()) &&
@@ -271,8 +272,11 @@ void test_population() noexcept
          double sel_str = 1;
 
          pop::calc_fitness(p, optimal_value, sel_str, input);
+         p.sort_and_assign_ranks_by_fitness();
+
          assert(pop::find_best_ranking_ind(p).get_rank() == 0);
          assert(pop::find_worst_ranking_ind(p).get_rank() == p.get_inds().size() - 1);
     }
+
 }
 #endif
