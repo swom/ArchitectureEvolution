@@ -699,8 +699,8 @@ bool lhs_is_more_sensible_to_mutation_effects_on_fitness_than_rhs(const Obs& lhs
 
         for(int j = 0; j != lhs.get_fit_phen_mut_sensibility()[i].size(); j++)
         {
-            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness >=
-                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness)
+            if(lhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness_sens >=
+                    rhs.get_fit_phen_mut_sensibility()[i].m_sensibilities[j].m_fitness_sens)
             {
                 return false;
             }
