@@ -563,8 +563,8 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
 
 }
 
-///Produce a simple population with default template argumetns and 2 different individuals
-population<> produce_simple_pop();
+///Produces a simple populations with n individuals all with different weights
+population<> produce_simple_pop(int n_inds = 2);
 
 void test_population() noexcept;
 

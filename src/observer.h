@@ -142,17 +142,13 @@ const fit_and_phen_sens_t& find_sensibility_for_ind(const Ind& ind,
 ///Calculates the reaction_norm of individuals' networks
 /// for a given range and a given number of data points
 template<class Ind, typename Func>
-std::vector<Ind_Data<Ind>> create_top_inds_data(std::vector<Ind> inds,
+std::vector<Ind_Data<Ind>> create_inds_data(std::vector<Ind> inds,
                                                 const sensibilities_to_mut& sensibilities,
                                                 const obs_param& o_params,
                                                 const all_params& a_params,
                                                 const int& generation,
-                                                Func optimal_function,
-                                                std::mt19937_64& rng)
+                                                Func optimal_function)
 {
-    auto mutations = create_mutations(o_params.m_n_mutations_per_locus,
-                                      a_params.p_p.mut_step,
-                                      rng);
 
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
     for(auto i = 0; i != inds.size(); i++)
@@ -193,6 +189,7 @@ private:
     std::vector<sensibilities_to_mut> m_fit_phen_mut_sensibility;
     std::vector<double> m_var_fitnesses;
     std::vector<char> m_env_functions;
+    std::vector<std::vector<Ind_Data<Ind>>> m_sampled_inds;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
     obs_param m_obs_param;
@@ -302,6 +299,8 @@ public:
         return inds;
     }
 
+    ///Returns the vector of sampled individuals
+    const std::vector<std::vector<Ind_Data<Ind>>>& get_sampled_inds() const noexcept {return m_sampled_inds;}
 
     ///Returns a vector containing the stored top idnividuals of a given gen
     std::vector<Ind> get_top_inds_gen(int generation) noexcept
@@ -436,6 +435,24 @@ public:
 
     void store_env_func (const Sim& s) noexcept {m_env_functions.push_back(sim::get_name_current_function(s));}
 
+    ///Samples 3 individuals based on their mutational sensibilities
+    /// The one with the highest, lowest and most median
+//    void store_top_mid_low_sens_inds(const Sim& s)
+//    {
+//        ///Make sure that the sensibilities have already been recorded
+//        if(get_fit_phen_mut_sensibility().size() < m_top_inds.size() + 1)
+//        {
+//            throw std::runtime_error{"the sensibilities have not yet been recorded, "
+//                                     "therefore the top individuals cannot be assigned "
+//                                     "a sensibility"};
+//        }
+//        m_sampled_inds.push_back(create_inds_data(sample_top_mid_low_inds(s),
+//                                                  m_fit_phen_mut_sensibility.back(),
+//                                                  m_obs_param,
+//                                                  m_params,
+//                                                  get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
+//                                                  sim::get_current_env_function(s)));
+//    }
 private :
     ///Stores the mutational sensibilities to fitness and phenotype of all individuals in the population
     void store_fit_phen_mut_sensibility(Sim& s) noexcept
@@ -458,13 +475,12 @@ private :
                                      "a sensibility"};
         }
 
-        m_top_inds.push_back(create_top_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
+        m_top_inds.push_back(create_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
                                                   m_fit_phen_mut_sensibility.back(),
                                                   m_obs_param,
                                                   m_params,
                                                   get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
-                                                  sim::get_current_env_function(s),
-                                                  s.get_rng()
+                                                  sim::get_current_env_function(s)
                                                   )
                              );
     }
@@ -774,6 +790,11 @@ std::unique_ptr<base_observer> load_observer_selection_type(const all_params& pa
 std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_params &pars);
 ///loads an observer based on filename
 std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
+
+//template<class O>
+std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s);
+
+
 void test_observer();
 
 #endif // OBSERVER_H

@@ -197,7 +197,10 @@ simulation<> create_simple_simulation()
     return simulation{a_p};
 }
 
-
+std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s)
+{
+    return {s.get_inds().begin(), s.get_inds().begin() + 3};
+}
 #ifndef NDEBUG
 void test_observer()
 {
@@ -739,7 +742,34 @@ void test_observer()
         assert(loaded_i.m_sensibilities == i.m_sensibilities);
     }
 
+    ///It is possible to record indivudals based on their sensibilities value
+    /// #1 3 individuals are recorded each time
+    {
+        int n_inds = 3;
+        auto s = create_simple_simulation();
+        s.get_pop() = produce_simple_pop(n_inds);
+        observer o;
+
+//        o.store_top_mid_low_sens_inds(s);
+//        assert(o.get_sampled_inds().back().size() == 3);
+    }
+
+    /// #2 The individuals sampled are those with the highest, the lowest
+    /// and the most median sensibilites
+    {
+        int n_inds = 3;
+        auto s = create_simple_simulation();
+        s.get_pop() = produce_simple_pop(n_inds);
+        observer o;
+        o.store_sensibilities_and_top_inds(s);
+
+        std::vector<individual<>> top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s);
+        assert(top_mid_low_sens_inds.size() == 3);
+
+    }
+    /// #3 inds are sampled every 10 times the top inds are recorded
 }
 #endif
+
 
 

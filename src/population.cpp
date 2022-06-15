@@ -116,11 +116,11 @@ const individual<>& find_worst_ranking_ind(const population<>& p)
 
 }
 
-population<> produce_simple_pop()
+population<> produce_simple_pop(int n_inds)
 {
 
     pop_param p_p;
-    p_p.number_of_inds = 2;
+    p_p.number_of_inds = n_inds;
 
     net_param n_p;
     n_p.max_arc = {1,1};
@@ -132,7 +132,10 @@ population<> produce_simple_pop()
     population p{p_p,{}};
 
     std::mt19937_64 rng;
-    p.get_inds_nonconst().at(0).mutate(1, 1, rng, 0, 0);
+    for(int i = 0; i != p.get_inds().size() - 1; i++)
+    {
+        p.get_inds_nonconst().at(i).mutate(1, 1, rng, 0, 0);
+    }
 
     return p;
 }
