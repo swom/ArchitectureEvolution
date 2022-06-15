@@ -193,7 +193,7 @@ std::string create_save_name_from_params(const all_params& p)
     return name;
 }
 
-simulation<> create_simple_simulation()
+simulation<> create_simple_simulation(int n_gen)
 {
     all_params a_p;
     a_p.i_p.net_par.function = sigmoid;
@@ -203,34 +203,10 @@ simulation<> create_simple_simulation()
     a_p.e_p.cue_range = {1,1};
     a_p.e_p.env_function_A = sigmoid_env;
 
-    a_p.s_p.n_generations = 1;
+    a_p.s_p.n_generations = n_gen;
 
     return simulation{a_p};
 }
-
-std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s,
-                                                       observer<>& o)
-{
-
-    auto& last_gen_record = o.get_fit_phen_mut_sensibility_non_const().back();
-    auto best_comb = find_best_fit_phen_combination(last_gen_record);
-    auto& last_gen_sens = last_gen_record.m_sensibilities;
-
-    std::sort(last_gen_sens.begin(), last_gen_sens.end(),
-              [best_comb]
-              (const fit_and_phen_sens_t& lhs,
-              const fit_and_phen_sens_t& rhs)
-    {return squared_distance_from_best_combination(lhs, best_comb) <
-                squared_distance_from_best_combination(rhs, best_comb);}
-    );
-
-    auto top_ind = find_ind_for_sensibility(s.get_inds(), *last_gen_sens.begin());
-    auto low_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens.back());
-    auto mid_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens[last_gen_sens.size() / 2]);
-
-    return {top_ind, mid_ind, low_ind};
-}
-
 
 double squared_distance_from_best_combination(const fit_and_phen_sens_t &ind, const fit_and_phen_sens_t &best)
 {
@@ -289,13 +265,13 @@ void test_observer()
         auto o1 = o;
         assert(o1.get_avg_fitness().empty());
         //store some inds in observer (not stored for now)
-        o1.store_sensibilities_and_top_inds(s);
+        o1.store_data_based_on_sensibilities(s);
         assert(o1 != o);
 
         //store some fitnesses in observer (not stored for now)
         auto o2 = o1;
         assert(o2.get_var_fitness().empty());
-        o2.store_sensibilities_and_top_inds(s);
+        o2.store_data_based_on_sensibilities(s);
         assert(o2 != o1);
     }
 #endif
@@ -329,7 +305,7 @@ void test_observer()
 
         auto o3 = o2;
         assert(o3.get_top_inds().empty());
-        o3.store_sensibilities_and_top_inds(s);
+        o3.store_data_based_on_sensibilities(s);
         assert(o3 != o2);
 
         auto o4 = o3;
@@ -552,13 +528,13 @@ void test_observer()
 
     }
 
-    ///The average sensibility to mutations is recorded every generation
-    {
-        observer o;
-        simulation s;
-        exec(s,o);
-        assert(o.get_avg_mutation_sensibility().size() == s.get_time());
-    }
+//    ///The average sensibility to mutations is recorded every generation
+//    {
+//        observer o;
+//        simulation s;
+//        exec(s,o);
+//        assert(o.get_avg_mutation_sensibility().size() == s.get_time());
+//    }
 
     ///It is possible to calculate the avg robustness of a population in a simulation
     {
@@ -599,7 +575,7 @@ void test_observer()
         observer o;
 
         assert( o.get_fit_phen_mut_sensibility().empty());
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
 
         assert( !o.get_fit_phen_mut_sensibility().empty());
     }
@@ -613,7 +589,7 @@ void test_observer()
         simulation s{a_p};
         observer o;
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
 
         for(const auto& sensibilities : o.get_fit_phen_mut_sensibility())
             assert(sensibilities.size() == s.get_inds().size());
@@ -636,8 +612,8 @@ void test_observer()
         observer o_frail;
         observer o_robust;
 
-        o_robust.store_sensibilities_and_top_inds(robust_sim);
-        o_frail.store_sensibilities_and_top_inds(frail_sim);
+        o_robust.store_data_based_on_sensibilities(robust_sim);
+        o_frail.store_data_based_on_sensibilities(frail_sim);
 
         assert(lhs_has_lower_phen_mutation_sensibility_than_rhs(o_robust, o_frail));
     }
@@ -664,8 +640,8 @@ void test_observer()
         observer o_non_optimal;
         observer o_optimal;
 
-        o_optimal.store_sensibilities_and_top_inds(optimal_sim);
-        o_non_optimal.store_sensibilities_and_top_inds(non_optimal_sim);
+        o_optimal.store_data_based_on_sensibilities(optimal_sim);
+        o_non_optimal.store_data_based_on_sensibilities(non_optimal_sim);
 
         assert(lhs_is_more_sensible_to_mutation_effects_on_fitness_than_rhs(o_optimal, o_non_optimal));
     }
@@ -682,7 +658,7 @@ void test_observer()
         assert(sim::all_inds_have_fitness(1, optimal_sim));
 
         observer o;
-        o.store_sensibilities_and_top_inds(optimal_sim);
+        o.store_data_based_on_sensibilities(optimal_sim);
 
         assert(all_fit_mut_sens_are_negative(o));
     }
@@ -734,7 +710,7 @@ void test_observer()
         observer o;
         sim::calc_fitness_of_pop(s);
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
 
         auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_record(o).m_sensibilities;
         assert(sensibilities_of_first_top_ind != fit_and_phen_sens_t{});
@@ -746,7 +722,7 @@ void test_observer()
         observer o;
         s.calc_fitness();
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
 
         auto best_top_ind_of_first_record = get_first_top_ind_of_first_record(o);
         auto sensibilities_first_record = get_inds_sensibilities_of_first_record(o);
@@ -761,7 +737,7 @@ void test_observer()
         observer o;
         s.calc_fitness();
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
         auto sensibilities_first_record = get_inds_sensibilities_of_first_record(o);
         auto sensibility_of_ind_with_highest_ranking_fitness = find_sensibilities_from_highest_ranking_ind(sensibilities_first_record);
 
@@ -787,7 +763,7 @@ void test_observer()
         s.get_pop() = produce_simple_pop(n_inds);
         observer o;
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
         o.store_top_mid_low_sens_inds(s);
 
         assert(o.get_sampled_inds().back().size() == 3);
@@ -801,9 +777,9 @@ void test_observer()
         s.get_pop() = produce_simple_pop(n_inds);
         observer o;
 
-        o.store_sensibilities_and_top_inds(s);
+        o.store_data_based_on_sensibilities(s);
 
-        std::vector<individual<>> top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s, o);
+        auto top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s, o);
         assert(top_mid_low_sens_inds.size() == 3);
 
         auto distance_top_ind = distance_from_best_sens_comb(top_mid_low_sens_inds[0],
@@ -859,6 +835,30 @@ void test_observer()
         assert(distance_worst == 2);
     }
     /// #3 inds are sampled every 10 times the top inds are recorded
+    {
+        int n_inds = 3;
+        int n_gens = sample_ind_record_freq_to_sens;
+        auto s = create_simple_simulation(n_gens);
+        s.get_pop() = produce_simple_pop(n_inds);
+        observer o;
+        exec(s,o);
+
+        assert(o.get_fit_phen_mut_sensibility().size() ==
+               o.get_sampled_inds().size() * sample_ind_record_freq_to_sens);
+    }
+
+    ///#4 Sampled individuals are saved
+    {
+        auto s = create_simple_simulation();
+        s.get_pop() = produce_simple_pop();
+        observer o;
+        exec(s,o);
+
+        save_json(o,"test");
+        observer load_o = load_default_observer_json("test");
+
+        assert(o.get_sampled_inds() == load_o.get_sampled_inds());
+    }
 }
 #endif
 

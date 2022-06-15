@@ -3,6 +3,7 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+static int sample_ind_record_freq_to_sens = 10;
 
 struct sensibilities_to_mut
 {
@@ -163,7 +164,7 @@ fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut& r
 ///Calculates the reaction_norm of individuals' networks
 /// for a given range and a given number of data points
 template<class Ind, typename Func>
-std::vector<Ind_Data<Ind>> create_inds_data(std::vector<Ind> inds,
+std::vector<Ind_Data<Ind>> create_inds_data(const std::vector<Ind>& inds,
                                                 const sensibilities_to_mut& sensibilities,
                                                 const obs_param& o_params,
                                                 const all_params& a_params,
@@ -395,17 +396,14 @@ void store_ind_data(Sim& s, int selection_duration)
     if(get_sel_type() == selection_type::sporadic &&
             is_start_of_selection_period(*this,s))
     {
-        store_sensibilities_and_top_inds(s);
+        store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
 
     if(is_end_of_selection_period(*this, s, selection_duration))
     {
-        store_sensibilities_and_top_inds(s);
+        store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
-#ifndef NDEBUG
-        store_avg_mut_sensibility(s);
-#endif
     }
 
     if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
@@ -435,13 +433,17 @@ void store_ind_data(Sim& s, int selection_duration)
     ///Stores the sensibilities and the top individuals toghether
     /// the sensibilities are stored first so to eanble the assignment of
     /// the correct sensibility to the correct top individual
-    void store_sensibilities_and_top_inds(Sim& s)
+    void store_data_based_on_sensibilities(Sim& s)
     {
         if(s.get_inds().empty()) return;
 
 
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);
+        if(m_fit_phen_mut_sensibility.size() % sample_ind_record_freq_to_sens == 0)
+        {
+            store_top_mid_low_sens_inds(s);
+        }
     }
 
     ///Stores the network spectrum of the top n best individuals
@@ -542,7 +544,7 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 /// that has 1 connection and one bias
 /// with input range == 1
 /// with env function == y = 1
-simulation<> create_simple_simulation();
+simulation<> create_simple_simulation(int n_gen = 1);
 
 ///Calculates the time to add to the seleciton frequency to record
 /// data at the end of a selection period
@@ -613,9 +615,9 @@ bool throw_if_obs_and_sim_do_not_have_same_param(const O& o, const S& s)
     {
         if(s.get_params() != o.get_params())
         {
-            throw std::runtime_error{"During exec(): "
+            throw std::runtime_error{"During exec(): /n "
                                      "Observer was not initialized "
-                                     "correctly with simulation parameters"};
+                                     "correctly with simulation parameters /n"};
         }
         return false;
     }
@@ -852,9 +854,32 @@ std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_para
 ///loads an observer based on filename
 std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
 
-//template<class O>
-std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s, observer<> &o);
+///Samples three individual
+/// the closest to the best combination of sesnibilities achievable in that generation
+/// the median individual in the population
+/// and the farthest from the best combination of sesnibilities achievable in that generation
+template<class O>
+std::vector<typename O::Ind> sample_top_mid_low_sens_inds(const typename O::Sim_t& s, O &o)
+{
 
+    auto& last_gen_record = o.get_fit_phen_mut_sensibility_non_const().back();
+    auto best_comb = find_best_fit_phen_combination(last_gen_record);
+    auto& last_gen_sens = last_gen_record.m_sensibilities;
+
+    std::sort(last_gen_sens.begin(), last_gen_sens.end(),
+              [best_comb]
+              (const fit_and_phen_sens_t& lhs,
+              const fit_and_phen_sens_t& rhs)
+    {return squared_distance_from_best_combination(lhs, best_comb) <
+                squared_distance_from_best_combination(rhs, best_comb);}
+    );
+
+    auto top_ind = find_ind_for_sensibility(s.get_inds(), *last_gen_sens.begin());
+    auto low_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens.back());
+    auto mid_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens[last_gen_sens.size() / 2]);
+
+    return {top_ind, mid_ind, low_ind};
+}
 
 void test_observer();
 
