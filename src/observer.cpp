@@ -849,7 +849,8 @@ void test_observer()
 
     ///#4 Sampled individuals are saved
     {
-        auto s = create_simple_simulation();
+        int n_gens = sample_ind_record_freq_to_sens;
+        auto s = create_simple_simulation(n_gens);
         s.get_pop() = produce_simple_pop();
         observer o({}, s.get_params());
         exec(s,o);
