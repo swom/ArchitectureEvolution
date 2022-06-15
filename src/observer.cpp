@@ -208,10 +208,36 @@ simulation<> create_simple_simulation()
     return simulation{a_p};
 }
 
-std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s)
+std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s,
+                                                       observer<>& o)
 {
-    return {s.get_inds().begin(), s.get_inds().begin() + 3};
+
+    auto& last_gen_record = o.get_fit_phen_mut_sensibility_non_const().back();
+    auto best_comb = find_best_fit_phen_combination(last_gen_record);
+    auto& last_gen_sens = last_gen_record.m_sensibilities;
+
+    std::sort(last_gen_sens.begin(), last_gen_sens.end(),
+              [best_comb]
+              (const fit_and_phen_sens_t& lhs,
+              const fit_and_phen_sens_t& rhs)
+    {return squared_distance_from_best_combination(lhs, best_comb) <
+                squared_distance_from_best_combination(rhs, best_comb);}
+    );
+
+    auto top_ind = find_ind_for_sensibility(s.get_inds(), *last_gen_sens.begin());
+    auto low_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens.back());
+    auto mid_ind = find_ind_for_sensibility(s.get_inds(), last_gen_sens[last_gen_sens.size() / 2]);
+
+    return {top_ind, mid_ind, low_ind};
 }
+
+
+double squared_distance_from_best_combination(const fit_and_phen_sens_t &ind, const fit_and_phen_sens_t &best)
+{
+    return (ind.m_fitness_sens - best.m_fitness_sens) * (ind.m_fitness_sens - best.m_fitness_sens) +
+            (ind.m_phenotype_sens - best.m_phenotype_sens) * (ind.m_phenotype_sens - best.m_phenotype_sens);
+}
+
 #ifndef NDEBUG
 void test_observer()
 {
@@ -777,11 +803,19 @@ void test_observer()
 
         o.store_sensibilities_and_top_inds(s);
 
-        std::vector<individual<>> top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s);
+        std::vector<individual<>> top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s, o);
         assert(top_mid_low_sens_inds.size() == 3);
 
-        //        assert(distance_from_best_fit_phen_sens_combination(top_mid_low_sens_inds[0]) >
-        //               distance_from_best_fit_phen_sens_combination(top_mid_low_sens_inds[1]));
+        auto distance_top_ind = distance_from_best_sens_comb(top_mid_low_sens_inds[0],
+                o.get_first_fit_phen_mut_sens());
+        auto distance_mid_ind = distance_from_best_sens_comb(top_mid_low_sens_inds[1],
+                o.get_first_fit_phen_mut_sens());
+        auto distance_low_ind = distance_from_best_sens_comb(top_mid_low_sens_inds[2],
+                o.get_first_fit_phen_mut_sens());
+
+        assert(distance_top_ind <  distance_mid_ind);
+        assert(distance_top_ind <  distance_low_ind);
+        assert(distance_mid_ind <  distance_low_ind);
     }
 
     /// #2.1 it is possible to find the best fitness and phenotype sensibility combination
@@ -796,8 +830,33 @@ void test_observer()
         assert(find_best_fit_phen_combination(vec) == best);
 
         fit_and_phen_sens_t best_but_not_otpimal{1,1};
-        sensibilities_to_mut not_optimal_vec{1,{best_but_not_otpimal,worst}};
-        assert(find_best_fit_phen_combination(not_optimal_vec) == best);
+        sensibilities_to_mut  best_but_not_optimal_vec{1,{best_but_not_otpimal,worst}};
+        assert(find_best_fit_phen_combination(best_but_not_optimal_vec) == best);
+    }
+
+    ///It is possible to calculate the distance of and individual sensibilites from
+    /// the best possible combination of sensibilities
+    /// this is the euclidean distance if  phen and fit sensibilities are the cartesian axes
+    {
+        fit_and_phen_sens_t best{1,0};
+        fit_and_phen_sens_t mid{1,1};
+        fit_and_phen_sens_t worst{0,1};
+
+        sensibilities_to_mut vec{1,{best, worst}};
+
+        auto best_comb = find_best_fit_phen_combination(vec);
+
+        auto distance_best = squared_distance_from_best_combination(best, best_comb);
+
+        assert(distance_best == 0);
+
+        auto distance_mid = squared_distance_from_best_combination(mid, best_comb);
+
+        assert(distance_mid == 1);
+
+        auto distance_worst = squared_distance_from_best_combination(worst, best_comb);
+
+        assert(distance_worst == 2);
     }
     /// #3 inds are sampled every 10 times the top inds are recorded
 }

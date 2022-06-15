@@ -139,6 +139,27 @@ const fit_and_phen_sens_t& find_sensibility_for_ind(const Ind& ind,
     return sens;
 }
 
+///Finds the corresponding individual for its sensibilities
+/// based on its fitness ranking
+template<class Ind>
+const Ind& find_ind_for_sensibility(const std::vector<Ind>& inds,
+                                                    const fit_and_phen_sens_t& sens)
+{
+    auto rank = sens.m_rank;
+
+    const Ind& ind = *std::find_if(
+                inds.begin(),
+                inds.end(),
+                [rank](const Ind& ind){return ind.get_rank() == rank;});
+
+    return ind;
+}
+///Finds the best possible combination of fitness and phenotypic sensibility
+/// in a vector of sensibilities
+/// the best combination possible having fitness sensibility = the max fitness sensibility
+/// and the phenotypic sensibility = 0
+fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut& record);
+
 ///Calculates the reaction_norm of individuals' networks
 /// for a given range and a given number of data points
 template<class Ind, typename Func>
@@ -232,6 +253,9 @@ public:
 
     ///Returns the vector containing the fitness mutational sensibility of the population for every generation
     const std::vector<sensibilities_to_mut>& get_fit_phen_mut_sensibility() const noexcept {return m_fit_phen_mut_sensibility;}
+
+    ///Returns the vector containing the fitness mutational sensibility of the population for every generation
+    std::vector<sensibilities_to_mut>& get_fit_phen_mut_sensibility_non_const()  noexcept {return m_fit_phen_mut_sensibility;}
 
     ///Returns the vector containing the fitness mutational sensibility of the population for every generation
     const sensibilities_to_mut& get_first_fit_phen_mut_sens() const noexcept {return m_fit_phen_mut_sensibility.at(0);}
@@ -354,13 +378,14 @@ public:
     }
 
 ///Stores data related to the individuals that just went through tick
-/// for this reason it swaps the individual vectors in population back as if reproduction
-/// did not do it
+/// for this reason it swaps the individual vectors in population back
+/// as they were after calc_fitness() and before reproduce()
+/// in simulation tick()
 void store_ind_data(Sim& s, int selection_duration)
 {
     ///To look at generation that went through tick
     /// we need swap back the individuals vectors that were
-    /// swapped during reproduction()
+    /// swapped during reproduce()
 
     ///Swap in
     pop::swap_new_with_old_pop(s.get_pop());
@@ -465,7 +490,7 @@ void store_ind_data(Sim& s, int selection_duration)
                                      "therefore the top individuals cannot be assigned "
                                      "a sensibility"};
         }
-        m_sampled_inds.push_back(create_inds_data(sample_top_mid_low_sens_inds(s),
+        m_sampled_inds.push_back(create_inds_data(sample_top_mid_low_sens_inds(s, *this),
                                                   m_fit_phen_mut_sensibility.back(),
                                                   m_obs_param,
                                                   m_params,
@@ -537,6 +562,23 @@ int calculate_selection_duration(const O& o)
 
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);
+
+///Calculates the euclidean distance from the best combination of sensibilities in a vector
+/// to a given set of sesnsibilites s
+double squared_distance_from_best_combination(const fit_and_phen_sens_t& ind,
+                                      const fit_and_phen_sens_t& best);
+
+///Calculates the distance of a given individual sensibilities
+/// from the best possible sensibilities combination of the last recorded generation
+template<class Ind>
+double distance_from_best_sens_comb(const Ind& i,
+                                                    const sensibilities_to_mut& last_gen)
+{
+    auto ind_sens =find_sensibility_for_ind(i, last_gen);
+    auto best = find_best_fit_phen_combination(last_gen);
+
+    return squared_distance_from_best_combination(ind_sens, best);
+}
 
 ///Check if it is the time at the end of a selection period
 template<class O, class S>
@@ -633,12 +675,6 @@ sensibilities_to_mut get_inds_sensibilities_of_first_record(const observer<>& o)
 
 ///finds the sensibilities of the hihgest ranking individual in a given generation
 fit_and_phen_sens_t find_sensibilities_from_highest_ranking_ind(const sensibilities_to_mut& record);
-
-///Finds the best possible combination of fitness and phenotypic sensibility
-/// in a vector of sensibilities
-/// the best combination possible having fitness sensibility = the max fitness sensibility
-/// and the phenotypic sensibility = 0
-fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut& record);
 
 ///Returns the first top individual
 /// recorded in the first time top individuals are stores
@@ -817,7 +853,7 @@ std::unique_ptr<base_observer> load_observer_json_of_correct_type(const all_para
 std::unique_ptr<base_observer> load_observer_json(const std::string& filename);
 
 //template<class O>
-std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s);
+std::vector<individual<>> sample_top_mid_low_sens_inds(const simulation<>& s, observer<> &o);
 
 
 void test_observer();

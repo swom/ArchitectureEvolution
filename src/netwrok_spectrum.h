@@ -17,7 +17,12 @@ struct fit_and_phen_sens_t
         m_phenotype_sens{phenotype_sens},
         m_rank{rank},
         m_fitness{fitness}
-    {}
+    {if(m_phenotype_sens < 0)
+        {
+            throw std::runtime_error{"During construction of fit_and_phen_t:"
+                                  "sensibility constructed with phenotipyc sensibility < 0,"
+                                  "phenotypic sensibility cannot be < 0"};}
+    }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(fit_and_phen_sens_t,
                                    m_fitness_sens,
