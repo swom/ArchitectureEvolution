@@ -750,8 +750,8 @@ void test_observer()
         s.get_pop() = produce_simple_pop(n_inds);
         observer o;
 
-//        o.store_top_mid_low_sens_inds(s);
-//        assert(o.get_sampled_inds().back().size() == 3);
+        o.store_top_mid_low_sens_inds(s);
+        assert(o.get_sampled_inds().back().size() == 3);
     }
 
     /// #2 The individuals sampled are those with the highest, the lowest
