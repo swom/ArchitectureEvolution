@@ -840,7 +840,7 @@ void test_observer()
         int n_gens = sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
         s.get_pop() = produce_simple_pop(n_inds);
-        observer o;
+        observer o({}, s.get_params());
         exec(s,o);
 
         assert(o.get_fit_phen_mut_sensibility().size() ==
@@ -851,7 +851,7 @@ void test_observer()
     {
         auto s = create_simple_simulation();
         s.get_pop() = produce_simple_pop();
-        observer o;
+        observer o({}, s.get_params());
         exec(s,o);
 
         save_json(o,"test");
