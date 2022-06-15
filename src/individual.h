@@ -101,7 +101,14 @@ public:
     Net& get_to_net() noexcept {return m_network;}
 
     ///Returns the rank of the individual
-    const int& get_rank() const noexcept {return m_rank;}
+    const int& get_rank() const noexcept
+    {
+        if(m_rank < 0)
+        {
+            throw std::runtime_error{"individuals have not yet been ranked"};
+        }
+        return m_rank;
+    }
 
     ///Sets the rank of the individual
     void set_rank(int rank) noexcept {m_rank =  rank;}
@@ -133,7 +140,7 @@ private:
     Net m_network;
 
     ///The rank in terms of fitness of the individual in the population
-    int m_rank = 0;
+    int m_rank = -1;
 };
 
 /// Checks if 2 individuals are the same
@@ -162,9 +169,9 @@ std::vector<double> response(const Ind& ind,
 /// using scratch memory vectors
 template<class Ind>
 void response_scratch(const Ind& ind,
-                                     std::vector<double>& input,
-                                     std::vector<double>& ouput
-                                     )
+                      std::vector<double>& input,
+                      std::vector<double>& ouput
+                      )
 {
     return output_ugly_but_fast(ind.get_net(),input, ouput);
 }
@@ -184,8 +191,8 @@ double calc_sqr_distance(const Ind &i,
 /// and a given value using scratch memory vectors
 template<class Ind>
 double calc_sqr_distance_scratch(const Ind &i,
-                         double env_value,
-                         const std::vector<double>& input)
+                                 double env_value,
+                                 const std::vector<double>& input)
 {
     auto output = response(i, input);
     return (output[0] - env_value) * (output[0] - env_value);
@@ -195,10 +202,10 @@ double calc_sqr_distance_scratch(const Ind &i,
 /// and a given value using scratch memory vectors
 template<class Ind>
 double calc_sqr_distance_scratch(const Ind &i,
-                         double env_value,
-                         std::vector<double>& input,
-                         std::vector<double>& output
-                         )
+                                 double env_value,
+                                 std::vector<double>& input,
+                                 std::vector<double>& output
+                                 )
 {
     response_scratch(i, input, output);
     return (output[0] - env_value) * (output[0] - env_value);

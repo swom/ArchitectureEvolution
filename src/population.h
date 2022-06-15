@@ -76,7 +76,14 @@ public:
                                                                               int n_points
                                                                               )
     {
-        sort_and_assign_ranks_by_fitness();
+        sort_and_assign_ranks_by_fitness(m_vec_new_indiv);///!!!hyper buggy
+        ///This sensibilities are calculated after tick has run
+        /// so the m_vec_inds_new_pop represents the pop
+        /// that has run through tick and m_vec_inds instead are their
+        /// descendants.
+        /// We want to know the sensibilities of the parents therefore we run
+        /// it on m_vec_new_inds, but this is really hard to spot and read
+        /// I need to find a solution
 
         std::vector<fit_and_phen_sens_t> sens(m_vec_indiv.size());
 
@@ -85,7 +92,14 @@ public:
 #pragma omp parallel for
         for(int i = 0; i < m_vec_indiv.size(); i++)
         {
-            sens[i] = calc_phen_and_fit_mut_sensibility(m_vec_indiv[i].get_mutable_net(),
+            sens[i] = calc_phen_and_fit_mut_sensibility(m_vec_new_indiv[i].get_mutable_net(), ///!!!hyper buggy
+                                                        ///This sensibilities are calculated after tick has run
+                                                        /// so the m_vec_inds_new_pop represents the pop
+                                                        /// that has run through tick and m_vec_inds instead are their
+                                                        /// descendants.
+                                                        /// We want to know the sensibilities of the parents therefore we run
+                                                        /// it on m_vec_new_inds, but this is really hard to spot and read
+                                                        /// I need to find a solution
                                                         mutations,
                                                         optimal_function,
                                                         input_range,
@@ -144,13 +158,13 @@ public:
     int get_n_trials() const noexcept {return m_n_trials;}
 
     ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
-    population<Ind> sort_and_assign_ranks_by_fitness()
+    population<Ind> sort_and_assign_ranks_by_fitness(std::vector<Ind>& inds)
     {
-        std::sort(m_vec_indiv.begin(), m_vec_indiv.end(),
+        std::sort(inds.begin(), inds.end(),
                   [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
 
         int rank = 0;
-        std::for_each(m_vec_indiv.begin(), m_vec_indiv.end(),
+        std::for_each(inds.begin(), inds.end(),
                       [&rank](auto& ind){ind.set_rank(rank++);});
 
         return *this;

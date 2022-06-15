@@ -615,6 +615,12 @@ sensibilities_to_mut get_inds_sensibilities_of_first_record(const observer<>& o)
 ///finds the sensibilities of the hihgest ranking individual in a given generation
 fit_and_phen_sens_t find_sensibilities_from_highest_ranking_ind(const sensibilities_to_mut& record);
 
+///Finds the best possible combination of fitness and phenotypic sensibility
+/// in a vector of sensibilities
+/// the best combination possible having fitness sensibility = the max fitness sensibility
+/// and the phenotypic sensibility = 0
+fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut& record);
+
 ///Returns the first top individual
 /// recorded in the first time top individuals are stores
 template<class O>

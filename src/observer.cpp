@@ -68,9 +68,9 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 
 fit_and_phen_sens_t find_sensibilities_from_highest_ranking_ind(const sensibilities_to_mut& record)
 {
-            auto best = std::max_element(record.m_sensibilities.begin(), record.m_sensibilities.end(),
-                            [](const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs){return lhs.m_rank < rhs.m_rank;});
-            return *best;
+    auto best = std::max_element(record.m_sensibilities.begin(), record.m_sensibilities.end(),
+                                 [](const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs){return lhs.m_rank < rhs.m_rank;});
+    return *best;
 }
 
 sensibilities_to_mut get_inds_sensibilities_of_first_record(const observer<>& o)
@@ -766,6 +766,20 @@ void test_observer()
         std::vector<individual<>> top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s);
         assert(top_mid_low_sens_inds.size() == 3);
 
+        //        assert(distance_from_best_fit_phen_sens_combination(top_mid_low_sens_inds[0]) >
+        //               distance_from_best_fit_phen_sens_combination(top_mid_low_sens_inds[1]));
+    }
+
+    /// #2.1 it is possible to find the best fitness and phenotype sensibility combination
+    /// looking at a vector of fitness and phen sensibilities
+    /// the best combination is equal to the
+    /// {max recorded fitness sensibility, 0}
+    /// since 0 is the best possible phenotype sensibility
+    {
+        fit_and_phen_sens_t best{1,0};
+        fit_and_phen_sens_t worst{-1,0};
+        sensibilities_to_mut vec{1,{best,worst}};
+        assert(find_best_fit_phen_combination(vec) == best);
     }
     /// #3 inds are sampled every 10 times the top inds are recorded
 }
@@ -773,3 +787,13 @@ void test_observer()
 
 
 
+
+fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut &record)
+{
+    auto max_fit_sens = std::max_element(record.m_sensibilities.begin(),
+                                         record.m_sensibilities.end(),
+                                         [](const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs)
+    {return lhs.m_fitness_sens > rhs.m_fitness_sens;});
+
+    return {max_fit_sens->m_fitness_sens, 0};
+}
