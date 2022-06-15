@@ -349,31 +349,48 @@ public:
     {
         store_env_func(s);
         store_var_fit(s);
-        store_avg_fit(s);
+        store_ind_data(s, selection_duration);
 
-        if(get_sel_type() == selection_type::sporadic &&
-                is_start_of_selection_period(*this,s))
-        {
-            store_sensibilities_and_top_inds(s);
-            store_inputs_and_optimals(s);
-        }
-
-        if(is_end_of_selection_period(*this, s, selection_duration))
-        {
-            store_sensibilities_and_top_inds(s);
-            store_inputs_and_optimals(s);
-#ifndef NDEBUG
-            store_avg_mut_sensibility(s);
-#endif
-        }
-
-        if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
-        {
-            store_network_spectrum_n_best(s);
-        }
     }
 
+///Stores data related to the individuals that just went through tick
+/// for this reason it swaps the individual vectors in population back as if reproduction
+/// did not do it
+void store_ind_data(Sim& s, int selection_duration)
+{
+    ///To look at generation that went through tick
+    /// we need swap back the individuals vectors that were
+    /// swapped during reproduction()
 
+    ///Swap in
+    pop::swap_new_with_old_pop(s.get_pop());
+
+    store_avg_fit(s);
+
+    if(get_sel_type() == selection_type::sporadic &&
+            is_start_of_selection_period(*this,s))
+    {
+        store_sensibilities_and_top_inds(s);
+        store_inputs_and_optimals(s);
+    }
+
+    if(is_end_of_selection_period(*this, s, selection_duration))
+    {
+        store_sensibilities_and_top_inds(s);
+        store_inputs_and_optimals(s);
+#ifndef NDEBUG
+        store_avg_mut_sensibility(s);
+#endif
+    }
+
+    if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
+    {
+        store_network_spectrum_n_best(s);
+    }
+
+    ///Swap out
+    pop::swap_new_with_old_pop(s.get_pop());
+}
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
     {
@@ -397,19 +414,9 @@ public:
     {
         if(s.get_inds().empty()) return;
 
-        ///To look at generation that went through tick
-        /// we need swap back the individuals vectors that were
-        /// swapped during reproduction()
-
-        ///Swap in
-        pop::swap_new_with_old_pop(s.get_pop());
 
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);
-
-        ///Swap out
-        pop::swap_new_with_old_pop(s.get_pop());
-
     }
 
     ///Stores the network spectrum of the top n best individuals
