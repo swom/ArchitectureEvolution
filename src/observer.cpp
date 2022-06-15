@@ -72,7 +72,7 @@ fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut &r
     auto max_fit_sens = std::max_element(record.m_sensibilities.begin(),
                                          record.m_sensibilities.end(),
                                          [](const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs)
-    {return lhs.m_fitness_sens > rhs.m_fitness_sens;});
+    {return lhs.m_fitness_sens < rhs.m_fitness_sens;});
 
     return {max_fit_sens->m_fitness_sens, 0};
 }
@@ -607,10 +607,6 @@ void test_observer()
         assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
                                                 frail_weight));
 
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(robust_sim.get_pop()); ///This needs to be done since sensibilities are calculated on new
-        pop::swap_new_with_old_pop(frail_sim.get_pop()); ///This needs to be done since sensibilities are calculated on new
-
         observer o_frail;
         observer o_robust;
 
@@ -639,11 +635,6 @@ void test_observer()
         assert(sim::all_inds_have_fitness(1, optimal_sim));
         assert(!sim::all_inds_have_fitness(1, non_optimal_sim));
 
-
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(optimal_sim.get_pop()); ///This needs to be done since sensibilities are calculated on new
-        pop::swap_new_with_old_pop(non_optimal_sim.get_pop()); ///This needs to be done since sensibilities are calculated on new
-
         observer o_non_optimal;
         observer o_optimal;
 
@@ -663,9 +654,6 @@ void test_observer()
         optimal_sim.changel_all_inds_weights(optimal_weight);
         optimal_sim.calc_fitness();
         assert(sim::all_inds_have_fitness(1, optimal_sim));
-
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(optimal_sim.get_pop()); ///This needs to be done since sensibilities are calculated on new
 
         observer o;
         o.store_sensibilities_and_top_inds(optimal_sim);
@@ -720,9 +708,6 @@ void test_observer()
         observer o;
         sim::calc_fitness_of_pop(s);
 
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(s.get_pop()); ///This needs to be done since sensibilities are calculated on new
-
         o.store_sensibilities_and_top_inds(s);
 
         auto sensibilities_of_first_top_ind = get_first_top_ind_of_first_record(o).m_sensibilities;
@@ -734,9 +719,6 @@ void test_observer()
         auto s = create_simple_simulation();
         observer o;
         s.calc_fitness();
-
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(s.get_pop()); ///This needs to be done since sensibilities are calculated on new
 
         o.store_sensibilities_and_top_inds(s);
 
@@ -752,9 +734,6 @@ void test_observer()
         auto s = create_simple_simulation();
         observer o;
         s.calc_fitness();
-
-        ///Horrible stuff
-        pop::swap_new_with_old_pop(s.get_pop()); ///This needs to be done since sensibilities are calculated on new
 
         o.store_sensibilities_and_top_inds(s);
         auto sensibilities_first_record = get_inds_sensibilities_of_first_record(o);

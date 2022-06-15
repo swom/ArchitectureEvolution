@@ -396,8 +396,20 @@ public:
     void store_sensibilities_and_top_inds(Sim& s)
     {
         if(s.get_inds().empty()) return;
+
+        ///To look at generation that went through tick
+        /// we need swap back the individuals vectors that were
+        /// swapped during reproduction()
+
+        ///Swap in
+        pop::swap_new_with_old_pop(s.get_pop());
+
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);
+
+        ///Swap out
+        pop::swap_new_with_old_pop(s.get_pop());
+
     }
 
     ///Stores the network spectrum of the top n best individuals
