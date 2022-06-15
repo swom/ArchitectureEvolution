@@ -92,6 +92,7 @@ public:
                                                         n_points);
 
             sens[i].m_rank = m_vec_indiv[i].get_rank();
+            sens[i].m_fitness = m_vec_indiv[i].get_fitness();
 
         }
 

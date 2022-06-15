@@ -676,7 +676,7 @@ bool all_fit_mut_sens_are_negative(const Obs& observer)
     {
         for(const auto& sensibility : sensibilities.m_sensibilities)
         {
-            if(sensibility.m_fitness >= 0)
+            if(sensibility.m_fitness_sens >= 0)
             {
                 return false;
             }
