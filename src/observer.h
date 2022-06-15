@@ -440,7 +440,7 @@ public:
     void store_top_mid_low_sens_inds(const Sim& s)
     {
         ///Make sure that the sensibilities have already been recorded
-        if(get_fit_phen_mut_sensibility().size() < m_top_inds.size() + 1)
+        if(get_fit_phen_mut_sensibility().size() < m_sampled_inds.size() + 1)
         {
             throw std::runtime_error{"the sensibilities have not yet been recorded, "
                                      "therefore the top individuals cannot be assigned "

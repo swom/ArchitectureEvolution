@@ -103,10 +103,6 @@ public:
     ///Returns the rank of the individual
     const int& get_rank() const noexcept
     {
-        if(m_rank < 0)
-        {
-            throw std::runtime_error{"individuals have not yet been ranked"};
-        }
         return m_rank;
     }
 
@@ -140,7 +136,7 @@ private:
     Net m_network;
 
     ///The rank in terms of fitness of the individual in the population
-    int m_rank = -1;
+    int m_rank = 0;
 };
 
 /// Checks if 2 individuals are the same
