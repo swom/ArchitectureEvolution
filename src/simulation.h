@@ -325,7 +325,7 @@ public:
 
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time < (m_n_generations / 2))
+            if(m_time < (m_n_generations / 5))
                 return false;
         }
 
