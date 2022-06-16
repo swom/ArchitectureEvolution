@@ -27,6 +27,7 @@ struct fit_and_phen_sens_t
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(fit_and_phen_sens_t,
                                    m_fitness_sens,
                                    m_phenotype_sens,
+                                   m_fitness,
                                    m_rank)
 
     ///The sensitibility of fitness to mutations,

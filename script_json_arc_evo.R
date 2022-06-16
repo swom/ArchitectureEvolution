@@ -12,7 +12,7 @@ library(data.table)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/5_24_22_long"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_inds"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -190,7 +190,7 @@ for(generation in levels(all_sensibilities$m_generation)){
   
   p3 = 
     ggplot(data = gen_sens) +
-    geom_point(aes(x = m_fitness, y = m_phenotype, color = m_rank, alpha = 1), alpha = 0.5) +
+    geom_point(aes(x = m_fitness, y = m_phenotype, colour = m_rank, alpha = 1), alpha = 0.5) +
     xlim(fit_x_lim) +
     ylim(phen_x_lim)
   
