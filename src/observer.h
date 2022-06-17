@@ -395,7 +395,7 @@ void store_ind_data(Sim& s, int selection_duration)
     store_avg_fit(s);
 
     if(get_sel_type() == selection_type::sporadic &&
-            is_start_of_selection_period(*this,s))
+            is_before_start_of_selection_period(*this,s))
     {
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
@@ -593,7 +593,7 @@ bool is_end_of_selection_period(const O& o, const S& s, int rec_freq_shift)
 
 ///Check if it is the time at the start of a selection period
 template<class O, class S>
-bool is_start_of_selection_period(const O& o, const S& s)
+bool is_before_start_of_selection_period(const O& o, const S& s)
 {
     return o.get_record_freq_top_inds() != 0 &&
             (s.get_time()) %  o.get_record_freq_top_inds() == 0;

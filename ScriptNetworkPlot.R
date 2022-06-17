@@ -12,26 +12,25 @@ library(networkD3)
 library(magick)
 library(patchwork)
 library(colorspace)
-dir = "C:/Users/p288427/Desktop/data_dollo_++/5_19_22_test_new/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_inds/"
 setwd(dir)
 
 results=list()
 # pattern = "*json$"
-pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1.json"
-
+pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
 for (i in  list.files(path = '.', pattern = pattern)){
   
 ###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
   
-  results_unnest = as.data.frame(do.call(rbind,do.call(rbind, results$m_top_inds)))
-  results_unnest$generation = do.call(rbind,results_unnest$generation)
+  results_unnest_top_inds = as.data.frame(do.call(rbind,do.call(rbind, results$m_top_inds)))
+  results_unnest_top_inds$generation = do.call(rbind,results_unnest_top_inds$generation)
   
-  reac_norms = results_unnest %>% 
+  reac_norms = results_unnest_top_inds %>% 
     select(c(generation, m_reac_norm))
   
-  m_ind = as.data.frame(do.call(rbind, results_unnest$m_ind)) 
-  results_df = results_unnest %>% 
+  m_ind = as.data.frame(do.call(rbind, results_unnest_top_inds$m_ind)) 
+  results_df_top_inds = results_unnest_top_inds %>% 
     select(-c(m_ind, m_reac_norm)) %>%
     cbind(m_ind) %>%
     rename(network = "m_network")
@@ -43,7 +42,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
   ID = as.data.frame(results$m_params)
   
   name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
-  assign(name1, cbind(results_df, ID))
+  assign(name1, cbind(results_df_top_inds, ID))
   
   architecture = as.integer(strsplit(get(name1)$i_p.net_par.max_arc, ",")[[1]])
   
