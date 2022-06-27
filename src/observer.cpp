@@ -412,7 +412,7 @@ void test_observer()
         sim_param s_p;
         s_p.change_freq_A = 1;
         s_p.change_freq_B = 0;
-        s_p.n_generations = 4;
+        s_p.n_generations = adaptation_period_proportion;
 
         obs_param o_p;
         o_p.m_spectrum_reg_freq = 0;
@@ -425,7 +425,7 @@ void test_observer()
 
         for(size_t i = 0; i != o.get_env_funcs().size(); i++ )
         {
-            if(i < o.get_env_funcs().size() / 2)
+            if(i < o.get_env_funcs().size() / adaptation_period_proportion)
             {
                 assert(o.get_env_funcs()[i] == 'A');
                 continue;

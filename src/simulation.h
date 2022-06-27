@@ -11,6 +11,7 @@
 #include "population.h"
 //#include <omp.h>
 
+static int adaptation_period_proportion = 10;
 
 double identity_first_element(const std::vector<double>& vector);
 
@@ -325,7 +326,7 @@ public:
 
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time < (m_n_generations / 5))
+            if(m_time < (m_n_generations / adaptation_period_proportion))
                 return false;
         }
 
@@ -503,7 +504,7 @@ public:
         {
             if constexpr(Adapt_per == adaptation_period::on)
             {
-                if(m_time < m_n_generations / 2)
+                if(m_time < m_n_generations / adaptation_period_proportion)
                 {
                     calc_fitness();
                     reproduce();
