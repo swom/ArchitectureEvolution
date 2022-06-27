@@ -400,8 +400,7 @@ void store_ind_data(Sim& s, int selection_duration)
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
-
-    if(is_end_of_selection_period(*this, s, selection_duration))
+    else if(is_end_of_selection_period(*this, s, selection_duration))
     {
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);

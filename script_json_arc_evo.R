@@ -7,12 +7,13 @@ library(stringr)
 library(ggpubr)
 library(patchwork)
 library(data.table)
+library(RColorBrewer)
 
 ####read data####
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_inds"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_short"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -37,6 +38,7 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
   
   for (i in  filepaths)
   {
+    # i = filepaths[1]
     results <- fromJSON(file = i)
     simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                                                      "m_env_functions",
@@ -58,18 +60,12 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     
     # deal with all gens
     tmp_ = lapply(tmp_, function(df) {
-      df[, m_sensibilities := lapply(m_sensibilities, function(le) {
-        as.data.table(le)
-      })]
-      
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
-      df
     })
     
     tmp_ = rbindlist(tmp_)
     tmp_[, names(ID) := ID]
     
-    tmp_
     all_sensibilities[[i]] = tmp_
     
   }
@@ -149,9 +145,12 @@ sim_fitness = all_simple_res %>%
   filter(s_p.selection_strength == sel_str) %>% 
   filter(s_p.selection_freq == sel_freq) 
 
-fit_plot = ggplot(data = sim_fitness %>% filter(gen %in% all_sensibilities$m_generation)) +
+fit_plot = ggplot(data = sim_fitness %>% 
+                    filter(gen %in% all_sensibilities$m_generation)) +
   geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  geom_ribbon( aes(x = gen, y = m_avg_fitnesses, ymax = m_avg_fitnesses + m_var_fitnesses, ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
+  geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
+                   ymax = m_avg_fitnesses + m_var_fitnesses,
+                   ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
 
 #create directory where to save images
 subdir = paste(
@@ -163,6 +162,8 @@ subdir = paste(
   sep = "_")
 dir.create(file.path(dir, subdir), showWarnings = FALSE)
 
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+sc <- scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
 
 for(generation in levels(all_sensibilities$m_generation)){
   phen_x_lim = c(0,0.3)
@@ -177,22 +178,27 @@ for(generation in levels(all_sensibilities$m_generation)){
   
   
   p1 = ggplot(data = gen_sens) +
-    geom_histogram(aes(m_fitness), bins = n_bins) +
+    geom_histogram(aes(m_fitness_sens), bins = n_bins) +
     xlim(fit_x_lim) +
     ylim(y_lim)
   
   
   p2 = ggplot(data = gen_sens) +
-    geom_histogram(aes(m_phenotype), bins = n_bins) +
+    geom_histogram(aes(m_phenotype_sens), bins = n_bins) +
     xlim(phen_x_lim) +
     ylim(y_lim) +
     coord_flip()
   
   p3 = 
     ggplot(data = gen_sens) +
-    geom_point(aes(x = m_fitness, y = m_phenotype, colour = m_rank, alpha = 1), alpha = 0.5) +
+    geom_point(shape = 21, 
+               aes(x = m_fitness_sens,
+                   y = m_phenotype_sens,
+                   colour = m_fitness,
+                   fill = m_rank), alpha = 0.5) +
     xlim(fit_x_lim) +
-    ylim(phen_x_lim)
+    ylim(phen_x_lim) +
+    sc    
   
   p4 = fit_plot + 
     geom_hline(yintercept = as.numeric(sim_fitness %>% filter(gen == generation) %>% select(m_avg_fitnesses)), color = "red") +

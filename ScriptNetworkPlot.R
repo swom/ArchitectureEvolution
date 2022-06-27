@@ -12,7 +12,7 @@ library(networkD3)
 library(magick)
 library(patchwork)
 library(colorspace)
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_inds/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_short/"
 setwd(dir)
 
 results=list()
