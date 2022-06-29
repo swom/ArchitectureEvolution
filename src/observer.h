@@ -397,13 +397,13 @@ void store_ind_data(Sim& s, int selection_duration)
     if(get_sel_type() == selection_type::sporadic &&
             is_before_start_of_selection_period(*this,s))
     {
-        std::cout << "saving before selection" << std::endl;
+//        std::cout << "saving before selection" << std::endl;
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
     else if(is_end_of_selection_period(*this, s, selection_duration))
     {
-        std::cout << "saving after selection" << std::endl;
+//        std::cout << "saving after selection" << std::endl;
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }

@@ -13,7 +13,7 @@ library(RColorBrewer)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_28_22_sampled_short_good"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_29_22_sampled_short_short"
 setwd(dir)
 
 pattern = '^m.*json$'
