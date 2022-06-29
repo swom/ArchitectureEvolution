@@ -133,107 +133,117 @@ for(adapt_per in levels(all_sensibilities$s_p.adaptation_per)){
     for(sel_str in levels(all_sensibilities$s_p.selection_strength)){
       for(sel_freq in levels(all_sensibilities$s_p.selection_freq)){
         
-###Select one simulation only based on parameters
-# adapt_per = 1
-# seed = 1
-# sel_str = 1
-# sel_freq  = 100
-
-###subset to a specific simulation for now
-sim_sens = all_sensibilities %>%
-  filter(s_p.adaptation_per == adapt_per) %>% 
-  filter(s_p.seed == seed) %>% 
-  filter(s_p.selection_strength == sel_str) %>% 
-  filter(s_p.selection_freq == sel_freq)
-
-###get and plot fitnesses of the specific simulation 
-sim_fitness = all_simple_res %>%
-  filter(s_p.adaptation_per == adapt_per) %>% 
-  filter(s_p.seed == seed) %>% 
-  filter(s_p.selection_strength == sel_str) %>% 
-  filter(s_p.selection_freq == sel_freq) 
-
-fit_plot = ggplot(data = sim_fitness %>% 
-                    filter(gen %in% all_sensibilities$m_generation)) +
-  geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-  geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
-                   ymax = m_avg_fitnesses + m_var_fitnesses,
-                   ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
-
-phen_sens_plot = ggplot(data = sim_sens, aes(x = as.numeric(levels(m_generation))[m_generation], y = m_phenotype_sens)) +
-  stat_summary(fun = "mean", geom = "line") +
-  xlab("Generations")
-
-fit_sens_plot = ggplot(data = sim_sens, aes(x = as.numeric(levels(m_generation))[m_generation], y = m_fitness_sens)) +
-  stat_summary(fun = "mean", geom = "line") +
-  xlab("Generations")
-
-#create directory where to save images
-subdir = paste(
-  "phen_fit_sens_",
-  "s", unique(sim_sens$s_p.seed),
-  "s_f", unique(sim_sens$s_p.selection_freq),
-  "s_s", unique(sim_sens$s_p.selection_strength),
-  "a_p", unique(sim_sens$s_p.adaptation_per),
-  sep = "_")
-dir.create(file.path(dir, subdir), showWarnings = FALSE)
-
-for(generation in levels(all_sensibilities$m_generation)){
-  phen_x_lim = c(0,0.3)
-  fit_x_lim = c(-0.1,0.1)
-  y_lim = c(0,50)
-  
-  n_bins = 1000
-  
-  gen_sens = sim_sens %>%
-    filter(m_generation == generation) 
-  
-  p1 = ggplot(data = gen_sens) +
-    geom_histogram(aes(m_fitness_sens), bins = n_bins) +
-    xlim(fit_x_lim) +
-    ylim(y_lim)
-  
-  
-  p2 = ggplot(data = gen_sens) +
-    geom_histogram(aes(m_phenotype_sens), bins = n_bins) +
-    xlim(phen_x_lim) +
-    ylim(y_lim) +
-    coord_flip()
-  
-  p3 = 
-    ggplot(data = gen_sens) +
-    geom_point(shape = 21, 
-               aes(x = m_fitness_sens,
-                   y = m_phenotype_sens,
-                   # fill = m_rank,
-                   colour = m_fitness
-               ), alpha = 0.5) +
-    xlim(fit_x_lim) +
-    ylim(phen_x_lim) +
-    sc    
- 
-  p4 = (fit_plot + 
-    geom_hline(yintercept = as.numeric(sim_fitness %>% filter(gen == generation) %>% select(m_avg_fitnesses)), color = "red") +
-    geom_vline(xintercept = as.numeric(generation), color = "red")) /
-    (phen_sens_plot + geom_vline(xintercept = as.numeric(generation), color = "red")) /
-    (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation), color = "red")) 
-  
-  
-  layout <- "
+        ###Select one simulation only based on parameters
+        # adapt_per = 1
+        # seed = 1
+        # sel_str = 1
+        # sel_freq  = 100
+        
+        ###subset to a specific simulation for now
+        sim_sens = all_sensibilities %>%
+          filter(s_p.adaptation_per == adapt_per) %>% 
+          filter(s_p.seed == seed) %>% 
+          filter(s_p.selection_strength == sel_str) %>% 
+          filter(s_p.selection_freq == sel_freq)
+        
+        ###get and plot fitnesses of the specific simulation 
+        sim_fitness = all_simple_res %>%
+          filter(s_p.adaptation_per == adapt_per) %>% 
+          filter(s_p.seed == seed) %>% 
+          filter(s_p.selection_strength == sel_str) %>% 
+          filter(s_p.selection_freq == sel_freq) 
+        
+        fit_plot = ggplot(data = sim_fitness %>% 
+                            filter(gen %in% all_sensibilities$m_generation)) +
+          geom_line(aes(x = gen, y = m_avg_fitnesses)) +
+          geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
+                           ymax = m_avg_fitnesses + m_var_fitnesses,
+                           ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
+        
+        phen_sens_plot = ggplot(data = sim_sens, 
+                                aes(x = as.numeric(levels(m_generation))[m_generation],
+                                    y = m_phenotype_sens)) +
+          stat_summary(fun = "mean", geom = "line") +
+          xlab("Generations")
+        
+        fit_sens_plot = ggplot(data = sim_sens, 
+                               aes(x = as.numeric(levels(m_generation))[m_generation], 
+                                   y = m_fitness_sens)) +
+          stat_summary(fun = "mean", geom = "line") +
+          xlab("Generations")
+        
+        #create directory where to save images
+        subdir = paste(
+          "phen_fit_sens_",
+          "s", unique(sim_sens$s_p.seed),
+          "s_f", unique(sim_sens$s_p.selection_freq),
+          "s_s", unique(sim_sens$s_p.selection_strength),
+          "a_p", unique(sim_sens$s_p.adaptation_per),
+          sep = "_")
+        dir.create(file.path(dir, subdir), showWarnings = FALSE)
+        
+        for(generation in levels(all_sensibilities$m_generation)){
+          phen_x_lim = c(0,0.3)
+          fit_x_lim = c(-0.1,0.1)
+          y_lim = c(0,50)
+          
+          n_bins = 1000
+          
+          gen_sens = sim_sens %>%
+            filter(m_generation == generation) 
+          
+          p1 = ggplot(data = gen_sens) +
+            geom_histogram(aes(m_fitness_sens), bins = n_bins) +
+            xlim(fit_x_lim) +
+            ylim(y_lim)
+          
+          
+          p2 = ggplot(data = gen_sens) +
+            geom_histogram(aes(m_phenotype_sens), bins = n_bins) +
+            xlim(phen_x_lim) +
+            ylim(y_lim) +
+            coord_flip()
+          
+          p3 = 
+            ggplot(data = gen_sens) +
+            geom_point(shape = 21, 
+                       aes(x = m_fitness_sens,
+                           y = m_phenotype_sens,
+                           # fill = m_rank,
+                           colour = m_fitness
+                       ), alpha = 0.5) +
+            xlim(fit_x_lim) +
+            ylim(phen_x_lim) +
+            sc    
+          
+          p4 = (fit_plot + 
+                  geom_hline(yintercept = as.numeric(sim_fitness %>%
+                                                       filter(gen == generation) %>% 
+                                                       select(m_avg_fitnesses)),
+                             color = "red") +
+                  geom_vline(xintercept = as.numeric(generation),
+                             color = "red")) /
+            (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
+                                         color = "red")) /
+            (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),
+                                         color = "red")) 
+          
+          
+          layout <- "
 AAEE
 AAEE
 CCDD
 CCDD" 
-  
-  p1 + p3 + p2 + p4 +
-    plot_layout(design = layout,guides = 'collect', widths = 1) 
-  
-  ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
-         device = "png", 
-         width = 30,
-         height = 15)
-}
-
+          
+          p1 + p3 + p2 + p4 +
+            plot_layout(design = layout,guides = 'collect', widths = 1) 
+          
+          ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
+                 device = "png", 
+                 width = 30,
+                 height = 15)
+        }
+        
       }
     }
   }
