@@ -13,7 +13,7 @@ library(RColorBrewer)
 
 # dir = dirname(rstudioapi::getActiveDocumentContext()$path)
 # dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_short"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_28_22_sampled_short_good"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -125,11 +125,19 @@ dev.off()
 
 ########Sensibilities
 
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+sc <- scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
+
+for(adapt_per in levels(all_sensibilities$s_p.adaptation_per)){
+  for(seed in levels(all_sensibilities$s_p.seed)){
+    for(sel_str in levels(all_sensibilities$s_p.selection_strength)){
+      for(sel_freq in levels(all_sensibilities$s_p.selection_freq)){
+        
 ###Select one simulation only based on parameters
-adapt_per = 1
-seed = 1
-sel_str = 1
-sel_freq  = 100
+# adapt_per = 1
+# seed = 1
+# sel_str = 1
+# sel_freq  = 100
 
 ###subset to a specific simulation for now
 sim_sens = all_sensibilities %>%
@@ -152,6 +160,14 @@ fit_plot = ggplot(data = sim_fitness %>%
                    ymax = m_avg_fitnesses + m_var_fitnesses,
                    ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
 
+phen_sens_plot = ggplot(data = sim_sens, aes(x = as.numeric(levels(m_generation))[m_generation], y = m_phenotype_sens)) +
+  stat_summary(fun = "mean", geom = "line") +
+  xlab("Generations")
+
+fit_sens_plot = ggplot(data = sim_sens, aes(x = as.numeric(levels(m_generation))[m_generation], y = m_fitness_sens)) +
+  stat_summary(fun = "mean", geom = "line") +
+  xlab("Generations")
+
 #create directory where to save images
 subdir = paste(
   "phen_fit_sens_",
@@ -162,9 +178,6 @@ subdir = paste(
   sep = "_")
 dir.create(file.path(dir, subdir), showWarnings = FALSE)
 
-myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
-sc <- scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
-
 for(generation in levels(all_sensibilities$m_generation)){
   phen_x_lim = c(0,0.3)
   fit_x_lim = c(-0.1,0.1)
@@ -174,8 +187,6 @@ for(generation in levels(all_sensibilities$m_generation)){
   
   gen_sens = sim_sens %>%
     filter(m_generation == generation) 
-  
-  
   
   p1 = ggplot(data = gen_sens) +
     geom_histogram(aes(m_fitness_sens), bins = n_bins) +
@@ -194,15 +205,19 @@ for(generation in levels(all_sensibilities$m_generation)){
     geom_point(shape = 21, 
                aes(x = m_fitness_sens,
                    y = m_phenotype_sens,
-                   colour = m_fitness,
-                   fill = m_rank), alpha = 0.5) +
+                   # fill = m_rank,
+                   colour = m_fitness
+               ), alpha = 0.5) +
     xlim(fit_x_lim) +
     ylim(phen_x_lim) +
     sc    
-  
-  p4 = fit_plot + 
+ 
+  p4 = (fit_plot + 
     geom_hline(yintercept = as.numeric(sim_fitness %>% filter(gen == generation) %>% select(m_avg_fitnesses)), color = "red") +
-    geom_vline(xintercept = as.numeric(generation), color = "red")
+    geom_vline(xintercept = as.numeric(generation), color = "red")) /
+    (phen_sens_plot + geom_vline(xintercept = as.numeric(generation), color = "red")) /
+    (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation), color = "red")) 
+  
   
   layout <- "
 AAEE
@@ -219,7 +234,10 @@ CCDD"
          height = 15)
 }
 
-
+      }
+    }
+  }
+}
 
 
 ####Adaptation time

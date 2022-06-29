@@ -10,7 +10,7 @@
 #   sbatch ./run_multiple_param_loop.sh
 #
 # Peregrine directives:
-#SBATCH --time=00:10:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
