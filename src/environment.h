@@ -14,17 +14,16 @@ static double env_func_2(std::vector<double> input){
     return input[0]  * input[0] * input[0];
 }
 
+// f(x) = 3 x - 4 x^3
 static double env_func_3(std::vector<double> input){
-    return input[0] * input[0] * input[0] * input[0] +
-            input[0] * input[0] * input[0] +
-            input[0] * input[0] +
-            input[0];
+    return 3 * input[0] - 4 * input[0] * input[0] * input[0];
 }
 
+///f(x) =  -0.8 + 9.32 x^2 - 15.84 x^4 + 6.33 x^6
 static double env_func_4(std::vector<double> input){
-    return input[0] * input[0] * input[0] +
-            input[0] * input[0] +
-            input[0];
+    return -0.8 + 9.32 * input[0] * input[0] -
+            15.84 * input[0] * input[0] * input[0] * input[0] +
+            6.33 * input[0] * input[0] * input[0] * input[0] * input[0] * input[0];
 }
 
 double sigmoid_env(std::vector<double> x);
