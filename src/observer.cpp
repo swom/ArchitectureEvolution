@@ -188,6 +188,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_ch_B_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
             "_s_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
             "_s_f_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
+            "_fA_" +  p.e_p.name_func_A +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
     return name;
@@ -225,7 +226,7 @@ void test_observer()
         observer o_default;
         //Give sim some non-default params
 
-        env_param e_p{env_func_2, env_func_1};
+        env_param e_p{"2", "1"};
         all_params params = {e_p,{},{},{}};
 
         simulation s{params};

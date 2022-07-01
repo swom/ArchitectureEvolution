@@ -281,6 +281,9 @@ public:
     /// of top individuals
     const int& get_record_freq_top_inds() const noexcept {return m_obs_param.m_top_ind_reg_freq;}
 
+    ///Returns the name of the environmental function A
+    const char& get_name_env_func_A() const noexcept {return m_params.e_p.env_function_A;}
+
     ///Returns const ref to record frequency
     /// of top indidivudals mutational spectrums
     const int& get_record_freq_spectrum() const noexcept {return m_obs_param.m_spectrum_reg_freq;}

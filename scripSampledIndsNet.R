@@ -10,7 +10,7 @@ library(ggraph)
 library(patchwork)
 library(RColorBrewer)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_30_22_sampled_short_good/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_1_22_sampled_long/"
 setwd(dir)
 
 results=list()

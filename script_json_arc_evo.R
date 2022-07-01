@@ -11,7 +11,7 @@ library(RColorBrewer)
 
 ####read data####
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_30_22_sampled_short_good/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_1_22_sampled_long/"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -63,8 +63,10 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     
   }
   
-  all_sensibilities = rbindlist(all_sensibilities) %>% #add 1 to all generations to sync with all_simple_res
+  all_sensibilities = rbindlist(all_sensibilities) %>% 
+    #add 1 to all generations to sync with all_simple_res
     mutate(m_generation = m_generation + 1)
+  
   # all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
   
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
@@ -196,7 +198,7 @@ for(adapt_per in levels(as.factor(all_sensibilities$s_p.adaptation_per))){
         dir.create(file.path(dir, subdir), showWarnings = FALSE)
         
         for(generation in unique(all_sensibilities$m_generation)){
-          
+          generation = 2500
           selection_frequency = as.numeric(as.character(sel_freq))
           selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
          
@@ -211,7 +213,6 @@ for(adapt_per in levels(as.factor(all_sensibilities$s_p.adaptation_per))){
               filter(m_generation == generation) %>% 
               rbind(sim_sens %>%
               filter(m_generation == post_sel_generation) )
-            gen_sens %>% group_by(m_generation) %>% summarise(mean(m_fitness))
 
             # p1 = ggplot(data = gen_sens) +
             #   geom_histogram(aes(m_fitness_sens), bins = n_bins) +
