@@ -10,7 +10,7 @@ library(ggraph)
 library(patchwork)
 library(RColorBrewer)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_28_22_sampled_short_good/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_30_22_sampled_short_good/"
 setwd(dir)
 
 results=list()
@@ -160,8 +160,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
                  alpha = 0.5)+
     xlab("Generations")
  
-  all_sens_summary =  results$m_fit_phen_mut_sensibility %>%
-    rbindlist() %>% 
+  rbinded_sens = results$m_fit_phen_mut_sensibility %>%
+    rbindlist()
+  all_sens_summary =  rbinded_sens %>% 
     cbind(as.data.frame(rbindlist(.$m_sensibilities),
                         col.names = names(m_sensibilities))) %>% 
     select(-c(m_sensibilities)) %>% 
@@ -291,9 +292,8 @@ for (i in  list.files(path = '.', pattern = pattern)){
     nets <- patchwork::wrap_plots(plot_list, nrow=1)
     
     #find sensibilities of all individuals in that generation
-    all_sens_gen = results$m_fit_phen_mut_sensibility %>%
+    all_sens_gen = rbinded_sens %>% 
       subset(m_generation == gen) %>%
-      rbindlist() %>% 
       cbind(as.data.frame(rbindlist(.$m_sensibilities),
                           col.names = names(m_sensibilities))) %>% 
       select(-c(m_sensibilities))

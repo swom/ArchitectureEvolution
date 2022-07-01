@@ -11,17 +11,10 @@ library(RColorBrewer)
 
 ####read data####
 
-# dir = dirname(rstudioapi::getActiveDocumentContext()$path)
-# dir = paste(dir,"/data_sim2",sep = "")
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_29_22_sampled_short_short"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/6_30_22_sampled_short_good/"
 setwd(dir)
 
 pattern = '^m.*json$'
-# pattern =  'mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed0.json'
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_on_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_2.0_s_f_0_seed2"
-# pattern = "mut_t_weights_sel_t_sporadic_sym_t_symmetrical_fr_t_regular_a_p_off_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_0.1_s_f_0_seed3.json"
-# pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_on_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed2.json"
 
 ####save load####
 if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
@@ -70,8 +63,9 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     
   }
   
-  all_sensibilities = rbindlist(all_sensibilities)
-  all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
+  all_sensibilities = rbindlist(all_sensibilities) %>% #add 1 to all generations to sync with all_simple_res
+    mutate(m_generation = m_generation + 1)
+  # all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
   
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
   saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
@@ -125,19 +119,20 @@ dev.off()
 
 ########Sensibilities
 
+#creating palette for plots
 myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
 sc <- scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
 
-for(adapt_per in levels(all_sensibilities$s_p.adaptation_per)){
-  for(seed in levels(all_sensibilities$s_p.seed)){
-    for(sel_str in levels(all_sensibilities$s_p.selection_strength)){
-      for(sel_freq in levels(all_sensibilities$s_p.selection_freq)){
-        
-        ###Select one simulation only based on parameters
-        # adapt_per = 1
-        # seed = 1
-        # sel_str = 1
-        # sel_freq  = 100
+#setting global variables outside the loop
+phen_x_lim = c(0,0.3)
+fit_x_lim = c(-0.1,0.1)
+y_lim = c(0,50)
+n_bins = 1000
+
+for(adapt_per in levels(as.factor(all_sensibilities$s_p.adaptation_per))){
+  for(seed in levels(as.factor(all_sensibilities$s_p.seed))){
+    for(sel_str in levels(as.factor(all_sensibilities$s_p.selection_strength))){
+      for(sel_freq in levels(as.factor(all_sensibilities$s_p.selection_freq))){
         
         ###subset to a specific simulation for now
         sim_sens = all_sensibilities %>%
@@ -153,23 +148,41 @@ for(adapt_per in levels(all_sensibilities$s_p.adaptation_per)){
           filter(s_p.selection_strength == sel_str) %>% 
           filter(s_p.selection_freq == sel_freq) 
         
+             
+        sens_summary = sim_sens %>%
+          group_by(m_generation) %>% 
+          summarise(mean_phen_sens = mean(m_phenotype_sens),
+                    mean_fit_sens = mean(m_fitness_sens),
+                    var_phen_sens = sd(m_phenotype_sens),
+                    var_fit_sens = sd(m_fitness_sens))
+        
         fit_plot = ggplot(data = sim_fitness %>% 
-                            filter(gen %in% all_sensibilities$m_generation)) +
+                            filter(gen %in% sens_summary$m_generation)) +
           geom_line(aes(x = gen, y = m_avg_fitnesses)) +
           geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
                            ymax = m_avg_fitnesses + m_var_fitnesses,
                            ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
         
-        phen_sens_plot = ggplot(data = sim_sens, 
-                                aes(x = as.numeric(levels(m_generation))[m_generation],
-                                    y = m_phenotype_sens)) +
-          stat_summary(fun = "mean", geom = "line") +
+        phen_sens_plot = ggplot(data = sens_summary,
+                                aes(x = m_generation,
+                                    y = mean_phen_sens)) +
+          geom_line() +
+          geom_ribbon(aes(x = m_generation,
+                          y = mean_phen_sens,
+                          ymax = mean_phen_sens + var_phen_sens,
+                          ymin = mean_phen_sens - var_phen_sens),
+                      alpha = 0.5) +
           xlab("Generations")
         
-        fit_sens_plot = ggplot(data = sim_sens, 
-                               aes(x = as.numeric(levels(m_generation))[m_generation], 
-                                   y = m_fitness_sens)) +
-          stat_summary(fun = "mean", geom = "line") +
+        fit_sens_plot = ggplot(data = sens_summary,
+                               aes(x = m_generation,
+                                   y = mean_fit_sens)) +
+          geom_line() +
+          geom_ribbon(aes(x = m_generation,
+                          y = mean_fit_sens,
+                          ymax = mean_fit_sens + var_fit_sens,
+                          ymin = mean_fit_sens - var_fit_sens),
+                      alpha = 0.5)+
           xlab("Generations")
         
         #create directory where to save images
@@ -182,68 +195,88 @@ for(adapt_per in levels(all_sensibilities$s_p.adaptation_per)){
           sep = "_")
         dir.create(file.path(dir, subdir), showWarnings = FALSE)
         
-        for(generation in levels(all_sensibilities$m_generation)){
-          phen_x_lim = c(0,0.3)
-          fit_x_lim = c(-0.1,0.1)
-          y_lim = c(0,50)
+        for(generation in unique(all_sensibilities$m_generation)){
           
-          n_bins = 1000
-          
-          gen_sens = sim_sens %>%
-            filter(m_generation == generation) 
-          
-          p1 = ggplot(data = gen_sens) +
-            geom_histogram(aes(m_fitness_sens), bins = n_bins) +
-            xlim(fit_x_lim) +
-            ylim(y_lim)
-          
-          
-          p2 = ggplot(data = gen_sens) +
-            geom_histogram(aes(m_phenotype_sens), bins = n_bins) +
-            xlim(phen_x_lim) +
-            ylim(y_lim) +
-            coord_flip()
-          
-          p3 = 
-            ggplot(data = gen_sens) +
-            geom_point(shape = 21, 
-                       aes(x = m_fitness_sens,
-                           y = m_phenotype_sens,
-                           # fill = m_rank,
-                           colour = m_fitness
-                       ), alpha = 0.5) +
-            xlim(fit_x_lim) +
-            ylim(phen_x_lim) +
-            sc    
-          
-          p4 = (fit_plot + 
-                  geom_hline(yintercept = as.numeric(sim_fitness %>%
-                                                       filter(gen == generation) %>% 
-                                                       select(m_avg_fitnesses)),
-                             color = "red") +
-                  geom_vline(xintercept = as.numeric(generation),
-                             color = "red")) /
-            (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
-                                         color = "red")) /
-            (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),
-                                         color = "red")) 
-          
-          
-          layout <- "
-AAEE
-AAEE
-CCDD
-CCDD" 
-          
-          p1 + p3 + p2 + p4 +
-            plot_layout(design = layout,guides = 'collect', widths = 1) 
-          
-          ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
-                 device = "png", 
-                 width = 30,
-                 height = 15)
+          selection_frequency = as.numeric(as.character(sel_freq))
+          selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
+         
+          #skip generations that are after the selection period
+          #they will be included in the same plots
+          #of the generations pre-selection period
+          if((generation + 1) %% selection_frequency == 0){
+            
+            post_sel_generation = generation + selection_duration
+
+            gen_sens = sim_sens %>%
+              filter(m_generation == generation) %>% 
+              rbind(sim_sens %>%
+              filter(m_generation == post_sel_generation) )
+            gen_sens %>% group_by(m_generation) %>% summarise(mean(m_fitness))
+
+            # p1 = ggplot(data = gen_sens) +
+            #   geom_histogram(aes(m_fitness_sens), bins = n_bins) +
+            #   xlim(fit_x_lim) +
+            #   ylim(y_lim)
+            
+            # p2 = ggplot(data = gen_sens) +
+            #   geom_histogram(aes(m_phenotype_sens), bins = n_bins) +
+            #   xlim(phen_x_lim) +
+            #   ylim(y_lim) +
+            #   coord_flip()
+            
+            p2 = ggplot(data = gen_sens) +
+              geom_point(shape = 21, 
+                         aes(x = m_fitness,
+                             y = m_phenotype_sens,
+                             colour = m_fitness_sens
+                         ), alpha = 0.5) +
+              ylim(phen_x_lim)+
+              xlim(c(0,1))+
+              facet_grid(.~as.factor(m_generation))
+            
+            
+            p3 = ggplot(data = gen_sens) +
+              geom_point(shape = 21, 
+                         aes(x = m_fitness_sens,
+                             y = m_phenotype_sens,
+                             # fill = m_rank,
+                             colour = m_fitness
+                         ), alpha = 0.5)  +
+              xlim(fit_x_lim) +
+              ylim(phen_x_lim) +
+              sc +
+              facet_grid(.~as.factor(m_generation))
+            
+            p4 = (fit_plot + 
+                    geom_hline(yintercept = as.numeric(sim_fitness %>%
+                                                         filter(gen == generation) %>% 
+                                                         select(m_avg_fitnesses)),
+                               color = "red") +
+                    geom_vline(xintercept = as.numeric(generation),
+                               color = "red")) /
+              (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
+                                           color = "red")) /
+              (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),
+                                           color = "red")) 
+            
+            
+            #           layout <- "
+            # EEEE
+            # EEEE
+            # CCDD
+            # CCDD" 
+            #           
+            # p1 +
+            (p3 + p2) / p4
+            # +
+            # plot_layout(design = layout,guides = 'collect', widths = 1) 
+            
+            ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
+                   device = "png", 
+                   width = 30,
+                   height = 15)
+          }
         }
-        
       }
     }
   }

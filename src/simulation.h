@@ -326,7 +326,7 @@ public:
 
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time < (m_n_generations / adaptation_period_proportion))
+            if(m_time <= (m_n_generations / adaptation_period_proportion))
                 return false;
         }
 
@@ -776,13 +776,14 @@ double sum_of_fitnesses(const Sim& s)
 template<class Sim>
 void tick(Sim &s)
 {
+    s.increase_time();
+
     if(s.is_environment_changing()){
         perform_environment_change(s);
     }
 
     s.select_inds();
 
-    s.increase_time();
 }
 
 ///Calculates the standard devaition of the population fitness
