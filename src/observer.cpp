@@ -191,6 +191,8 @@ std::string create_save_name_from_params(const all_params& p)
             "_fA_" +  p.e_p.name_func_A +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
+    std::cout << name << std::endl;
+
     return name;
 }
 
