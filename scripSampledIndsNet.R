@@ -9,15 +9,46 @@ library(tidygraph)
 library(ggraph)
 library(patchwork)
 library(RColorBrewer)
+library(magick)
+library(hash)
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_1_22_sampled_long/"
+#declare the 4 different optimal functions
+func_1 <- function(x){return(x^2)}
+func_2 <- function(x){return(x^3)}
+func_3 <- function(x){return(3 * x - 4 * x^3)}
+func_4 <- function(x){return(-0.8 + 9.32 * x^2- 15.84 * x^4 + 6.33 * x^6)}
+
+#create optimal reaction norm based on name of function from data
+#and range of the reaction norm of individuals
+produce_current_optimal_func <- function(func_name, reac_norm){
+  optimal_rn = reac_norm
+  if(func_name == "1"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_1(x)
+    }
+  } else if(func_name == "2"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_2(x)
+    }
+  } else if(func_name == "3"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_3(x)
+    }
+  } else if(func_name == "4"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_4(x)
+    }
+  }
+  return(optimal_rn)
+}
+
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_4_22/"
 setwd(dir)
 
 results=list()
 pattern = '*json$'
 # pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
 for (i in  list.files(path = '.', pattern = pattern)){
-  
   ###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
   
@@ -138,6 +169,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
     "s_f", results$m_params$s_p$selection_freq,
     "s_s", results$m_params$s_p$selection_strength,
     "a_p", results$m_params$s_p$adaptation_per,
+    "func",results$m_params$e_p$name_func_A,
     sep = "_")
   dir.create(file.path(dir, subdir), showWarnings = FALSE)
   
@@ -154,12 +186,12 @@ for (i in  list.files(path = '.', pattern = pattern)){
                             y = avg_fitness)) +
     geom_line() +
     geom_ribbon(aes(x = generation,
-                     y = avg_fitness,
-                     ymax = avg_fitness + var_fitness,
-                     ymin = avg_fitness - var_fitness),
-                 alpha = 0.5)+
+                    y = avg_fitness,
+                    ymax = avg_fitness + var_fitness,
+                    ymin = avg_fitness - var_fitness),
+                alpha = 0.5)+
     xlab("Generations")
- 
+  
   rbinded_sens = results$m_fit_phen_mut_sensibility %>%
     rbindlist()
   all_sens_summary =  rbinded_sens %>% 
@@ -193,6 +225,18 @@ for (i in  list.files(path = '.', pattern = pattern)){
                     ymin = mean_fit_sens - var_fit_sens),
                 alpha = 0.5)+
     xlab("Generations")
+  
+  ###find optimal reaction norm based on optimal function name and 
+  #### reaction norm of sampled individuals
+  generic_reac_norm = rbindlist(reac_norms[1, ]$m_reac_norm) %>%
+    rownames_to_column %>% 
+    gather(var, value, -rowname) %>% 
+    spread(rowname, value) %>% 
+    select(-var) %>% 
+    rename("x" = "1", "y" = "2") %>% 
+    mutate(x = as.numeric(x), y = as.numeric(y))
+  optimal_reac_norm = produce_current_optimal_func(results$m_params$e_p$name_func_A,
+                                                   generic_reac_norm)
   
   
   #Now let's loop through generations
@@ -285,6 +329,28 @@ for (i in  list.files(path = '.', pattern = pattern)){
                       "sens_rank",as.character(ind_rank),
                       "fit_rank", as.character(ind$fit_rank[ind$rank == ind_rank])))
       
+      reac_norm_ind = reac_norms %>% 
+        filter(generation == gen) %>% 
+        filter(rank == ind_rank)
+      
+      reac_norm = ggplot( data = as.data.frame(rbindlist(reac_norm_ind$m_reac_norm) %>%
+                                                 rownames_to_column %>% 
+                                                 gather(var, value, -rowname) %>% 
+                                                 spread(rowname, value) %>% 
+                                                 select(-var) %>% 
+                                                 rename("x" = "1", "y" = "2")) %>% 
+                            mutate(x = as.numeric(x), y = as.numeric(y))) +
+        geom_line(aes(x = x, y = y)) +
+        geom_line(aes(x = optimal_reac_norm$x, y = optimal_reac_norm$y), 
+                  colour = "green") +
+        xlim(c(-1,1)) +
+        ylim(c(-1,1)) +
+        xlab("input") +
+        ylab("output") 
+      
+      p  = p + inset_element(reac_norm, 0.3, 0.3, 0.7, 0.7) + theme_light()
+      
+      
       #add plot to plot_list
       plot_list <- c(plot_list, list(p))    
     }
@@ -330,47 +396,35 @@ for (i in  list.files(path = '.', pattern = pattern)){
       scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
     
     avg_time_marked = avg_fit_plot + geom_point(aes(x = as.numeric(gen), y = avg_fitness[generation == gen]), colour ="red")
-phen_time_marked = phen_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_phen_sens[m_generation == gen]), colour ="red")
-fit_time_marked = fit_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_fit_sens[m_generation == gen]), colour ="red")
-
-    nets / (plot_sens + (avg_time_marked / phen_time_marked / fit_time_marked)
-              )
+    phen_time_marked = phen_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_phen_sens[m_generation == gen]), colour ="red")
+    fit_time_marked = fit_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_fit_sens[m_generation == gen]), colour ="red")
     
-    ggsave(paste(subdir,paste(paste("sampled_nets_fit_sens_plot", gen, sep = "_"),".png"), sep = '/'),
+    nets / (plot_sens + (avg_time_marked / phen_time_marked / fit_time_marked)
+    )
+    
+    ggsave(paste(subdir,paste(paste("sampled_nets_fit_sens_plot", gen, sep = "_"),".png",sep = ""), sep = '/'),
            device = "png", 
            width = 30,
            height = 15)
   }  
-  # 
-  # ####Create gif
+  
+  ####Create gif
+  # setwd(subdir)
+  # imgs = list.files(path = ".", pattern = "*")
   # ## list file names and read in
-  # imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-  #                                                list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
-  #                                      list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
-  #                            list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
-  #                  list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
   # img_list = lapply(imgs, image_read)
   # 
   # ## join the images together
   # img_joined <- image_join(img_list)
   # 
   # ## animate at 2 frames per second
-  # img_animated <- image_animate(img_joined, fps = 2)
+  # img_animated <- image_animate(img_joined, fps = 4)
   # 
   # ## save to disk
-  # path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
+  # path = paste("Gif_sampled_nets_fit_sens_plot", ".gif", sep = "_")
   # image_write(image = img_animated,
   #             path = path)
+  # setwd(dir)
 }
 
-# min_gen = 800000
-# max_gen = 900000
-# mismatch_sub = mismatch %>% filter(as.numeric(generation) > min_gen) %>% filter(as.numeric(generation) < max_gen)
-# top_ind_fit_sub = top_ind_fit %>% filter(as.numeric(generation) > min_gen) %>% filter(as.numeric(generation) < max_gen)
-# par(mfrow=c(1,1))
-# plot(top_ind_fit_sub$generation,
-#      top_ind_fit_sub$top_ind_fit,
-#      type = 'l',
-#      col = 'red',
-#      main = "match(black) and fitness(red)")
-# lines(mismatch_sub$generation, mismatch_sub$mismatch)
+

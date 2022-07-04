@@ -97,7 +97,7 @@ template<class Ind>
 struct Ind_Data
 {
     Ind_Data(){};
-    Ind_Data(Ind ind, reac_norm rn, fit_and_phen_sens_t sensibilities, int gen):
+    Ind_Data(Ind ind, reac_norm rn,  fit_and_phen_sens_t sensibilities, int gen):
         m_ind{ind},
         m_reac_norm{rn},
         m_sensibilities{sensibilities},

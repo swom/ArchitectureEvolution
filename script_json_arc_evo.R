@@ -194,6 +194,7 @@ for(adapt_per in levels(as.factor(all_sensibilities$s_p.adaptation_per))){
           "s_f", unique(sim_sens$s_p.selection_freq),
           "s_s", unique(sim_sens$s_p.selection_strength),
           "a_p", unique(sim_sens$s_p.adaptation_per),
+          "func", results$m_params$e_p$name_func_A,
           sep = "_")
         dir.create(file.path(dir, subdir), showWarnings = FALSE)
         
@@ -279,6 +280,21 @@ for(adapt_per in levels(as.factor(all_sensibilities$s_p.adaptation_per))){
           }
         }
       }
+      ####Create gif
+      imgs = list.files(path = subdir, pattern = "*")
+      ## list file names and read in
+      img_list = lapply(imgs, image_read)
+      
+      ## join the images together
+      img_joined <- image_join(img_list)
+      
+      ## animate at 2 frames per second
+      img_animated <- image_animate(img_joined, fps = 2)
+      
+      ## save to disk
+      path = paste("Gif",subdir,".gif", sep = "_")
+      image_write(image = img_animated,
+                  path = path)
     }
   }
 }
