@@ -76,8 +76,6 @@ public:
                                                                               int n_points
                                                                               )
     {
-        sort_and_assign_ranks_by_fitness(m_vec_indiv);
-
         std::vector<fit_and_phen_sens_t> sens(m_vec_indiv.size());
 
         auto mutations = create_mutations(n_mutations, m_mut_step, rng);
@@ -120,6 +118,9 @@ public:
     ///Get ref to vector of individuals
     std::vector<Ind>& get_inds_nonconst() noexcept{return m_vec_indiv;}
 
+    ///Get ref to vector of individuals
+    std::vector<Ind>& get_new_inds_nonconst() noexcept{return m_vec_new_indiv;}
+
     ///Returns the ref tot the mutable fitness distribution
     rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
     ///Get const ref to vector of individuals
@@ -142,6 +143,16 @@ public:
 
     ///Returns the number of trials for which individuals have to be evaluated
     int get_n_trials() const noexcept {return m_n_trials;}
+
+    ///Swaps the ancestor_rank of all_inividuals in the pop
+    ///for their own rank(they become the ancestors)
+    population<Ind> ind_rank_becomes_ancestor_rank(std::vector<Ind>& inds)
+    {
+        std::for_each(inds.begin(), inds.end(),
+                      [](auto& ind){ind.make_rank_ancestor_rank();});
+
+        return *this;
+    }
 
     ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
     population<Ind> sort_and_assign_ranks_by_fitness(std::vector<Ind>& inds)

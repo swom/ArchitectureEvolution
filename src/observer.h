@@ -434,6 +434,8 @@ public:
     {
         if(s.get_inds().empty()) return;
 
+        s.ind_rank_becomes_ancestor_rank(s.get_new_inds_non_const());
+        s.sort_and_assign_ranks_by_fitness(s.get_inds_non_const());
 
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);

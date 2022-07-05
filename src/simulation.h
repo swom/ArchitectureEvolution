@@ -320,6 +320,9 @@ public:
     ///Returns a reference to the vector of individuals
     std::vector<typename Pop::ind_t> &get_inds_non_const() {return m_population.get_inds_nonconst();};
 
+    ///Returns a reference to the vector of individuals
+    std::vector<typename Pop::ind_t> &get_new_inds_non_const() {return m_population.get_new_inds_nonconst();};
+
     ///Returns the current inputs in the simulation for the current or last trial
     const std::vector<double> &get_input() const noexcept {return m_input;}
 
@@ -509,6 +512,14 @@ public:
     {
         pop::reproduce_random(get_pop_non_const(), get_rng());
     }
+
+    ///Sorts indivudals in the vector of popoulation by fitness and assigns thema rank based on their position
+    Pop sort_and_assign_ranks_by_fitness(std::vector<typename Pop::ind_t>& inds)
+    {return m_population.sort_and_assign_ranks_by_fitness(inds);}
+
+    ///Makes the rank of the indivdual become the ancestor rank
+    Pop ind_rank_becomes_ancestor_rank(std::vector<typename Pop::ind_t>& inds)
+    {return m_population.ind_rank_becomes_ancestor_rank(inds);}
 
     ///Calculates fitness and selects a new population based on fitness
     void select_inds()

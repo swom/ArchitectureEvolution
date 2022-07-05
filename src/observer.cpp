@@ -876,6 +876,7 @@ void test_observer()
     /// #1
     {
         auto s = create_simple_simulation();
+        assert(s.get_pop_size() ==  1);
 
         obs_param o_p;
         int frequency_of_recording = 10;

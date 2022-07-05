@@ -116,6 +116,10 @@ public:
     ///Sets the rank of the individual
     void set_rank(int rank) noexcept {m_rank =  rank;}
 
+    ///Makes the actual rank of the individual the ancestor rank
+    ///to be used when saving to set a new lineage
+    void make_rank_ancestor_rank() {m_ancestor_rank = m_rank;};
+
     ///Mutates the network of an individual
     void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
     {
