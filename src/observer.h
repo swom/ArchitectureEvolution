@@ -402,7 +402,7 @@ void store_ind_data(Sim& s)
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
-    else if(is_end_of_selection_period_and_time_to_record(*this, s, selection_duration))
+    else if(is_end_of_selection_period_and_time_to_record(*this, s))
     {
 //        std::cout << "saving after selection" << std::endl;
         store_data_based_on_sensibilities(s);
@@ -571,10 +571,10 @@ double distance_from_best_sens_comb(const Ind& i,
 
 ///Check if it is the time at the end of a selection period
 template<class O, class S>
-bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s, int rec_freq_shift)
+bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s)
 {
     return o.get_record_freq_top_inds() != 0 &&
-            (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0;
+            (s.get_time() - s.get_selection_duration) %  o.get_record_freq_top_inds() == 0;
 }
 
 ///Check if it is the time at the start of a selection period
@@ -583,6 +583,14 @@ bool is_before_start_of_selection_period_and_time_to_record(const O& o, const S&
 {
     return o.get_record_freq_top_inds() != 0 &&
             (s.get_time()) %  o.get_record_freq_top_inds() == 0;
+}
+
+///Check if it is time to record
+template<class O, class S>
+bool is_time_to_record_inds(const O& o, const S& s)
+{
+    return is_end_of_selection_period_and_time_to_record(o, s) |
+            is_before_start_of_selection_period_and_time_to_record(o, s);
 }
 
 ///Check if it is the time to record the best individuals' mutation spectrum
