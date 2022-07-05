@@ -885,7 +885,7 @@ void test_observer()
             o.store_data(s);
             if(is_time_to_record_inds(o,s))
             {
-                assert(offspring_ancestor_ID() == parent_ID());
+                assert(sim::offspring_ancestor_IDs(s) == sim::parent_ID(s));
             }
         }
     }

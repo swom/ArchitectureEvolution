@@ -395,16 +395,9 @@ void store_ind_data(Sim& s)
 
     store_avg_fit(s);
 
-    if(get_sel_type() == selection_type::sporadic &&
-            is_before_start_of_selection_period_and_time_to_record(*this,s))
+    if(is_time_to_record_inds(*this,s))
     {
 //        std::cout << "saving before selection" << std::endl;
-        store_data_based_on_sensibilities(s);
-        store_inputs_and_optimals(s);
-    }
-    else if(is_end_of_selection_period_and_time_to_record(*this, s))
-    {
-//        std::cout << "saving after selection" << std::endl;
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
@@ -573,8 +566,9 @@ double distance_from_best_sens_comb(const Ind& i,
 template<class O, class S>
 bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s)
 {
-    return o.get_record_freq_top_inds() != 0 &&
-            (s.get_time() - s.get_selection_duration) %  o.get_record_freq_top_inds() == 0;
+    return s.get_sel_type() == selection_type::sporadic &&
+            o.get_record_freq_top_inds() != 0 &&
+            (s.get_time() - s.get_selection_duration()) %  o.get_record_freq_top_inds() == 0;
 }
 
 ///Check if it is the time at the start of a selection period

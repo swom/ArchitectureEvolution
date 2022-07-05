@@ -75,12 +75,23 @@ const std::vector<double> &get_current_input(const Sim &s)
     return s.get_input();
 }
 
+std::vector<int> offspring_ancestor_IDs(const simulation<>& s)
+{
+    return {1};
 }
+
+std::vector<int> parent_ID(const simulation<>& s)
+{
+    return {1};
+}
+
+} // namespace sim::
 
 double identity_first_element(const std::vector<double> &vector)
 {
     return vector[0];
 }
+
 
 
 #ifndef NDEBUG

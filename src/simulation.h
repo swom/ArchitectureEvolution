@@ -751,6 +751,12 @@ const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t i
     return pop::get_nth_ind_net(s.get_pop(), ind_index);
 }
 
+///retruns the Ids of the parent population (m_vec_new_indiv)
+std::vector<int> parent_ID(const simulation<>& s);
+
+///retruns the ancestor Ids of the population
+std::vector<int> offspring_ancestor_IDs(const simulation<>& s);
+
 ///Checks that the population in this simulation
 /// has individuals sorted by fitness
 template<class Sim>
