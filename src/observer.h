@@ -371,11 +371,11 @@ public:
 
 
     ///Stores the data from simulation at the coorect times
-    void store_data(Sim& s, int selection_duration)
+    void store_data(Sim& s)
     {
         store_env_func(s);
         store_var_fit(s);
-        store_ind_data(s, selection_duration);
+        store_ind_data(s);
 
     }
 
@@ -383,25 +383,26 @@ public:
 /// for this reason it swaps the individual vectors in population back
 /// as they were after calc_fitness() and before reproduce()
 /// in simulation tick()
-void store_ind_data(Sim& s, int selection_duration)
+void store_ind_data(Sim& s)
 {
+    int selection_duration = sim::calculate_selection_duration(s);
+
     ///To look at generation that went through tick
     /// we need swap back the individuals vectors that were
     /// swapped during reproduce()
-
     ///Swap in
     pop::swap_new_with_old_pop(s.get_pop());
 
     store_avg_fit(s);
 
     if(get_sel_type() == selection_type::sporadic &&
-            is_before_start_of_selection_period(*this,s))
+            is_before_start_of_selection_period_and_time_to_record(*this,s))
     {
 //        std::cout << "saving before selection" << std::endl;
         store_data_based_on_sensibilities(s);
         store_inputs_and_optimals(s);
     }
-    else if(is_end_of_selection_period(*this, s, selection_duration))
+    else if(is_end_of_selection_period_and_time_to_record(*this, s, selection_duration))
     {
 //        std::cout << "saving after selection" << std::endl;
         store_data_based_on_sensibilities(s);
@@ -548,22 +549,6 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 /// with env function == y = 1
 simulation<> create_simple_simulation(int n_gen = 1);
 
-///Calculates the time to add to the seleciton frequency to record
-/// data at the end of a selection period
-template<class O>
-int calculate_selection_duration(const O& o)
-{
-    int rec_freq_shift = 0;
-
-    if(o.get_sel_type() == selection_type::sporadic &&
-            o.get_e_change_f_type() == env_change_freq_type::regular)
-    {
-        rec_freq_shift += o.get_selection_duration();
-    }
-
-    return rec_freq_shift;
-}
-
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);
 
@@ -586,7 +571,7 @@ double distance_from_best_sens_comb(const Ind& i,
 
 ///Check if it is the time at the end of a selection period
 template<class O, class S>
-bool is_end_of_selection_period(const O& o, const S& s, int rec_freq_shift)
+bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s, int rec_freq_shift)
 {
     return o.get_record_freq_top_inds() != 0 &&
             (s.get_time() - rec_freq_shift) %  o.get_record_freq_top_inds() == 0;
@@ -594,7 +579,7 @@ bool is_end_of_selection_period(const O& o, const S& s, int rec_freq_shift)
 
 ///Check if it is the time at the start of a selection period
 template<class O, class S>
-bool is_before_start_of_selection_period(const O& o, const S& s)
+bool is_before_start_of_selection_period_and_time_to_record(const O& o, const S& s)
 {
     return o.get_record_freq_top_inds() != 0 &&
             (s.get_time()) %  o.get_record_freq_top_inds() == 0;
@@ -651,13 +636,11 @@ void exec(Sim& s , observer<Sim>& o)
 
     throw_if_obs_and_sim_do_not_have_same_param(o,s);
 
-    int selection_duration = calculate_selection_duration(o);
-
     while(s.get_time() !=  s.get_n_gen())
     {
         sim::tick(s);
 
-        o.store_data(s, selection_duration);
+        o.store_data(s);
 
         print_elapsed_time_every_n_gen(s, 1000, my_watch);
 

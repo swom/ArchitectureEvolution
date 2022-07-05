@@ -249,6 +249,9 @@ public:
     ///Returns const ref ot population memeber
     Pop& get_pop() noexcept {return m_population;}
 
+    ///Gets the size of the population
+    int get_pop_size() const noexcept {return m_population.get_inds().size();}
+
     ///Returns ref to rng
     std::mt19937_64& get_rng() noexcept {return m_rng;}
 
@@ -285,6 +288,12 @@ public:
     ///increases the number of genration the simulations has run for
     void increase_time() {++m_time;}
 
+    ///Returns the type of selection used in simulation
+    auto get_sel_type() const noexcept{return m_params.s_p.sel_type;}
+
+    ///Returns the type of enviromental change frequency used in simulation
+    auto get_e_change_f_type() const noexcept{return m_params.s_p.change_freq_type;}
+
     ///Returns the strength of selection
     double get_sel_str() const noexcept {return m_sel_str;}
 
@@ -294,7 +303,7 @@ public:
 
     ///Returns the number of generations for which
     ///selection takes place when selection is 'sporadic'
-    int get_sel_duration() const noexcept {return m_selection_duration;}
+    int get_selection_duration() const noexcept {return m_selection_duration;}
 
     ///Returns change frequency of environment/function A
     double get_change_freq_A() const noexcept {return m_change_freq_A;}
@@ -497,6 +506,7 @@ public:
     {
         pop::reproduce_random(get_pop(), get_rng());
     }
+
     ///Calculates fitness and selects a new population based on fitness
     void select_inds()
     {
@@ -664,6 +674,23 @@ double calculate_optimal(const Sim &s)
 {
     return(env::calculate_optimal(s.get_env(), s.get_input()));
 }
+
+///Calculates the time to add to the seleciton frequency to record
+/// data at the end of a selection period
+template<class S>
+int calculate_selection_duration(const S& o)
+{
+    int rec_freq_shift = 0;
+
+    if(o.get_sel_type() == selection_type::sporadic &&
+            o.get_e_change_f_type() == env_change_freq_type::regular)
+    {
+        rec_freq_shift += o.get_selection_duration();
+    }
+
+    return rec_freq_shift;
+}
+
 
 ///Returns a population whose fitness has been calculated
 template<class Sim>

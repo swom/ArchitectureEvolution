@@ -42,7 +42,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_4_22/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/8_7_22_multi_func_arc_evo/"
 setwd(dir)
 
 results=list()

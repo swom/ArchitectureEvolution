@@ -673,7 +673,7 @@ void test_simulation() noexcept//!OCLINT test may be many
             avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
 
             if(s.get_time() % s.get_sel_freq() >= 0 &&
-                 s.get_time() % s.get_sel_freq() < s.get_sel_duration())
+                 s.get_time() % s.get_sel_freq() < s.get_selection_duration())
             {
                 assert(!are_equal_with_high_tolerance(avg_prev_pop,
                                                       avg_pop)

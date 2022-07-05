@@ -531,13 +531,13 @@ void test_observer()
 
     }
 
-//    ///The average sensibility to mutations is recorded every generation
-//    {
-//        observer o;
-//        simulation s;
-//        exec(s,o);
-//        assert(o.get_avg_mutation_sensibility().size() == s.get_time());
-//    }
+    //    ///The average sensibility to mutations is recorded every generation
+    //    {
+    //        observer o;
+    //        simulation s;
+    //        exec(s,o);
+    //        assert(o.get_avg_mutation_sensibility().size() == s.get_time());
+    //    }
 
     ///It is possible to calculate the avg robustness of a population in a simulation
     {
@@ -862,6 +862,32 @@ void test_observer()
         observer load_o = load_default_observer_json("test");
 
         assert(o.get_sampled_inds() == load_o.get_sampled_inds());
+    }
+
+
+    ///Individuals are assigned an ancestor ID equal to their parents fitness rank
+    /// when it is the time to record them
+    /// this will be a unique ID that toghether with the data of the generation
+    /// in whihc the individuals is recorded will make it possible to identify their lineage
+    {
+        auto s = create_simple_simulation();
+        assert(s.get_pop_size() == 1);
+        obs_param o_p;
+        int frequency_of_recording = 1;
+        o_p.m_top_ind_reg_freq = frequency_of_recording;
+
+        observer o(o_p, s.get_params());
+
+        int n_cycles = 2;
+        for(int cycle = 0; cycle < n_cycles; cycle++)
+        {
+            sim::tick(s);
+            o.store_data(s);
+            if(is_time_to_save_inds(o,s))
+            {
+                assert(offspring_ancestor_ID() == parent_ID())
+            }
+        }
     }
 }
 #endif
