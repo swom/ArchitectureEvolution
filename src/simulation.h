@@ -215,6 +215,9 @@ public:
                                    m_sel_str,
                                    m_seed)
 
+    ///Assigns a unique ID to indivuduals
+    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds(m_rng);};
+
     ///Calculates the mutational sensibility to fitness and phenotype of all individuals in the population
     std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations, int n_points)
     {
@@ -229,7 +232,7 @@ public:
     void change_all_weights_nth_ind(size_t ind_index, double new_weight)
     {
         auto new_net = change_all_weights_values_and_activations(pop::get_nth_ind_net(m_population,
-                                                                                 ind_index),
+                                                                                      ind_index),
                                                                  new_weight);
         pop::change_nth_ind_net(m_population,
                                 ind_index,
@@ -316,6 +319,9 @@ public:
 
     ///Returns a reference to the vector of individuals
     const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
+
+    ///Returns a const reference to the vector of individuals
+    const std::vector<typename Pop::ind_t> &get_new_inds() const noexcept {return m_population.get_new_inds();};
 
     ///Returns a reference to the vector of individuals
     std::vector<typename Pop::ind_t> &get_inds_non_const() {return m_population.get_inds_nonconst();};
@@ -514,12 +520,22 @@ public:
     }
 
     ///Sorts indivudals in the vector of popoulation by fitness and assigns thema rank based on their position
-    Pop sort_and_assign_ranks_by_fitness(std::vector<typename Pop::ind_t>& inds)
-    {return m_population.sort_and_assign_ranks_by_fitness(inds);}
+    Pop sort_and_assign_ranks_by_fitness()
+    {return m_population.sort_and_assign_ranks_by_fitness();}
 
     ///Makes the rank of the indivdual become the ancestor rank
-    Pop ind_rank_becomes_ancestor_rank(std::vector<typename Pop::ind_t>& inds)
-    {return m_population.ind_rank_becomes_ancestor_rank(inds);}
+    Pop ind_ID_becomes_ancestor_ID(std::vector<typename Pop::ind_t>& inds)
+    {return m_population.ind_ID_becomes_ancestor_ID(inds);}
+
+    ///Changes the ancestor rank for the current rank of the individual
+    /// and then sorts the individuals by fitness and assigns new ranks
+    Pop update_ancestor_rank_and_sort_by_new_rank()
+    {
+        sort_and_assign_ranks_by_fitness();
+        ind_ID_becomes_ancestor_ID(get_new_inds_non_const());
+
+        return m_population;
+    }
 
     ///Calculates fitness and selects a new population based on fitness
     void select_inds()
@@ -671,7 +687,7 @@ bool all_fitnesses_are_not_equal(const Sim& s)
 template<class Sim>
 bool all_inds_have_fitness(double value, const Sim& s)
 {
-  return pop::all_fitnesses_are(value, s.get_pop());
+    return pop::all_fitnesses_are(value, s.get_pop());
 }
 
 ///Checks that the population in this simulation
@@ -683,7 +699,7 @@ bool all_ranks_are_equal(const Sim& s)
 }
 
 ///Assign random ranks/Ids to indiviudal in a population
-simulation<> assign_random_IDs_to_inds(simulation<> s);
+simulation<> assign_random_IDs_to_inds(simulation<> s, rndutils::xorshift128 &rng);
 
 ///Calculates the optimal output
 template<class Sim>
@@ -797,7 +813,7 @@ std::vector<int> ancestor_IDs(const std::vector<Ind>& pop)
 {
     std::vector<int> IDs(pop.size());
     std::transform(pop.begin(), pop.end(), IDs.begin(),
-                   [](const Ind& ind){return ind.get_ancestor_rank();});
+                   [](const Ind& ind){return ind.get_ancestor_ID();});
     return IDs;
 }
 
@@ -810,7 +826,7 @@ bool ancestor_ID_is_parent_ID(const simulation<>& s);
 template<class Sim>
 bool is_sorted_by_fitness(const Sim& s)
 {
-   return pop::is_sorted_by_fitness(s.get_pop().get_inds());
+    return pop::is_sorted_by_fitness(s.get_pop().get_inds());
 }
 
 ///Checks that the population in this simulation
@@ -818,7 +834,7 @@ bool is_sorted_by_fitness(const Sim& s)
 template<class Sim>
 bool is_sorted_by_rank(const Sim& s)
 {
-   return pop::is_sorted_by_rank(s.get_pop().get_inds());
+    return pop::is_sorted_by_rank(s.get_pop().get_inds());
 }
 
 ///Switches the function of the environment used to calculate the optimal output

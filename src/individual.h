@@ -101,24 +101,32 @@ public:
     Net& get_to_net() noexcept {return m_network;}
 
     ///Returns the rank of the individual
-    /// (also works as uniqur ID of the indivudual in that generation)
     const int& get_rank() const noexcept
     {
         return m_rank;
     }
 
     ///Returns the rank of the ancestor of the individual
-    const int& get_ancestor_rank() const noexcept
+    const int& get_ID() const noexcept
     {
-        return m_ancestor_rank;
+        return m_ID;
     }
+
+    ///Returns the rank of the ancestor of the individual
+    const int& get_ancestor_ID() const noexcept
+    {
+        return m_ancestor_ID;
+    }
+
+    ///Sets the rank of the individual
+    void set_ID(int ID) noexcept {m_ID =  ID;}
 
     ///Sets the rank of the individual
     void set_rank(int rank) noexcept {m_rank =  rank;}
 
-    ///Makes the actual rank of the individual the ancestor rank
+    ///Makes the actual ID of the individual the ancestor ID
     ///to be used when saving to set a new lineage
-    void make_rank_ancestor_rank() {m_ancestor_rank = m_rank;};
+    void make_ID_ancestor_ID() {m_ancestor_ID = m_ID;};
 
     ///Mutates the network of an individual
     void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
@@ -149,8 +157,11 @@ private:
     ///The rank in terms of fitness of the individual in the population
     int m_rank = 0;
 
+    ///The rank in terms of fitness of the individual in the population
+    int m_ID = 0;
+
     ///The rank of the ancestor
-    int m_ancestor_rank = 0;
+    int m_ancestor_ID = 0;
 };
 
 /// Checks if 2 individuals are the same

@@ -784,6 +784,7 @@ void test_observer()
         s.get_pop_non_const() = produce_simple_pop(n_inds);
         observer o;
 
+        s.sort_and_assign_ranks_by_fitness();
         o.store_data_based_on_sensibilities(s);
 
         auto top_mid_low_sens_inds = sample_top_mid_low_sens_inds(s, o);
@@ -868,6 +869,26 @@ void test_observer()
         assert(o.get_sampled_inds() == load_o.get_sampled_inds());
     }
 
+    ///The population that reproduced (stored in m_new_inds_vec after sim::tick(s))
+    /// is sorted by fitness and individuals are assigned a rank
+    /// when data about all inds in the population is saved
+    {
+        simulation s;
+        observer o;
+        s.get_pop_non_const() = produce_simple_pop();
+
+         sim::tick(s);
+         assert(sim::all_fitnesses_are_not_equal(s));
+
+         assert(!pop::is_sorted_by_fitness(s.get_new_inds()));
+         assert(!pop::is_sorted_by_rank(s.get_new_inds()));
+
+         assert(is_time_to_record_inds(o,s));
+         o.store_ind_data(s);
+
+         assert(pop::is_sorted_by_fitness(s.get_new_inds()));
+         assert(pop::is_sorted_by_rank(s.get_new_inds()));
+    }
 
     ///Individuals are assigned an ancestor ID equal to their parents fitness rank
     /// when it is the time to record them
@@ -875,33 +896,26 @@ void test_observer()
     /// in which the individuals is recorded will make it possible to identify their lineage
     /// #1
     {
-        auto s = create_simple_simulation();
+        auto s = create_simple_simulation(10);
         assert(s.get_pop_size() ==  1);
 
         obs_param o_p;
-        int frequency_of_recording = 10;
+        int frequency_of_recording = 1;
         o_p.m_top_ind_reg_freq = frequency_of_recording;
         observer o(o_p, s.get_params());
 
-        for(int cycle = 0; cycle < 100; cycle++)
+        exec(s,o);
+
+        for(int gen = 1; gen < o.get_fit_phen_mut_sensibility().size(); gen++)
         {
-            sim::tick(s);
-            s = sim::assign_random_IDs_to_inds(s);
+            auto ancestor_inds = o.get_fit_phen_mut_sensibility()[gen - 1].m_sensibilities;
+            auto inds = o.get_fit_phen_mut_sensibility()[gen].m_sensibilities;
 
-            o.store_data(s);
-
-            if(is_time_to_record_inds(o,s))
+            for(int ind = 0; ind < inds.size(); ind++)
             {
-                assert(sim::ancestor_ID_is_parent_ID(s));
-            }
-            else
-            {
-               assert(!sim::ancestor_ID_is_parent_ID(s));
-               assert(ancestor_ID_is_last_recorded_ind_ID(o,s));
+                assert(inds[ind].get_ancestor_ID() == ancestor_inds[ind].get_ID());
             }
         }
-
-
     }
 }
 #endif

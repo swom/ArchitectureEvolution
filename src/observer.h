@@ -388,8 +388,6 @@ public:
     /// in simulation tick()
     void store_ind_data(Sim& s)
     {
-        int selection_duration = sim::calculate_selection_duration(s);
-
         ///To look at generation that went through tick
         /// we need swap back the individuals vectors that were swapped during reproduce()
 
@@ -399,11 +397,13 @@ public:
 
         if(is_time_to_record_inds(*this,s))
         {
+            s.sort_and_assign_ranks_by_fitness();
+            s.ind_ID_becomes_ancestor_ID(s.get_new_inds_non_const());
             store_data_based_on_sensibilities(s);
             store_inputs_and_optimals(s);
         }
 
-        if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
+        if(is_time_to_record_best_inds_mut_spectrum(*this, s))
         {
             store_network_spectrum_n_best(s);
         }
@@ -433,10 +433,6 @@ public:
     void store_data_based_on_sensibilities(Sim& s)
     {
         if(s.get_inds().empty()) return;
-
-        s.ind_rank_becomes_ancestor_rank(s.get_new_inds_non_const());
-        s.sort_and_assign_ranks_by_fitness(s.get_inds_non_const());
-
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);
         if(m_fit_phen_mut_sensibility.size() % sample_ind_record_freq_to_sens == 0)
@@ -592,10 +588,10 @@ bool is_time_to_record_inds(const O& o, const S& s)
 
 ///Check if it is the time to record the best individuals' mutation spectrum
 template<class O, class S>
-bool is_time_to_record_best_inds_mut_spectrum(const O& o, const S& s, int rec_freq_shift)
+bool is_time_to_record_best_inds_mut_spectrum(const O& o, const S& s)
 {
     return o.get_record_freq_spectrum() != 0 &&
-            (s.get_time() - rec_freq_shift) % o.get_record_freq_spectrum() == 0;
+            (s.get_time() - s.get_selection_duration()) % o.get_record_freq_spectrum() == 0;
 }
 
 ///?Checks that an observer and a simulation haev same parameters and if not throws an exception
@@ -642,6 +638,10 @@ void exec(Sim& s , observer<Sim>& o)
 
     while(s.get_time() !=  s.get_n_gen())
     {
+        if(is_time_to_record_inds(o,s))
+        {
+            s.assign_ID_to_inds();
+        }
         sim::tick(s);
 
         o.store_data(s);

@@ -67,6 +67,18 @@ public:
                                    m_mut_rate_act,
                                    m_mut_rate_dup);
 
+    ///Assigns a unique ID to individuals
+    population<Ind> assign_ID_to_inds(std::mt19937_64& rng) noexcept
+    {
+        std::uniform_int_distribution<> dist(-10000,0);
+
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.set_ID(dist(rng));
+        }
+        return *this;
+    };
+
     ///Calculates fitness and phenotype sensibilities to mutation  of all inds
     template<typename Func>
     std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations,
@@ -89,9 +101,10 @@ public:
                                                         input_range,
                                                         n_points);
 
+            sens[i].m_ancestor_ID = m_vec_indiv[i].get_ancestor_ID();
+            sens[i].m_ID = m_vec_indiv[i].get_ID();
             sens[i].m_rank = m_vec_indiv[i].get_rank();
             sens[i].m_fitness = m_vec_indiv[i].get_fitness();
-
         }
 
         return sens;
@@ -123,6 +136,7 @@ public:
 
     ///Returns the ref tot the mutable fitness distribution
     rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
+
     ///Get const ref to vector of individuals
     const std::vector<Ind>& get_new_inds() const noexcept{return m_vec_new_indiv;}
 
@@ -146,17 +160,18 @@ public:
 
     ///Swaps the ancestor_rank of all_inividuals in the pop
     ///for their own rank(they become the ancestors)
-    population<Ind> ind_rank_becomes_ancestor_rank(std::vector<Ind>& inds)
+    population<Ind> ind_ID_becomes_ancestor_ID(std::vector<Ind>& inds)
     {
         std::for_each(inds.begin(), inds.end(),
-                      [](auto& ind){ind.make_rank_ancestor_rank();});
+                      [](auto& ind){ind.make_ID_ancestor_ID();});
 
         return *this;
     }
 
     ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
-    population<Ind> sort_and_assign_ranks_by_fitness(std::vector<Ind>& inds)
+    population<Ind> sort_and_assign_ranks_by_fitness()
     {
+        auto& inds = m_vec_indiv;
         std::sort(inds.begin(), inds.end(),
                   [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
 
@@ -446,8 +461,12 @@ bool is_sorted_by_fitness(const std::vector<Ind>& inds)
 template<class Ind>
 bool is_sorted_by_rank(const std::vector<Ind>& inds)
 {
-    return std::is_sorted(inds.begin(), inds.end(),
+    bool is_sorted =  std::is_sorted(inds.begin(), inds.end(),
                           [](const auto& lhs, const auto& rhs){return lhs.get_rank() < rhs.get_rank();});
+    auto no_two_equal = std::end(inds) == std::adjacent_find(std::begin(inds), std::end(inds),
+                                  [](const auto& lhs, const auto& rhs){return lhs.get_rank() == rhs.get_rank();});
+
+    return is_sorted && no_two_equal;
 }
 
 ///Checks that all fitnesses are equal

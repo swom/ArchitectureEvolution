@@ -37,9 +37,8 @@ bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
     return pop && env && time && sel_str && change_freq_A && change_freq_B;
 }
 
-simulation<> assign_random_IDs_to_inds(simulation<> s)
+simulation<> assign_random_IDs_to_inds(simulation<> s, rndutils::xorshift128& rng)
 {
-    rndutils::xorshift128 rng;
     std::uniform_int_distribution dist(-100,100);
     std::for_each(s.get_inds_non_const().begin(), s.get_inds_non_const().end(),
                     [&](auto& ind){ind.set_rank(rng());});
@@ -893,23 +892,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         }
     }
 #endif
-    ///The population is sorted by fitness and individuals are assigned a rank
-    /// when mutational sensibilities are calculated
-    {
-        simulation s;
-        s.get_pop_non_const() = produce_simple_pop();
 
-         s.calc_fitness();
-         assert(sim::all_fitnesses_are_not_equal(s));
-
-         assert(!sim::is_sorted_by_fitness(s));
-         assert(!sim::all_ranks_are_equal(s));
-
-         s.calculate_fit_phen_mut_sens_for_all_inds(1,1);
-
-         assert(sim::is_sorted_by_fitness(s));
-         assert(sim::is_sorted_by_rank(s));
-    }
 }
 
 #endif
