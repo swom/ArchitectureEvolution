@@ -216,7 +216,7 @@ public:
                                    m_seed)
 
     ///Assigns a unique ID to indivuduals
-    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds(m_rng);};
+    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds();};
 
     ///Calculates the mutational sensibility to fitness and phenotype of all individuals in the population
     std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations, int n_points)

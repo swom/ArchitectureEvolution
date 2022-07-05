@@ -68,13 +68,13 @@ public:
                                    m_mut_rate_dup);
 
     ///Assigns a unique ID to individuals
-    population<Ind> assign_ID_to_inds(std::mt19937_64& rng) noexcept
+    population<Ind> assign_ID_to_inds() noexcept
     {
-        std::uniform_int_distribution<> dist(-10000,0);
 
+        int m_ID = 0;
         for(auto& ind : m_vec_indiv)
         {
-            ind.set_ID(dist(rng));
+            ind.set_ID(m_ID++);
         }
         return *this;
     };
