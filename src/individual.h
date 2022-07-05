@@ -101,9 +101,16 @@ public:
     Net& get_to_net() noexcept {return m_network;}
 
     ///Returns the rank of the individual
+    /// (also works as uniqur ID of the indivudual in that generation)
     const int& get_rank() const noexcept
     {
         return m_rank;
+    }
+
+    ///Returns the rank of the ancestor of the individual
+    const int& get_ancestor_rank() const noexcept
+    {
+        return m_ancestor_rank;
     }
 
     ///Sets the rank of the individual
@@ -137,6 +144,9 @@ private:
 
     ///The rank in terms of fitness of the individual in the population
     int m_rank = 0;
+
+    ///The rank of the ancestor
+    int m_ancestor_rank = 0;
 };
 
 /// Checks if 2 individuals are the same

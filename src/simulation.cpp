@@ -37,7 +37,14 @@ bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
     return pop && env && time && sel_str && change_freq_A && change_freq_B;
 }
 
-
+simulation<> assign_random_IDs_to_inds(simulation<> s)
+{
+    rndutils::xorshift128 rng;
+    std::uniform_int_distribution dist(-100,100);
+    std::for_each(s.get_inds_non_const().begin(), s.get_inds_non_const().end(),
+                    [&](auto& ind){ind.set_rank(rng());});
+    return s;
+}
 
 template<class Sim>
 const typename Sim::pop_t::ind_t & get_nth_ind(const Sim& s, size_t ind_index)
@@ -75,14 +82,9 @@ const std::vector<double> &get_current_input(const Sim &s)
     return s.get_input();
 }
 
-std::vector<int> offspring_ancestor_IDs(const simulation<>& s)
+bool ancestor_ID_is_parent_ID(const simulation<>& s)
 {
-    return {1};
-}
-
-std::vector<int> parent_ID(const simulation<>& s)
-{
-    return {1};
+    return  ancestor_IDs(sim::get_inds(s)) == pop_IDs(sim::get_parents(s));
 }
 
 } // namespace sim::
@@ -103,7 +105,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///The population has a vector of individuals of size 1 by default
     {
         simulation s;
-        assert(s.get_pop().get_inds().size() == 1u);
+        assert(s.get_pop_non_const().get_inds().size() == 1u);
     }
 
 
@@ -248,7 +250,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s.reproduce();
 
         //all inds should now have the network that matches the target values
-        for(const auto& ind :get_inds(s))
+        for(const auto& ind : sim::get_inds(s))
         {
             assert(ind.get_net() == best_net);
         }
@@ -680,8 +682,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         {
              tick(s);
 
-            avg_pop = pop::avg_fitness(s.get_pop());
-            avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+            avg_pop = pop::avg_fitness(s.get_pop_non_const());
+            avg_prev_pop = pop::avg_fitness(s.get_pop_non_const().get_new_inds());
 
             if(s.get_time() % s.get_sel_freq() >= 0 &&
                  s.get_time() % s.get_sel_freq() < s.get_selection_duration())
@@ -895,7 +897,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     /// when mutational sensibilities are calculated
     {
         simulation s;
-        s.get_pop() = produce_simple_pop();
+        s.get_pop_non_const() = produce_simple_pop();
 
          s.calc_fitness();
          assert(sim::all_fitnesses_are_not_equal(s));

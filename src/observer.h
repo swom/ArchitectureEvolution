@@ -144,7 +144,7 @@ const fit_and_phen_sens_t& find_sensibility_for_ind(const Ind& ind,
 /// based on its fitness ranking
 template<class Ind>
 const Ind& find_ind_for_sensibility(const std::vector<Ind>& inds,
-                                                    const fit_and_phen_sens_t& sens)
+                                    const fit_and_phen_sens_t& sens)
 {
     auto rank = sens.m_rank;
 
@@ -165,11 +165,11 @@ fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut& r
 /// for a given range and a given number of data points
 template<class Ind, typename Func>
 std::vector<Ind_Data<Ind>> create_inds_data(const std::vector<Ind>& inds,
-                                                const sensibilities_to_mut& sensibilities,
-                                                const obs_param& o_params,
-                                                const all_params& a_params,
-                                                const int& generation,
-                                                Func optimal_function)
+                                            const sensibilities_to_mut& sensibilities,
+                                            const obs_param& o_params,
+                                            const all_params& a_params,
+                                            const int& generation,
+                                            Func optimal_function)
 {
 
     std::vector<Ind_Data<Ind>> inds_data(inds.size());
@@ -285,6 +285,10 @@ public:
     /// of top indidivudals mutational spectrums
     const int& get_record_freq_spectrum() const noexcept {return m_obs_param.m_spectrum_reg_freq;}
 
+    ///Returns the data about the last recorded population of individuals
+    const std::vector<fit_and_phen_sens_t>& get_last_recorded_pop() const noexcept
+    {return get_fit_phen_mut_sensibility().back().m_sensibilities;}
+
     /// Returns const ref to the number of points to be recorded for reaction norm
     const int& get_n_points_reac_norm() const noexcept {return m_obs_param.m_reac_norm_n_points;}
 
@@ -376,40 +380,37 @@ public:
         store_env_func(s);
         store_var_fit(s);
         store_ind_data(s);
-
     }
 
-///Stores data related to the individuals that just went through tick
-/// for this reason it swaps the individual vectors in population back
-/// as they were after calc_fitness() and before reproduce()
-/// in simulation tick()
-void store_ind_data(Sim& s)
-{
-    int selection_duration = sim::calculate_selection_duration(s);
-
-    ///To look at generation that went through tick
-    /// we need swap back the individuals vectors that were
-    /// swapped during reproduce()
-    ///Swap in
-    pop::swap_new_with_old_pop(s.get_pop());
-
-    store_avg_fit(s);
-
-    if(is_time_to_record_inds(*this,s))
+    ///Stores data related to the individuals that just went through tick
+    /// for this reason it swaps the individual vectors in population back
+    /// as they were after calc_fitness() and before reproduce()
+    /// in simulation tick()
+    void store_ind_data(Sim& s)
     {
-//        std::cout << "saving before selection" << std::endl;
-        store_data_based_on_sensibilities(s);
-        store_inputs_and_optimals(s);
+        int selection_duration = sim::calculate_selection_duration(s);
+
+        ///To look at generation that went through tick
+        /// we need swap back the individuals vectors that were swapped during reproduce()
+
+        pop::swap_new_with_old_pop(s.get_pop_non_const()); ///Swap in
+
+        store_avg_fit(s);
+
+        if(is_time_to_record_inds(*this,s))
+        {
+            store_data_based_on_sensibilities(s);
+            store_inputs_and_optimals(s);
+        }
+
+        if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
+        {
+            store_network_spectrum_n_best(s);
+        }
+
+        pop::swap_new_with_old_pop(s.get_pop_non_const()); ///Swap out
     }
 
-    if(is_time_to_record_best_inds_mut_spectrum(*this, s, selection_duration))
-    {
-        store_network_spectrum_n_best(s);
-    }
-
-    ///Swap out
-    pop::swap_new_with_old_pop(s.get_pop());
-}
     ///Saves the avg fitness
     void store_avg_fit(const Sim &s)
     {
@@ -518,12 +519,12 @@ private :
         }
 
         m_top_inds.push_back(create_inds_data(sim::get_best_n_inds(s, get_top_inds_proportion()),
-                                                  m_fit_phen_mut_sensibility.back(),
-                                                  m_obs_param,
-                                                  m_params,
-                                                  get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
-                                                  sim::get_current_env_function(s)
-                                                  )
+                                              m_fit_phen_mut_sensibility.back(),
+                                              m_obs_param,
+                                              m_params,
+                                              get_time_before_tick(s), //when this function is called timer is ticked, but we are still in the previous generation
+                                              sim::get_current_env_function(s)
+                                              )
                              );
     }
 };
@@ -548,13 +549,13 @@ std::string create_save_name_from_params(const all_params& p);
 ///Calculates the euclidean distance from the best combination of sensibilities in a vector
 /// to a given set of sesnsibilites s
 double squared_distance_from_best_combination(const fit_and_phen_sens_t& ind,
-                                      const fit_and_phen_sens_t& best);
+                                              const fit_and_phen_sens_t& best);
 
 ///Calculates the distance of a given individual sensibilities
 /// from the best possible sensibilities combination of the last recorded generation
 template<class Ind>
 double distance_from_best_sens_comb(const Ind& i,
-                                                    const sensibilities_to_mut& last_gen)
+                                    const sensibilities_to_mut& last_gen)
 {
     auto ind_sens =find_sensibility_for_ind(i, last_gen);
     auto best = find_best_fit_phen_combination(last_gen);
@@ -635,7 +636,6 @@ void exec(Sim& s , observer<Sim>& o)
     namespace sw = stopwatch;
     sw::Stopwatch my_watch;
 
-
     throw_if_obs_and_sim_do_not_have_same_param(o,s);
 
     while(s.get_time() !=  s.get_n_gen())
@@ -645,7 +645,6 @@ void exec(Sim& s , observer<Sim>& o)
         o.store_data(s);
 
         print_elapsed_time_every_n_gen(s, 1000, my_watch);
-
     }
 }
 

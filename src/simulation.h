@@ -99,14 +99,14 @@ struct all_params
 template<class Sim>
 void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), new_input);
+    pop::assign_new_inputs_to_inds(s.get_pop_non_const(), new_input);
 }
 
 ///Assigns the input in simulation<M> to individuals
 template<class Sim>
 void assign_inputs(Sim &s)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), s.create_inputs());
+    pop::assign_new_inputs_to_inds(s.get_pop_non_const(), s.create_inputs());
 }
 
 ///Returns the individuals in the simualtion
@@ -247,7 +247,7 @@ public:
     const Pop& get_pop() const noexcept {return m_population;}
 
     ///Returns const ref ot population memeber
-    Pop& get_pop() noexcept {return m_population;}
+    Pop& get_pop_non_const() noexcept {return m_population;}
 
     ///Gets the size of the population
     int get_pop_size() const noexcept {return m_population.get_inds().size();}
@@ -316,6 +316,9 @@ public:
 
     ///Returns a reference to the vector of individuals
     const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
+
+    ///Returns a reference to the vector of individuals
+    std::vector<typename Pop::ind_t> &get_inds_non_const() {return m_population.get_inds_nonconst();};
 
     ///Returns the current inputs in the simulation for the current or last trial
     const std::vector<double> &get_input() const noexcept {return m_input;}
@@ -491,20 +494,20 @@ public:
 
         auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, get_sel_str());
 
-        pop::set_fitness_inds(get_pop(), fitness_vector);
+        pop::set_fitness_inds(get_pop_non_const(), fitness_vector);
 
         return *this;
     }
     ///Reproduces inds to next gen based on their fitness
     void reproduce()
     {
-        pop::reproduce(get_pop(), get_rng());
+        pop::reproduce(get_pop_non_const(), get_rng());
     }
 
     ///Reproduces inds to next gen randomly
     void reproduce_randomly()
     {
-        pop::reproduce_random(get_pop(), get_rng());
+        pop::reproduce_random(get_pop_non_const(), get_rng());
     }
 
     ///Calculates fitness and selects a new population based on fitness
@@ -668,6 +671,9 @@ bool all_ranks_are_equal(const Sim& s)
     return pop::all_ranks_are_equal(s.get_pop().get_inds());
 }
 
+///Assign random ranks/Ids to indiviudal in a population
+simulation<> assign_random_IDs_to_inds(simulation<> s);
+
 ///Calculates the optimal output
 template<class Sim>
 double calculate_optimal(const Sim &s)
@@ -698,7 +704,7 @@ typename Sim::pop_t calc_fitness_of_pop(Sim s)
 {
 
     s.update_optimal(env::calculate_optimal(s.get_env(), s.get_input()));
-    return pop::calc_fitness(s.get_pop(),
+    return pop::calc_fitness(s.get_pop_non_const(),
                              s.get_optimal(),
                              s.get_sel_str(),
                              s.get_input());
@@ -715,7 +721,7 @@ double avg_fitness(const Sim& s)
 template<class Pop>
 void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net_t &n)
 {
-    pop::change_nth_ind_net(s.get_pop(), ind_index, n) ;
+    pop::change_nth_ind_net(s.get_pop_non_const(), ind_index, n) ;
 }
 
 ///Gets const ref the best n individuals in a pop
@@ -751,11 +757,42 @@ const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t i
     return pop::get_nth_ind_net(s.get_pop(), ind_index);
 }
 
+///Gets the vector of individuals whihc were the parents of the current generation
+template<class S>
+const std::vector<typename S::pop_t::ind_t>& get_parents(const S& s)
+{
+    return s.get_pop().get_new_inds();
+}
+
+///Gets the vector of individuals whihc were the parents of the current generation
+template<class S>
+const std::vector<typename S::pop_t::ind_t>& get_inds(const S& s)
+{
+    return s.get_pop().get_inds();
+}
+
 ///retruns the Ids of the parent population (m_vec_new_indiv)
-std::vector<int> parent_ID(const simulation<>& s);
+template<class Ind>
+std::vector<int> pop_IDs(const std::vector<Ind>& pop)
+{
+    std::vector<int> IDs(pop.size());
+    std::transform(pop.begin(), pop.end(), IDs.begin(),
+                   [](const Ind& ind){return ind.get_rank();});
+    return IDs;}
 
 ///retruns the ancestor Ids of the population
-std::vector<int> offspring_ancestor_IDs(const simulation<>& s);
+template<class Ind>
+std::vector<int> ancestor_IDs(const std::vector<Ind>& pop)
+{
+    std::vector<int> IDs(pop.size());
+    std::transform(pop.begin(), pop.end(), IDs.begin(),
+                   [](const Ind& ind){return ind.get_ancestor_rank();});
+    return IDs;
+}
+
+///Checks that the ancestor IDs of inds in a population
+/// are equal to their parents IDs (inds store in new_inds_vec
+bool ancestor_ID_is_parent_ID(const simulation<>& s);
 
 ///Checks that the population in this simulation
 /// has individuals sorted by fitness

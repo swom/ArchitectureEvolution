@@ -66,6 +66,10 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>& s)
+{
+   return sim::ancestor_IDs(sim::get_inds(s)) == sim::pop_IDs(o.get_last_recorded_pop());
+}
 
 fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut &record)
 {
@@ -512,7 +516,7 @@ void test_observer()
         robust_sim.changel_all_inds_weights(robust_weight);
 
         simulation frail_sim;
-        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop_non_const(),
                                                 frail_weight));
 
         observer o_frail;
@@ -549,7 +553,7 @@ void test_observer()
         robust_sim.changel_all_inds_weights(robust_weight);
 
         simulation frail_sim;
-        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop_non_const(),
                                                 frail_weight));
 
         double robust = calc_avg_mutation_sensibility(robust_sim, n_mutations);
@@ -609,7 +613,7 @@ void test_observer()
         robust_sim.changel_all_inds_weights(robust_weight);
 
         simulation frail_sim = create_simple_simulation();
-        assert(pop::all_inds_weights_have_value(frail_sim.get_pop(),
+        assert(pop::all_inds_weights_have_value(frail_sim.get_pop_non_const(),
                                                 frail_weight));
 
         observer o_frail;
@@ -763,7 +767,7 @@ void test_observer()
     {
         int n_inds = 3;
         auto s = create_simple_simulation();
-        s.get_pop() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = produce_simple_pop(n_inds);
         observer o;
 
         o.store_data_based_on_sensibilities(s);
@@ -777,7 +781,7 @@ void test_observer()
     {
         int n_inds = 3;
         auto s = create_simple_simulation();
-        s.get_pop() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = produce_simple_pop(n_inds);
         observer o;
 
         o.store_data_based_on_sensibilities(s);
@@ -842,7 +846,7 @@ void test_observer()
         int n_inds = 3;
         int n_gens = sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
-        s.get_pop() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = produce_simple_pop(n_inds);
         observer o({}, s.get_params());
         exec(s,o);
 
@@ -854,7 +858,7 @@ void test_observer()
     {
         int n_gens = sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
-        s.get_pop() = produce_simple_pop();
+        s.get_pop_non_const() = produce_simple_pop();
         observer o({}, s.get_params());
         exec(s,o);
 
@@ -867,27 +871,36 @@ void test_observer()
 
     ///Individuals are assigned an ancestor ID equal to their parents fitness rank
     /// when it is the time to record them
-    /// this will be a unique ID that toghether with the data of the generation
-    /// in whihc the individuals is recorded will make it possible to identify their lineage
+    /// this will be a unique ID that toghether with the the generation
+    /// in which the individuals is recorded will make it possible to identify their lineage
+    /// #1
     {
         auto s = create_simple_simulation();
-        assert(s.get_pop_size() == 1);
-        obs_param o_p;
-        int frequency_of_recording = 1;
-        o_p.m_top_ind_reg_freq = frequency_of_recording;
 
+        obs_param o_p;
+        int frequency_of_recording = 10;
+        o_p.m_top_ind_reg_freq = frequency_of_recording;
         observer o(o_p, s.get_params());
 
-        int n_cycles = 2;
-        for(int cycle = 0; cycle < n_cycles; cycle++)
+        for(int cycle = 0; cycle < 100; cycle++)
         {
             sim::tick(s);
+            s = sim::assign_random_IDs_to_inds(s);
+
             o.store_data(s);
+
             if(is_time_to_record_inds(o,s))
             {
-                assert(sim::offspring_ancestor_IDs(s) == sim::parent_ID(s));
+                assert(sim::ancestor_ID_is_parent_ID(s));
+            }
+            else
+            {
+               assert(!sim::ancestor_ID_is_parent_ID(s));
+               assert(ancestor_ID_is_last_recorded_ind_ID(o,s));
             }
         }
+
+
     }
 }
 #endif

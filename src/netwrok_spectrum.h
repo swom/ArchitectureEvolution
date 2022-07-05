@@ -30,6 +30,9 @@ struct fit_and_phen_sens_t
                                    m_fitness,
                                    m_rank)
 
+    ///Returns the rank of the idnidvidual (whihc works also as ID)
+    int get_rank() const noexcept {return m_rank;}
+
     ///The sensitibility of fitness to mutations,
     /// negative values signify that mutations on average move
     /// the network away from the fitness optima

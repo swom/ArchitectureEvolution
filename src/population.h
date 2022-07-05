@@ -325,7 +325,7 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 template <class Pop>
 std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, std::mt19937_64& rng)
 {
-    auto inds = p.get_inds_nonconst();
+    auto inds = p.get_inds();
     std::vector<double> mutations = create_mutations(n_mutations,
                                                      p.get_mut_step(),
                                                      rng);
