@@ -50,7 +50,7 @@ bool operator== (const node& lhs, const node& rhs);
 bool operator!= (const node& lhs, const node& rhs);
 
 ///returns true if the node is active
-bool is_active(node node);
+bool is_active(const node& node);
 
 ///returns true if the node is inactive
 bool is_inactive(const node& node);

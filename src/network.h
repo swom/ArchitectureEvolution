@@ -1023,15 +1023,21 @@ fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
         for(auto& layer : net.get_net_weights())
             for(auto& node : layer)
             {
-                calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
-                fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
-
-                for(auto& current_weight : node.get_vec_mutable_weights())
+                if(is_active(node))
                 {
-                    calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
+                    calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
                     fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
                     phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+
+                    for(auto& current_weight : node.get_vec_mutable_weights())
+                    {
+                        if(is_active(current_weight))
+                        {
+                        calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
+                        fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                        phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+                        }
+                    }
                 }
             }
 

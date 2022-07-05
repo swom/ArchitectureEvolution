@@ -20,7 +20,7 @@ bool operator!= (const node& lhs, const node& rhs)
     return !(lhs == rhs);
 }
 
-bool is_active(node node)
+bool is_active(const node &node)
 {
     return node.is_active();
 }
