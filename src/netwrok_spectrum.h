@@ -32,14 +32,14 @@ struct fit_and_phen_sens_t
                                    m_ID,
                                    m_ancestor_ID)
 
-    ///Returns the rank of the idnidvidual (whihc works also as ID)
+    ///Returns the rank of the idnidvidual
     int get_rank() const noexcept {return m_rank;}
 
-    ///Returns the rank of the idnidvidual (whihc works also as ID)
-    int get_ID() const noexcept {return m_ID;}
+    ///Returns the ID  of the idnidvidual
+    const std::string& get_ID() const noexcept {return m_ID;}
 
-    ///Returns the rank of the idnidvidual (whihc works also as ID)
-    int get_ancestor_ID() const noexcept {return m_ancestor_ID;}
+    ///Returns the Id of the ancestor of the idnidvidual
+    const std::string& get_ancestor_ID() const noexcept {return m_ancestor_ID;}
 
     ///The sensitibility of fitness to mutations,
     /// negative values signify that mutations on average move
@@ -56,10 +56,10 @@ struct fit_and_phen_sens_t
     int m_rank;
 
     ///The ID of the individual from which the sensibilities are calculated
-    int m_ID;
+    std::string m_ID;
 
     ///The ID of the ancestir if individual from which the sensibilities are calculated
-    int m_ancestor_ID;
+    std::string m_ancestor_ID;
 
     ///The fitness of the individual
    double m_fitness;

@@ -10,7 +10,6 @@ library(ggraph)
 library(patchwork)
 library(RColorBrewer)
 library(magick)
-library(hash)
 
 #declare the 4 different optimal functions
 func_1 <- function(x){return(x^2)}
@@ -42,14 +41,16 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/8_7_22_multi_func_arc_evo/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_6_22_multifunc/"
 setwd(dir)
 
 results=list()
 pattern = '*json$'
 # pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
 for (i in  list.files(path = '.', pattern = pattern)){
-  ###Making a data tibble with all top individuals' data 
+ 
+   i = list.files(path = '.', pattern = pattern)[5]
+   ###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
   
   #extract the sampled individuals
@@ -170,6 +171,7 @@ for (i in  list.files(path = '.', pattern = pattern)){
     "s_s", results$m_params$s_p$selection_strength,
     "a_p", results$m_params$s_p$adaptation_per,
     "func",results$m_params$e_p$name_func_A,
+    "mut_t",results$m_params$i_p.m_mutation_type,
     sep = "_")
   dir.create(file.path(dir, subdir), showWarnings = FALSE)
   
@@ -382,7 +384,8 @@ for (i in  list.files(path = '.', pattern = pattern)){
                  ), show.legend = F) +
       geom_text(aes(x = sensibilities$m_fitness_sens,
                     y = sensibilities$m_phenotype_sens,
-                    label = rank), 
+                    label = paste("ID_",sensibilities$m_ID,'/n',
+                                  "AnID_",sensibilities$m_ancestor_ID)), 
                 hjust = 0.1, 
                 nudge_x = -0.008) +   
       geom_text(aes(x = sensibilities$m_fitness_sens,

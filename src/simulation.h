@@ -216,7 +216,7 @@ public:
                                    m_seed)
 
     ///Assigns a unique ID to indivuduals
-    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds();};
+    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds(m_time);};
 
     ///Calculates the mutational sensibility to fitness and phenotype of all individuals in the population
     std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations, int n_points)
@@ -800,18 +800,18 @@ const std::vector<typename S::pop_t::ind_t>& get_inds(const S& s)
 
 ///retruns the Ids of the parent population (m_vec_new_indiv)
 template<class Ind>
-std::vector<int> pop_IDs(const std::vector<Ind>& pop)
+std::vector<std::string> pop_IDs(const std::vector<Ind>& pop)
 {
-    std::vector<int> IDs(pop.size());
+    std::vector<std::string> IDs(pop.size());
     std::transform(pop.begin(), pop.end(), IDs.begin(),
                    [](const Ind& ind){return ind.get_rank();});
     return IDs;}
 
 ///retruns the ancestor Ids of the population
 template<class Ind>
-std::vector<int> ancestor_IDs(const std::vector<Ind>& pop)
+std::vector<std::string> ancestor_IDs(const std::vector<Ind>& pop)
 {
-    std::vector<int> IDs(pop.size());
+    std::vector<std::string> IDs(pop.size());
     std::transform(pop.begin(), pop.end(), IDs.begin(),
                    [](const Ind& ind){return ind.get_ancestor_ID();});
     return IDs;

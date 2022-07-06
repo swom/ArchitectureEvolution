@@ -107,19 +107,19 @@ public:
     }
 
     ///Returns the rank of the ancestor of the individual
-    const int& get_ID() const noexcept
+    const std::string& get_ID() const noexcept
     {
         return m_ID;
     }
 
     ///Returns the rank of the ancestor of the individual
-    const int& get_ancestor_ID() const noexcept
+    const std::string& get_ancestor_ID() const noexcept
     {
         return m_ancestor_ID;
     }
 
     ///Sets the rank of the individual
-    void set_ID(int ID) noexcept {m_ID =  ID;}
+    void set_ID(const std::string& ID) noexcept {m_ID =  ID;}
 
     ///Sets the rank of the individual
     void set_rank(int rank) noexcept {m_rank =  rank;}
@@ -158,10 +158,10 @@ private:
     int m_rank = 0;
 
     ///The rank in terms of fitness of the individual in the population
-    int m_ID = 0;
+    std::string m_ID = "0";
 
     ///The rank of the ancestor
-    int m_ancestor_ID = 0;
+     std::string m_ancestor_ID = "0";
 };
 
 /// Checks if 2 individuals are the same
