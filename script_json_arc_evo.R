@@ -53,25 +53,11 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     tmp_ = lapply(tmp_, function(df) {
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
     })
-    
-    #attach generation to IDs
-    tmp_ = lapply(tmp_, )
    
-   a = function(df){
-      df$m_ID =  Map(paste, df$m_generation, df$m_ID, sep = '_')
-      if(df$m_generation != 0)
-      {
-      }
-      
-   } 
-   b = a(tmp_[[1]])
-    Map(paste, tmp_[[1]]$m_generation, tmp_[[1]]$m_ID, sep = '_')
-    
     tmp_ = rbindlist(tmp_)
     tmp_[, names(ID) := ID]
     
     all_sensibilities[[i]] = tmp_
-    
   }
   
   all_sensibilities = rbindlist(all_sensibilities) %>% 

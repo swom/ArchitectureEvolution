@@ -2,14 +2,15 @@
 #define NETWORK_H
 #include "utilities.h"
 #include <iostream>
-#include <random>
-#include <nlohmann/json.hpp>
-#include <mutex>
 #include "node.h"
 #include "mutation_type.h"
 #include "rndutils.hpp"
 #include "response_type.h"
 #include "netwrok_spectrum.h"
+#include <random>
+#include <ranges>
+#include <mutex>
+#include <nlohmann/json.hpp>
 
 double sigmoid(double x);
 double linear(double x);
@@ -1021,25 +1022,23 @@ fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
 
     for(const auto& mutation : mutations)
         for(auto& layer : net.get_net_weights())
-            for(auto& node : layer)
+        {
+            auto active_nodes = layer | std::views::filter([](node& n){return is_active(n);});
+            for(auto& node : active_nodes)
             {
-                if(is_active(node))
+                calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
+                fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+
+                auto active_weights = node.get_vec_mutable_weights() | std::views::filter([](weight& w){return is_active(w);});
+                for(auto& current_weight : active_weights)
                 {
-                    calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
+                    calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
                     fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
                     phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
-
-                    for(auto& current_weight : node.get_vec_mutable_weights())
-                    {
-                        if(is_active(current_weight))
-                        {
-                        calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
-                        fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
-                        phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
-                        }
-                    }
                 }
             }
+        }
 
     return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenotype_distances)};
 }

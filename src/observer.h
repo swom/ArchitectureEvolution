@@ -563,27 +563,34 @@ double distance_from_best_sens_comb(const Ind& i,
 
 ///Check if it is the time at the end of a selection period
 template<class O, class S>
-bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s)
+bool is_end_of_selection_period_and_time_to_record(const O& o, const S& s, int time_offset = 0)
 {
     return s.get_sel_type() == selection_type::sporadic &&
             o.get_record_freq_top_inds() != 0 &&
-            (s.get_time() - s.get_selection_duration()) %  o.get_record_freq_top_inds() == 0;
+            (s.get_time() + time_offset - o.get_selection_duration()) %  o.get_record_freq_top_inds() == 0;
 }
 
 ///Check if it is the time at the start of a selection period
 template<class O, class S>
-bool is_before_start_of_selection_period_and_time_to_record(const O& o, const S& s)
+bool is_before_start_of_selection_period_and_time_to_record(const O& o, const S& s, int time_offset = 0)
 {
     return o.get_record_freq_top_inds() != 0 &&
-            (s.get_time()) %  o.get_record_freq_top_inds() == 0;
+            (s.get_time() + time_offset) %  o.get_record_freq_top_inds() == 0;
 }
 
 ///Check if it is time to record
 template<class O, class S>
-bool is_time_to_record_inds(const O& o, const S& s)
+bool is_time_to_record_inds(const O& o, const S& s, int time_offset = 0)
 {
-    return is_end_of_selection_period_and_time_to_record(o, s) |
-            is_before_start_of_selection_period_and_time_to_record(o, s);
+    return is_end_of_selection_period_and_time_to_record(o, s,  time_offset) |
+            is_before_start_of_selection_period_and_time_to_record(o, s, time_offset);
+}
+
+///Check if simulation is one tick away from when it is time to record
+template<class O, class S>
+bool is_before_time_to_record_inds(const O& o, const S& s)
+{
+   return is_time_to_record_inds(o, s, 1);
 }
 
 ///Check if it is the time to record the best individuals' mutation spectrum
@@ -638,7 +645,7 @@ void exec(Sim& s , observer<Sim>& o)
 
     while(s.get_time() !=  s.get_n_gen())
     {
-        if(is_time_to_record_inds(o,s))
+        if(is_before_time_to_record_inds(o,s))
         {
             s.assign_ID_to_inds();
         }
