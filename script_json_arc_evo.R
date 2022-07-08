@@ -8,16 +8,20 @@ library(ggpubr)
 library(patchwork)
 library(data.table)
 library(RColorBrewer)
-
+library(tidygraph)
+library(ggraph)
 ####read data####
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_6_22_multifunc/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_7_22_ancestor_tracking/"
 setwd(dir)
 
 pattern = '^m.*json$'
 
 ####save load####
-if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
+if(file.exists("all_simple_res.Rds") && 
+   file.exists("all_sensibilities.Rds") &&
+   file.exists("obs_params.Rds")){
+  obs_params <- readRDS("obs_params.Rds")
   all_simple_res <- readRDS("all_simple_res.Rds")
   all_sensibilities <- readRDS("all_sensibilities.Rds")
 }else{
@@ -53,7 +57,7 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     tmp_ = lapply(tmp_, function(df) {
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
     })
-   
+    
     tmp_ = rbindlist(tmp_)
     tmp_[, names(ID) := ID]
     
@@ -65,7 +69,7 @@ if(file.exists("all_simple_res.Rds") && file.exists("all_sensibilities.Rds")){
     mutate(m_generation = m_generation + 1)
   
   # all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
-  
+  saveRDS(results$m_obs_param, file = "obs_params.Rds")
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
   saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
 }
@@ -120,8 +124,11 @@ dev.off()
 ########Sensibilities
 
 #creating palette for plots
-myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
-sc <- scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
+fitness_palette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+fitness_gradient <- scale_colour_gradientn(colours = fitness_palette(1000), limits=c(0,1))
+fitness_sens_palette <- colorRampPalette(rev(brewer.pal(9, "Blues")))
+fitness_sensitivity_palette <- scale_colour_gradientn(colours = fitness_sens_palette(10000),
+                                                      limits=c(-0.2, 0.2))
 
 #setting global variables outside the loop
 phen_x_lim = c(0,0.3)
@@ -209,33 +216,129 @@ for(adapt_per in adapt_levels){
               sep = "_")
             dir.create(file.path(dir, subdir), showWarnings = FALSE)
             
-            for(generation in unique(sim_sens$m_generation)){
-              selection_frequency = as.numeric(as.character(sel_freq))
+            generations = unique(sim_sens$m_generation)
+            for(generation in generations[generations %% 10000 == 0]){
+              record_freq = as.numeric(obs_params$m_top_ind_reg_freq)
               selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
               
               #skip generations that are after the selection period
               #they will be included in the same plots
               #of the generations pre-selection period
-              if((generation) %% selection_frequency == 0){
+              if((generation) %% record_freq == 0 &&
+                 generation){
                 
-                post_sel_generation = generation + selection_duration
+                #get the generations 
+                #across an entire cycle of
+                #drift - selection - drift - selection
+                post_sel_gen = generations[match(generation, generations) + 1]
+                post_drift_gen = generations[match(generation, generations) + 2]
+                post_drift_post_sel_gen = generations[match(generation, generations) + 3]
                 
+                important_subsequent_generations = c(post_sel_gen,
+                                                     post_drift_gen,
+                                                     post_drift_post_sel_gen)
                 gen_sens = sim_sens %>%
-                  filter(m_generation == generation) %>% 
-                  rbind(sim_sens %>%
-                          filter(m_generation == post_sel_generation) )
+                  filter(m_generation %in% c(generation,
+                                             post_sel_gen)) 
+                if(generation %% 50000 == 0 &&
+                   generation + record_freq < max(generations))
+                {
+                gen_sens = sim_sens %>%
+                  filter(m_generation %in% c(generation,
+                                             important_subsequent_generations)) 
                 
-                p2 = ggplot(data = gen_sens) +
+                ###to create network of descendants 
+                #create edge data frame(Id + ancestor ID) of latest gen
+                #and node data frame
+                #(all IDs and IDs of earlier generation present in the ancestor IDs of the latest generation)
+                edge_tibble = gen_sens %>% 
+                  filter(m_generation %in% important_subsequent_generations) %>% 
+                  select(c(m_ancestor_ID, m_ID)) %>% 
+                  rename(from = m_ancestor_ID, to = m_ID)
+            
+                ancestry_graph = tbl_graph(nodes = gen_sens,
+                                           edges = edge_tibble,
+                                           node_key = "m_ID") 
+                # 
+                # p_anc <- ggraph(ancestry_graph, x = m_phenotype_sens, y = m_fitness) +
+                #   geom_edge_link(alpha = 0.01)+
+                #   # geom_edge_density()+
+                #   geom_node_point(aes(color =  as.factor(m_generation),
+                #                       size = node_is_isolated(),
+                #                       alpha = ifelse(node_is_isolated(),0.01,1))
+                #   ) +
+                #   scale_size_manual(values=c(1.5,0.5), guide = 'none') +
+                #   scale_alpha(guide = 'none') +
+                #   xlab("phenotypic_sens") +
+                #   ylab("fitness") + 
+                #   theme_light() +
+                # theme(legend.position="none")
+                
+                p_anc_inter_sel <- ggraph(ancestry_graph %>%
+                                            filter(m_generation %in% c(generation,
+                                                                       post_sel_gen)),
+                                          x = m_phenotype_sens,
+                                          y = m_fitness) +
+                  geom_edge_link(alpha = 0.01)+
+                  # geom_edge_density()+
+                  geom_node_point(aes(color = as.factor(m_generation),
+                                      size = node_is_isolated(),
+                                      alpha = ifelse(node_is_isolated(),0.01,1)),
+                  ) +
+                  scale_size_manual(values=c(1.5,0.5), guide = 'none') +
+                  scale_alpha(guide = 'none') +
+                  xlab("phenotypic_sens") +
+                  ylab("fitness") +
+                  xlim(phen_x_lim) + 
+                  ylim(c(0,1)) +
+                  theme_light() +
+                  theme(legend.position="none") +
+                  ggtitle(paste(generation,"gen to ", post_sel_gen))
+                
+                p_anc_inter_drift <- ggraph(ancestry_graph %>%
+                                              filter(m_generation %in% c(post_sel_gen,
+                                                                         post_drift_gen)),
+                                            x = m_phenotype_sens,
+                                            y = m_fitness) +
+                  geom_edge_link(alpha = 0.01)+
+                  # geom_edge_density()+
+                  geom_node_point(aes(color = as.factor(m_generation),
+                                      size = node_is_isolated(),
+                                      alpha = ifelse(node_is_isolated(),0.01,1)),
+                  ) +
+                  scale_size_manual(values=c(1.5,0.5), guide = 'none') +
+                  scale_alpha(guide = 'none') +
+                  xlab("phenotypic_sens") +
+                  ylab("fitness") +  
+                  xlim(phen_x_lim) + 
+                  ylim(c(0,1)) +
+                  theme_light() +
+                  theme(legend.position="none")+
+                  ggtitle(paste(post_sel_gen,"gen to ", post_drift_gen))
+                
+                p_anc_inter_sel + p_anc_inter_drift
+                ggsave(paste(subdir,paste(paste("ancestry_plot",generation,sep = "_"),".png"), sep = '/'),
+                       device = "png", 
+                       dpi= "screen",
+                       width = 15,
+                       height = 7.5)
+               } 
+                p2 = ggplot(data = gen_sens %>% 
+                              filter(m_generation %in% c(generation, 
+                                                         post_sel_gen))) +
                   geom_point(shape = 21, 
-                             aes(x = m_fitness,
-                                 y = m_phenotype_sens,
+                             aes(x = m_phenotype_sens,
+                                 y = m_fitness,
                                  colour = m_fitness_sens
                              ), alpha = 0.5) +
-                  ylim(phen_x_lim)+
-                  xlim(c(0,1))+
-                  facet_grid(.~as.factor(m_generation))
+                  ylim(c(0,1))+
+                  xlim(phen_x_lim) +
+                  fitness_sensitivity_palette +
+                  facet_grid(.~as.factor(m_generation)) 
                 
-                p3 = ggplot(data = gen_sens) +
+                p3 = ggplot(data = gen_sens %>% 
+                              filter(m_generation %in% c(generation,
+                                                         post_sel_gen))) +
                   geom_point(shape = 21, 
                              aes(x = m_fitness_sens,
                                  y = m_phenotype_sens,
@@ -244,7 +347,7 @@ for(adapt_per in adapt_levels){
                              ), alpha = 0.5)  +
                   xlim(fit_x_lim) +
                   ylim(phen_x_lim) +
-                  sc +
+                  fitness_gradient +
                   facet_grid(.~as.factor(m_generation))
                 
                 p4 = (fit_plot + 

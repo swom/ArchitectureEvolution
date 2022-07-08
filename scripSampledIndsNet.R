@@ -41,7 +41,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_6_22_multifunc/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_5_22_multi_func-func3_4/"
 setwd(dir)
 
 results=list()
@@ -52,7 +52,11 @@ for (i in  list.files(path = '.', pattern = pattern)){
    # i = list.files(path = '.', pattern = pattern)[5]
    ###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
-  
+  if(results$m_params$i_p$m_mutation_type == 0)
+  {
+    next
+  }
+    
   #extract the sampled individuals
   #individuals in the same generations 
   #are ranked by row number 

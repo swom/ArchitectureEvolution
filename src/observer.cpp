@@ -186,6 +186,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_r_t_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
+            "_w_r_" + std::to_string(p.p_p.mut_rate_weight).substr(0,5) +
             "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
             "_dup_r_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
             "_ch_A_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
