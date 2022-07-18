@@ -62,7 +62,8 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
                 string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
-                string_to_adapt_period_map.find(results["adapt_p"].as<std::string>())->second
+                string_to_adapt_period_map.find(results["adapt_p"].as<std::string>())->second,
+                string_to_eval_type_map.find(results["evaluation_type"].as<std::string>())->second
     };
 }
 ///NOT tested!!!
@@ -175,6 +176,11 @@ cxxopts::Options create_parser(){
              "'consitutive' if the network does not receive a signal about the environmental function"
              "'plastic' if the network receives an additional signal representing the environmetnal function",
              cxxopts::value<std::string>()->default_value("constitutive"))
+            ("Q, evaluation_type",
+             "The way individuals performances are evaluated, "
+             "either on some random values in a cue range -> trial,"
+             "or on the entire range values -> full_rn",
+             cxxopts::value<std::string>()->default_value("full_rn"))
             ("t,test",
              "run all tests")
             ("h, help",

@@ -6,13 +6,14 @@
 
 #include "selection_type.h"
 #include "env_change_type.h"
+#include "evaluation_type.h"
 #include "adaptation_period.h"
 #include "environment.h"
 #include "population.h"
 //#include <omp.h>
 
 static int adaptation_period_proportion = 10;
-
+static int n_evaluation_point_for_full_reac_norm = 100;
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -28,7 +29,8 @@ struct sim_param
                                    change_sym_type,
                                    change_freq_type,
                                    sel_type,
-                                   adaptation_per)
+                                   adaptation_per,
+                                   evaluation_type)
 
 
     sim_param(int seed_n = 0,
@@ -40,7 +42,8 @@ struct sim_param
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,
-              adaptation_period adapt_per = adaptation_period::off):
+              adaptation_period adapt_per = adaptation_period::off,
+              evaluation_type eval_type = evaluation_type::full_rn):
         seed{seed_n},
         change_freq_A{change_frequency_A},
         change_freq_B{change_frequency_B},
@@ -51,7 +54,8 @@ struct sim_param
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
-                           adaptation_per{adapt_per}
+                           adaptation_per{adapt_per},
+                           evaluation_type{eval_type}
     {}
 
                            int seed;
@@ -65,6 +69,7 @@ struct sim_param
     env_change_freq_type change_freq_type;
     selection_type sel_type;
     adaptation_period adaptation_per;
+    evaluation_type evaluation_type;
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
@@ -150,7 +155,8 @@ template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
-         enum adaptation_period Adapt_per = adaptation_period::off>
+         enum adaptation_period Adapt_per = adaptation_period::off,
+         enum evaluation_type Eval_type = evaluation_type::full_rn>
 class simulation
 {
 public:
@@ -455,20 +461,41 @@ public:
     ///Evaluates the operformance of all indiivduals in a population
     std::vector<double> evaluate_inds(){
 
-        std::vector<double> cumulative_performance(get_inds().size(), 0);
         auto trials = m_population.get_n_trials();
         std::vector<std::vector<double>> performances(trials,
-                                                      std::vector<double>(cumulative_performance.size()));
+                                                      std::vector<double>(get_inds().size()));
+        std::vector<double> cumulative_performance(get_inds().size(), 0);
 
         std::vector<std::vector<double>> inputs(trials);
         std::vector<double> optimals(inputs.size());
 
-        for(int i = 0; i < m_population.get_n_trials(); i++)
-        {
-            inputs[i] = create_inputs();
-            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
-        }
 
+        if constexpr(Eval_type == evaluation_type::trial)
+        {
+           inputs.resize(trials);
+           optimals.resize(inputs.size());
+
+            for(int i = 0; i < m_population.get_n_trials(); i++)
+            {
+                inputs[i] = create_inputs();
+                optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+            }
+
+        }
+        if constexpr(Eval_type == evaluation_type::full_rn)
+        {
+            auto optimal_rn = calculate_reaction_norm_from_function(m_environment.get_current_function(),
+                                                                    m_environment.get_cue_range(),
+                                                                    n_evaluation_point_for_full_reac_norm);
+
+            inputs.resize(optimal_rn.size());
+            optimals.resize(inputs.size());
+            for(int i = 0; i != optimal_rn.size(); i++)
+            {
+                inputs[i] = {optimal_rn[i].m_x};
+                optimals[i] = {optimal_rn[i].m_x};
+            }
+        }
         store_inputs(inputs);
         store_optimals(optimals);
 
@@ -491,12 +518,14 @@ public:
         return cumulative_performance;
     }
 
+
     ///Calculates fitness of inds in pop given current env values
     const simulation<Pop,
     Env_change_sym,
     Env_change_freq,
     Sel_Type,
-    Adapt_per>&
+    Adapt_per,
+    Eval_type>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();

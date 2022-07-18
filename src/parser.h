@@ -36,8 +36,9 @@ template<class Pop,
          env_change_symmetry_type Es,
          env_change_freq_type Ef,
          selection_type S,
-         adaptation_period A>
-simulation<Pop, Es, Ef, S, A> create_simulation(const cxxopts::ParseResult& parameters)
+         adaptation_period A,
+         evaluation_type Ev>
+simulation<Pop, Es, Ef, S, A, Ev> create_simulation(const cxxopts::ParseResult& parameters)
 {
   auto env = convert_env_args(parameters);
   auto ind = convert_ind_args(parameters);
@@ -48,7 +49,7 @@ simulation<Pop, Es, Ef, S, A> create_simulation(const cxxopts::ParseResult& para
       env, ind, pop, sim
   };
 
-  simulation<Pop, Es, Ef, S, A> s{params};
+  simulation<Pop, Es, Ef, S, A, Ev> s{params};
   return s;
 }
 

@@ -46,7 +46,7 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         assert(1 == 2);
 #endif
 
-       run_simulation_given_adaptation_period(results);
+       run_simulation_given_evaluation_type(results);
 
     }  catch (int exc) {
         if(exc==2)

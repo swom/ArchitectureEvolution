@@ -11,6 +11,10 @@ library(patchwork)
 library(RColorBrewer)
 library(magick)
 
+
+#remove scientific notation 
+options(scipen=999)
+
 #declare the 4 different optimal functions
 func_1 <- function(x){return(x^2)}
 func_2 <- function(x){return(x^3)}
@@ -41,22 +45,22 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_5_22_multi_func-func3_4/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_13_22_multi_arc_muti_func/weights/arc_1-2-2-2-1/"
 setwd(dir)
 
 results=list()
 pattern = '*json$'
 # pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
 for (i in  list.files(path = '.', pattern = pattern)){
- 
-   # i = list.files(path = '.', pattern = pattern)[5]
-   ###Making a data tibble with all top individuals' data 
+  
+  # i = list.files(path = '.', pattern = pattern)[5]
+  ###Making a data tibble with all top individuals' data 
   results <- fromJSON(file = i)
-  if(results$m_params$i_p$m_mutation_type == 0)
-  {
-    next
-  }
-    
+  # if(results$m_params$i_p$m_mutation_type == 0)
+  # {
+  #   next
+  # }
+  
   #extract the sampled individuals
   #individuals in the same generations 
   #are ranked by row number 
@@ -175,7 +179,8 @@ for (i in  list.files(path = '.', pattern = pattern)){
     "s_s", results$m_params$s_p$selection_strength,
     "a_p", results$m_params$s_p$adaptation_per,
     "func",results$m_params$e_p$name_func_A,
-    "mut_t",results$m_params$i_p.m_mutation_type,
+    "mut_t",results$m_params$i_p$m_mutation_type,
+    "max_arc", results$m_params$i_p$net_par$max_arc,
     sep = "_")
   dir.create(file.path(dir, subdir), showWarnings = FALSE)
   
@@ -244,194 +249,202 @@ for (i in  list.files(path = '.', pattern = pattern)){
   optimal_reac_norm = produce_current_optimal_func(results$m_params$e_p$name_func_A,
                                                    generic_reac_norm)
   
+  generations = as.numeric(as.character(unique(get(name2)$generation)))
+  plot_every_n_gen = 50000
   
   #Now let's loop through generations
-  for(gen in levels(get(name2)$generation)){
-    
-    #adding weights, weight sign, activation to the edge list
-    ind = filter(get(name2), generation == gen)
-    edge_tibble_ind = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign, ind$rank)
-    
-    #finding the highest weight value among the three networks
-    max_weight = max(abs(edge_tibble_ind$`ind$m_weight`))
-    
-    #since each weight is a row if we need to extract node 
-    #it suffices to look at the first weight of a node "value_node_m_weights_1"
-    #to extract that property
-    #extracting if node is active and its bias
-    nodes_properties = ind %>% 
-      filter(ind$weight == "value_node_m_weights_1") %>% 
-      select(c(rank, value_node_m_active, value_node_m_bias)) %>% 
-      #add node for input 
-      group_by(rank) %>%
-      group_modify(~ add_row(.x,
-                             .before=0)) %>% 
-      mutate(value_node_m_active =  replace(value_node_m_active, 1, TRUE)) %>% 
-      mutate(value_node_m_bias =  replace(value_node_m_bias, 1, 0))  
-    
-    
-    
-    #if response type is plastic add one T value for the extra node in the input layer (always active) that takes the environmental function as input
-    if(length(ID$i_p.net_par.resp_type)){
-      if(ID$i_p.net_par.resp_type == 0)
-      {
-        nodes_properties = nodes_properties %>% 
-          group_by(rank) %>% 
-          group_modify(~ add_row(.x, .before=0)) %>% 
-          mutate(value_node_m_active =  replace(value_node_m_active, 1, TRUE)) %>% 
-          mutate(value_node_m_bias =  replace(value_node_m_bias, 1, 0))  
-      }
-    }
-    
-    node_tibble_ind = cbind(node_tibble, nodes_properties)
-    
-    # ###plot networks####
-    # create color palette for networks
-    n_colors = 100
-    rbg<- colorRampPalette(c("red", "blue", "green"))
-    
-    #create limits for plot of sensibilities
-    fit_x_lim = c(-0.1,0.1)
-    phen_x_lim = c(0,0.5)
-    
-    #create color palette for sensibilities
-    myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
-    
-    # create list where to store plots
-    plot_list <- list()
-    for(ind_rank in unique(edge_tibble_ind$`ind$rank`))
+  for(gen in generations){
+    if((gen + 1) %% plot_every_n_gen == 0)
     {
-      ##create igraph object for each
-      network_d <- igraph::graph_from_data_frame(d = edge_tibble_ind %>%
-                                                   filter(ind$rank == ind_rank),
-                                                 vertices = node_tibble_ind %>% 
-                                                   filter(rank == ind_rank),
-                                                 directed = T)
+      #adding weights, weight sign, activation to the edge list
+      ind = filter(get(name2), as.character(generation) == as.character(gen))
+      edge_tibble_ind = cbind(edge_tibble,
+                              ind$m_weight,
+                              ind$m_is_active,
+                              ind$w_sign,
+                              ind$rank)
       
-      E(network_d)$color = as.factor(edge_tibble_ind$`ind$w_sign`)
-      E(network_d)$weight = if_else(edge_tibble_ind$`ind$m_is_active` == T, 
-                                    edge_tibble_ind$`ind$m_weight`, 
-                                    0)
-      network_d = network_d - E(network_d)[E(network_d)$weight == 0]
-      V(network_d)$color = factor(node_tibble_ind$node_active, levels=c("FALSE", "TRUE"))
+      #finding the highest weight value among the three networks
+      max_weight = max(abs(edge_tibble_ind$`ind$m_weight`))
       
-      ###you can apply layout in ggraph!!!!
-      network_d_t = tidygraph::as_tbl_graph(network_d) %>%
-        mutate(x = layout$x) %>%
-        mutate(y = layout$y)
-      
-      p <- ggraph(network_d_t, x = x, y = y) +
-        geom_edge_link(arrow = grid::arrow(),
-                       aes(edge_width = abs(`ind$m_weight`/ max_weight),
-                           edge_colour =`ind$w_sign`
-                       ),
-                       show.legend = F) +
-        geom_node_point(shape = 21,
-                        aes(size = value_node_m_bias,
-                            fill = value_node_m_bias > 0),
-                        show.legend = F) +
-        scale_edge_colour_manual(values =  rbg(2)) +
-        ggtitle(paste("gen",as.character(gen),
-                      "sens_rank",as.character(ind_rank),
-                      "fit_rank", as.character(ind$fit_rank[ind$rank == ind_rank])))
-      
-      reac_norm_ind = reac_norms %>% 
-        filter(generation == gen) %>% 
-        filter(rank == ind_rank)
-      
-      reac_norm = ggplot( data = as.data.frame(rbindlist(reac_norm_ind$m_reac_norm) %>%
-                                                 rownames_to_column %>% 
-                                                 gather(var, value, -rowname) %>% 
-                                                 spread(rowname, value) %>% 
-                                                 select(-var) %>% 
-                                                 rename("x" = "1", "y" = "2")) %>% 
-                            mutate(x = as.numeric(x), y = as.numeric(y))) +
-        geom_line(aes(x = x, y = y)) +
-        geom_line(aes(x = optimal_reac_norm$x, y = optimal_reac_norm$y), 
-                  colour = "green") +
-        xlim(c(-1,1)) +
-        ylim(c(-1,1)) +
-        xlab("input") +
-        ylab("output") 
-      
-      p  = p + inset_element(reac_norm, 0.3, 0.3, 0.7, 0.7) + theme_light()
+      #since each weight is a row if we need to extract node 
+      #it suffices to look at the first weight of a node "value_node_m_weights_1"
+      #to extract that property
+      #extracting if node is active and its bias
+      nodes_properties = ind %>% 
+        filter(ind$weight == "value_node_m_weights_1") %>% 
+        select(c(rank, value_node_m_active, value_node_m_bias)) %>% 
+        #add node for input 
+        group_by(rank) %>%
+        group_modify(~ add_row(.x,
+                               .before=0)) %>% 
+        mutate(value_node_m_active =  replace(value_node_m_active, 1, TRUE)) %>% 
+        mutate(value_node_m_bias =  replace(value_node_m_bias, 1, 0))  
       
       
-      #add plot to plot_list
-      plot_list <- c(plot_list, list(p))    
-    }
-    # dispose on a row plot_list with patchwork
-    nets <- patchwork::wrap_plots(plot_list, nrow=1)
+      
+      #if response type is plastic add one T value for the extra node in the input layer (always active) that takes the environmental function as input
+      if(length(ID$i_p.net_par.resp_type)){
+        if(ID$i_p.net_par.resp_type == 0)
+        {
+          nodes_properties = nodes_properties %>% 
+            group_by(rank) %>% 
+            group_modify(~ add_row(.x, .before=0)) %>% 
+            mutate(value_node_m_active =  replace(value_node_m_active, 1, TRUE)) %>% 
+            mutate(value_node_m_bias =  replace(value_node_m_bias, 1, 0))  
+        }
+      }
+      
+      node_tibble_ind = cbind(node_tibble, nodes_properties)
+      
+      # ###plot networks####
+      # create color palette for networks
+      n_colors = 100
+      rbg<- colorRampPalette(c("red", "blue", "green"))
+      
+      #create limits for plot of sensibilities
+      fit_x_lim = c(-0.1,0.1)
+      phen_x_lim = c(0,0.5)
+      
+      #create color palette for sensibilities
+      myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+      
+      # create list where to store plots
+      plot_list <- list()
+      for(ind_rank in unique(edge_tibble_ind$`ind$rank`))
+      {
+        ##create igraph object for each
+        network_d <- igraph::graph_from_data_frame(d = edge_tibble_ind %>%
+                                                     filter(ind$rank == ind_rank),
+                                                   vertices = node_tibble_ind %>% 
+                                                     filter(rank == ind_rank),
+                                                   directed = T)
+        
+        E(network_d)$color = as.factor(edge_tibble_ind$`ind$w_sign`)
+        E(network_d)$weight = if_else(edge_tibble_ind$`ind$m_is_active` == T, 
+                                      edge_tibble_ind$`ind$m_weight`, 
+                                      0)
+        network_d = network_d - E(network_d)[E(network_d)$weight == 0]
+        V(network_d)$color = factor(node_tibble_ind$node_active, levels=c("FALSE", "TRUE"))
+        
+        ###you can apply layout in ggraph!!!!
+        network_d_t = tidygraph::as_tbl_graph(network_d) %>%
+          mutate(x = layout$x) %>%
+          mutate(y = layout$y)
+        
+        p <- ggraph(network_d_t, x = x, y = y) +
+          geom_edge_link(arrow = grid::arrow(),
+                         aes(edge_width = abs(`ind$m_weight`/ max_weight),
+                             edge_colour =`ind$w_sign`
+                         ),
+                         show.legend = F) +
+          geom_node_point(shape = 21,
+                          aes(size = value_node_m_bias,
+                              fill = value_node_m_bias > 0),
+                          show.legend = F) +
+          scale_edge_colour_manual(values =  rbg(2)) +
+          ggtitle(paste("gen",as.character(gen),
+                        "sens_rank",as.character(ind_rank),
+                        "fit_rank", as.character(ind$fit_rank[ind$rank == ind_rank])))
+        
+        reac_norm_ind = reac_norms %>% 
+          filter(generation == gen) %>% 
+          filter(rank == ind_rank)
+        
+        reac_norm = ggplot( data = as.data.frame(rbindlist(reac_norm_ind$m_reac_norm) %>%
+                                                   rownames_to_column %>% 
+                                                   gather(var, value, -rowname) %>% 
+                                                   spread(rowname, value) %>% 
+                                                   select(-var) %>% 
+                                                   rename("x" = "1", "y" = "2")) %>% 
+                              mutate(x = as.numeric(x), y = as.numeric(y))) +
+          geom_line(aes(x = x, y = y)) +
+          geom_line(aes(x = optimal_reac_norm$x, y = optimal_reac_norm$y), 
+                    colour = "green") +
+          xlim(c(-1,1)) +
+          ylim(c(-1,1)) +
+          xlab("input") +
+          ylab("output") 
+        
+        p  = p + inset_element(reac_norm, 0.3, 0.3, 0.7, 0.7) + theme_light()
+        
+        
+        #add plot to plot_list
+        plot_list <- c(plot_list, list(p))    
+      }
+      # dispose on a row plot_list with patchwork
+      nets <- patchwork::wrap_plots(plot_list, nrow=1)
+      
+      #find sensibilities of all individuals in that generation
+      all_sens_gen = rbinded_sens %>% 
+        subset(m_generation == gen) %>%
+        cbind(as.data.frame(rbindlist(.$m_sensibilities),
+                            col.names = names(m_sensibilities))) %>% 
+        select(-c(m_sensibilities))
+      
+      #plot sensibilities of sampled individuals
+      plot_sens <- ggplot(sensibilities %>% 
+                            filter(generation == as.numeric(gen)) %>%
+                            mutate(sensibilities = rbindlist(m_sensibilities))) +
+        geom_point(data = all_sens_gen,
+                   shape = 21, 
+                   aes(x = m_fitness_sens,
+                       y = m_phenotype_sens,
+                       # fill = m_rank,
+                       colour = m_fitness
+                   ), alpha = 0.5) +
+        geom_point(shape = 21, size = 8,
+                   aes(x = sensibilities$m_fitness_sens,
+                       y = sensibilities$m_phenotype_sens,
+                       fill = sensibilities$m_fitness
+                   ), show.legend = F) +
+        geom_text(aes(x = sensibilities$m_fitness_sens,
+                      y = sensibilities$m_phenotype_sens,
+                      label = paste("ID_",sensibilities$m_ID,'/n',
+                                    "AnID_",sensibilities$m_ancestor_ID)), 
+                  hjust = 0.1, 
+                  nudge_x = -0.008) +   
+        geom_text(aes(x = sensibilities$m_fitness_sens,
+                      y = sensibilities$m_phenotype_sens,
+                      label = paste(sensibilities$m_rank,":",round(sensibilities$m_fitness,4))), 
+                  hjust = -0.05, 
+                  nudge_x = 0.003) +
+        xlim(fit_x_lim) +
+        ylim(phen_x_lim) +
+        scale_fill_gradientn(colours = myPalette(1000), limits=c(0,1)) +
+        scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
+      
+      avg_time_marked = avg_fit_plot + geom_point(aes(x = as.numeric(gen), y = avg_fitness[generation == gen]), colour ="red")
+      phen_time_marked = phen_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_phen_sens[m_generation == gen]), colour ="red")
+      fit_time_marked = fit_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_fit_sens[m_generation == gen]), colour ="red")
+      
+      nets / (plot_sens + (avg_time_marked / phen_time_marked / fit_time_marked)
+      )
+      
+      ggsave(paste(subdir,paste(paste("sampled_nets_fit_sens_plot", gen, sep = "_"),".png",sep = ""), sep = '/'),
+             device = "png", 
+             width = 30,
+             height = 15)
+    }  
     
-    #find sensibilities of all individuals in that generation
-    all_sens_gen = rbinded_sens %>% 
-      subset(m_generation == gen) %>%
-      cbind(as.data.frame(rbindlist(.$m_sensibilities),
-                          col.names = names(m_sensibilities))) %>% 
-      select(-c(m_sensibilities))
-    
-    #plot sensibilities of sampled individuals
-    plot_sens <- ggplot(sensibilities %>% 
-                          filter(generation == as.numeric(gen)) %>%
-                          mutate(sensibilities = rbindlist(m_sensibilities))) +
-      geom_point(data = all_sens_gen,
-                 shape = 21, 
-                 aes(x = m_fitness_sens,
-                     y = m_phenotype_sens,
-                     # fill = m_rank,
-                     colour = m_fitness
-                 ), alpha = 0.5) +
-      geom_point(shape = 21, size = 8,
-                 aes(x = sensibilities$m_fitness_sens,
-                     y = sensibilities$m_phenotype_sens,
-                     fill = sensibilities$m_fitness
-                 ), show.legend = F) +
-      geom_text(aes(x = sensibilities$m_fitness_sens,
-                    y = sensibilities$m_phenotype_sens,
-                    label = paste("ID_",sensibilities$m_ID,'/n',
-                                  "AnID_",sensibilities$m_ancestor_ID)), 
-                hjust = 0.1, 
-                nudge_x = -0.008) +   
-      geom_text(aes(x = sensibilities$m_fitness_sens,
-                    y = sensibilities$m_phenotype_sens,
-                    label = paste(sensibilities$m_rank,":",round(sensibilities$m_fitness,4))), 
-                hjust = -0.05, 
-                nudge_x = 0.003) +
-      xlim(fit_x_lim) +
-      ylim(phen_x_lim) +
-      scale_fill_gradientn(colours = myPalette(1000), limits=c(0,1)) +
-      scale_colour_gradientn(colours = myPalette(1000), limits=c(0,1))
-    
-    avg_time_marked = avg_fit_plot + geom_point(aes(x = as.numeric(gen), y = avg_fitness[generation == gen]), colour ="red")
-    phen_time_marked = phen_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_phen_sens[m_generation == gen]), colour ="red")
-    fit_time_marked = fit_sens_plot + geom_point(aes(x = as.numeric(gen), y = mean_fit_sens[m_generation == gen]), colour ="red")
-    
-    nets / (plot_sens + (avg_time_marked / phen_time_marked / fit_time_marked)
-    )
-    
-    ggsave(paste(subdir,paste(paste("sampled_nets_fit_sens_plot", gen, sep = "_"),".png",sep = ""), sep = '/'),
-           device = "png", 
-           width = 30,
-           height = 15)
-  }  
-  
-  ####Create gif
-  # setwd(subdir)
-  # imgs = list.files(path = ".", pattern = "*")
-  # ## list file names and read in
-  # img_list = lapply(imgs, image_read)
-  # 
-  # ## join the images together
-  # img_joined <- image_join(img_list)
-  # 
-  # ## animate at 2 frames per second
-  # img_animated <- image_animate(img_joined, fps = 4)
-  # 
-  # ## save to disk
-  # path = paste("Gif_sampled_nets_fit_sens_plot", ".gif", sep = "_")
-  # image_write(image = img_animated,
-  #             path = path)
-  # setwd(dir)
+    ####Create gif
+    # setwd(subdir)
+    # imgs = list.files(path = ".", pattern = "*")
+    # ## list file names and read in
+    # img_list = lapply(imgs, image_read)
+    # 
+    # ## join the images together
+    # img_joined <- image_join(img_list)
+    # 
+    # ## animate at 2 frames per second
+    # img_animated <- image_animate(img_joined, fps = 4)
+    # 
+    # ## save to disk
+    # path = paste("Gif_sampled_nets_fit_sens_plot", ".gif", sep = "_")
+    # image_write(image = img_animated,
+    #             path = path)
+    # setwd(dir)
+  }
 }
 
 
