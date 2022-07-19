@@ -677,9 +677,8 @@ void save_json(const Class& s, const std::string& filename)
         std::cout << "overriding previous results" << std::endl;
     }
 
-    std::ofstream f;
-    f.open(filename);
-    if(f.is_open())
+    std::ofstream f(filename);
+    if(f)
     {
         nlohmann::json json_out;
         json_out = s;

@@ -178,25 +178,23 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
 std::string create_save_name_from_params(const all_params& p)
 {
 
-    std::string name = "mut_t_" + convert_mut_type_to_string(p.i_p.m_mutation_type) +
-            "_sel_t_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
-            "_sym_t_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
-            "_fr_t_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
-            "_a_p_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
-            "_r_t_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
+    std::string name = "mut_" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
+            "_sel_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
+            "_sym_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
+            "_fr_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
+            "_ap_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
+            "_r_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
-            "_m_arc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
-            "_w_r_" + std::to_string(p.p_p.mut_rate_weight).substr(0,5) +
-            "_act_r_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
-            "_dup_r_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
-            "_ch_A_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
-            "_ch_B_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
-            "_s_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
-            "_s_f_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
-            "_fA_" +  p.e_p.name_func_A +
+            "_marc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
+            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,5) +
+            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
+            "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
+            "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
+            "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
+            "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
+            "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
+            "_fA_" + p.e_p.name_func_A +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
-
-    std::cout << name << std::endl;
 
     return name;
 }
