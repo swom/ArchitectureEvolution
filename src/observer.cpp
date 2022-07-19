@@ -879,7 +879,7 @@ void test_observer()
         s.get_pop_non_const() = produce_simple_pop(5);
 
         sim::tick(s);
-         assert(sim::all_fitnesses_are_not_equal(s));
+         assert(pop::all_fitnesses_are_not_equal(s.get_new_inds()));
 
          assert(!pop::is_sorted_by_fitness(s.get_new_inds()));
          assert(!pop::is_sorted_by_rank(s.get_new_inds()));

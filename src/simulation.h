@@ -156,7 +156,7 @@ template<class Pop = population<>,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
          enum adaptation_period Adapt_per = adaptation_period::off,
-         enum evaluation_type Eval_type = evaluation_type::trial>
+         enum evaluation_type Eval_type = evaluation_type::full_rn>
 class simulation
 {
 public:
@@ -461,19 +461,19 @@ public:
     ///Evaluates the operformance of all indiivduals in a population
     std::vector<double> evaluate_inds(){
 
-        auto trials = m_population.get_n_trials();
-        std::vector<std::vector<double>> performances(trials,
-                                                      std::vector<double>(get_inds().size()));
         std::vector<double> cumulative_performance(get_inds().size(), 0);
+        std::vector<std::vector<double>> performances(0, cumulative_performance);;
 
-        std::vector<std::vector<double>> inputs(trials);
-        std::vector<double> optimals(inputs.size());
+        std::vector<std::vector<double>> inputs;
+        std::vector<double> optimals;
 
 
         if constexpr(Eval_type == evaluation_type::trial)
         {
+           auto trials = m_population.get_n_trials();
            inputs.resize(trials);
            optimals.resize(inputs.size());
+           performances.resize(inputs.size());
 
             for(int i = 0; i < m_population.get_n_trials(); i++)
             {
@@ -490,6 +490,8 @@ public:
 
             inputs.resize(optimal_rn.size());
             optimals.resize(inputs.size());
+            performances.resize(inputs.size());
+
             for(int i = 0; i != optimal_rn.size(); i++)
             {
                 inputs[i] = {optimal_rn[i].m_x};
@@ -500,7 +502,7 @@ public:
         store_optimals(optimals);
 
 #pragma omp parallel for
-        for(int i = 0; i < m_population.get_n_trials(); i++)
+        for(int i = 0; i < inputs.size(); i++)
         {
             performances[i] = pop::calc_dist_from_target(get_inds(),
                                                          optimals[i],
