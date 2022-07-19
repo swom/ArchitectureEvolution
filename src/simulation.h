@@ -13,7 +13,7 @@
 //#include <omp.h>
 
 static int adaptation_period_proportion = 10;
-static int n_evaluation_point_for_full_reac_norm = 100;
+static int n_evaluation_point_for_full_reac_norm = 40;
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
