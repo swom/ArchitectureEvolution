@@ -156,7 +156,7 @@ template<class Pop = population<>,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
          enum adaptation_period Adapt_per = adaptation_period::off,
-         enum evaluation_type Eval_type = evaluation_type::full_rn>
+         enum evaluation_type Eval_type = evaluation_type::trial>
 class simulation
 {
 public:
