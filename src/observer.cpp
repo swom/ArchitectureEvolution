@@ -633,7 +633,7 @@ void test_observer()
         double optimal_weight = 1;
         double non_optimal_weight = -1;
 
-        auto optimal_sim = create_simple_simulation();
+        simulation optimal_sim = create_simple_simulation();
         optimal_sim.changel_all_inds_weights(optimal_weight);
 
         simulation non_optimal_sim = create_simple_simulation();
@@ -876,9 +876,9 @@ void test_observer()
     {
         simulation s;
         observer o;
-        s.get_pop_non_const() = produce_simple_pop();
+        s.get_pop_non_const() = produce_simple_pop(5);
 
-         sim::tick(s);
+        sim::tick(s);
          assert(sim::all_fitnesses_are_not_equal(s));
 
          assert(!pop::is_sorted_by_fitness(s.get_new_inds()));

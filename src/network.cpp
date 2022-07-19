@@ -159,7 +159,8 @@ double rn_distance(const reac_norm &lhs, const reac_norm &rhs)
 {
     auto sum_of_sqr_distances = std::inner_product(lhs.begin(), lhs.end(), rhs.begin(), 0.0,
                                                    std::plus<>(),
-                                                   [](const react_norm_t& lhs, const react_norm_t& rhs)
+                                                   [](const react_norm_t& lhs,
+                                                   const react_norm_t& rhs)
     {return (lhs.m_y - rhs.m_y) * (lhs.m_y - rhs.m_y);});
     return std::sqrt(sum_of_sqr_distances);
 }

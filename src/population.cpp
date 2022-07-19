@@ -118,18 +118,17 @@ const individual<>& find_worst_ranking_ind(const population<>& p)
 
 population<> produce_simple_pop(int n_inds)
 {
-
     pop_param p_p;
     p_p.number_of_inds = n_inds;
 
     net_param n_p;
-    n_p.max_arc = {1,1};
-    n_p.net_arc = {1,1};
+    n_p.max_arc = {1,1,1};
+    n_p.net_arc = {1,1,1};
 
     ind_param i_p;
     i_p.net_par = n_p;
 
-    population p{p_p,{}};
+    population p{p_p, i_p};
 
     std::mt19937_64 rng;
     for(int i = 0; i != p.get_inds().size() - 1; i++)

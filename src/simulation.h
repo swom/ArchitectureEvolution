@@ -493,7 +493,7 @@ public:
             for(int i = 0; i != optimal_rn.size(); i++)
             {
                 inputs[i] = {optimal_rn[i].m_x};
-                optimals[i] = {optimal_rn[i].m_x};
+                optimals[i] = {optimal_rn[i].m_y};
             }
         }
         store_inputs(inputs);
@@ -674,6 +674,7 @@ void save_json(const Class& s, const std::string& filename)
     {
         std::cout << "overriding previous results" << std::endl;
     }
+
     std::ofstream f;
     f.open(filename);
     if(f.is_open())
