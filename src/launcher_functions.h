@@ -212,7 +212,7 @@ void run_simulation_given_adaptation_period(const cxxopts::ParseResult& results)
 
 void run_simulation_given_evaluation_type(const cxxopts::ParseResult& results)
 {
-    auto evaluation_type = convert_sim_args(results).evaluation_type;
+    auto evaluation_type = convert_sim_args(results).evalu_type;
     if(evaluation_type == evaluation_type::trial)
     {
         run_simulation_given_adaptation_period<evaluation_type::trial>(results);

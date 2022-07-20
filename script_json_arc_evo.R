@@ -124,6 +124,24 @@ p <- all_simple_res %>%
                s_p.seed + s_p.adaptation_per)
 
 print(p)
+dev.off()
+
+########Sensibilities
+
+#creating palette for plots
+fitness_palette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+fitness_gradient <- scale_colour_gradientn(colours = fitness_palette(1000), limits=c(0,1))
+fitness_sens_palette <- colorRampPalette(rev(brewer.pal(9, "Blues")))
+fitness_sensitivity_palette <- scale_colour_gradientn(colours = fitness_sens_palette(10000),
+                                                      limits=c(-0.2, 0.2))
+outdegree_gradient <- scale_fill_gradientn(colours = fitness_palette(30))
+
+#setting global variables outside the loop
+phen_x_lim = c(0,0.3)
+fit_x_lim = c(-0.1,0.1)
+y_lim = c(0,50)
+n_bins = 1000
+
 
 sens_summary = all_sensibilities %>%
   group_by(m_generation) %>% 
@@ -153,24 +171,6 @@ fit_sens_plot = ggplot(data = sens_summary,
                   ymin = mean_fit_sens - var_fit_sens),
               alpha = 0.5)+
   xlab("Generations")
-dev.off()
-
-
-########Sensibilities
-
-#creating palette for plots
-fitness_palette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
-fitness_gradient <- scale_colour_gradientn(colours = fitness_palette(1000), limits=c(0,1))
-fitness_sens_palette <- colorRampPalette(rev(brewer.pal(9, "Blues")))
-fitness_sensitivity_palette <- scale_colour_gradientn(colours = fitness_sens_palette(10000),
-                                                      limits=c(-0.2, 0.2))
-outdegree_gradient <- scale_fill_gradientn(colours = fitness_palette(30))
-
-#setting global variables outside the loop
-phen_x_lim = c(0,0.3)
-fit_x_lim = c(-0.1,0.1)
-y_lim = c(0,50)
-n_bins = 1000
 
 adapt_levels = levels(as.factor(all_simple_res$s_p.adaptation_per))
 seed_levels = levels(as.factor(all_simple_res$s_p.seed))

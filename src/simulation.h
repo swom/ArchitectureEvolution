@@ -30,7 +30,7 @@ struct sim_param
                                    change_freq_type,
                                    sel_type,
                                    adaptation_per,
-                                   evaluation_type)
+                                   evalu_type)
 
 
     sim_param(int seed_n = 0,
@@ -55,7 +55,7 @@ struct sim_param
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
                            adaptation_per{adapt_per},
-                           evaluation_type{eval_type}
+                           evalu_type{eval_type}
     {}
 
                            int seed;
@@ -69,7 +69,7 @@ struct sim_param
     env_change_freq_type change_freq_type;
     selection_type sel_type;
     adaptation_period adaptation_per;
-    evaluation_type evaluation_type;
+    evaluation_type evalu_type;
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
