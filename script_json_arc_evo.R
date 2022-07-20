@@ -15,7 +15,7 @@ library(ggraph)
 options(scipen=999)
 
 ####read data####
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_13_22_multi_arc_muti_func/weights/arc_1-2-2-2-1/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_20__22_multifunc_fullrn/"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -214,6 +214,16 @@ for(adapt_per in adapt_levels){
                           mean_fit_sens = mean(m_fitness_sens),
                           var_phen_sens = sd(m_phenotype_sens),
                           var_fit_sens = sd(m_fitness_sens))
+              
+              sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
+                                                    y = m_phenotype_sens)) +
+                stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
+              
+              fit_sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
+                                                    y = m_fitness_sens)) +
+                stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
+              
+              # sens_dens_plot / fit_sens_dens_plot
               
               fit_plot = ggplot(data = sim_fitness %>% 
                                   filter(gen %in% sens_summary$m_generation)) +
