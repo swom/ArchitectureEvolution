@@ -480,7 +480,8 @@ public:
                 inputs[i] = create_inputs();
                 optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
             }
-
+            store_inputs(inputs);
+            store_optimals(optimals);
         }
         if constexpr(Eval_type == evaluation_type::full_rn)
         {
@@ -498,8 +499,7 @@ public:
                 optimals[i] = {optimal_rn[i].m_y};
             }
         }
-        store_inputs(inputs);
-        store_optimals(optimals);
+
 
 #pragma omp parallel for
         for(int i = 0; i < inputs.size(); i++)

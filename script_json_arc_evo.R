@@ -454,6 +454,8 @@ for(adapt_per in adapt_levels){
   }
 }
 
+
+
 ####Adaptation time
 
 d = all_simple_res %>%
@@ -520,11 +522,6 @@ ggplot(d, aes(x = n_change, y = adapt_prop, color = as.factor(m_env_functions), 
   stat_smooth(method='lm')+
   stat_regline_equation(aes(label = ..eq.label..),label.y.npc = 0.3) +
   stat_regline_equation(aes(label = ..rr.label..), label.x.npc = 0.55,label.y.npc = 0.25)
-
-
-
-
-
 
 ######### Plotting the slope and r squared of linear regressions 
 
