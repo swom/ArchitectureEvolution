@@ -173,10 +173,13 @@ observer<> load_default_observer_json(const std::string &filename)
     return  load_json<observer<>>(filename);
 }
 
-void calculate_mut_spec_from_obs(observer<>& o)
+void calculate_mut_spec_from_obs(observer<>& o,
+                                 int n_gens = 0)
 {
-    auto gens = extract_gens(o.get_top_inds());
 
+    auto gens = extract_gens(o.get_top_inds());
+    if(n_gens)
+        gens = extract_gens(o.get_top_inds(), n_gens);
 
 #ifdef NDEBUG
 #pragma omp parallel for
@@ -453,17 +456,23 @@ void test_observer()
         observer o{{}, s.get_params()};
         exec(s,o);
         calculate_mut_spec_from_obs(o);
-        assert(o.get_top_spectrums().size() > 0);
 
         save_mut_spec_obs(o);
-        auto filename = create_mut_spec_save_name(o.get_params());
-        assert(std::filesystem::exists( std::filesystem::current_path() /= filename));
-
-        auto loaded_spectrums = load_mut_specs<individual<>>(filename);
+        auto loaded_spectrums = load_mut_specs<individual<>>(create_mut_spec_save_name(o.get_params()));
         assert(o.get_top_spectrums() == loaded_spectrums);
     }
 
+    ///It is possible to decide how many generations
+    /// mutational spectrums will be produced
+    {
+        int n_gen = 4;
 
+        auto s = create_simple_simulation(n_gen);
+        observer o{{}, s.get_params()};
+        exec(s,o);
+
+        calculate_mut_spec_from_obs(o, n_gen/2);
+    }
 
     ///A simulation can be run so that nth (= adaptation_period_proportion) of the time
     /// is an 'adaptation period' where evolution happens in a stable environment

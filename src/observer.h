@@ -662,11 +662,22 @@ void exec(Sim& s , observer<Sim>& o)
 
 ///Retruns a vector of the generations in which individuals were recorded
 template<class ind_data_structure>
-std::vector<int> extract_gens(std::vector<ind_data_structure> data_v) noexcept
+std::vector<int> extract_gens(const std::vector<ind_data_structure>& data_v,
+                              int n_gens = 0) noexcept
 {
-    std::vector<int> gens(data_v.size());
-    std::transform(data_v.begin(), data_v.end(), gens.begin(),
-                   [](const auto& data_structure){return data_structure.at(0).generation;});
+    std::vector<int> gens;
+    int n = 1;
+    if(n_gens)
+    {
+        int n = data_v.size() / n_gens;
+    }
+
+    auto filtered_data =  data_v
+            | std::views::filter([&](auto& gen_spec) {return gen_spec.at(0).generation % n == 0;});
+
+    std::ranges::copy(filtered_data | std::views::transform([](auto& gen_spec) {return gen_spec.at(0).generation;}),
+                      std::back_inserter(gens));
+
     return gens;
 }
 ///Returns the sensibilities recorded from the individuals
@@ -890,8 +901,8 @@ template<class O>
 void save_mut_spectrums(const O& o,
                         const std::string& filename)
 {
-   save_json(o.get_top_spectrums(),
-             filename);
+    save_json(o.get_top_spectrums(),
+              filename);
 };
 
 void save_mut_spec_obs(const observer<>& o);
