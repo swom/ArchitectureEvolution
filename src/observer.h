@@ -539,10 +539,13 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 /// that has 1 connection and one bias
 /// with input range == 1
 /// with env function == y = 1
-simulation<> create_simple_simulation(int n_gen = 1);
+simulation<> create_simple_simulation(int n_gen = 1, int n_inds = 1);
 
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);
+
+///Creates a unique saving name for mutational spectrums contained in an observer
+std::string create_mut_spec_save_name(const all_params& p);
 
 ///Calculates the euclidean distance from the best combination of sensibilities in a vector
 /// to a given set of sesnsibilites s
@@ -875,7 +878,8 @@ std::vector<typename O::Ind> sample_top_mid_low_sens_inds(const typename O::Sim_
 
     return {top_ind, mid_ind, low_ind};
 }
-
+std::vector<std::vector<Ind_Spectrum<individual<>>>> load_mut_specs(std::string filename);
+void save_mut_spec_obs(const observer<>& o);
 void test_observer();
 
 #endif // OBSERVER_H

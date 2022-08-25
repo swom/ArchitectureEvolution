@@ -15,7 +15,7 @@ library(ggraph)
 options(scipen=999)
 
 ####read data####
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_20__22_multifunc_fullrn/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/7_13_22_multi_arc_muti_func/weights/arc_1-2-2-2-1"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -30,7 +30,7 @@ if(file.exists("all_simple_res.Rds") &&
 }else{
   
   filepaths = list.files(pattern = pattern)
-
+  
   all_sensibilities = list()
   all_simple_res = data.frame()
   
@@ -104,14 +104,14 @@ p <- all_simple_res %>%
   #             mutate(gen_max = ifelse(is.na(gen_max),
   #                                     max(gen),
   #                                     gen_max)),
-  #           aes(xmin = gen, xmax = gen_max,
-  #               ymin = 0, ymax = 1,
-  #               fill = as.factor(m_env_functions),
-  #           )
-  # ) +
-  geom_line(data = . %>% filter(gen %% filter_gen == 0),
-            aes(x = gen, y = m_avg_fitnesses)
-  ) +
+#           aes(xmin = gen, xmax = gen_max,
+#               ymin = 0, ymax = 1,
+#               fill = as.factor(m_env_functions),
+#           )
+# ) +
+geom_line(data = . %>% filter(gen %% filter_gen == 0),
+          aes(x = gen, y = m_avg_fitnesses)
+) +
   # geom_smooth(method='lm',aes(x = gen, y = m_avg_fitnesses))+
   # stat_regline_equation(aes(label = ..eq.label.., x = gen, y = m_avg_fitnesses),label.y.npc = 0.9) +
   # stat_regline_equation(aes(label = ..rr.label.., x = gen, y = m_avg_fitnesses), label.x.npc = 0.55,label.y.npc = 0.9)+
@@ -143,25 +143,47 @@ y_lim = c(0,50)
 n_bins = 1000
 
 
-sens_summary = all_sensibilities %>%
-  group_by(m_generation) %>% 
+sens_summary_all = all_sensibilities %>%
+  group_by(m_generation,
+           s_p.selection_freq,  
+           s_p.selection_strength,  
+           e_p.name_func_A, 
+           i_p.m_mutation_type,
+           i_p.net_par.max_arc,
+           s_p.seed,
+           s_p.adaptation_per) %>% 
   summarise(mean_phen_sens = mean(m_phenotype_sens),
             mean_fit_sens = mean(m_fitness_sens),
+            mean_fit = mean(m_fitness),
             var_phen_sens = sd(m_phenotype_sens),
-            var_fit_sens = sd(m_fitness_sens))
+            var_fit_sens = sd(m_fitness_sens),
+            var_fit = sd(m_fitness))
 
-phen_sens_plot = ggplot(data = all_sensibilities,
+jpeg("phen_sens_fit_plots.jpg",
+     width = 700,
+     height = 700)
+
+phen_sens_plus_fit_plot = ggplot(data = sens_summary_all,
                         aes(x = m_generation,
                             y = mean_phen_sens)) +
   geom_line() +
+  geom_line(aes(y = mean_fit), color = "red") +
   geom_ribbon(aes(x = m_generation,
                   y = mean_phen_sens,
                   ymax = mean_phen_sens + var_phen_sens,
                   ymin = mean_phen_sens - var_phen_sens),
               alpha = 0.5) +
-  xlab("Generations")
+  xlab("Generations") +
+  facet_grid(s_p.selection_freq + 
+               s_p.selection_strength + 
+               e_p.name_func_A +
+               i_p.m_mutation_type + i_p.net_par.max_arc ~
+               s_p.seed + s_p.adaptation_per)
 
-fit_sens_plot = ggplot(data = sens_summary,
+print(phen_sens_plus_fit_plot)
+dev.off()
+
+fit_sens_plot = ggplot(data = sens_summary_all,
                        aes(x = m_generation,
                            y = mean_fit_sens)) +
   geom_line() +
@@ -170,7 +192,12 @@ fit_sens_plot = ggplot(data = sens_summary,
                   ymax = mean_fit_sens + var_fit_sens,
                   ymin = mean_fit_sens - var_fit_sens),
               alpha = 0.5)+
-  xlab("Generations")
+  xlab("Generations") +
+  facet_grid(s_p.selection_freq + 
+               s_p.selection_strength + 
+               e_p.name_func_A +
+               i_p.m_mutation_type + i_p.net_par.max_arc ~
+               s_p.seed + s_p.adaptation_per)
 
 adapt_levels = levels(as.factor(all_simple_res$s_p.adaptation_per))
 seed_levels = levels(as.factor(all_simple_res$s_p.seed))
@@ -220,7 +247,7 @@ for(adapt_per in adapt_levels){
                 stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
               
               fit_sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
-                                                    y = m_fitness_sens)) +
+                                                        y = m_fitness_sens)) +
                 stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
               
               # sens_dens_plot / fit_sens_dens_plot

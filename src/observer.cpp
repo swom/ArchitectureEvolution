@@ -71,6 +71,12 @@ bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>
    return sim::ancestor_IDs(sim::get_inds(s)) == sim::pop_IDs(o.get_last_recorded_pop());
 }
 
+
+std::string create_mut_spec_save_name(const all_params &p)
+{
+    return "";
+}
+
 fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut &record)
 {
     auto max_fit_sens = std::max_element(record.m_sensibilities.begin(),
@@ -149,9 +155,13 @@ observer<> load_default_observer_json(const std::string &filename)
     return  load_json<observer<>>(filename);
 }
 
-observer<> calculate_mut_spec_from_observer_data(const all_params& params)
+std::vector<std::vector<Ind_Spectrum<individual<> > > > load_mut_specs(std::string filename)
 {
-    auto o = load_json<observer<>>(create_save_name_from_params(params));
+    return{};
+}
+
+void calculate_mut_spec_from_obs(observer<>& o)
+{
     auto gens = extract_gens(o.get_top_inds());
 
 
@@ -172,6 +182,13 @@ observer<> calculate_mut_spec_from_observer_data(const all_params& params)
             o.add_spectrum(spectrum);
         }
     }
+}
+
+observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params)
+{
+    auto o = load_json<observer<>>(create_save_name_from_params(params));
+
+    calculate_mut_spec_from_obs(o);
     return o;
 }
 
@@ -199,7 +216,7 @@ std::string create_save_name_from_params(const all_params& p)
     return name;
 }
 
-simulation<> create_simple_simulation(int n_gen)
+simulation<> create_simple_simulation(int n_gen, int n_inds)
 {
     all_params a_p;
     a_p.i_p.net_par.function = sigmoid;
@@ -211,7 +228,12 @@ simulation<> create_simple_simulation(int n_gen)
 
     a_p.s_p.n_generations = n_gen;
 
-    return simulation{a_p};
+    auto s  = simulation{a_p};
+    if(n_inds == 1)
+    return s;
+
+    s.get_pop_non_const() = create_simple_pop(n_inds);
+    return s;
 }
 
 double squared_distance_from_best_combination(const fit_and_phen_sens_t &ind, const fit_and_phen_sens_t &best)
@@ -219,6 +241,12 @@ double squared_distance_from_best_combination(const fit_and_phen_sens_t &ind, co
     return (ind.m_fitness_sens - best.m_fitness_sens) * (ind.m_fitness_sens - best.m_fitness_sens) +
             (ind.m_phenotype_sens - best.m_phenotype_sens) * (ind.m_phenotype_sens - best.m_phenotype_sens);
 }
+
+void save_mut_spec_obs(const observer<> &o)
+{
+
+}
+
 
 #ifndef NDEBUG
 void test_observer()
@@ -395,7 +423,7 @@ void test_observer()
 
         ///It is possible to load an observer and calculate the mutational spetrum of all the recorded individuals
         save_json<observer<>>(o, create_save_name_from_params(o.get_params()));
-        auto loaded_o = calculate_mut_spec_from_observer_data(o.get_params());
+        auto loaded_o = calculate_mut_spec_from_loaded_observer_data(o.get_params());
         for(int i = 0; i != s.get_n_gen(); i++)
         {
             auto original = o.get_top_spectrums().at(i);
@@ -403,7 +431,23 @@ void test_observer()
             assert(original == calculated_from_upload);
         }
     }
-    ///A simulation can be run so that half of the time
+
+    ///It is possible o exclusively save the mutational spectrums recorded by the observer
+    {
+
+        auto s = create_simple_simulation();
+        observer o{{}, s.get_params()};
+        exec(s,o);
+        calculate_mut_spec_from_obs(o);
+
+        save_mut_spec_obs(o);
+        auto loaded_spectrums = load_mut_specs(create_mut_spec_save_name(s.get_params()));
+        assert(o.get_top_spectrums() == loaded_spectrums);
+    }
+
+
+
+    ///A simulation can be run so that nth (= adaptation_period_proportion) of the time
     /// is an 'adaptation period' where evolution happens in a stable environment
     {
         using sim_t = simulation<population<>,
@@ -766,7 +810,7 @@ void test_observer()
     {
         int n_inds = 3;
         auto s = create_simple_simulation();
-        s.get_pop_non_const() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = create_simple_pop(n_inds);
         observer o;
 
         o.store_data_based_on_sensibilities(s);
@@ -780,7 +824,7 @@ void test_observer()
     {
         int n_inds = 3;
         auto s = create_simple_simulation();
-        s.get_pop_non_const() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = create_simple_pop(n_inds);
         observer o;
 
         s.sort_and_assign_ranks_by_fitness();
@@ -846,7 +890,7 @@ void test_observer()
         int n_inds = 3;
         int n_gens = sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
-        s.get_pop_non_const() = produce_simple_pop(n_inds);
+        s.get_pop_non_const() = create_simple_pop(n_inds);
         observer o({}, s.get_params());
         exec(s,o);
 
@@ -858,7 +902,7 @@ void test_observer()
     {
         int n_gens = sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
-        s.get_pop_non_const() = produce_simple_pop();
+        s.get_pop_non_const() = create_simple_pop();
         observer o({}, s.get_params());
         exec(s,o);
 
@@ -874,7 +918,7 @@ void test_observer()
     {
         simulation s;
         observer o;
-        s.get_pop_non_const() = produce_simple_pop(5);
+        s.get_pop_non_const() = create_simple_pop(5);
 
         sim::tick(s);
          assert(pop::all_fitnesses_are_not_equal(s.get_new_inds()));
@@ -918,7 +962,5 @@ void test_observer()
     }
 }
 #endif
-
-
 
 

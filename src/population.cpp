@@ -116,7 +116,7 @@ const individual<>& find_worst_ranking_ind(const population<>& p)
 
 }
 
-population<> produce_simple_pop(int n_inds)
+population<> create_simple_pop(int n_inds)
 {
     pop_param p_p;
     p_p.number_of_inds = n_inds;
@@ -251,7 +251,7 @@ void test_population() noexcept
 
     ///Individuals can be  ranked based on fitness
     {
-       auto p = produce_simple_pop();
+       auto p = create_simple_pop();
 
         std::vector<double> input{1};
         double optimal_value = 1;
@@ -267,7 +267,7 @@ void test_population() noexcept
 
     ///The first rank is 0, the last is equal to the number of inds - 1
     {
-        auto p = produce_simple_pop();
+        auto p = create_simple_pop();
 
          std::vector<double> input{1};
          double optimal_value = 1;
