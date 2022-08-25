@@ -68,13 +68,31 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
 
 bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>& s)
 {
-   return sim::ancestor_IDs(sim::get_inds(s)) == sim::pop_IDs(o.get_last_recorded_pop());
+    return sim::ancestor_IDs(sim::get_inds(s)) == sim::pop_IDs(o.get_last_recorded_pop());
 }
 
 
 std::string create_mut_spec_save_name(const all_params &p)
 {
-    return "";
+    std::string name = "MSP_mut" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
+            "_sel_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
+            "_sym_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
+            "_fr_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
+            "_ap_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
+            "_r_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
+            "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
+            "_marc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
+            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,5) +
+            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
+            "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
+            "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
+            "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
+            "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
+            "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
+            "_fA_" + p.e_p.name_func_A +
+            "_seed" + std::to_string(p.s_p.seed) + ".json";
+
+    return name;;
 }
 
 fit_and_phen_sens_t find_best_fit_phen_combination(const sensibilities_to_mut &record)
@@ -155,11 +173,6 @@ observer<> load_default_observer_json(const std::string &filename)
     return  load_json<observer<>>(filename);
 }
 
-std::vector<std::vector<Ind_Spectrum<individual<> > > > load_mut_specs(std::string filename)
-{
-    return{};
-}
-
 void calculate_mut_spec_from_obs(observer<>& o)
 {
     auto gens = extract_gens(o.get_top_inds());
@@ -230,7 +243,7 @@ simulation<> create_simple_simulation(int n_gen, int n_inds)
 
     auto s  = simulation{a_p};
     if(n_inds == 1)
-    return s;
+        return s;
 
     s.get_pop_non_const() = create_simple_pop(n_inds);
     return s;
@@ -244,7 +257,8 @@ double squared_distance_from_best_combination(const fit_and_phen_sens_t &ind, co
 
 void save_mut_spec_obs(const observer<> &o)
 {
-
+    auto filename = create_mut_spec_save_name(o.get_params());
+    save_mut_spectrums(o, filename);
 }
 
 
@@ -439,9 +453,13 @@ void test_observer()
         observer o{{}, s.get_params()};
         exec(s,o);
         calculate_mut_spec_from_obs(o);
+        assert(o.get_top_spectrums().size() > 0);
 
         save_mut_spec_obs(o);
-        auto loaded_spectrums = load_mut_specs(create_mut_spec_save_name(s.get_params()));
+        auto filename = create_mut_spec_save_name(o.get_params());
+        assert(std::filesystem::exists( std::filesystem::current_path() /= filename));
+
+        auto loaded_spectrums = load_mut_specs<individual<>>(filename);
         assert(o.get_top_spectrums() == loaded_spectrums);
     }
 
@@ -921,16 +939,16 @@ void test_observer()
         s.get_pop_non_const() = create_simple_pop(5);
 
         sim::tick(s);
-         assert(pop::all_fitnesses_are_not_equal(s.get_new_inds()));
+        assert(pop::all_fitnesses_are_not_equal(s.get_new_inds()));
 
-         assert(!pop::is_sorted_by_fitness(s.get_new_inds()));
-         assert(!pop::is_sorted_by_rank(s.get_new_inds()));
+        assert(!pop::is_sorted_by_fitness(s.get_new_inds()));
+        assert(!pop::is_sorted_by_rank(s.get_new_inds()));
 
-         assert(is_time_to_record_inds(o,s));
-         o.store_ind_data(s);
+        assert(is_time_to_record_inds(o,s));
+        o.store_ind_data(s);
 
-         assert(pop::is_sorted_by_fitness(s.get_new_inds()));
-         assert(pop::is_sorted_by_rank(s.get_new_inds()));
+        assert(pop::is_sorted_by_fitness(s.get_new_inds()));
+        assert(pop::is_sorted_by_rank(s.get_new_inds()));
     }
 
     ///Individuals are assigned an ancestor ID equal to their parents fitness rank

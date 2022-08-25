@@ -593,7 +593,7 @@ bool is_time_to_record_inds(const O& o, const S& s, int time_offset = 0)
 template<class O, class S>
 bool is_before_time_to_record_inds(const O& o, const S& s)
 {
-   return is_time_to_record_inds(o, s, 1);
+    return is_time_to_record_inds(o, s, 1);
 }
 
 ///Check if it is the time to record the best individuals' mutation spectrum
@@ -878,7 +878,22 @@ std::vector<typename O::Ind> sample_top_mid_low_sens_inds(const typename O::Sim_
 
     return {top_ind, mid_ind, low_ind};
 }
-std::vector<std::vector<Ind_Spectrum<individual<>>>> load_mut_specs(std::string filename);
+
+///Loads a vector of muational spectrums from a json file
+template<class Ind>
+std::vector<std::vector<Ind_Spectrum<Ind>>> load_mut_specs(const std::string& filename)
+{
+    return load_json<std::vector<std::vector<Ind_Spectrum<Ind>>>>(filename);
+}
+///Saves a vector of mutational spectrums of an observer to a json file
+template<class O>
+void save_mut_spectrums(const O& o,
+                        const std::string& filename)
+{
+   save_json(o.get_top_spectrums(),
+             filename);
+};
+
 void save_mut_spec_obs(const observer<>& o);
 void test_observer();
 
