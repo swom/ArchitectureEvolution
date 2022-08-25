@@ -466,12 +466,14 @@ void test_observer()
     /// mutational spectrums will be produced
     {
         int n_gen = 4;
+        int n_spec = n_gen/2;
 
         auto s = create_simple_simulation(n_gen);
         observer o{{}, s.get_params()};
         exec(s,o);
 
-        calculate_mut_spec_from_obs(o, n_gen/2);
+        calculate_mut_spec_from_obs(o, n_spec);
+        assert(o.get_top_spectrums().size() == n_spec);
     }
 
     ///A simulation can be run so that nth (= adaptation_period_proportion) of the time

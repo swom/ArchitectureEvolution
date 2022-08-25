@@ -672,10 +672,11 @@ std::vector<int> extract_gens(const std::vector<ind_data_structure>& data_v,
         int n = data_v.size() / n_gens;
     }
 
-    auto filtered_data =  data_v
-            | std::views::filter([&](auto& gen_spec) {return gen_spec.at(0).generation % n == 0;});
-
-    std::ranges::copy(filtered_data | std::views::transform([](auto& gen_spec) {return gen_spec.at(0).generation;}),
+    std::ranges::copy(data_v
+                      | std::views::filter([&](auto& gen_spec)
+    {return gen_spec.at(0).generation % n == 0;})
+                      | std::views::transform([](auto& gen_spec)
+    {return gen_spec.at(0).generation;}),
                       std::back_inserter(gens));
 
     return gens;
