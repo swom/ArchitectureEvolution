@@ -13,6 +13,7 @@
 //#include <omp.h>
 
 static int adaptation_period_proportion = 10;
+static int selection_duration_prop_to_freq = 100;
 static int n_evaluation_point_for_full_reac_norm = 40;
 double identity_first_element(const std::vector<double>& vector);
 
@@ -50,7 +51,7 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        selection_duration{selection_freq == 0 ? 0 : selection_freq / 100},
+        selection_duration{selection_freq == 0 ? 0 : selection_freq / selection_duration_prop_to_freq},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
@@ -632,6 +633,7 @@ private:
 
     ///Every how many generations indiivdual are selected
     int m_selection_frequency;
+
     //For how many generations individuals are selected
     //A tenth of the selection frequency
     int m_selection_duration;
