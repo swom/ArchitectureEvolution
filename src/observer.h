@@ -669,7 +669,7 @@ std::vector<int> extract_gens(const std::vector<ind_data_structure>& data_v,
     int n = 1;
     if(n_gens)
     {
-        int n = data_v.size() / n_gens;
+        n = data_v.size() / n_gens;
     }
 
     std::ranges::copy(data_v
