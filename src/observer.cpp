@@ -993,7 +993,7 @@ void test_observer()
     ///It is possible for the observer to record all the individuals' reaction norms in a population
     {
         int n_inds = 10;
-        auto s = create_simple_simulation(1,10);
+        auto s = create_simple_simulation(1,10, false);
         assert(sim::all_inds_have_same_net(s));
         observer o({}, s.get_params());
 

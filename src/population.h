@@ -300,7 +300,7 @@ bool all_inds_have_same_net(const std::vector<Ind>& inds)
 {
     return std::adjacent_find(inds.begin(), inds.end(),
                        [](const Ind& lhs, const Ind &rhs)
-    {return lhs.get_net() == rhs.get_net();}) == inds.end();
+    {return lhs.get_net() == rhs.get_net();}) != inds.end();
 }
 
 ///Assign inputs to a population
