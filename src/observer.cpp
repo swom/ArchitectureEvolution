@@ -989,6 +989,29 @@ void test_observer()
             }
         }
     }
+
+    ///It is possible for the observer to record all the individuals' reaction norms in a population
+    {
+        int n_inds = 10;
+        auto s = create_simple_simulation(1,10);
+        assert(sim::all_inds_have_same_net(s));
+        observer o({}, s.get_params());
+
+        auto range = o.get_params().e_p.cue_range;
+        auto n_points = o.get_obs_params().m_reac_norm_n_points;
+
+        auto ind = s.get_inds().back();
+        auto ind_rn = calculate_reaction_norm(ind.get_net(),range, n_points);
+
+        o.store_all_inds_rn(s);
+        auto last_recorded_all_inds_rn = o.get_all_inds_rn().back();
+
+        assert(all_inds_rns_are_equal_to(last_recorded_all_inds_rn, ind_rn));
+
+
+
+
+    }
 }
 #endif
 

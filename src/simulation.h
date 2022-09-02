@@ -700,6 +700,14 @@ namespace sim {
 template<class Pop>
 bool operator ==(const simulation<Pop>& lhs, const simulation<Pop>& rhs);
 
+///Check that all individuals have the same network
+template<class Sim>
+bool all_inds_have_same_net(const Sim& s)
+{
+    auto inds = s.get_pop().get_inds();
+    return pop::all_inds_have_same_net(inds);
+}
+
 ///Checks if all the individuals in a simulated population have the same input
 template<class Sim>
 bool all_individuals_have_same_input(const Sim &s)

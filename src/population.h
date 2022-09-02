@@ -294,6 +294,15 @@ bool all_individuals_have_same_input(const population<Ind> &p)
     return true;
 }
 
+///Check that all inds in a vector have the same network
+template<class Ind>
+bool all_inds_have_same_net(const std::vector<Ind>& inds)
+{
+    return std::adjacent_find(inds.begin(), inds.end(),
+                       [](const Ind& lhs, const Ind &rhs)
+    {return lhs.get_net() == rhs.get_net();}) == inds.end();
+}
+
 ///Assign inputs to a population
 template<class Pop>
 void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)

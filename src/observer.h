@@ -213,6 +213,7 @@ private:
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_sampled_inds;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
+    std::vector<std::vector<Ind_Data<Ind>>> m_all_inds_rn;
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
     obs_param m_obs_param;
     all_params m_params;
@@ -247,6 +248,8 @@ public:
     ///adds a network spectrum to the vector of network spectrums
     void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
 
+    ///Returns all the stored reaction norms from all_inds in the population
+    const std::vector<std::vector<Ind_Data<Ind>>>& get_all_inds_rn() const noexcept {return m_all_inds_rn;}
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
 
@@ -362,6 +365,10 @@ public:
     ///Returns a const referernce to the paramteres used to initialize the simulation
     const all_params& get_params() const noexcept {return m_params;};
 
+
+    ///Returns the observer parameters
+    const obs_param& get_obs_params() const noexcept {return m_obs_param;}
+
     //    //Returns a const reference to the input vector given to individuals in the current or last trial
     //    const std::vector<std::vector<std::vector<double>>>& get_input() const noexcept {return m_input;}
 
@@ -373,6 +380,24 @@ public:
         m_avg_mutation_sensibility.push_back(calc_avg_mutation_sensibility(s, m_obs_param.m_n_mutations_per_locus));
     }
 
+
+    ///Stores the reaction norm of all indidvuals in a population
+    void store_all_inds_rn(const Sim& s, int generation)
+    {
+        auto inds = s.get_inds();
+        std::vector<Ind_Data<Ind>> inds_data(inds.size());
+
+        for(auto i = 0; i != inds.size(); i++)
+        {
+            inds_data[i].m_ind = inds[i];
+
+            inds_data[i].m_reac_norm = calculate_reaction_norm(inds[i].get_net(),
+                                                               m_params.e_p.cue_range,
+                                                               m_obs_param.m_reac_norm_n_points);
+            inds_data[i].generation = generation;
+        }
+        m_all_inds_rn.push_back(inds_data);
+    };
 
     ///Stores the data from simulation at the coorect times
     void store_data(Sim& s)
@@ -533,6 +558,16 @@ bool operator==(const observer<Ind>& lhs, const observer<Ind>& rhs);
 bool operator==(const all_params& lhs, const all_params& rhs);
 
 bool operator!=(const all_params& lhs, const all_params& rhs);
+
+///Check that all reaction norms contained in a vector of Ind_Data
+/// are equal to a given reaction norm
+template <class Ind_data>
+bool all_inds_rns_are_equal_to(const std::vector<Ind_data>& all_inds_rns,
+                               const reac_norm& rn)
+{
+    return std::all_of(all_inds_rns.begin(), all_inds_rns.end(),
+                       [&](const Ind_data& i_d){return i_d.m_reac_norm == rn;});
+}
 
 ///Creates a very simple simulation with 1 individual
 /// that has a sigmoid transformation function
