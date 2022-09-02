@@ -116,6 +116,22 @@ struct Ind_Data
     int generation;
 };
 
+struct Rn_Data
+{
+    Rn_Data(){};
+    Rn_Data(int gen, const std::vector<reac_norm>& rn):
+        generation{gen},
+        m_reac_norm{rn}
+    {}
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Rn_Data,
+                                   m_reac_norm,
+                                   generation)
+
+    std::vector<reac_norm> m_reac_norm;
+    int generation;
+};
+
 template<class Ind>
 bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
 {
@@ -213,7 +229,7 @@ private:
     std::vector<char> m_env_functions;
     std::vector<std::vector<Ind_Data<Ind>>> m_sampled_inds;
     std::vector<std::vector<Ind_Data<Ind>>> m_top_inds;
-    std::vector<std::vector<Ind_Data<Ind>>> m_all_inds_rn;
+    std::vector<Rn_Data> m_all_inds_rn;
     std::vector<std::vector<Ind_Spectrum<Ind>>> m_top_spectrums;
     obs_param m_obs_param;
     all_params m_params;
@@ -249,7 +265,8 @@ public:
     void add_spectrum(const std::vector<Ind_Spectrum<Ind>>& spectrum){ m_top_spectrums.push_back(spectrum);}
 
     ///Returns all the stored reaction norms from all_inds in the population
-    const std::vector<std::vector<Ind_Data<Ind>>>& get_all_inds_rn() const noexcept {return m_all_inds_rn;}
+    const std::vector<Rn_Data>& get_all_inds_rn() const noexcept {return m_all_inds_rn;}
+
     ///returns const ref to m_avg_fitness
     const std::vector<double>& get_avg_fitness()  const noexcept{return m_avg_fitnesses;}
 
@@ -385,19 +402,19 @@ public:
     void store_all_inds_rn(const Sim& s)
     {
         auto inds = s.get_inds();
-        std::vector<Ind_Data<Ind>> inds_data(inds.size());
+        Rn_Data rns;
+        rns.generation = get_time_before_tick(s);
+        rns.m_reac_norm.resize(inds.size());
 
-        for(auto i = 0; i != inds.size(); i++)
+        for(auto i = 0; i != rns.m_reac_norm.size(); i++)
         {
-            inds_data[i].m_ind = inds[i];
 
-            inds_data[i].m_reac_norm = calculate_reaction_norm(inds[i].get_net(),
+            rns.m_reac_norm[i] = calculate_reaction_norm(inds[i].get_net(),
                                                                m_params.e_p.cue_range,
                                                                m_obs_param.m_reac_norm_n_points);
-            inds_data[i].generation = get_time_before_tick(s);
         }
 
-        m_all_inds_rn.push_back(inds_data);
+        m_all_inds_rn.push_back(rns);
     };
 
     ///Stores the data from simulation at the coorect times
@@ -562,13 +579,8 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 
 ///Check that all reaction norms contained in a vector of Ind_Data
 /// are equal to a given reaction norm
-template <class Ind_data>
-bool all_inds_rns_are_equal_to(const std::vector<Ind_data>& all_inds_rns,
-                               const reac_norm& rn)
-{
-    return std::all_of(all_inds_rns.begin(), all_inds_rns.end(),
-                       [&](const Ind_data& i_d){return i_d.m_reac_norm == rn;});
-}
+bool all_inds_rns_are_equal_to(const std::vector<reac_norm>& all_inds_rns,
+                               const reac_norm& rn);
 
 ///Creates a very simple simulation with 1 individual
 /// that has a sigmoid transformation function

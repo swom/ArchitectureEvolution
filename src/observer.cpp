@@ -66,6 +66,13 @@ bool operator!=(const all_params& lhs, const all_params& rhs)
     return !(lhs == rhs);
 }
 
+bool all_inds_rns_are_equal_to(const std::vector<reac_norm>& all_inds_rns,
+                               const reac_norm& rn)
+{
+    return std::all_of(all_inds_rns.begin(), all_inds_rns.end(),
+                       [&](const reac_norm& rn_ind){return rn_ind == rn;});
+}
+
 bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>& s)
 {
     return sim::ancestor_IDs(sim::get_inds(s)) == sim::pop_IDs(o.get_last_recorded_pop());
@@ -1006,11 +1013,7 @@ void test_observer()
         o.store_all_inds_rn(s);
         auto last_recorded_all_inds_rn = o.get_all_inds_rn().back();
 
-        assert(all_inds_rns_are_equal_to(last_recorded_all_inds_rn, ind_rn));
-
-
-
-
+        assert(all_inds_rns_are_equal_to(last_recorded_all_inds_rn.m_reac_norm, ind_rn));
     }
 }
 #endif
