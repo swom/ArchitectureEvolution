@@ -603,7 +603,7 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
 }
 
 ///Produces a simple populations with n individuals all with different weights
-population<> create_simple_pop(int n_inds = 2);
+population<> create_simple_pop(int n_inds = 2, bool all_different = true);
 
 void test_population() noexcept;
 

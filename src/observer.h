@@ -382,7 +382,7 @@ public:
 
 
     ///Stores the reaction norm of all indidvuals in a population
-    void store_all_inds_rn(const Sim& s, int generation)
+    void store_all_inds_rn(const Sim& s)
     {
         auto inds = s.get_inds();
         std::vector<Ind_Data<Ind>> inds_data(inds.size());
@@ -394,8 +394,9 @@ public:
             inds_data[i].m_reac_norm = calculate_reaction_norm(inds[i].get_net(),
                                                                m_params.e_p.cue_range,
                                                                m_obs_param.m_reac_norm_n_points);
-            inds_data[i].generation = generation;
+            inds_data[i].generation = get_time_before_tick(s);
         }
+
         m_all_inds_rn.push_back(inds_data);
     };
 
@@ -574,7 +575,7 @@ bool all_inds_rns_are_equal_to(const std::vector<Ind_data>& all_inds_rns,
 /// that has 1 connection and one bias
 /// with input range == 1
 /// with env function == y = 1
-simulation<> create_simple_simulation(int n_gen = 1, int n_inds = 1);
+simulation<> create_simple_simulation(int n_gen = 1, int n_inds = 1, bool all_different = true);
 
 ///Creates a unique saving name based on the parameters
 std::string create_save_name_from_params(const all_params& p);

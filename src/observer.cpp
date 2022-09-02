@@ -232,7 +232,7 @@ std::string create_save_name_from_params(const all_params& p)
     return name;
 }
 
-simulation<> create_simple_simulation(int n_gen, int n_inds)
+simulation<> create_simple_simulation(int n_gen, int n_inds, bool all_different)
 {
     all_params a_p;
     a_p.i_p.net_par.function = sigmoid;
@@ -248,7 +248,7 @@ simulation<> create_simple_simulation(int n_gen, int n_inds)
     if(n_inds == 1)
         return s;
 
-    s.get_pop_non_const() = create_simple_pop(n_inds);
+    s.get_pop_non_const() = create_simple_pop(n_inds, all_different);
     return s;
 }
 
