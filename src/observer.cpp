@@ -1000,7 +1000,8 @@ void test_observer()
     ///It is possible for the observer to record all the individuals' reaction norms in a population
     {
         int n_inds = 10;
-        auto s = create_simple_simulation(1,10, false);
+        int n_gens = 1;
+        auto s = create_simple_simulation(n_gens, n_inds, false);
         assert(sim::all_inds_have_same_net(s));
         observer o({}, s.get_params());
 
@@ -1014,6 +1015,22 @@ void test_observer()
         auto last_recorded_all_inds_rn = o.get_all_inds_rn().back();
 
         assert(all_inds_rns_are_equal_to(last_recorded_all_inds_rn.m_reac_norm, ind_rn));
+    }
+
+    ///It is possible to record all the reaction norms of all individuals every n generations
+    {
+        int n_inds = 10;
+        int n_gens = 6;
+        auto s = create_simple_simulation(n_gens, n_inds, false);
+
+        int all_inds_rn_rec_freq = 2;
+        obs_param o_p(1,1,0,1,1, all_inds_rn_rec_freq);
+        observer o(o_p, s.get_params());
+
+        exec(s,o);
+
+        int expected_number_of_records = n_gens / all_inds_rn_rec_freq;
+        assert(expected_number_of_records == o.get_all_inds_rn().size());
     }
 }
 #endif

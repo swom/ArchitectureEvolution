@@ -60,12 +60,14 @@ struct obs_param{
               int top_ind_reg_freq = 1,
               int spectrum_reg_freq = 0,
               int n_data_points_for_reac_norm = 100,
-              int n_mutations_for_mutational_spectrum = 1):
+              int n_mutations_for_mutational_spectrum = 1,
+              int all_inds_rn_record_frequency = 0):
         m_top_proportion{top_prop},
         m_top_ind_reg_freq{top_ind_reg_freq},
         m_spectrum_reg_freq{spectrum_reg_freq},
         m_reac_norm_n_points{n_data_points_for_reac_norm},
-        m_n_mutations_per_locus{n_mutations_for_mutational_spectrum}
+        m_n_mutations_per_locus{n_mutations_for_mutational_spectrum},
+        m_all_inds_rn_record_frequency{all_inds_rn_record_frequency}
     {
         if(top_prop == 0)
             throw std::invalid_argument{"the number of indidivuduals recorderd cannot be 0"};
@@ -76,7 +78,8 @@ struct obs_param{
                                    m_top_ind_reg_freq,
                                    m_spectrum_reg_freq,
                                    m_reac_norm_n_points,
-                                   m_n_mutations_per_locus
+                                   m_n_mutations_per_locus,
+                                   m_all_inds_rn_record_frequency
                                    )
 
     ///The top n idividuals stored in the observed
@@ -91,6 +94,8 @@ struct obs_param{
     ///The number of mutations executed on each locus
     /// when calculating the mutational spectrum of an individual
     int m_n_mutations_per_locus;
+    ///The number of generation between each recording event of all indfividuals reaction norms
+    int m_all_inds_rn_record_frequency;
 };
 
 template<class Ind>
