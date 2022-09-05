@@ -13,7 +13,6 @@
 //#include <omp.h>
 
 static int adaptation_period_proportion = 10;
-static int selection_duration_prop_to_freq = 100;
 static int n_evaluation_point_for_full_reac_norm = 40;
 double identity_first_element(const std::vector<double>& vector);
 
@@ -27,6 +26,7 @@ struct sim_param
                                    selection_duration,
                                    n_generations,
                                    selection_freq,
+                                   selection_duration_prop_to_freq,
                                    change_sym_type,
                                    change_freq_type,
                                    sel_type,
@@ -40,6 +40,7 @@ struct sim_param
               double sel_strength = 1,
               int generations = 100,
               int selection_frequency = 1,
+              int selec_duration_prop_to_freq = 100,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,
@@ -51,7 +52,8 @@ struct sim_param
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        selection_duration{selection_freq == 0 ? 0 : selection_freq / selection_duration_prop_to_freq},
+        selection_duration_prop_to_freq{selec_duration_prop_to_freq},
+        selection_duration{selection_freq == 0 ? 0 : selection_freq / selec_duration_prop_to_freq},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
@@ -66,6 +68,7 @@ struct sim_param
     int n_generations;
     int selection_freq;
     int selection_duration;
+    int selection_duration_prop_to_freq;
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
@@ -345,6 +348,10 @@ public:
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
 
+    ///Returns the selection duration to frequency of seleciton proportion
+    /// if selection frequency / selection_duration_prop_to_freq = selection period duration;
+    const int& get_selection_duration_prop_to_freq() const noexcept {return m_params.s_p.selection_duration_prop_to_freq;}
+
     //Returns a const reference to the inputs given to individuals in this generation
     const std::vector<double>& get_stored_optimals() const noexcept {return m_stored_optimal_output;}
 
@@ -576,7 +583,7 @@ public:
         {
             if constexpr(Adapt_per == adaptation_period::on)
             {
-                if(m_time < m_n_generations / adaptation_period_proportion)
+                if(m_time < m_n_generations /adaptation_period_proportion)
                 {
                     calc_fitness();
                     reproduce();

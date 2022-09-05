@@ -59,6 +59,7 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["sel_str"].as<double>(),
                 results["num_gens"].as<int>(),
                 results["sel_freq"].as<int>(),
+                results["selection_duration_prop_to_freq"].as<int>(),
                 string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
                 string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
@@ -95,6 +96,9 @@ cxxopts::Options create_parser(){
             ("b,env_func_B",
              "the starting env function B",
              cxxopts::value<std::string>()->default_value("2"))
+            ("f,selection_duration_prop_to_freq",
+             "the number of generations after which selection happens in the sporadic selection scenario",
+             cxxopts::value<int>()->default_value("100"))
             ("C,change_freq_A",
              "the probability with which the target function A will change",
              cxxopts::value<double>()->default_value("0.01"))
