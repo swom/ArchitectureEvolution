@@ -1032,6 +1032,25 @@ void test_observer()
         int expected_number_of_records = n_gens / record_all_inds_rn_every_n_gens;
         assert(expected_number_of_records == o.get_all_inds_rn().size());
     }
+
+    ///It is possible to save th reaction norms with the rest of the dataof the observer
+    {
+        int n_inds = 2;
+        int n_gens = 4;
+        auto s = create_simple_simulation(n_gens, n_inds, false);
+
+        int record_all_inds_rn_every_n_gens = 2;
+        obs_param o_p(1,1,0,1,1, record_all_inds_rn_every_n_gens);
+        observer o(o_p, s.get_params());
+
+        exec(s,o);
+
+        std::string filename{"test_all_inds_rn"};
+        save_json(o, filename);
+        auto loaded_o =load_json<observer<>>(filename);
+
+        assert(loaded_o.get_all_inds_rn() == o.get_all_inds_rn());
+    }
 }
 #endif
 
