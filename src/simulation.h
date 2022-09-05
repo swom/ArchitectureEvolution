@@ -62,9 +62,10 @@ struct sim_param
     {
                            if((static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq)) < 1)
     {
-                           throw std::invalid_argument{"Simulation parameters: /nthe numbers provided for the seleciton frequency "
+                           throw std::invalid_argument{"Simulation parameters:"
+                                                       "the numbers provided for the seleciton frequency "
                                                        "and the proportion of selection time between seleciton events are incorrect,"
-                                                       " as they selection period is shorter than 1 generation"};
+                                                       " as they selection period would be shorter than 1 generation"};
 }
 }
 
