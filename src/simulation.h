@@ -40,7 +40,7 @@ struct sim_param
               double sel_strength = 1,
               int generations = 100,
               int selection_frequency = 1,
-              int selec_duration_prop_to_freq = 100,
+              int selec_duration_prop_to_freq = 1,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,

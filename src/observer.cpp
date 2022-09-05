@@ -88,24 +88,8 @@ bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>
 
 std::string create_mut_spec_save_name(const all_params &p)
 {
-    std::string name = "MSP_mut" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
-            "_sel_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
-            "_sym_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
-            "_fr_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
-            "_ap_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
-            "_r_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
-            "_e_" + convert_eval_type_to_string(p.s_p.evalu_type).substr(0,3) +
-            "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
-            "_marc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
-            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,3) +
-            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 3) +
-            "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 3) +
-            "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 3) +
-            "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 3) +
-            "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
-            "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
-            "_fA_" + p.e_p.name_func_A +
-            "_seed" + std::to_string(p.s_p.seed) + ".json";
+    std::string name = "MSP" +
+            create_save_name_from_params(p);
 
     return name;;
 }
@@ -226,19 +210,20 @@ observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params
 std::string create_save_name_from_params(const all_params& p)
 {
 
-    std::string name = "mut_" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
+    std::string name = "_mut_" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
             "_sel_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
             "_sym_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
             "_fr_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
             "_ap_" + convert_adapt_periods_to_string(p.s_p.adaptation_per).substr(0, 3) +
             "_r_" + convert_response_type_to_string(p.i_p.net_par.resp_type).substr(0, 3) +
+            "_e_" + convert_eval_type_to_string(p.s_p.evalu_type).substr(0,3) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_marc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
-            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,5) +
-            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 5) +
-            "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 5) +
-            "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 5) +
-            "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 5) +
+            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,3) +
+            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 3) +
+            "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 3) +
+            "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 3) +
+            "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 3) +
             "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
             "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
             "_fA_" + p.e_p.name_func_A +
