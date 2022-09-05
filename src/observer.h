@@ -411,12 +411,14 @@ public:
         rns.generation = get_time_before_tick(s);
         rns.m_reac_norm.resize(inds.size());
 
+
+        ///refactor: make own function AND use transform or swap()
         for(auto i = 0; i != rns.m_reac_norm.size(); i++)
         {
 
             rns.m_reac_norm[i] = calculate_reaction_norm(inds[i].get_net(),
-                                                               m_params.e_p.cue_range,
-                                                               m_obs_param.m_reac_norm_n_points);
+                                                         m_params.e_p.cue_range,
+                                                         m_obs_param.m_reac_norm_n_points);
         }
 
         m_all_inds_rn.push_back(rns);
@@ -443,12 +445,17 @@ public:
 
         store_avg_fit(s);
 
-        if(is_time_to_record_inds(*this,s))
+        if(is_time_to_record_inds(*this, s))
         {
             s.sort_and_assign_ranks_by_fitness();
             s.ind_ID_becomes_ancestor_ID(s.get_new_inds_non_const());
             store_data_based_on_sensibilities(s);
             store_inputs_and_optimals(s);
+        }
+
+        if(is_time_to_record_all_inds_rns(*this, s))
+        {
+            store_all_inds_rn(s);
         }
 
         if(is_time_to_record_best_inds_mut_spectrum(*this, s))
@@ -632,6 +639,15 @@ bool is_before_start_of_selection_period_and_time_to_record(const O& o, const S&
 {
     return o.get_record_freq_top_inds() != 0 &&
             (s.get_time() + time_offset) %  o.get_record_freq_top_inds() == 0;
+}
+
+///Checks if it is time to record the reaction norms of all individuals
+template<class O, class S>
+bool is_time_to_record_all_inds_rns(const O& o, const S& s)
+{
+    auto freq = o.get_obs_params().m_all_inds_rn_record_frequency;
+    if(!freq) return false;
+    return s.get_time() % freq == 0;
 }
 
 ///Check if it is time to record
