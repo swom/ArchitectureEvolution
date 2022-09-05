@@ -60,7 +60,8 @@ struct sim_param
                            adaptation_per{adapt_per},
                            evalu_type{eval_type}
     {
-                           if((static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq)) < 1)
+                           if(selection_duration &&
+                              (static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq)) < 1)
     {
                            throw std::invalid_argument{"Simulation parameters:"
                                                        "the numbers provided for the seleciton frequency "
