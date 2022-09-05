@@ -60,11 +60,11 @@ struct sim_param
                            adaptation_per{adapt_per},
                            evalu_type{eval_type}
     {
-                           if(static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq) < 1)
+                           if((static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq)) < 1)
     {
-                           std::invalid_argument{"the numbers provided for the seleciton frequency "
-                                                 "and the proportion of selection time between seleciton events are incorrect,"
-                                                 " as they selction pewriod is shorter than 1 generation"};
+                           throw std::invalid_argument{"Simulation parameters: /nthe numbers provided for the seleciton frequency "
+                                                       "and the proportion of selection time between seleciton events are incorrect,"
+                                                       " as they selection period is shorter than 1 generation"};
 }
 }
 
