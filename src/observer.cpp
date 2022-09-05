@@ -1,5 +1,12 @@
 #include "observer.h"
 #include <fstream>
+bool operator == (const Rn_Data& lhs, const Rn_Data& rhs)
+{
+    bool gen = lhs.generation == rhs.generation;
+    bool rns = lhs.m_reac_norm == rhs.m_reac_norm;
+    return gen && rns;
+}
+
 bool operator== (const sensibilities_to_mut& lhs, const sensibilities_to_mut& rhs)
 {
     auto generation = lhs.m_generation == rhs.m_generation;

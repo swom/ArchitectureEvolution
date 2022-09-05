@@ -120,6 +120,16 @@ struct Ind_Data
     fit_and_phen_sens_t m_sensibilities;
     int generation;
 };
+template<class Ind>
+bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
+{
+    auto ind = lhs.m_ind == rhs.m_ind;
+    auto reaction_norm = lhs.m_reac_norm == rhs.m_reac_norm;
+    auto sensibilities = lhs.m_sensibilities == rhs.m_sensibilities;
+    auto generation = lhs.generation == rhs.generation;
+
+    return ind && reaction_norm;
+}
 
 struct Rn_Data
 {
@@ -137,13 +147,7 @@ struct Rn_Data
     int generation;
 };
 
-template<class Ind>
-bool operator== (const Ind_Data<Ind>& lhs, const Ind_Data<Ind>& rhs)
-{
-    auto ind = lhs.m_ind == rhs.m_ind;
-    auto reaction_norm = lhs.m_reac_norm == rhs.m_reac_norm;
-    return ind && reaction_norm;
-}
+bool operator == (const Rn_Data& lhs, const Rn_Data& rhs);
 
 ///Finds the corresponding sensibility of an individual
 /// based on its fitness ranking
@@ -257,6 +261,7 @@ public:
                                    m_avg_fitnesses,
                                    m_var_fitnesses,
                                    m_top_inds,
+                                   m_all_inds_rn,
                                    m_top_spectrums,
                                    m_env_functions,
                                    m_params,
