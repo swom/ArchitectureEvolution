@@ -88,7 +88,7 @@ bool ancestor_ID_is_last_recorded_ind_ID(const observer<>& o, const simulation<>
 
 std::string create_mut_spec_save_name(const all_params &p)
 {
-    std::string name = "MSP" +
+    std::string name = "MSP_" +
             create_save_name_from_params(p);
 
     return name;;
@@ -210,7 +210,7 @@ observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params
 std::string create_save_name_from_params(const all_params& p)
 {
 
-    std::string name = "_mut_" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
+    std::string name = "mut_" + convert_mut_type_to_string(p.i_p.m_mutation_type).substr(0, 3) +
             "_sel_" + convert_selection_type_to_string(p.s_p.sel_type).substr(0, 3) +
             "_sym_" + convert_change_symmetry_type_to_string(p.s_p.change_sym_type).substr(0, 3) +
             "_fr_" + convert_change_freq_type_to_string(p.s_p.change_freq_type).substr(0, 3) +
