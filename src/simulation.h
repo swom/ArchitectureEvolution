@@ -59,7 +59,14 @@ struct sim_param
                            sel_type{selec_type},
                            adaptation_per{adapt_per},
                            evalu_type{eval_type}
-    {}
+    {
+                           if(static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq) < 1)
+    {
+                           std::invalid_argument{"the numbers provided for the seleciton frequency "
+                                                 "and the proportion of selection time between seleciton events are incorrect,"
+                                                 " as they selction pewriod is shorter than 1 generation"};
+}
+}
 
                            int seed;
     double change_freq_A;
@@ -478,10 +485,10 @@ public:
 
         if constexpr(Eval_type == evaluation_type::trial)
         {
-           auto trials = m_population.get_n_trials();
-           inputs.resize(trials);
-           optimals.resize(inputs.size());
-           performances.resize(inputs.size());
+            auto trials = m_population.get_n_trials();
+            inputs.resize(trials);
+            optimals.resize(inputs.size());
+            performances.resize(inputs.size());
 
             for(int i = 0; i < m_population.get_n_trials(); i++)
             {

@@ -96,8 +96,9 @@ cxxopts::Options create_parser(){
             ("b,env_func_B",
              "the starting env function B",
              cxxopts::value<std::string>()->default_value("2"))
-            ("f,selection_duration_prop_to_freq",
-             "the number of generations after which selection happens in the sporadic selection scenario",
+            ("B,selection_duration_prop_to_freq",
+             "the proportion of generations in which selection will happen"
+             " over the interval of time between selection events",
              cxxopts::value<int>()->default_value("100"))
             ("C,change_freq_A",
              "the probability with which the target function A will change",
