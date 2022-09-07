@@ -15,6 +15,7 @@
 double sigmoid(double x);
 double linear(double x);
 double constant_one(const std::vector<double>&);
+double constant_zero(const std::vector<double>&);
 
 
 static std::map<std::string, std::function<double(double)>> string_to_act_func_map
@@ -225,6 +226,12 @@ void mutate_biases(Net& n, const double& mut_rate,
     }
 }
 
+///Calculates the reaction_norm that is produced by an optimal function
+/// for a given range and a given number of data points
+template<class Func>
+reac_norm calculate_reaction_norm_from_function(const Func& func,
+                                                const range& cue_range,
+                                                const int& n_data_points);
 
 template<mutation_type M = mutation_type::weights,
          response_type R = response_type::constitutive>
@@ -320,28 +327,20 @@ public:
                     temp_node.activate();
                 }
 
-                //                for(int weight = 0;
-                //                    weight != temp_node.get_vec_weights().size();
-                //                    weight++)
-                //                {
-                //                    if(layer > 1 &&
-                //                            is_inactive(m_network_weights.back()[weight]))
-                //                    {
-                //                        class weight w;
-                //                        w.change_activation(false);
-                //                        temp_node.change_nth_weight(w, weight);
-                //                    }
-                //                }
-
                 temp_layer_vector.push_back(temp_node);
             }
-
 
             //A vector of the size of the number of connections is pushed back in the weight matrix
             m_network_weights.push_back(temp_layer_vector);
         }
     }
 
+    ///Constructor for additive genome response
+    network(const range& input_range, int n_of_sampled_inputs):
+        m_additive_genes{calculate_reaction_norm_from_function(constant_zero,
+                                                               input_range,
+                                                               n_of_sampled_inputs)}
+    {}
     ///Checks if hhe layer has no nodes
     inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
                     m_network_weights.begin(),
@@ -639,6 +638,9 @@ public:
 
     double operator ()(double n) const {return m_activation_function(n);}
 
+    ///Returns the additive genes
+    const reac_norm& get_genes() const noexcept {return m_additive_genes;}
+
     ///Returns const ref to vector of weights
     const std::vector<std::vector<node>>& get_net_weights() const noexcept{return m_network_weights;}
 
@@ -730,6 +732,9 @@ public:
 
 
 private:
+
+    ///Additivegnes used if network is templated as response_type::additive
+    reac_norm m_additive_genes;
 
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<node>> m_network_weights;

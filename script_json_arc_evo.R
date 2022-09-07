@@ -13,9 +13,41 @@ library(ggraph)
 
 #remove scientific notation 
 options(scipen=999)
+#declare the 4 different optimal functions
+func_1 <- function(x){return(x^2)}
+func_2 <- function(x){return(x^3)}
+func_3 <- function(x){return(3 * x - 4 * x^3)}
+func_4 <- function(x){return(-0.8 + 9.32 * x^2- 15.84 * x^4 + 6.33 * x^6)}
+
+#create optimal reaction norm based on name of function from data
+#and range of the reaction norm of individuals
+produce_current_optimal_func <- function(func_name, reac_norm){
+  optimal_rn = reac_norm
+  if(func_name == "1"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_1(x)
+    }
+  } else if(func_name == "2"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_2(x)
+    }
+  } else if(func_name == "3"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_3(x)
+    }
+  } else if(func_name == "4"){
+    for(x in optimal_rn$x){
+      optimal_rn$y[x == optimal_rn$x] = func_4(x)
+    }
+  }
+  return(optimal_rn)
+}
+
+
 
 ####read data####
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_13_22_multi_arc_muti_func/weights/arc_1-2-2-2-1"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/9_6_22/1-2-1"
+
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -23,61 +55,124 @@ pattern = '^m.*json$'
 ####save load####
 if(file.exists("all_simple_res.Rds") && 
    file.exists("all_sensibilities.Rds") &&
-   file.exists("obs_params.Rds")){
+   file.exists("obs_params.Rds") &&
+   file.exists("all_inds_rns.Rds")){
   obs_params <- readRDS("obs_params.Rds")
   all_simple_res <- readRDS("all_simple_res.Rds")
   all_sensibilities <- readRDS("all_sensibilities.Rds")
+  all_inds_rns <- readRDS("all_inds_rns.Rds")
 }else{
   
   filepaths = list.files(pattern = pattern)
   
   all_sensibilities = list()
   all_simple_res = data.frame()
-  
+  all_inds_rns = list()
   for (i in  filepaths)
   {
     
     results <- fromJSON(file = i)
+    
+    ###simple results
     simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
                                                      "m_env_functions",
                                                      "m_var_fitnesses")]),
                                  var = "gen")
-    
     results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
     results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
     ID = as.data.frame(results$m_params)
-    
     simple_res_ID = cbind(simple_res, ID)
     all_simple_res = rbind(all_simple_res, simple_res_ID)
     
+    ###sensibilities results
     # m fit suitability
     tmp_ = results$m_fit_phen_mut_sensibility
-    
     # convert to data.table with list column
     tmp_ = lapply(tmp_, as.data.table)
-    
     # deal with all gens
     tmp_ = lapply(tmp_, function(df) {
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
     })
-    
     tmp_ = rbindlist(tmp_)
     tmp_[, names(ID) := ID]
-    
     all_sensibilities[[i]] = tmp_
+    
+    ###all_reaction norms
+    # Keep only what is necessary
+    data <- results$m_all_inds_rn
+    
+    # Extract the generations
+    gens <- map_dbl(data, ~ .x$generation)
+    names(data) <- gens
+    
+    # Extract x-values and individuals
+    xvalues <- map_dbl(data[[1]]$m_reac_norm[[1]], ~ .x$m_x)
+    inds <- seq(data[[1]]$m_reac_norm)
+    
+    # Make combinations of generation and individual...
+    newdata <- expand_grid(gen = seq(gens), ind = inds) %>%
+      mutate(
+        
+        # ... and for each combination ...
+        newdata = map2(gen, ind, function(gen, ind) {
+          
+          # Extract y-values and assemble them with x-values
+          tibble(
+            x = xvalues,
+            y = map_dbl(data[[gen]]$m_reac_norm[[ind]], last)
+          )
+          
+        })
+      ) %>%
+      unnest(newdata)
+    
+    # Prepare the renaming of generations
+    gens_labs <- unname(gens)
+    gens <- as.character(seq(gens))
+    names(gens) <- gens_labs
+    
+    # Rename generations
+    newdata <- newdata %>%
+      mutate(
+        gen = fct_recode(as.character(gen), !!!gens),
+        gen = as.numeric(as.character(gen))
+      )
+    
+    # Pivot wider if needed
+    newdata %>%
+      pivot_wider(names_from = "ind", values_from = "y")
+   
+    
+    # ###compact version
+    #  tmp_ = results$m_all_inds_rn
+    # tmp_ = lapply(tmp_, as.data.table)
+    # tmp_ = rbindlist(
+    #   lapply(tmp_, function(df){
+    #   df = df[, rbindlist(lapply(df$m_reac_norm, rbindlist)), by = "generation"] 
+    #   })
+    #   )
+    # tmp_[, names(ID) := ID]
+    # all_inds_rns[[i]] = tmp_
+    
+    gc()
   }
   
   all_sensibilities = rbindlist(all_sensibilities, fill =T) %>% 
     #add 1 to all generations to sync with all_simple_res
     mutate(m_generation = m_generation + 1)
+  # all_inds_rns = rbindlist(all_inds_rns, fill = T) %>% 
+  #   rename(m_generation = generation) %>% 
+  #   mutate(m_generation = m_generation + 1)
   
   obs_params = results$m_obs_param
   # all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
   saveRDS(obs_params, file = "obs_params.Rds")
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
   saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
+  saveRDS(all_inds_rns, file = "all_inds_rns.Rds")
+  gc()
 }
-#### Plot ####
+### Plot ####
 jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
@@ -120,7 +215,7 @@ geom_line(data = . %>% filter(gen %% filter_gen == 0),
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
                e_p.name_func_A +
-               i_p.m_mutation_type + i_p.net_par.max_arc ~
+               i_p.net_par.net_arc ~
                s_p.seed + s_p.adaptation_per)
 
 print(p)
@@ -163,16 +258,19 @@ jpeg("phen_sens_fit_plots.jpg",
      width = 700,
      height = 700)
 
-phen_sens_plus_fit_plot = ggplot(data = sens_summary_all,
-                        aes(x = m_generation,
-                            y = mean_phen_sens)) +
-  geom_line() +
-  geom_line(aes(y = mean_fit), color = "red") +
+phen_sens_plus_fit_plot = ggplot(data = sens_summary_all) +
+  geom_line(aes(x = m_generation,
+                 y = mean_phen_sens)) +
+  geom_line(aes(x = m_generation,
+                y = mean_fit), color = "red") +
+  geom_line(aes(x = m_generation,
+                y = mean_fit_sens), color = "blue") +
   geom_ribbon(aes(x = m_generation,
                   y = mean_phen_sens,
                   ymax = mean_phen_sens + var_phen_sens,
                   ymin = mean_phen_sens - var_phen_sens),
               alpha = 0.5) +
+  ylim(c(-0.1,1)) +
   xlab("Generations") +
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
@@ -213,8 +311,8 @@ for(adapt_per in adapt_levels){
         for(func_name in func_name_levels){
           for(mut_type in mut_types_levels){
             for(max_arc in max_arc_levels){
-              
-              ###subset to a specific simulation for now
+
+                            ###subset to a specific simulation for now
               sim_sens = all_sensibilities %>%
                 filter(s_p.seed == seed) %>% 
                 filter(s_p.adaptation_per == adapt_per) %>% 
@@ -234,6 +332,26 @@ for(adapt_per in adapt_levels){
                 filter(i_p.m_mutation_type == mut_type) %>% 
                 filter(i_p.net_par.max_arc == max_arc)
               
+              ###subset rns for all inds
+              sim_all_inds_rns = all_inds_rns %>% 
+                filter(s_p.adaptation_per == adapt_per) %>% 
+                filter(s_p.seed == seed) %>% 
+                filter(s_p.selection_strength == sel_str) %>% 
+                filter(s_p.selection_freq == sel_freq) %>% 
+                filter(e_p.name_func_A == func_name) %>% 
+                filter(i_p.m_mutation_type == mut_type) %>% 
+                filter(i_p.net_par.max_arc == max_arc)
+              
+              optimal_rn = produce_current_optimal_func(func_name = func_name, 
+                                                        data.frame(x = unique(sim_all_inds_rns$m_x),
+                                                                   y = length(unique(sim_all_inds_rns$m_x))))
+
+              rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
+                                   y = m_y)) +
+                stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
+                scale_fill_viridis_c() +
+                geom_line(data = optimal_rn, aes(x = x, y = y), color = "white") +
+                facet_grid( . ~ m_generation)
               
               sens_summary = sim_sens %>%
                 group_by(m_generation) %>% 
@@ -438,7 +556,8 @@ for(adapt_per in adapt_levels){
                     fitness_gradient +
                     facet_grid(.~as.factor(m_generation))
                   
-                  p4 = (fit_plot + 
+                  p4 = rn_cloud /
+                    (fit_plot + 
                           geom_hline(yintercept = as.numeric(sim_fitness %>%
                                                                filter(gen == generation) %>% 
                                                                select(m_avg_fitnesses)),
