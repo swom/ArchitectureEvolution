@@ -65,7 +65,6 @@ struct obs_param{
         m_top_proportion{top_prop},
         m_top_ind_reg_freq{top_ind_reg_freq},
         m_spectrum_reg_freq{spectrum_reg_freq},
-        m_reac_norm_n_points{n_data_points_for_reac_norm},
         m_n_mutations_per_locus{n_mutations_for_mutational_spectrum},
         m_all_inds_rn_record_frequency{all_inds_rn_record_frequency}
     {
@@ -77,7 +76,6 @@ struct obs_param{
                                    m_top_proportion,
                                    m_top_ind_reg_freq,
                                    m_spectrum_reg_freq,
-                                   m_reac_norm_n_points,
                                    m_n_mutations_per_locus,
                                    m_all_inds_rn_record_frequency
                                    )
@@ -89,8 +87,6 @@ struct obs_param{
     ///The number of generations after which
     /// the mutational spectrum of the top individuals is stored
     int m_spectrum_reg_freq;
-    ///The number of data points on which to calculate the reaction norm of an individual
-    int m_reac_norm_n_points;
     ///The number of mutations executed on each locus
     /// when calculating the mutational spectrum of an individual
     int m_n_mutations_per_locus;
@@ -204,7 +200,7 @@ std::vector<Ind_Data<Ind>> create_inds_data(const std::vector<Ind>& inds,
 
         inds_data[i].m_reac_norm = calculate_reaction_norm(inds[i].get_net(),
                                                            a_params.e_p.cue_range,
-                                                           o_params.m_reac_norm_n_points);
+                                                           a_params.s_p.m_reac_norm_n_points);
 
         inds_data[i].m_sensibilities = find_sensibility_for_ind(inds[i], sensibilities);
 
@@ -320,7 +316,7 @@ public:
     {return get_fit_phen_mut_sensibility().back().m_sensibilities;}
 
     /// Returns const ref to the number of points to be recorded for reaction norm
-    const int& get_n_points_reac_norm() const noexcept {return m_obs_param.m_reac_norm_n_points;}
+    const int& get_n_points_reac_norm() const noexcept {return m_params.s_p.m_reac_norm_n_points;}
 
     /// Returns const ref to the number of mutations
     /// used for calcualting the mutational spectrum
@@ -423,7 +419,7 @@ public:
 
             rns.m_reac_norm[i] = calculate_reaction_norm(inds[i].get_net(),
                                                          m_params.e_p.cue_range,
-                                                         m_obs_param.m_reac_norm_n_points);
+                                                         m_params.s_p.m_reac_norm_n_points);
         }
 
         m_all_inds_rn.push_back(rns);
@@ -562,7 +558,7 @@ private :
                     {get_time_before_tick(s),
                      s.calculate_fit_phen_mut_sens_for_all_inds(
                      m_obs_param.m_n_mutations_per_locus,
-                     m_obs_param.m_reac_norm_n_points)}
+                     m_params.s_p.m_reac_norm_n_points)}
                     );
     }
 

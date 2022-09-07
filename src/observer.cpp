@@ -999,7 +999,7 @@ void test_observer()
         observer o({}, s.get_params());
 
         auto range = o.get_params().e_p.cue_range;
-        auto n_points = o.get_obs_params().m_reac_norm_n_points;
+        auto n_points = o.get_params().s_p.m_reac_norm_n_points;
 
         auto ind = s.get_inds().back();
         auto ind_rn = calculate_reaction_norm(ind.get_net(),range, n_points);

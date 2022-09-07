@@ -1141,13 +1141,31 @@ void test_network() //!OCLINT
     {
         range input_range{-1,1};
         int n_sampled_inputs = 2;
-        network<mutation_type::weights, response_type::additive> n{input_range, n_sampled_inputs};
+
+        net_param n_p;
+        n_p.input_range = input_range;
+        n_p.n_sampled_inputs = n_sampled_inputs;
+
+        network<mutation_type::weights, response_type::additive> n{n_p};
 
         auto rn = calculate_reaction_norm_from_function(constant_zero,
                                                         input_range,
                                                         n_sampled_inputs);
 
         assert(n.get_genes() == rn);
+    }
+
+    ///Networks with additive response have one gene that detemines the response
+    /// for each value of inputs they can receive
+    {
+        range input_range{-1,1};
+        int n_sampled_inputs = 2;
+
+        net_param n_p;
+        n_p.input_range = input_range;
+        n_p.n_sampled_inputs = n_sampled_inputs;
+
+        network<mutation_type::weights, response_type::additive> n{n_p};
     }
 }
 #endif

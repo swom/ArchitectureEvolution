@@ -11,7 +11,7 @@ env_param convert_env_args(const cxxopts::ParseResult& results)
     return env_param{
         results["env_func_A"].as<std::string>(),
                 results["env_func_B"].as<std::string>(),
-                results["cue_distrib"].as<std::vector<double>>()
+                results["cue_range"].as<std::vector<double>>()
 
     };
     }
@@ -32,7 +32,10 @@ net_param convert_net_args(const cxxopts::ParseResult& results)
         results["net_arc"].as<std::vector<int>>(),
                 string_to_act_func_map.find(results["act_func"].as<std::string>())->second,
                 results["max_arc"].as<std::vector<int>>(),
-                string_to_response_type_map.find(results["response_type"].as<std::string>())->second
+                string_to_response_type_map.find(results["response_type"].as<std::string>())->second,
+                results["cue_range"].as<std::vector<double>>(),
+                results["n_reac_norm_points"].as<int>()
+
     };
 }
 
@@ -60,6 +63,7 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["num_gens"].as<int>(),
                 results["sel_freq"].as<int>(),
                 results["selection_duration_prop_to_freq"].as<int>(),
+                results["n_reac_norm_points"].as<int>(),
                 string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
                 string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
@@ -74,7 +78,6 @@ obs_param convert_obs_args(const cxxopts::ParseResult& results)
         results["top_inds_proportion"].as<int>(),
                 results["top_inds_registration_freq"].as<int>(),
                 results["top_spec_registration_freq"].as<int>(),
-                results["n_reac_norm_points"].as<int>(),
                 results["n_mutations"].as<int>(),
                 results["all_inds_rn_rec_freq"].as<int>()
     };
@@ -109,7 +112,7 @@ cxxopts::Options create_parser(){
             ("D,mut_rate_dup",
              "the probability with whihc a duplication mutation can happen",
              cxxopts::value<double>()->default_value("0.0005"))
-            ("d,cue_distrib",
+            ("d,cue_range",
              "the minimum and maximum of the distribution used to generate environmental cues",
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
             ("e,env_change_sym_type",

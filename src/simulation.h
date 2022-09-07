@@ -31,7 +31,8 @@ struct sim_param
                                    change_freq_type,
                                    sel_type,
                                    adaptation_per,
-                                   evalu_type)
+                                   evalu_type,
+                                   m_reac_norm_n_points)
 
 
     sim_param(int seed_n = 0,
@@ -41,6 +42,7 @@ struct sim_param
               int generations = 100,
               int selection_frequency = 1,
               int selec_duration_prop_to_freq = 1,
+              int reaction_norm_n_points = 40,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,
@@ -54,6 +56,7 @@ struct sim_param
         selection_freq{selection_frequency},
         selection_duration_prop_to_freq{selec_duration_prop_to_freq},
         selection_duration{selection_freq == 0 ? 0 : selection_freq / selec_duration_prop_to_freq},
+                           m_reac_norm_n_points{reaction_norm_n_points},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
@@ -78,6 +81,10 @@ struct sim_param
     int selection_freq;
     int selection_duration;
     int selection_duration_prop_to_freq;
+
+    ///The number of data points on which to calculate the reaction norm of an individual
+    int m_reac_norm_n_points;
+
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;

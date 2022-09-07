@@ -29,23 +29,31 @@ struct net_param
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
                                    net_arc,
                                    max_arc,
-                                   resp_type
+                                   resp_type,
+                                   input_range,
+                                   n_sampled_inputs
                                    )
 
     net_param(const std::vector<int>& net_arch = {1,2,1},
               std::function<double(double)> func = linear,
               const std::vector<int>& max_arch = {1,8,1},
-              response_type response_type = response_type::constitutive):
+              response_type response_type = response_type::constitutive,
+              const std::vector<double>& inp_range = {0,0},
+              const int& n_sampl_inps = 0):
         net_arc{net_arch},
         function{func},
         max_arc{max_arch},
-        resp_type{response_type}
+        resp_type{response_type},
+        input_range{inp_range.front(), inp_range.back()},
+        n_sampled_inputs{n_sampl_inps}
     {};
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
     std::vector<int> max_arc;
     response_type resp_type;
+    range input_range;
+    int n_sampled_inputs;
 };
 
 bool operator==(const net_param& lhs, const net_param& rhs);
@@ -300,6 +308,14 @@ public:
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
+
+        if constexpr (R == response_type::additive)
+        {
+            m_additive_genes = calculate_reaction_norm_from_function(constant_zero,
+                                                                     n_p.input_range,
+                                                                     n_p.n_sampled_inputs);
+            return;
+        }
         ///Change architecture by adding one extra input
         ///for environment if response is plastic
         if constexpr (R == response_type::plastic)
@@ -335,12 +351,7 @@ public:
         }
     }
 
-    ///Constructor for additive genome response
-    network(const range& input_range, int n_of_sampled_inputs):
-        m_additive_genes{calculate_reaction_norm_from_function(constant_zero,
-                                                               input_range,
-                                                               n_of_sampled_inputs)}
-    {}
+
     ///Checks if hhe layer has no nodes
     inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
                     m_network_weights.begin(),

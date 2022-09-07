@@ -46,7 +46,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir = "C:/Users/p288427/Desktop/data_dollo_++/9_6_22/1-2-1"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/9_6_22/1-8-8-8-1"
 
 setwd(dir)
 
