@@ -81,7 +81,7 @@ void environment::switch_name_current_function()
 namespace env {
 
 
-double calculate_optimal(const environment &e, std::vector<double> input)
+double calculate_optimal(const environment &e, const std::vector<double>& input)
 {
   return e.get_current_function()(input);
 }

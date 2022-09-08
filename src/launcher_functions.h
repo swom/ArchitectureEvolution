@@ -129,8 +129,12 @@ void run_simulation_given_resp_type(const cxxopts::ParseResult& results)
     {
         run_simulation_given_mut_type< response_type::plastic, S, Sel, E, A, Ev>(results);
     }
+    else if(response_type == response_type::additive)
+    {
+        run_simulation_given_mut_type< response_type::additive, S, Sel, E, A, Ev>(results);
+    }
     else{
-        throw std::runtime_error{"unknown change type"};
+        throw std::runtime_error{"unknown response_type"};
     }
 }
 

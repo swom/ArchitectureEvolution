@@ -150,7 +150,7 @@ std::vector<double> create_n_inputs(environment& e, const size_t &n_inputs, std:
 
 
 ///Calculates the optimal output, given input, using the env function
-double calculate_optimal(const environment &e, std::vector<double> input);
+double calculate_optimal(const environment &e, const std::vector<double> &input);
 
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);

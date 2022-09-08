@@ -149,6 +149,14 @@ std::vector<double> get_inds_input(const Sim &s)
     return get_inds(s)[0].get_input_values();
 }
 
+///Returns the additive genes of the first individual
+/// in the population
+template<class Sim>
+const reac_norm& get_first_ind_genes(const Sim &s)
+{
+    return get_inds(s)[0].get_net().get_genes();
+}
+
 ///Returns the size of the inputs of the individuals
 template<class Sim>
 size_t get_inds_input_size(const Sim &s)
@@ -230,6 +238,21 @@ public:
         m_optimal_output{1}
     {
         m_rng.seed(m_seed);
+        if constexpr(Pop::ind_t::net_t::response_t == response_type::additive)
+        {
+            if(params.s_p.m_reac_norm_n_points != params.i_p.net_par.n_sampled_inputs)
+            {
+                throw std::invalid_argument{"simulation on construction: Additive response selected,"
+                                            " but number of genes for inds is not the number of points in reaction norm"};
+            }
+            else if(get_first_ind_genes(*this) != calculate_reaction_norm_from_function(constant_zero,
+                                                                                    params.i_p.net_par.input_range,
+                                                                                    params.i_p.net_par.n_sampled_inputs))
+            {
+                throw std::invalid_argument{"simulation on construction: Additive response selected,"
+                                            " but genes x values for inds will not correspond to inputs"};
+            }
+        }
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
@@ -448,14 +471,50 @@ public:
     ///Updates the inputs of the simulation with new calculated inputs
     void store_inputs(std::vector<std::vector<double>> new_inputs){m_stored_inputs = new_inputs;}
 
+    ///Creates the inputs for a simulation where networks
+    /// use an additive gene response mechanism
+    void create_inputs_additive_response( std::vector<std::vector<double>>& inputs)
+    {
+        auto genes = get_first_ind_genes(*this);
+        std::shuffle(genes.begin(), genes.end(), m_rng);
+        genes.resize(inputs.size());
+        std::transform(genes.begin(), genes.end(),
+                       inputs.begin(),
+                       [](const auto& rn_t){return std::vector<double>{rn_t.m_x};});
+    }
+
+    ///Creates the inputs and optimals for a simulation where networks
+    /// use a additive gene response mechanism
+    void create_inputs_optimals_additive_response(std::vector<std::vector<double>>& inputs, std::vector<double>& optimals)
+    {
+        create_inputs_additive_response(inputs);
+        for(int i = 0; i < inputs.size(); i++)
+        {
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+        }
+    }
+
+    ///Creates the inputs and optimals for a simulation where networks
+    /// use a network response mechanism
+    void create_inputs_optimals_network_response(std::vector<std::vector<double>>& inputs, std::vector<double>& optimals)
+    {
+        for(int i = 0; i < m_population.get_n_trials(); i++)
+        {
+            inputs[i] = create_inputs();
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+        }
+    }
+
     ///Gets inputs bsaed on the environment of the simulation
     /// and updates the input stored in simulation
     std::vector<double> create_inputs()
     {
-        auto inputs = env::create_n_inputs(get_env(),
-                                           get_inds_input_size(*this),
-                                           get_rng()
-                                           );
+        std::vector<double> inputs;
+
+        inputs = env::create_n_inputs(get_env(),
+                                      get_inds_input_size(*this),
+                                      get_rng()
+                                      );
 
         if constexpr(Resp_type == response_type::plastic)
         {
@@ -491,18 +550,21 @@ public:
         std::vector<std::vector<double>> inputs;
         std::vector<double> optimals;
 
+        performances.resize(inputs.size());
 
         if constexpr(Eval_type == evaluation_type::trial)
         {
             auto trials = m_population.get_n_trials();
             inputs.resize(trials);
             optimals.resize(inputs.size());
-            performances.resize(inputs.size());
-
-            for(int i = 0; i < m_population.get_n_trials(); i++)
+            if constexpr(pop_t::ind_t::net_t::response_t == response_type::additive)
             {
-                inputs[i] = create_inputs();
-                optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+                create_inputs_optimals_additive_response(inputs, optimals);
+            }
+            else
+            {
+                create_inputs_optimals_network_response(inputs, optimals);
+
             }
             store_inputs(inputs);
             store_optimals(optimals);
@@ -515,8 +577,6 @@ public:
 
             inputs.resize(optimal_rn.size());
             optimals.resize(inputs.size());
-            performances.resize(inputs.size());
-
             for(int i = 0; i != optimal_rn.size(); i++)
             {
                 inputs[i] = {optimal_rn[i].m_x};
