@@ -1155,6 +1155,14 @@ void test_network() //!OCLINT
         assert(n.get_genes() == rn);
     }
 
+    ///If network is of type additive network weights is not initialized
+    {
+        net_param n_p;
+        network<mutation_type::weights, response_type::additive> n{n_p};
+
+        assert(n.get_net_weights().size() == 0);
+    }
+
     ///Networks with additive response have one gene that detemines the response
     /// for each value of inputs they can receive
     {
@@ -1177,6 +1185,25 @@ void test_network() //!OCLINT
             assert( scratch_output[0] == gene.m_y);
         }
     }
+
+    ///When network response_type is of tyoe additive
+    /// the y values of genes are mutated not the network weights
+    {
+        std::mt19937_64 rng;
+        int mut_step = 1;
+        int mut_rate = 1;
+
+        net_param n_p;
+        network<mutation_type::weights, response_type::additive> n{n_p};
+
+        auto net_weights_before = n.get_net_weights();
+        auto genes_before = n.get_genes();
+
+        n.mutate(mut_step, mut_rate, rng);
+        assert(net_weights_before == n.get_net_weights());
+        assert(genes_before != n.get_genes());
+    }
+
 }
 #endif
 

@@ -387,6 +387,18 @@ public:
                 }
     }
 
+    void mutate_genes(const double& mut_rate_weight,
+                      const double& mut_step,
+                      std::mt19937_64& rng)
+    {
+        std::bernoulli_distribution p_mut{mut_rate_weight};
+        std::normal_distribution p_step{mut_step};
+        for(auto& gene : m_additive_genes)
+        {
+            gene.m_y += p_step(rng) * p_mut(rng);
+        }
+    }
+
     void mutate(const double& mut_rate_weight,
                 const double& mut_step,
                 std::mt19937_64& rng,
@@ -394,6 +406,10 @@ public:
                 const double& mut_rate_dup = 0.01
             )
     {
+        if constexpr(R == response_type::additive)
+        {
+            mutate_genes(mut_rate_weight, mut_step, rng);
+        }
 
         if constexpr (M == mutation_type::activation)
         {
@@ -1349,7 +1365,7 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
     {
         output.resize(1);
         const react_norm_t& gene =  *std::find_if(n.get_genes().begin(), n.get_genes().end(),
-                                  [&](const auto& gene){return gene.m_x == input[0];});
+                                                  [&](const auto& gene){return gene.m_x == input[0];});
         output[0] = gene.m_y;
         return;
     }
