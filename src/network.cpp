@@ -1194,6 +1194,10 @@ void test_network() //!OCLINT
         int mut_rate = 1;
 
         net_param n_p;
+        range input_range{-1,1};
+        int n_sampled_inputs = 2;
+        n_p.input_range = input_range;
+        n_p.n_sampled_inputs = n_sampled_inputs;
         network<mutation_type::weights, response_type::additive> n{n_p};
 
         auto net_weights_before = n.get_net_weights();
