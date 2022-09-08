@@ -16,6 +16,11 @@ std::string convert_response_type_to_string(response_type a)
         return string;
         break;
 
+    case response_type::additive :
+        string = "additive";
+        return string;
+        break;
+
     default:
         throw std::runtime_error{"could not convert response_type type into string"};
         return "failed";
