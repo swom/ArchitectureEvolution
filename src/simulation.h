@@ -550,7 +550,6 @@ public:
         std::vector<std::vector<double>> inputs;
         std::vector<double> optimals;
 
-        performances.resize(inputs.size());
 
         if constexpr(Eval_type == evaluation_type::trial)
         {
@@ -584,8 +583,9 @@ public:
             }
         }
 
+        performances.resize(inputs.size());
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for(int i = 0; i < inputs.size(); i++)
         {
             performances[i] = pop::calc_dist_from_target(get_inds(),
