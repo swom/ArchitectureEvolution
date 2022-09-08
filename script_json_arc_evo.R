@@ -172,7 +172,7 @@ if(file.exists("all_simple_res.Rds") &&
   saveRDS(all_inds_rns, file = "all_inds_rns.Rds")
   gc()
 }
-### Plot ####
+### Plot ====
 jpeg("fitness_plots.jpg",
      width = 700,
      height = 700)
@@ -436,99 +436,93 @@ for(adapt_per in adapt_levels){
                   gen_sens = sim_sens %>%
                     filter(m_generation %in% c(generation,
                                                post_sel_gen)) 
-                  if(generation %% plot_every_n_gen == 0 &&
-                     generation + record_freq < max(generations))
-                  {
-                    gen_sens = sim_sens %>%
-                      filter(m_generation %in% c(generation,
-                                                 important_subsequent_generations)) 
-                    
-                    ###to create network of descendants 
-                    #create edge data frame(Id + ancestor ID) of latest gen
-                    #and node data frame
-                    #(all IDs and IDs of earlier generation present in the ancestor IDs of the latest generation)
-                    edge_tibble = gen_sens %>% 
-                      filter(m_generation %in% important_subsequent_generations) %>% 
-                      select(c(m_ancestor_ID, m_ID)) %>% 
-                      rename(from = m_ancestor_ID, to = m_ID)
-                    
-                    ancestry_graph = tbl_graph(nodes = gen_sens,
-                                               edges = edge_tibble,
-                                               node_key = "m_ID") 
-                    # 
-                    # p_anc <- ggraph(ancestry_graph, x = m_phenotype_sens, y = m_fitness) +
-                    #   geom_edge_link(alpha = 0.01)+
-                    #   # geom_edge_density()+
-                    #   geom_node_point(aes(color =  as.factor(m_generation),
-                    #                       size = node_is_isolated(),
-                    #                       alpha = ifelse(node_is_isolated(),0.01,1))
-                    #   ) +
-                    #   scale_size_manual(values=c(1.5,0.5), guide = 'none') +
-                    #   scale_alpha(guide = 'none') +
-                    #   xlab("phenotypic_sens") +
-                    #   ylab("fitness") + 
-                    #   theme_light() +
-                    # theme(legend.position="none")
-                    
-                    p_anc_inter_sel <- ggraph(ancestry_graph %>%
-                                                filter(m_generation %in% c(generation,
-                                                                           post_sel_gen)),
-                                              x = m_phenotype_sens,
-                                              y = m_fitness) +
-                      geom_edge_link(alpha = 0.01)+
-                      # geom_edge_density()+
-                      geom_node_point(shape = 21,
-                                      aes(color = as.factor(m_generation),
-                                          # size = centrality_degree(mode = 'out'),
-                                          fill = centrality_degree(mode = 'out'),
-                                          alpha = ifelse(m_generation == post_sel_gen,0,1))
-                      ) +
-                      outdegree_gradient +
-                      scale_shape_manual(c(21,24), guide = 'none') +
-                      scale_size_continuous(c(0, 1), guide = 'none') +
-                      scale_alpha(c(0, 1), guide = 'none') +
-                      xlab("phenotypic_sens") +
-                      ylab("fitness") +  
-                      xlim(phen_x_lim) + 
-                      ylim(c(0,1)) +
-                      theme_light() +
-                      theme(legend.position="none") +
-                      ggtitle(paste(generation,"gen to ", post_sel_gen))
-                    
-                    p_anc_inter_drift <- ggraph(ancestry_graph %>%
-                                                  filter(m_generation %in% c(post_sel_gen,
-                                                                             post_drift_gen)),
-                                                x = m_phenotype_sens,
-                                                y = m_fitness) +
-                      geom_edge_link(alpha = 0.01)+
-                      # geom_edge_density()+
-                      geom_node_point(shape = 21,
-                                      aes(color = as.factor(m_generation),
-                                          shape = as.factor(m_generation),
-                                          # size = centrality_degree(mode = 'out'),
-                                          fill = centrality_degree(mode = 'out'),
-                                          alpha = ifelse(m_generation == post_drift_gen,0,1))
-                      ) +
-                      outdegree_gradient +
-                      scale_shape_manual(c(21,24), guide = 'none') +
-                      scale_size_continuous(c(0, 1), guide = 'none') +
-                      scale_alpha(c(0.5, 1.5), guide = 'none') +
-                      xlab("phenotypic_sens") +
-                      ylab("fitness") +  
-                      xlim(phen_x_lim) + 
-                      ylim(c(0,1)) +
-                      theme_light() +
-                      theme(legend.position="none")+
-                      ggtitle(paste(post_sel_gen,"gen to ", post_drift_gen))
-                    
-                    
-                    p_anc_inter_sel + p_anc_inter_drift 
-                    ggsave(paste(subdir,paste(paste("ancestry_plot",generation,sep = "_"),".png"), sep = '/'),
-                           device = "png", 
-                           dpi= "screen",
-                           width = 15,
-                           height = 7.5)
-                  } 
+                  # ancestry plots ####
+                  
+                  # if(generation %% plot_every_n_gen == 0 &&
+                  #    generation + record_freq < max(generations))
+                  # {
+                  #   gen_sens = sim_sens %>%
+                  #     filter(m_generation %in% c(generation,
+                  #                                important_subsequent_generations)) 
+                  #   
+                  #   ###to create network of descendants 
+                  #   #create edge data frame(Id + ancestor ID) of latest gen
+                  #   #and node data frame
+                  #   #(all IDs and IDs of earlier generation present in the ancestor IDs of the latest generation)
+                  #   edge_tibble = gen_sens %>% 
+                  #     filter(m_generation %in% important_subsequent_generations) %>% 
+                  #     select(c(m_ancestor_ID, m_ID)) %>% 
+                  #     rename(from = m_ancestor_ID, to = m_ID)
+                  #   
+                  #   ancestry_graph = tbl_graph(nodes = gen_sens,
+                  #                              edges = edge_tibble,
+                  #                              node_key = "m_ID") 
+                  #   
+                  #   
+                  #   p_anc_inter_sel <- ggraph(ancestry_graph %>%
+                  #                               filter(m_generation %in% c(generation,
+                  #                                                          post_sel_gen)),
+                  #                             x = m_phenotype_sens,
+                  #                             y = m_fitness) +
+                  #     geom_edge_link(alpha = 0.01)+
+                  #     # geom_edge_density()+
+                  #     geom_node_point(shape = 21,
+                  #                     aes(color = as.factor(m_generation),
+                  #                         # size = centrality_degree(mode = 'out'),
+                  #                         fill = centrality_degree(mode = 'out'),
+                  #                         alpha = ifelse(m_generation == post_sel_gen,0,1))
+                  #     ) +
+                  #     outdegree_gradient +
+                  #     scale_shape_manual(c(21,24), guide = 'none') +
+                  #     scale_size_continuous(c(0, 1), guide = 'none') +
+                  #     scale_alpha(c(0, 1), guide = 'none') +
+                  #     xlab("phenotypic_sens") +
+                  #     ylab("fitness") +  
+                  #     xlim(phen_x_lim) + 
+                  #     ylim(c(0,1)) +
+                  #     theme_light() +
+                  #     theme(legend.position="none") +
+                  #     ggtitle(paste(generation,"gen to ", post_sel_gen))
+                  #   
+                  #   p_anc_inter_drift <- ggraph(ancestry_graph %>%
+                  #                                 filter(m_generation %in% c(post_sel_gen,
+                  #                                                            post_drift_gen)),
+                  #                               x = m_phenotype_sens,
+                  #                               y = m_fitness) +
+                  #     geom_edge_link(alpha = 0.01)+
+                  #     # geom_edge_density()+
+                  #     geom_node_point(shape = 21,
+                  #                     aes(color = as.factor(m_generation),
+                  #                         shape = as.factor(m_generation),
+                  #                         # size = centrality_degree(mode = 'out'),
+                  #                         fill = centrality_degree(mode = 'out'),
+                  #                         alpha = ifelse(m_generation == post_drift_gen,0,1))
+                  #     ) +
+                  #     outdegree_gradient +
+                  #     scale_shape_manual(c(21,24), guide = 'none') +
+                  #     scale_size_continuous(c(0, 1), guide = 'none') +
+                  #     scale_alpha(c(0.5, 1.5), guide = 'none') +
+                  #     xlab("phenotypic_sens") +
+                  #     ylab("fitness") +  
+                  #     xlim(phen_x_lim) + 
+                  #     ylim(c(0,1)) +
+                  #     theme_light() +
+                  #     theme(legend.position="none")+
+                  #     ggtitle(paste(post_sel_gen,"gen to ", post_drift_gen))
+                  #   
+                  #   
+                  #   p_anc_inter_sel + p_anc_inter_drift 
+                  #   ggsave(paste(subdir,paste(paste("ancestry_plot",generation,sep = "_"),".png"), sep = '/'),
+                  #          device = "png", 
+                  #          dpi= "screen",
+                  #          width = 15,
+                  #          height = 7.5)
+                  # }
+
+                  #plots####
+
+                  
+                  
                   p2 = ggplot(data = gen_sens %>% 
                                 filter(m_generation %in% c(generation, 
                                                            post_sel_gen))) +

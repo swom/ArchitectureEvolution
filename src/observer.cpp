@@ -229,6 +229,9 @@ std::string create_save_name_from_params(const all_params& p)
             "_fA_" + p.e_p.name_func_A +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
+    std::cout   << "response type: " <<convert_response_type_to_string(p.i_p.net_par.resp_type) << std::endl;
+    std::cout << "save name: " << name << std::endl;
+
     return name;
 }
 
