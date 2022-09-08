@@ -654,7 +654,8 @@ public:
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
-                                   m_network_weights
+                                   m_network_weights,
+                                   m_additive_genes
                                    );
 
     ///Returns the activation function
