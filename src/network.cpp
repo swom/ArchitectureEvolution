@@ -1166,6 +1166,16 @@ void test_network() //!OCLINT
         n_p.n_sampled_inputs = n_sampled_inputs;
 
         network<mutation_type::weights, response_type::additive> n{n_p};
+        std::vector<double> scratch_input{};
+        std::vector<double> scratch_output{};
+
+
+        for(const auto& gene : n.get_genes())
+        {
+            scratch_input = {gene.m_x};
+            output_ugly_but_fast(n,scratch_input,scratch_output);
+            assert( scratch_output[0] == gene.m_y);
+        }
     }
 }
 #endif

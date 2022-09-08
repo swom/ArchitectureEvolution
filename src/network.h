@@ -1345,6 +1345,14 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 template<class Net>
 void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<double>& output)
 {
+    if constexpr(Net::response_t == response_type::additive)
+    {
+        output.resize(1);
+        const react_norm_t& gene =  *std::find_if(n.get_genes().begin(), n.get_genes().end(),
+                                  [&](const auto& gene){return gene.m_x == input[0];});
+        output[0] = gene.m_y;
+        return;
+    }
     assert(input.size() == n.get_input_size());
 
     if (n.any_layer_has_no_nodes())
