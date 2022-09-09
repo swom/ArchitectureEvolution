@@ -10,6 +10,7 @@ library(data.table)
 library(RColorBrewer)
 library(tidygraph)
 library(ggraph)
+library(purrr)
 
 #remove scientific notation 
 options(scipen=999)
@@ -46,8 +47,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir = "C:/Users/p288427/Desktop/data_dollo_++/9_6_22/1-8-8-8-1"
-
+dir ="C:/Users/p288427/Desktop/data_dollo_++/9_7_22_all_inds_full_rn/additive"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -85,11 +85,14 @@ if(file.exists("all_simple_res.Rds") &&
     all_simple_res = rbind(all_simple_res, simple_res_ID)
     
     ###sensibilities results
+    
     # m fit suitability
     tmp_ = results$m_fit_phen_mut_sensibility
+    
     # convert to data.table with list column
     tmp_ = lapply(tmp_, as.data.table)
-    # deal with all gens
+   
+     # deal with all gens
     tmp_ = lapply(tmp_, function(df) {
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
     })
@@ -97,6 +100,11 @@ if(file.exists("all_simple_res.Rds") &&
     tmp_[, names(ID) := ID]
     all_sensibilities[[i]] = tmp_
     
+    if(ID$i_p.net_par.resp_type == "2"){
+      print("not saving rns")
+    }else{
+      print("not saving rns")
+      
     ###all_reaction norms
     # Keep only what is necessary
     data <- results$m_all_inds_rn
@@ -154,7 +162,8 @@ if(file.exists("all_simple_res.Rds") &&
     # tmp_[, names(ID) := ID]
     # all_inds_rns[[i]] = tmp_
     
-    gc()
+    }
+    gc()   
   }
   
   all_sensibilities = rbindlist(all_sensibilities, fill =T) %>% 
@@ -182,7 +191,7 @@ show_last_n_gen = 1000000
 wanted_freqs = c(1)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
-  filter(gen > max(gen) - show_last_n_gen #&
+  filter(gen < show_last_n_gen #&
          # s_p.seed %in% wanted_seed &
          # gen %% filter_gen == 0 &
          # s_p.selection_strength %in% wanted_sel_str
@@ -270,7 +279,7 @@ phen_sens_plus_fit_plot = ggplot(data = sens_summary_all) +
                   ymax = mean_phen_sens + var_phen_sens,
                   ymin = mean_phen_sens - var_phen_sens),
               alpha = 0.5) +
-  ylim(c(-0.1,1)) +
+  ylim(c(-0.1, 1)) +
   xlab("Generations") +
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
@@ -289,7 +298,7 @@ fit_sens_plot = ggplot(data = sens_summary_all,
                   y = mean_fit_sens,
                   ymax = mean_fit_sens + var_fit_sens,
                   ymin = mean_fit_sens - var_fit_sens),
-              alpha = 0.5)+
+              alpha = 0.5) +
   xlab("Generations") +
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
@@ -304,6 +313,7 @@ sel_freq_levels = levels(as.factor(all_simple_res$s_p.selection_freq))
 func_name_levels = levels(as.factor(all_simple_res$e_p.name_func_A))
 mut_types_levels = levels(as.factor(all_simple_res$i_p.m_mutation_type))
 max_arc_levels = levels(as.factor(all_simple_res$i_p.net_par.max_arc))
+#Loop over all params ----
 for(adapt_per in adapt_levels){
   for(seed in seed_levels){
     for(sel_str in sel_str_levels){
@@ -311,7 +321,9 @@ for(adapt_per in adapt_levels){
         for(func_name in func_name_levels){
           for(mut_type in mut_types_levels){
             for(max_arc in max_arc_levels){
-
+              gc()
+              
+              ####general plots over entirety of time ====
                             ###subset to a specific simulation for now
               sim_sens = all_sensibilities %>%
                 filter(s_p.seed == seed) %>% 
@@ -346,12 +358,18 @@ for(adapt_per in adapt_levels){
                                                         data.frame(x = unique(sim_all_inds_rns$m_x),
                                                                    y = length(unique(sim_all_inds_rns$m_x))))
 
-              rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
-                                   y = m_y)) +
-                stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
-                scale_fill_viridis_c() +
-                geom_line(data = optimal_rn, aes(x = x, y = y), color = "white") +
-                facet_grid( . ~ m_generation)
+              # rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
+              #                                         y = m_y)) +
+              #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
+              #   scale_fill_viridis_c() +
+              #   geom_line(data = optimal_rn, aes(x = x, y = y), color = "white") +
+              #   facet_grid( . ~ m_generation)          
+              
+              rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,y = m_y)) +
+                geom_point(size = 0.1, alpha = 0.1) +
+                geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
+                facet_grid( . ~ m_generation)+
+                theme_minimal()
               
               sens_summary = sim_sens %>%
                 group_by(m_generation) %>% 
@@ -410,10 +428,11 @@ for(adapt_per in adapt_levels){
                 "mut_t", mut_type,
                 sep = "_")
               dir.create(file.path(dir, subdir), showWarnings = FALSE)
-              
+              print(subdir)
               generations = unique(sim_sens$m_generation)
-              plot_every_n_gen = 50000
+              plot_every_n_gen = 500000
               
+              ####loop over generations#####
               for(generation in generations[generations %% plot_every_n_gen == 0]){
                 record_freq = as.numeric(obs_params$m_top_ind_reg_freq)
                 selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
@@ -569,6 +588,8 @@ for(adapt_per in adapt_levels){
                          device = "png", 
                          width = 30,
                          height = 15)
+                  gc()
+                  
                 }
               }
             }

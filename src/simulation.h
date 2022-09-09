@@ -556,7 +556,7 @@ public:
             auto trials = m_population.get_n_trials();
             inputs.resize(trials);
             optimals.resize(inputs.size());
-            if constexpr(pop_t::ind_t::net_t::response_t == response_type::additive)
+            if constexpr(Resp_type == response_type::additive)
             {
                 create_inputs_optimals_additive_response(inputs, optimals);
             }

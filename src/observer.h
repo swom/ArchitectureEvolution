@@ -59,7 +59,6 @@ struct obs_param{
     obs_param(int top_prop = 1,
               int top_ind_reg_freq = 1,
               int spectrum_reg_freq = 0,
-              int n_data_points_for_reac_norm = 100,
               int n_mutations_for_mutational_spectrum = 1,
               int all_inds_rn_record_frequency = 0):
         m_top_proportion{top_prop},
@@ -647,7 +646,7 @@ template<class O, class S>
 bool is_time_to_record_all_inds_rns(const O& o, const S& s)
 {
     auto freq = o.get_obs_params().m_all_inds_rn_record_frequency;
-    if(!freq) return false;
+  if(!freq) return false;
     return s.get_time() % freq == 0;
 }
 

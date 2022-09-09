@@ -1020,7 +1020,7 @@ void test_observer()
         auto s = create_simple_simulation(n_gens, n_inds, false);
 
         int record_all_inds_rn_every_n_gens = 2;
-        obs_param o_p(1,1,0,1,1, record_all_inds_rn_every_n_gens);
+        obs_param o_p(1,1,0,1, record_all_inds_rn_every_n_gens);
         observer o(o_p, s.get_params());
 
         exec(s,o);
@@ -1036,7 +1036,7 @@ void test_observer()
         auto s = create_simple_simulation(n_gens, n_inds, false);
 
         int record_all_inds_rn_every_n_gens = 2;
-        obs_param o_p(1,1,0,1,1, record_all_inds_rn_every_n_gens);
+        obs_param o_p(1,1,0,1, record_all_inds_rn_every_n_gens);
         observer o(o_p, s.get_params());
 
         exec(s,o);
