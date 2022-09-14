@@ -79,7 +79,8 @@ obs_param convert_obs_args(const cxxopts::ParseResult& results)
                 results["top_inds_registration_freq"].as<int>(),
                 results["top_spec_registration_freq"].as<int>(),
                 results["n_mutations"].as<int>(),
-                results["all_inds_rn_rec_freq"].as<int>()
+                results["all_inds_rn_rec_freq"].as<int>(),
+                results["sample_ind_record_freq_to_sens"].as<int>()
     };
 }
 
