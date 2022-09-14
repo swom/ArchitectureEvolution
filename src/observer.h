@@ -3,8 +3,6 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
-static int sample_ind_record_freq_to_sens = 10;
-
 struct sensibilities_to_mut
 {
     sensibilities_to_mut(int gen = -1, std::vector<fit_and_phen_sens_t> sensibilities = {}):
@@ -60,12 +58,15 @@ struct obs_param{
               int top_ind_reg_freq = 1,
               int spectrum_reg_freq = 0,
               int n_mutations_for_mutational_spectrum = 1,
-              int all_inds_rn_record_frequency = 0):
+              int all_inds_rn_record_frequency = 0,
+              int sample_ind_record_freq_to_sens = 10):
         m_top_proportion{top_prop},
         m_top_ind_reg_freq{top_ind_reg_freq},
         m_spectrum_reg_freq{spectrum_reg_freq},
         m_n_mutations_per_locus{n_mutations_for_mutational_spectrum},
-        m_all_inds_rn_record_frequency{all_inds_rn_record_frequency}
+        m_all_inds_rn_record_frequency{all_inds_rn_record_frequency},
+        m_sample_ind_record_freq_to_sens{sample_ind_record_freq_to_sens}
+
     {
         if(top_prop == 0)
             throw std::invalid_argument{"the number of indidivuduals recorderd cannot be 0"};
@@ -76,7 +77,8 @@ struct obs_param{
                                    m_top_ind_reg_freq,
                                    m_spectrum_reg_freq,
                                    m_n_mutations_per_locus,
-                                   m_all_inds_rn_record_frequency
+                                   m_all_inds_rn_record_frequency,
+                                   m_sample_ind_record_freq_to_sens
                                    )
 
     ///The top n idividuals stored in the observed
@@ -91,6 +93,9 @@ struct obs_param{
     int m_n_mutations_per_locus;
     ///The number of generation between each recording event of all indfividuals reaction norms
     int m_all_inds_rn_record_frequency;
+    ///The multiplier used to determine how often to sample individuals based on sensibilities
+    /// based on the record frequency of the best individual
+     int m_sample_ind_record_freq_to_sens;
 };
 
 template<class Ind>
@@ -490,7 +495,7 @@ public:
         if(s.get_inds().empty()) return;
         store_fit_phen_mut_sensibility(s);
         store_top_n_inds(s);
-        if(m_fit_phen_mut_sensibility.size() % sample_ind_record_freq_to_sens == 0)
+        if(m_fit_phen_mut_sensibility.size() % m_obs_param.m_sample_ind_record_freq_to_sens == 0)
         {
             store_top_mid_low_sens_inds(s);
         }

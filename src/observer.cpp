@@ -917,22 +917,25 @@ void test_observer()
 
         assert(distance_worst == 2);
     }
-    /// #3 inds are sampled every 10 times the top inds are recorded
+    /// #3 inds are sampled every 10 times the top inds are recorded by default,
+    /// as determined by observer params
     {
+        obs_param o_p{};
         int n_inds = 3;
-        int n_gens = sample_ind_record_freq_to_sens;
+        int n_gens = o_p.m_sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
         s.get_pop_non_const() = create_simple_pop(n_inds);
-        observer o({}, s.get_params());
+        observer o(o_p, s.get_params());
         exec(s,o);
 
         assert(o.get_fit_phen_mut_sensibility().size() ==
-               o.get_sampled_inds().size() * sample_ind_record_freq_to_sens);
+               o.get_sampled_inds().size() * o_p.m_sample_ind_record_freq_to_sens);
     }
 
     ///#4 Sampled individuals are saved
     {
-        int n_gens = sample_ind_record_freq_to_sens;
+        obs_param o_p{};
+        int n_gens = o_p.m_sample_ind_record_freq_to_sens;
         auto s = create_simple_simulation(n_gens);
         s.get_pop_non_const() = create_simple_pop();
         observer o({}, s.get_params());

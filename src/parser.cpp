@@ -115,6 +115,10 @@ cxxopts::Options create_parser(){
             ("d,cue_range",
              "the minimum and maximum of the distribution used to generate environmental cues",
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
+            ("E,sample_ind_record_freq_to_sens",
+             "The multiplier used to determine how often to sample individuals"
+             " based on sensibilities based on the record frequency of the best individual",
+             cxxopts::value<int>()->default_value("10"))
             ("e,env_change_sym_type",
              "type of symmetry of the environmental change that a simulation will undergo",
              cxxopts::value<std::string>()->default_value("symmetrical"))
@@ -131,7 +135,7 @@ cxxopts::Options create_parser(){
              "if set to 'on' half of the runtime of a simulation"
              " will be spent in a stable environmetn and the other "
              "half will have changing environments",
-             cxxopts::value<std::string>()->default_value("off"))
+             cxxopts::value<std::string>()->default_value("off")) //'h' is taken for --help
             ("I, all_inds_rn_rec_freq",
                "The number of generations after which reaction norms"
                "of all individuals are saved",
@@ -181,7 +185,7 @@ cxxopts::Options create_parser(){
              cxxopts::value<std::string>()->default_value("constant"))
             ("T,sel_str",
               "the strenght of selection",
-              cxxopts::value<double>()->default_value("2"))
+              cxxopts::value<double>()->default_value("2")) // 't' is taken for --test
             ("u,n_mutations",
              "the number of mutations each locus will undergo when measuring a mutational spectrum",
              cxxopts::value<int>()->default_value("100"))
