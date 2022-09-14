@@ -117,3 +117,14 @@ bool are_same_env_functions(const std::function<double(std::vector<double>)> &lh
 
 }
 
+bool pairwise_comparison_for_majority(const std::vector<double>& first,
+                                      const std::vector<double>& second)
+{
+    return std::equal(first.begin(),
+                      first.end(),
+                      second.begin(),
+                      second.end(),
+                      [](const double& lhs, const double& rhs)
+    {return lhs > rhs;});
+}
+

@@ -37,11 +37,12 @@ bool operator ==(const simulation<Pop> &lhs, const simulation<Pop> &rhs)
     return pop && env && time && sel_str && change_freq_A && change_freq_B;
 }
 
-template<class Sim>
-void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight)
+simulation<> assign_random_IDs_to_inds(simulation<> s, rndutils::xorshift128& rng)
 {
-    auto new_net = change_all_weights_values_and_activations(get_nth_ind_net(s, ind_index), new_weight);
-    change_nth_ind_net(s, ind_index, new_net);
+    std::uniform_int_distribution dist(-100,100);
+    std::for_each(s.get_inds_non_const().begin(), s.get_inds_non_const().end(),
+                  [&](auto& ind){ind.set_rank(rng());});
+    return s;
 }
 
 template<class Sim>
@@ -56,11 +57,6 @@ double get_nth_ind_fitness(const Sim& s, const size_t ind_index)
     return pop::get_nth_ind_fitness(s.get_pop(), ind_index);
 }
 
-template<class Sim>
-const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
-{
-    return pop::get_nth_ind_net(s.get_pop(), ind_index);
-}
 
 template<class Sim>
 double find_min_fitness(const Sim &s)
@@ -85,20 +81,35 @@ const std::vector<double> &get_current_input(const Sim &s)
     return s.get_input();
 }
 
-template<class Sim>
-std::function<double(std::vector<double>)> get_current_env_function(const Sim &s)
+bool ancestor_ID_is_parent_ID(const simulation<>& s)
 {
-    auto e = s.get_env();
-    return e.get_current_function();
+    return  ancestor_IDs(sim::get_inds(s)) == pop_IDs(sim::get_parents(s));
 }
 
-}
+} // namespace sim::
 
 double identity_first_element(const std::vector<double> &vector)
 {
     return vector[0];
 }
 
+///Creates a simple simualtion with trial evaluation type
+simulation<population<>,
+env_change_symmetry_type::symmetrical,
+env_change_freq_type::stochastic,
+selection_type::constant,
+adaptation_period::off,
+evaluation_type::trial
+> create_trial_simulation(const all_params& a_p = all_params{})
+{
+    return         simulation<population<>,
+            env_change_symmetry_type::symmetrical,
+            env_change_freq_type::stochastic,
+            selection_type::constant,
+            adaptation_period::off,
+            evaluation_type::trial
+            >{a_p};
+}
 
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
@@ -109,7 +120,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     ///The population has a vector of individuals of size 1 by default
     {
         simulation s;
-        assert(s.get_pop().get_inds().size() == 1u);
+        assert(s.get_pop_non_const().get_inds().size() == 1u);
     }
 
 
@@ -166,12 +177,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     //Every tick simulation timer increases by one
     {
-        simulation s;
+        auto s = create_trial_simulation();
         auto init_timer_value = s.get_time();
         tick(s);
         assert(s.get_time() == init_timer_value + 1);
 
-        simulation s2;
+        auto s2 = create_trial_simulation();
         init_timer_value = s2.get_time();
         int repeats = 123;
         for(int i = 0; i != repeats; i++)
@@ -254,7 +265,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s.reproduce();
 
         //all inds should now have the network that matches the target values
-        for(const auto& ind :get_inds(s))
+        for(const auto& ind : sim::get_inds(s))
         {
             assert(ind.get_net() == best_net);
         }
@@ -329,7 +340,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     //#define FIX_ISSUE_34
     {
-        simulation s;
+        auto s = create_trial_simulation();
         int repeats = 100000;
         int n_switches = 0;
         for(int i = 0; i != repeats; i++)
@@ -380,7 +391,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 
     {
         all_params a_p{{},{}, pop_param(1),{}};
-        simulation s{a_p};
+        auto s = create_trial_simulation(a_p);
         environment &e = s.get_env();
         int repeats =  100000;
         auto previous_env_function = e.get_name_current_function();
@@ -389,7 +400,12 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         for( int i = 0; i != repeats; i++)
         {
-            tick(s);
+            s.increase_time();
+
+            if(s.is_environment_changing()){
+                perform_environment_change(s);
+            }
+
             if(previous_env_function != e.get_name_current_function())
             {
                 previous_env_function = e.get_name_current_function();
@@ -445,7 +461,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 #define FIX_ISSUE_17
 #ifdef FIX_ISSUE_17
     {
-        simulation s;
+        auto s = create_trial_simulation();
         tick(s);
 
         int repeats = 5;
@@ -465,7 +481,7 @@ void test_simulation() noexcept//!OCLINT test may be many
 #define FIX_ISSUE_18
 #ifdef FIX_ISSUE_18
     {
-        simulation s;
+        auto s = create_trial_simulation();
         assert(all_individuals_have_same_input(s));
         auto input_t1 = get_inds_input(s);
 
@@ -622,7 +638,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation s{params};
 
         //Otherwise all weights are 0 and the response is always 0
-        change_all_weights_nth_ind(s, 0, 1);
+        s.change_all_weights_nth_ind( 0, 1);
 
         ///The response should change when the environment changes.
 
@@ -668,7 +684,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.selection_freq = selection_freq;
         s_p.selection_strength = 10;
         pop_param p_p;
-        p_p.number_of_inds = 30000;
+        p_p.number_of_inds = 4000;
         p_p.mut_rate_weight = 0.5;
         p_p.mut_step = 0.1;
         all_params a_p{{},{}, p_p, s_p};
@@ -676,7 +692,9 @@ void test_simulation() noexcept//!OCLINT test may be many
         simulation<population<>,
                 env_change_symmetry_type::symmetrical,
                 env_change_freq_type::stochastic,
-                selection_type::sporadic> s{a_p};
+                selection_type::sporadic,//make selection happen sporadically
+                adaptation_period::off,
+                evaluation_type::trial> s{a_p};
 
 
         double avg_pop;
@@ -684,18 +702,18 @@ void test_simulation() noexcept//!OCLINT test may be many
 
         for (int i = 0; i != repeats; i++)
         {
-             tick(s);
+            tick(s);
 
-            avg_pop = pop::avg_fitness(s.get_pop());
-            avg_prev_pop = pop::avg_fitness(s.get_pop().get_new_inds());
+            avg_pop = pop::avg_fitness(s.get_pop_non_const());
+            avg_prev_pop = pop::avg_fitness(s.get_pop_non_const().get_new_inds());
 
             if(s.get_time() % s.get_sel_freq() >= 0 &&
-                 s.get_time() % s.get_sel_freq() < s.get_sel_duration())
+                    s.get_time() % s.get_sel_freq() < s.get_selection_duration())
             {
-                assert(avg_prev_pop < avg_pop);
                 assert(!are_equal_with_high_tolerance(avg_prev_pop,
                                                       avg_pop)
                        );
+                assert(avg_prev_pop < avg_pop);
             }
             else if(s.get_time() % s.get_sel_freq() == s.get_sel_freq() - 1)
             {
@@ -798,7 +816,12 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p.n_generations = repeats;
         all_params a_p{{},{}, {}, s_p};
 
-        simulation<population<>, env_change_symmetry_type::symmetrical, env_change_freq_type::regular> regular_sim{a_p};
+        simulation<population<>,
+                env_change_symmetry_type::symmetrical,
+                env_change_freq_type::regular,//make environment change deterministically
+                selection_type::constant,
+                adaptation_period::off,
+                evaluation_type::trial> regular_sim{a_p};
 
         auto current_function_name = get_name_current_function(regular_sim);
         for(int i = 0; i !=  s_p.n_generations; i++)
@@ -810,8 +833,6 @@ void test_simulation() noexcept//!OCLINT test may be many
                 current_function_name = get_name_current_function(regular_sim);
             }
             tick(regular_sim);
-
-
         }
 
     }
@@ -843,8 +864,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         all_params a_p1{e_p, ind_param{}, p_p1, sim_param{}};
         all_params a_p2{e_p, ind_param{}, p_p2, sim_param{}};
 
-        simulation s1{a_p1};
-        simulation s2{a_p2};
+        auto s1 = create_trial_simulation(a_p1);
+        auto s2 = create_trial_simulation(a_p2);
 
         auto fitnesses_s1 = s1.evaluate_inds();
         auto fitnesses_s2 = s2.evaluate_inds();
@@ -868,10 +889,11 @@ void test_simulation() noexcept//!OCLINT test may be many
         using ind_t = individual<net_t>;
         using pop_t = population<ind_t>;
         using sim_t = simulation<pop_t,
-          env_change_symmetry_type::symmetrical,
-          env_change_freq_type::regular,
-          selection_type::constant,
-          adaptation_period::off
+        env_change_symmetry_type::symmetrical,
+        env_change_freq_type::regular,
+        selection_type::constant,
+        adaptation_period::off,
+        evaluation_type::trial
         >;
 
         sim_param s_p;

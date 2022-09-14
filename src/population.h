@@ -3,8 +3,8 @@
 
 #include "ind_data.h"
 #include "rndutils.hpp"
+#include<set>
 #include <vector>
-
 
 struct pop_param
 {
@@ -67,12 +67,63 @@ public:
                                    m_mut_rate_act,
                                    m_mut_rate_dup);
 
+    ///Assigns a unique ID to individuals
+    population<Ind> assign_ID_to_inds(int gen) noexcept
+    {
+
+        int m_ID = 0;
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.set_ID(std::to_string(gen) + "_" + std::to_string(m_ID++));
+        }
+        return *this;
+    };
+
+    ///Calculates fitness and phenotype sensibilities to mutation  of all inds
+    template<typename Func>
+    std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations,
+                                                                              std::mt19937_64& rng,
+                                                                              Func optimal_function,
+                                                                              range input_range,
+                                                                              int n_points
+                                                                              )
+    {
+        std::vector<fit_and_phen_sens_t> sens(m_vec_indiv.size());
+
+        auto mutations = create_mutations(n_mutations, m_mut_step, rng);
+
+#pragma omp parallel for
+        for(int i = 0; i < m_vec_indiv.size(); i++)
+        {
+            sens[i] = calc_phen_and_fit_mut_sensibility(m_vec_indiv[i].get_mutable_net(),
+                                                        mutations,
+                                                        optimal_function,
+                                                        input_range,
+                                                        n_points);
+
+            sens[i].m_ancestor_ID = m_vec_indiv[i].get_ancestor_ID();
+            sens[i].m_ID = m_vec_indiv[i].get_ID();
+            sens[i].m_rank = m_vec_indiv[i].get_rank();
+            sens[i].m_fitness = m_vec_indiv[i].get_fitness();
+        }
+
+        return sens;
+    };
+
     ///Changes the network of the nth individual to a given network
     template<class Net>
     void change_nth_ind_net(size_t ind_index, const Net& n){
         m_vec_indiv[ind_index].change_net(n);
     }
 
+    ///Chenges all the weights of all inds to a given value
+    void change_all_inds_weights(double new_weight)
+    {
+        for(auto& ind : m_vec_indiv)
+        {
+            ind.change_all_weights(new_weight);
+        }
+    }
 
     ///Get const ref to vector of individuals
     const std::vector<Ind>& get_inds() const noexcept{return m_vec_indiv;}
@@ -80,8 +131,12 @@ public:
     ///Get ref to vector of individuals
     std::vector<Ind>& get_inds_nonconst() noexcept{return m_vec_indiv;}
 
+    ///Get ref to vector of individuals
+    std::vector<Ind>& get_new_inds_nonconst() noexcept{return m_vec_new_indiv;}
+
     ///Returns the ref tot the mutable fitness distribution
     rndutils::mutable_discrete_distribution<>& get_fitness_dist() noexcept{return m_fitness_dist;}
+
     ///Get const ref to vector of individuals
     const std::vector<Ind>& get_new_inds() const noexcept{return m_vec_new_indiv;}
 
@@ -102,6 +157,30 @@ public:
 
     ///Returns the number of trials for which individuals have to be evaluated
     int get_n_trials() const noexcept {return m_n_trials;}
+
+    ///Swaps the ancestor_rank of all_inividuals in the pop
+    ///for their own rank(they become the ancestors)
+    population<Ind> ind_ID_becomes_ancestor_ID(std::vector<Ind>& inds)
+    {
+        std::for_each(inds.begin(), inds.end(),
+                      [](auto& ind){ind.make_ID_ancestor_ID();});
+
+        return *this;
+    }
+
+    ///Sorts indiivudals in the vector of popoulation by fitness and assigns thema rank based on their position
+    population<Ind> sort_and_assign_ranks_by_fitness()
+    {
+        auto& inds = m_vec_indiv;
+        std::sort(inds.begin(), inds.end(),
+                  [](const Ind& lhs, const Ind& rhs){return lhs.get_fitness() > rhs.get_fitness();});
+
+        int rank = 0;
+        std::for_each(inds.begin(), inds.end(),
+                      [&rank](auto& ind){ind.set_rank(rank++);});
+
+        return *this;
+    }
 
     ///resets the fitness of the population to 0
     void reset_fitness()
@@ -166,6 +245,27 @@ double avg_fitness(const population<Ind>& p){
     return avg_fitness(p.get_inds());
 }
 
+//Checks that all individuals have all the weihgts of their network equal to the same value
+template<class Pop>
+bool all_inds_weights_have_value(const Pop &pop, double weight_value)
+{
+    for(const auto& ind : pop.get_inds())
+    {
+        if(!all_weigths_have_value(ind.get_net(), weight_value))
+            return false;
+    }
+    return true;
+}
+
+///Checks that all ranks in the populaiton are the same
+template<class Ind>
+bool all_ranks_are_equal(const std::vector<Ind>& inds)
+{
+    return std::adjacent_find(inds.begin(), inds.end(),
+                       [](const Ind& lhs, const Ind &rhs)
+    {return lhs.get_rank() == rhs.get_rank();}) == inds.end();
+}
+
 ///Checks if fitness of all individuals equals a certain value
 template<class Ind>
 bool all_fitnesses_are(double value, const population<Ind>& p)
@@ -194,6 +294,15 @@ bool all_individuals_have_same_input(const population<Ind> &p)
     return true;
 }
 
+///Check that all inds in a vector have the same network
+template<class Ind>
+bool all_inds_have_same_net(const std::vector<Ind>& inds)
+{
+    return std::adjacent_find(inds.begin(), inds.end(),
+                       [](const Ind& lhs, const Ind &rhs)
+    {return lhs.get_net() == rhs.get_net();}) != inds.end();
+}
+
 ///Assign inputs to a population
 template<class Pop>
 void assign_new_inputs_to_inds(Pop &p, const std::vector<double> &inputs)
@@ -213,7 +322,6 @@ std::vector<double> calc_dist_from_target(const std::vector<Ind>& inds,
     std::vector<double> distance_from_target(inds.size());
     std::vector<double> output_scratch;
     std::vector<double> input_scratch;
-
     for(int i = 0 ; i < int(inds.size()); i++)
     {
         input_scratch = input;
@@ -241,11 +349,32 @@ void set_fitness_inds(population<Ind>& p, const std::vector<double>& fitness_vec
 {
     assert(p.get_inds().size() == fitness_vector.size());
 
-    for(size_t i = 0; i != fitness_vector.size(); i++)
+//#pragma omp parallel for
+    for(int i = 0; i < fitness_vector.size(); i++)
     {
         set_nth_ind_fitness(p, i, fitness_vector[i]);
     }
 }
+
+///Calculates the robustnesses of all individuals in a population and returns them in a vector
+template <class Pop>
+std::vector<double> calc_mutation_sensibility_all_inds(Pop& p, int n_mutations, std::mt19937_64& rng)
+{
+    auto inds = p.get_inds();
+    std::vector<double> mutations = create_mutations(n_mutations,
+                                                     p.get_mut_step(),
+                                                     rng);
+    std::vector<double> sensibilities_to_mutation;
+    sensibilities_to_mutation.resize(inds.size());
+#pragma omp parallel for
+    for(int i = 0;  i < inds.size(); i++)
+    {
+        sensibilities_to_mutation[i] = calc_phenotype_mutational_sensibility(inds[i].get_mutable_net(),
+                                                                             mutations);
+    }
+    return sensibilities_to_mutation;
+};
+
 
 ///Calculates the fitness of inds in pop given a target env_value
 template< class Ind>
@@ -326,6 +455,43 @@ double get_nth_ind_fitness(const population<Ind>& p, const size_t& ind_index)
 template< class Ind>
 const typename Ind::net_t& get_nth_ind_net(const population<Ind>& p, size_t ind_index);
 
+
+///Checks that the individuals index position in the
+///population vector are sorted by decreasing fitness value
+template<class Ind>
+bool is_sorted_by_fitness(const std::vector<Ind>& inds)
+{
+    return std::is_sorted(inds.begin(), inds.end(),
+                          [](const auto& lhs, const auto& rhs){return lhs.get_fitness() > rhs.get_fitness();});
+}
+
+///Checks that the individuals index position in the
+///population vector are sorted by decreasing rank
+template<class Ind>
+bool is_sorted_by_rank(const std::vector<Ind>& inds)
+{
+    bool is_sorted =  std::is_sorted(inds.begin(), inds.end(),
+                          [](const auto& lhs, const auto& rhs){return lhs.get_rank() < rhs.get_rank();});
+    auto no_two_equal = std::end(inds) == std::adjacent_find(std::begin(inds), std::end(inds),
+                                  [](const auto& lhs, const auto& rhs){return lhs.get_rank() == rhs.get_rank();});
+
+    return is_sorted && no_two_equal;
+}
+
+///Checks that all fitnesses are equal
+template<class Ind>
+bool all_fitnesses_are_equal(const std::vector<Ind>& inds)
+{
+    return  std::equal(inds.begin() + 1, inds.end(), inds.begin());
+}
+
+///Checks that all fitnesses are not equal
+template<class Ind>
+bool all_fitnesses_are_not_equal(const std::vector<Ind>& inds)
+{
+    return !all_fitnesses_are_equal(inds);
+}
+
 ///Select inds for new pop from old pop based on mutable dist
 /// and mutates them
 template< class Ind>
@@ -333,20 +499,26 @@ void select_new_pop(population<Ind>& p,
                     const rndutils::mutable_discrete_distribution<>& mut_dist,
                     std::mt19937_64& rng)
 {
-//#pragma omp parallel for
+
+    std::vector<int> selected_ind_index(p.get_inds().size());
     for( int i = 0; i < int(p.get_inds().size()); i++)
     {
-//#pragma omp critical
-        {
-        auto selected_ind_index = mut_dist(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
+        selected_ind_index[i] = mut_dist(rng);
+    }
+
+#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
+        p.get_new_inds()[i] = p.get_inds()[selected_ind_index[i]];
+    }
+
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
-        }
     }
 }
 
@@ -357,22 +529,29 @@ void select_new_pop_randomly(population<Ind>& p,
 {
     auto max_index_inds = p.get_inds().size() - 1;
     std::uniform_int_distribution<> index_distr(0, int(max_index_inds));
-//#pragma omp parallel for
+
+    std::vector<int> selected_ind_index(p.get_inds().size());
     for( int i = 0; i < int(p.get_inds().size()); i++)
     {
-//#pragma omp critical
-        {
-        auto selected_ind_index = index_distr(rng);
-        auto selected_ind = p.get_inds()[selected_ind_index];
-        p.get_new_inds()[i] = selected_ind;
+        selected_ind_index[i] = index_distr(rng);
+    }
+
+#pragma omp parallel for
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
+        p.get_new_inds()[i] = p.get_inds()[selected_ind_index[i]];
+    }
+
+    for( int i = 0; i < int(p.get_inds().size()); i++)
+    {
         p.get_new_inds()[i].mutate(p.get_mut_rate_weight(),
                                    p.get_mut_step(),
                                    rng,
                                    p.get_mut_rate_act(),
                                    p.get_mut_rate_dup());
-        }
     }
 }
+
 ///Swaps a vector of new_inds with the vector of old inds
 template< class Ind>
 void swap_new_with_old_pop(population<Ind>& p)
@@ -422,6 +601,9 @@ const std::vector<double> &get_nth_individual_input(const population<Ind> &p, co
 }
 
 }
+
+///Produces a simple populations with n individuals all with different weights
+population<> create_simple_pop(int n_inds = 2, bool all_different = true);
 
 void test_population() noexcept;
 

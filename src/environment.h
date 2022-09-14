@@ -7,39 +7,57 @@
 #include "utilities.h"
 
 static double env_func_1(std::vector<double> input){
-  return input[0] * input[0];
+    return input[0] * input[0];
 }
 
 static double env_func_2(std::vector<double> input){
-  return input[0]  * input[0] * input[0];
+    return input[0]  * input[0] * input[0];
 }
 
+// f(x) = 3 x - 4 x^3
+static double env_func_3(std::vector<double> input){
+    return 3 * input[0] - 4 * input[0] * input[0] * input[0];
+}
 
+///f(x) =  -0.8 + 9.32 x^2 - 15.84 x^4 + 6.33 x^6
+static double env_func_4(std::vector<double> input){
+    return -0.8 + 9.32 * input[0] * input[0] -
+            15.84 * input[0] * input[0] * input[0] * input[0] +
+            6.33 * input[0] * input[0] * input[0] * input[0] * input[0] * input[0];
+}
 
+double sigmoid_env(std::vector<double> x);
 
-static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map
-{
+static std::map<std::string, std::function<double(std::vector<double>)>> string_env_function_map{
 {"1", env_func_1},
-{"2", env_func_2}
-};
-
+{"2", env_func_2},
+{"3", env_func_3},
+{"4", env_func_4}
+                                                                         };
 
 
 struct env_param
 {
-    env_param(std::function<double(std::vector<double>)> fun_A = env_func_1,
-              std::function<double(std::vector<double>)> fun_B = env_func_2,
+
+    env_param(std::string name_func_A = "1",
+              std::string name_func_B = "2",
               std::vector<double> env_cue_range = std::vector<double>{-1,1}) :
-        env_function_A{fun_A},
-        env_function_B{fun_B},
+        name_func_A{name_func_A},
+        name_func_B{name_func_B},
+        env_function_A{string_env_function_map.find(name_func_A)->second},
+        env_function_B{string_env_function_map.find(name_func_B)->second},
         cue_range{env_cue_range.front(),env_cue_range.back()}
     {}
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,
-                                   cue_range)
+                                   cue_range,
+                                   name_func_A,
+                                   name_func_B)
 
-std::function<double(std::vector<double>)> env_function_A;
-std::function<double(std::vector<double>)> env_function_B;
-range cue_range;
+    std::string name_func_A;
+    std::string name_func_B;
+    std::function<double(std::vector<double>)> env_function_A;
+    std::function<double(std::vector<double>)> env_function_B;
+    range cue_range;
 };
 
 bool operator==(const env_param& lhs, const env_param& rhs);
@@ -80,7 +98,7 @@ public:
     ///Changes the current environmental function to a new given one.
     void change_env_function(std::function<double(std::vector<double>)> new_func) {m_current_function = new_func;}
 
-    /// Returns the name of the current function
+    /// Returns the name of the current function (Either A or B for now)
     const char &get_name_current_function() const {return m_name_current_function;}
 
     ///Switches the name of the current function from A to B or B to A
@@ -132,7 +150,7 @@ std::vector<double> create_n_inputs(environment& e, const size_t &n_inputs, std:
 
 
 ///Calculates the optimal output, given input, using the env function
-double calculate_optimal(const environment &e, std::vector<double> input);
+double calculate_optimal(const environment &e, const std::vector<double> &input);
 
 ///Switches the current environmental function from A to B or B to A
 void switch_env_function(environment &e);

@@ -73,6 +73,12 @@ public:
         m_network = n;
     }
 
+    ///Changes all weights of a network to a given value
+    void change_all_weights(double new_weight)
+    {
+        m_network.change_all_weights_values(new_weight);
+    }
+
     ///Returns copy of fitness
     const double& get_fitness() const noexcept {return m_fitness;}
 
@@ -82,6 +88,9 @@ public:
     ///Returns const ref to network
     const Net& get_net() const noexcept {return m_network;}
 
+    ///Returns const ref to network
+    Net& get_mutable_net() noexcept {return m_network;}
+
     ///Returns ref to fitness USED FOR JSON SAVING
     double& get_to_fitness() noexcept {return m_fitness;}
 
@@ -90,6 +99,34 @@ public:
 
     ///Returns ref to network USED FOR JSON SAVING
     Net& get_to_net() noexcept {return m_network;}
+
+    ///Returns the rank of the individual
+    const int& get_rank() const noexcept
+    {
+        return m_rank;
+    }
+
+    ///Returns the rank of the ancestor of the individual
+    const std::string& get_ID() const noexcept
+    {
+        return m_ID;
+    }
+
+    ///Returns the rank of the ancestor of the individual
+    const std::string& get_ancestor_ID() const noexcept
+    {
+        return m_ancestor_ID;
+    }
+
+    ///Sets the rank of the individual
+    void set_ID(const std::string& ID) noexcept {m_ID =  ID;}
+
+    ///Sets the rank of the individual
+    void set_rank(int rank) noexcept {m_rank =  rank;}
+
+    ///Makes the actual ID of the individual the ancestor ID
+    ///to be used when saving to set a new lineage
+    void make_ID_ancestor_ID() {m_ancestor_ID = m_ID;};
 
     ///Mutates the network of an individual
     void mutate(double mut_rate_w, double mut_step, std::mt19937_64 &rng, double mut_rate_a, double mut_rate_d)
@@ -116,6 +153,15 @@ private:
 
     ///The network of an individual
     Net m_network;
+
+    ///The rank in terms of fitness of the individual in the population
+    int m_rank = 0;
+
+    ///The rank in terms of fitness of the individual in the population
+    std::string m_ID = "0";
+
+    ///The rank of the ancestor
+     std::string m_ancestor_ID = "0";
 };
 
 /// Checks if 2 individuals are the same
@@ -144,9 +190,9 @@ std::vector<double> response(const Ind& ind,
 /// using scratch memory vectors
 template<class Ind>
 void response_scratch(const Ind& ind,
-                                     std::vector<double>& input,
-                                     std::vector<double>& ouput
-                                     )
+                      std::vector<double>& input,
+                      std::vector<double>& ouput
+                      )
 {
     return output_ugly_but_fast(ind.get_net(),input, ouput);
 }
@@ -166,8 +212,8 @@ double calc_sqr_distance(const Ind &i,
 /// and a given value using scratch memory vectors
 template<class Ind>
 double calc_sqr_distance_scratch(const Ind &i,
-                         double env_value,
-                         const std::vector<double>& input)
+                                 double env_value,
+                                 const std::vector<double>& input)
 {
     auto output = response(i, input);
     return (output[0] - env_value) * (output[0] - env_value);
@@ -177,16 +223,17 @@ double calc_sqr_distance_scratch(const Ind &i,
 /// and a given value using scratch memory vectors
 template<class Ind>
 double calc_sqr_distance_scratch(const Ind &i,
-                         double env_value,
-                         std::vector<double>& input,
-                         std::vector<double>& output
-                         )
+                                 double env_value,
+                                 std::vector<double>& input,
+                                 std::vector<double>& output
+                                 )
 {
     response_scratch(i, input, output);
     return (output[0] - env_value) * (output[0] - env_value);
 }
 
 }
+
 
 void test_individual();
 

@@ -19,6 +19,12 @@ public:
   ///Returns a bool indicating whether this connection is active
   const bool &is_active() const noexcept {return m_is_active;}
 
+  ///changes the weight value by a given mut amount
+  void mutate_weight(const double& mut){m_weight += mut;}
+
+  ///changes the weight value by the negative value of a given mut amount
+  void reverse_mutate_weight(const double& mut){m_weight -= mut;}
+
   void change_weight(double new_weight) {m_weight = new_weight;}
 
   void change_activation(double new_activation) {m_is_active = new_activation;}

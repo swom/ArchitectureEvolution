@@ -14,8 +14,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1	
-#SBATCH --mem=350MB
+#SBATCH --cpus-per-task=5	
+#SBATCH --mem=1GB
 #SBATCH --job-name=arc_evo_sim
 #SBATCH --output=arc_evo_%j.log
 
@@ -33,5 +33,6 @@ echo "number of trials: "${11}
 echo "adaptation period: "${12}
 echo "change frequency type: "${13}
 echo "selection strength: "${14}
+echo "number of mutations: "${15}
 
-./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -T ${14}
+./src/arc_evo -S $1 -N $2 -X $3 -C $4 -G $5 -m $6 -s ${7} -f ${8} -R $9 -p ${10} -n ${11} -H ${12} -z ${13} -T ${14} -u${15}

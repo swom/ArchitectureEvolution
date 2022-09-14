@@ -10,7 +10,7 @@ population<Ind>::population(int init_nr_indiv,
     m_vec_indiv(static_cast<unsigned int>(init_nr_indiv),
                 individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_vec_new_indiv(static_cast<unsigned int>(init_nr_indiv),
-                individual{ind_param{net_param{net_arch, linear, net_arch}}}),
+                    individual{ind_param{net_param{net_arch, linear, net_arch}}}),
     m_mut_rate_weight{mut_rate},
     m_mut_step{mut_step}
 {}
@@ -45,15 +45,18 @@ bool all_nets_equals_to(const population<Ind>& p, const typename Ind::net_t& n)
     {return i.get_net() == n;});
 }
 
-std::vector<double> create_rescaled_fitness_vec(std::vector<double> distance_from_target,
+
+std::vector<double> create_rescaled_fitness_vec(const std::vector<double>& distance_from_target,
                                                 double selection_strength)
 {
-    std::vector<double> fitness_inds;
-    for(size_t i = 0; i != distance_from_target.size(); i++)
+    std::vector<double> fitness_inds(distance_from_target.size());
+
+//#pragma omp parallel for
+    for(int i = 0; i < distance_from_target.size(); i++)
     {
         auto ind_fit = std::exp(-selection_strength * distance_from_target[i]);
 
-        fitness_inds.push_back(ind_fit);
+        fitness_inds[i] = ind_fit;
     }
 
     return fitness_inds;
@@ -95,8 +98,49 @@ std::vector<double> rescale_dist_to_fit(std::vector<double> distance_from_target
 
     return fitness_inds;
 }
+
+
+const individual<>& find_best_ranking_ind(const population<>& p)
+{
+    return *std::min_element(p.get_inds().begin(),
+                     p.get_inds().end(),
+                     [](const auto& lhs, const auto& rhs){ return lhs.get_rank() < rhs.get_rank();});
 }
 
+const individual<>& find_worst_ranking_ind(const population<>& p)
+{
+    return *std::max_element(p.get_inds().begin(),
+                     p.get_inds().end(),
+                     [](const auto& lhs, const auto& rhs){ return lhs.get_rank() < rhs.get_rank();});
+}
+
+}
+
+population<> create_simple_pop(int n_inds, bool all_different)
+{
+    pop_param p_p;
+    p_p.number_of_inds = n_inds;
+
+    net_param n_p;
+    n_p.max_arc = {1,1,1};
+    n_p.net_arc = {1,1,1};
+
+    ind_param i_p;
+    i_p.net_par = n_p;
+
+    population p{p_p, i_p};
+
+    if(all_different)
+    {
+        std::mt19937_64 rng;
+        for(int i = 0; i != p.get_inds().size() - 1; i++)
+        {
+            p.get_inds_nonconst().at(i).mutate(1, 1, rng, 0, 0);
+        }
+    }
+
+    return p;
+}
 
 #ifndef NDEBUG
 void test_population() noexcept
@@ -184,6 +228,59 @@ void test_population() noexcept
         assert(are_equal_with_tolerance(double(p.get_inds().size()), number_of_inds) &
                are_equal_with_tolerance(p.get_mut_rate_weight(), mut_rate) &
                are_equal_with_tolerance(p.get_mut_step(), mut_step));
+    }
+
+    ///It is possible to obtain a vector of robustness measures from
+    /// a vector of individuals
+    {
+        double robust_weight = 10;
+        double frail_weight = 0;
+        int n_mutations = 10;
+        std::mt19937_64 rng;
+        auto rng2 = rng;
+
+        population robust_p;
+        robust_p.change_all_inds_weights(robust_weight);
+
+        population frail_p;
+        assert(pop::all_inds_weights_have_value(frail_p, frail_weight));
+
+        auto robust_inds_robustness = pop::calc_mutation_sensibility_all_inds(robust_p, n_mutations, rng);
+        auto frail_inds_robustness = pop::calc_mutation_sensibility_all_inds(frail_p, n_mutations, rng2);
+
+        assert(pairwise_comparison_for_majority(robust_inds_robustness,
+                                                frail_inds_robustness));
+    }
+
+    ///Individuals can be  ranked based on fitness
+    {
+       auto p = create_simple_pop();
+
+        std::vector<double> input{1};
+        double optimal_value = 1;
+        double sel_str = 1;
+
+        pop::calc_fitness(p, optimal_value, sel_str, input);
+        p.sort_and_assign_ranks_by_fitness(); ///see comment on declaration!!!
+
+        assert(pop::all_fitnesses_are_not_equal(p.get_inds()));
+        assert(pop::is_sorted_by_fitness(p.get_inds()) &&
+               pop::is_sorted_by_rank(p.get_inds()));
+    }
+
+    ///The first rank is 0, the last is equal to the number of inds - 1
+    {
+        auto p = create_simple_pop();
+
+         std::vector<double> input{1};
+         double optimal_value = 1;
+         double sel_str = 1;
+
+         pop::calc_fitness(p, optimal_value, sel_str, input);
+         p.sort_and_assign_ranks_by_fitness(); ///see comment on declaration!!!
+
+         assert(pop::find_best_ranking_ind(p).get_rank() == 0);
+         assert(pop::find_worst_ranking_ind(p).get_rank() == p.get_inds().size() - 1);
     }
 
 }

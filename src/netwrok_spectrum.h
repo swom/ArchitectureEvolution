@@ -5,16 +5,79 @@
 #include <vector>
 #include "range.h"
 
+///Stores the phenpotype and fitness sensibilities to mutations of a network
+struct fit_and_phen_sens_t
+{
+
+    fit_and_phen_sens_t(double fitness_sens = 123456,
+                        double phenotype_sens = 123456,
+                        int rank = -13456,
+                        double fitness = -11111):
+        m_fitness_sens{fitness_sens},
+        m_phenotype_sens{phenotype_sens},
+        m_rank{rank},
+        m_fitness{fitness}
+    {if(m_phenotype_sens < 0)
+        {
+            throw std::runtime_error{"During construction of fit_and_phen_t:"
+                                  "sensibility constructed with phenotipyc sensibility < 0,"
+                                  "phenotypic sensibility cannot be < 0"};}
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(fit_and_phen_sens_t,
+                                   m_fitness_sens,
+                                   m_phenotype_sens,
+                                   m_fitness,
+                                   m_rank,
+                                   m_ID,
+                                   m_ancestor_ID)
+
+    ///Returns the rank of the idnidvidual
+    int get_rank() const noexcept {return m_rank;}
+
+    ///Returns the ID  of the idnidvidual
+    const std::string& get_ID() const noexcept {return m_ID;}
+
+    ///Returns the Id of the ancestor of the idnidvidual
+    const std::string& get_ancestor_ID() const noexcept {return m_ancestor_ID;}
+
+    ///The sensitibility of fitness to mutations,
+    /// negative values signify that mutations on average move
+    /// the network away from the fitness optima
+    /// positive values signify that mutations move it closer
+    double m_fitness_sens;
+
+    ///The sensitibility of the phenotype to mutations,
+    /// higher valuessignify that mutation on average
+    /// move the phenotype further away from its original state
+    double m_phenotype_sens;
+
+    ///The rank of the individual from which the sensibilities are calculated
+    int m_rank;
+
+    ///The ID of the individual from which the sensibilities are calculated
+    std::string m_ID;
+
+    ///The ID of the ancestir if individual from which the sensibilities are calculated
+    std::string m_ancestor_ID;
+
+    ///The fitness of the individual
+   double m_fitness;
+};
+
+bool operator== (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs);
+bool operator!= (const fit_and_phen_sens_t& lhs, const fit_and_phen_sens_t& rhs);
+
 struct react_norm_t { 
     react_norm_t(){};
     react_norm_t(double x, double y):
-    m_x{x},
-    m_y{y}
+        m_x{x},
+        m_y{y}
     {};
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, m_x, m_y);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(react_norm_t, m_x, m_y);
 
-  double m_x;
-  double m_y;
+    double m_x;
+    double m_y;
 };
 bool operator==(const react_norm_t& lhs, const react_norm_t& rhs);
 
@@ -61,15 +124,15 @@ public:
     {};
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network_spectrum,
-                                       m_current_reac_norm,
-                                       m_net_spectrum_weights_for_weights_mutation
-                                       //                                       ,
-                                       //                                       m_net_spectrum_biases_for_weights_mutation,
-                                       //                                       m_net_spectrum_for_act_mutation,
-                                       //                                       m_net_spectrum_for_dup,
-                                       //                                       m_net_spectrum_for_nradd,
-                                       //                                       m_net_spectrum_for_del
-                                       )
+                                   m_current_reac_norm,
+                                   m_net_spectrum_weights_for_weights_mutation
+                                   //                                       ,
+                                   //                                       m_net_spectrum_biases_for_weights_mutation,
+                                   //                                       m_net_spectrum_for_act_mutation,
+                                   //                                       m_net_spectrum_for_dup,
+                                   //                                       m_net_spectrum_for_nradd,
+                                   //                                       m_net_spectrum_for_del
+                                   )
 
     ///
     ////// \brief get_reac_norm

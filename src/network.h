@@ -2,16 +2,21 @@
 #define NETWORK_H
 #include "utilities.h"
 #include <iostream>
-#include <random>
-#include <nlohmann/json.hpp>
-#include <mutex>
 #include "node.h"
 #include "mutation_type.h"
+#include "rndutils.hpp"
 #include "response_type.h"
 #include "netwrok_spectrum.h"
+#include <random>
+#include <ranges>
+#include <mutex>
+#include <nlohmann/json.hpp>
 
 double sigmoid(double x);
 double linear(double x);
+double constant_one(const std::vector<double>&);
+double constant_zero(const std::vector<double>&);
+
 
 static std::map<std::string, std::function<double(double)>> string_to_act_func_map
 {
@@ -24,23 +29,31 @@ struct net_param
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(net_param,
                                    net_arc,
                                    max_arc,
-                                   resp_type
+                                   resp_type,
+                                   input_range,
+                                   n_sampled_inputs
                                    )
 
     net_param(const std::vector<int>& net_arch = {1,2,1},
               std::function<double(double)> func = linear,
               const std::vector<int>& max_arch = {1,8,1},
-              response_type response_type = response_type::constitutive):
+              response_type response_type = response_type::constitutive,
+              const std::vector<double>& inp_range = {0,0},
+              const int& n_sampl_inps = 0):
         net_arc{net_arch},
         function{func},
         max_arc{max_arch},
-        resp_type{response_type}
+        resp_type{response_type},
+        input_range{inp_range.front(), inp_range.back()},
+        n_sampled_inputs{n_sampl_inps}
     {};
 
     std::vector<int> net_arc;
     std::function<double(double)> function;
     std::vector<int> max_arc;
     response_type resp_type;
+    range input_range;
+    int n_sampled_inputs;
 };
 
 bool operator==(const net_param& lhs, const net_param& rhs);
@@ -51,27 +64,34 @@ void mutate_weights(Net& n, const double& mut_rate,
                     const double& mut_step,
                     std::mt19937_64& rng)
 {
-    if(mut_rate != 0){
+    if(mut_rate != 0)
+    {
         std::bernoulli_distribution mut_p{mut_rate};
         std::normal_distribution<double> mut_st{0,mut_step};
 
-        for(size_t i = 0; i != n.get_net_weights().size(); ++i)
-            for(size_t j = 0; j != n.get_net_weights()[i].size(); ++j){
-                auto &current_node = n.get_net_weights()[i][j];
-                if(current_node.is_active()){
-                    for(size_t k = 0; k != current_node.get_vec_weights().size(); ++k)
+        for(size_t layer = 0; layer != n.get_net_weights().size(); ++layer)
+        {
+            auto& current_layer = n.get_net_weights()[layer];
+            for(size_t node = 0; node != current_layer.size(); ++node)
+            {
+                auto &current_node = current_layer[node];
+                if(current_node.is_active())
+                {
+                    for(size_t weights = 0; weights != current_node.get_vec_weights().size(); ++weights)
                     {
-                        if(mut_p(rng) && (i == 0 ? true : n.get_net_weights()[i -1][k].is_active())){
-                            const auto &current_weight = current_node.get_vec_weights().at(k);
+                        if(mut_p(rng) &&
+                                (layer == 0 ? true : n.get_net_weights()[layer -1][weights].is_active()))
+                        {
+                            const auto &current_weight = current_node.get_vec_weights().at(weights);
                             weight mutated_weight(current_weight.get_weight() + mut_st(rng),
                                                   current_weight.is_active());
-                            current_node.change_nth_weight(mutated_weight, k);
+                            current_node.change_nth_weight(mutated_weight, weights);
                         }
                     }
                 }
             }
+        }
     }
-
 }
 
 ///Mutates the nodes of a network via duplication
@@ -214,14 +234,20 @@ void mutate_biases(Net& n, const double& mut_rate,
     }
 }
 
+///Calculates the reaction_norm that is produced by an optimal function
+/// for a given range and a given number of data points
+template<class Func>
+reac_norm calculate_reaction_norm_from_function(const Func& func,
+                                                const range& cue_range,
+                                                const int& n_data_points);
 
 template<mutation_type M = mutation_type::weights,
          response_type R = response_type::constitutive>
 class network
 {
 public:
-  static constexpr mutation_type mutation_t = M;
-  static constexpr response_type response_t = R;
+    static constexpr mutation_type mutation_t = M;
+    static constexpr response_type response_t = R;
 
 private:
 
@@ -282,7 +308,16 @@ public:
         m_current_arc{n_p.net_arc},
         m_max_arc{n_p.max_arc}
     {
-        ///Change architecture by adding one extra input for environment if response is plastic
+
+        if constexpr (R == response_type::additive)
+        {
+            m_additive_genes = calculate_reaction_norm_from_function(constant_zero,
+                                                                     n_p.input_range,
+                                                                     n_p.n_sampled_inputs);
+            return;
+        }
+        ///Change architecture by adding one extra input
+        ///for environment if response is plastic
         if constexpr (R == response_type::plastic)
         {
             m_input_size ++;
@@ -294,31 +329,75 @@ public:
             throw std::runtime_error{"starting and maximum architecture are not compatible"};
         }
 
-        for (size_t i = 1; i != m_current_arc.size(); i++ )
+        for (size_t layer = 1; layer != m_current_arc.size(); layer++ )
         {
             std::vector<node>temp_layer_vector;
-            size_t n_nodes_prev_layer = m_max_arc[i-1];
-            for(int j = 0; j != m_max_arc[i]; j++)
+            size_t n_nodes_prev_layer = m_max_arc[layer-1];
+            for(int node = 0; node != m_max_arc[layer]; node++)
             {
                 std::vector<weight> temp_weights(n_nodes_prev_layer);
 
-                node temp_node(temp_weights);
-                if((j+1) <= m_current_arc[i]){
+                class node temp_node(temp_weights);
+                if(node < m_current_arc[layer])
+                {
                     temp_node.activate();
                 }
+
                 temp_layer_vector.push_back(temp_node);
             }
-
 
             //A vector of the size of the number of connections is pushed back in the weight matrix
             m_network_weights.push_back(temp_layer_vector);
         }
     }
 
+
+    ///Checks if hhe layer has no nodes
     inline bool any_layer_has_no_nodes() const noexcept{ return std::any_of(
                     m_network_weights.begin(),
                     m_network_weights.end(),
                     [] (const auto& i) {return i.size() == 0;});}
+
+    ///Changes the value of all weights and biases in the network to a certain value
+    void change_all_weights_and_biases_values(double new_value)
+    {
+        for(auto& layer : m_network_weights)
+            for(auto& node : layer)
+            {
+                node.change_bias(new_value);
+                for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
+                {
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    weight changed_weight(new_value, current_weight.is_active());
+                    node.change_nth_weight(changed_weight, i);
+                }
+            }
+    }
+
+    ///Changes the value of all weights in the network to a certain value
+    void change_all_weights_values(double new_weight)
+    {
+        for(auto& layer : m_network_weights)
+            for(auto& node : layer)
+                for(size_t i = 0; i != node.get_vec_weights().size(); ++i)
+                {
+                    const weight &current_weight = node.get_vec_weights()[i];
+                    weight changed_weight(new_weight, current_weight.is_active());
+                    node.change_nth_weight(changed_weight, i);
+                }
+    }
+
+    void mutate_genes(const double& mut_rate_weight,
+                      const double& mut_step,
+                      std::mt19937_64& rng)
+    {
+        std::bernoulli_distribution p_mut{mut_rate_weight};
+        std::normal_distribution p_step{mut_step};
+        for(auto& gene : m_additive_genes)
+        {
+            gene.m_y += p_step(rng) * p_mut(rng);
+        }
+    }
 
     void mutate(const double& mut_rate_weight,
                 const double& mut_step,
@@ -327,6 +406,10 @@ public:
                 const double& mut_rate_dup = 0.01
             )
     {
+        if constexpr(R == response_type::additive)
+        {
+            mutate_genes(mut_rate_weight, mut_step, rng);
+        }
 
         if constexpr (M == mutation_type::activation)
         {
@@ -383,10 +466,15 @@ public:
 
     };
 
+    ///Returns reference to the first node of the first layer
+    node& get_first_node(){return m_network_weights[0][0];}
+
+
+    ///Returns the index of the first inactive node in the layer l
     inline std::vector<node>::iterator get_empty_node_in_layer(size_t l)
     {
         std::vector<node> &layer = get_net_weights()[l];
-        return std::find_if(layer.begin(), layer.end(), node_is_inactive);
+        return std::find_if(layer.begin(), layer.end(), is_inactive);
     }
 
 
@@ -499,7 +587,9 @@ public:
                 }
             }
             else{
-                if(std::count(indexes_to_activate.begin(), indexes_to_activate.end(), i)){
+                if(std::count(indexes_to_activate.begin(),
+                              indexes_to_activate.end(), i))
+                {
                     w.change_activation(true);
                     w.change_weight(dist_in(rng));
                     added_node.change_nth_weight(w,i);
@@ -564,7 +654,8 @@ public:
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(network,
                                    m_input_size,
-                                   m_network_weights
+                                   m_network_weights,
+                                   m_additive_genes
                                    );
 
     ///Returns the activation function
@@ -574,6 +665,9 @@ public:
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
 
     double operator ()(double n) const {return m_activation_function(n);}
+
+    ///Returns the additive genes
+    const reac_norm& get_genes() const noexcept {return m_additive_genes;}
 
     ///Returns const ref to vector of weights
     const std::vector<std::vector<node>>& get_net_weights() const noexcept{return m_network_weights;}
@@ -589,6 +683,8 @@ public:
 
     ///Changes the current arc of a network to a new one
     void change_network_arc(std::vector<int> new_arc){
+
+
         if(net_arc_and_max_arc_are_compatible(new_arc, m_max_arc)){
             m_current_arc = new_arc;
         }
@@ -596,6 +692,8 @@ public:
         {
             throw std::invalid_argument{"The current and maximum architectures are not compatible"};
         }
+
+
     }
 
 
@@ -638,11 +736,6 @@ public:
                     ++weight_index)
                 {
                     if(!current_layer[node_index].get_vec_weights()[weight_index].is_active()) continue;
-
-                    //                        tbb::parallel_for( tbb::blocked_range<size_t>(0, n_mutations ),
-                    //                                           [&]( const tbb::blocked_range<size_t> &x)
-                    //                        {
-                    //                            for(size_t mut=x.begin(); mut!=x.end(); ++mut)
 #pragma omp parallel for
                     for (int mut = 0; mut < int(mutations.size()); mut++)
                     {
@@ -656,11 +749,8 @@ public:
                                                                           weight_index
                                                                           );
                     }
-                    //                        });
-
                     node_spectrum[weight_index] = weight_spectrum;
                 }
-
                 layer_spectrum[node_index] = node_spectrum;
             }
             network_weights_spectrum[layer_index] = layer_spectrum;
@@ -670,6 +760,9 @@ public:
 
 
 private:
+
+    ///Additivegnes used if network is templated as response_type::additive
+    reac_norm m_additive_genes;
 
     ///Vector of of vectors, representing the weights coming into each node
     std::vector<std::vector<node>> m_network_weights;
@@ -750,6 +843,239 @@ bool are_equal_except_mutation_type(const network<M_lhs>& lhs, const network<M_r
             lhs.get_net_weights() == rhs.get_net_weights();
 }
 
+///Creates N mutation values given a mutation step S
+std::vector<double> create_mutations(int n_mutations,
+                                     double mutation_step, std::mt19937_64 &rng);
+
+///Calculates the distance between the y elements of 2 reaction norms
+double rn_distance(const reac_norm& lhs, const reac_norm& rhs);
+
+///Calculates the reaction_norm of an individual's network
+/// for a given range and a given number of data points
+template<class Net>
+double calculate_net_distance_from_reaction_norm(const Net& net,
+                                                 const reac_norm& r_norm
+                                                 )
+{
+    double sqr_distance = 0;
+    std::vector<double> input;
+    std::vector<double> output;
+    for (int i = 0; i != r_norm.size(); i++)
+    {
+        input.assign({r_norm[i].m_x});
+        output_ugly_but_fast(net, input, output);
+        sqr_distance += (r_norm[i].m_y - output[0]) *
+                (r_norm[i].m_y - output[0]);
+    }
+    return std::sqrt(sqr_distance);
+}
+
+///Caluclates the distance from a base reaction norm
+/// of a netwrok when one of its eights undergoes a mutation
+template<class Net>
+double calc_rn_distance_for_weight_mut(Net& net,
+                                       weight& current_weight,
+                                       const reac_norm& base_reac_norm,
+                                       const double& mutation)
+{
+
+    current_weight.mutate_weight(mutation);
+    auto dist = calculate_net_distance_from_reaction_norm(net,
+                                                          base_reac_norm);
+    current_weight.reverse_mutate_weight(mutation);
+    return dist;
+}
+
+///Calculates the distances from a base reaction norm
+/// of a netwrok when the weights of one of its
+/// nodes undergo a mutation
+template<class Net>
+void  calc_rn_distance_for_weights_mut(Net& net,
+                                       node& node,
+                                       const reac_norm& reac_norm,
+                                       const double& mutation,
+                                       std::vector<double>& distance)
+{
+    for(auto& current_weight : node.get_vec_mutable_weights())
+    {
+        distance.emplace_back(calc_rn_distance_for_weight_mut(net,
+                                                              current_weight,
+                                                              reac_norm,
+                                                              mutation));
+    }
+}
+
+///Calculates the distances from a base reaction norm
+/// of a netwrok when the weights of one of its
+/// nodes undergo a mutation
+template<class Net>
+void  calc_delta_distances_for_weights_mut(Net& net,
+                                           node& node,
+                                           const reac_norm& reac_norm,
+                                           const double& mutation,
+                                           std::vector<double>& distance,
+                                           double distance_from_base_norm)
+{
+    for(auto& current_weight : node.get_vec_mutable_weights())
+    {
+        distance.emplace_back(distance_from_base_norm - calc_rn_distance_for_weight_mut(net,
+                                                                                        current_weight,
+                                                                                        reac_norm,
+                                                                                        mutation));
+    }
+}
+
+///Calculates the distance from a base reaction norm
+/// of a network whose node's bias is mutated
+template<class Net>
+double calculate_rn_distance_for_bias_mut(Net& net,
+                                          node& node,
+                                          const reac_norm& base_reac_norm,
+                                          const double& mutation)
+{
+    node.mutate_bias(mutation);
+    auto dist = calculate_net_distance_from_reaction_norm(net, base_reac_norm);
+    node.reverse_mutate_bias(mutation);
+    return dist;
+}
+
+////Calculates the reaction norm of a network with a mutated bias
+/// using a scratch reaction norm
+template<class Net>
+void calculate_rn_for_bias_mut(Net& net,
+                               node& node,
+                               reac_norm& scratch_reaction_norm,
+                               const double& mutation)
+{
+    node.mutate_bias(mutation);
+    recalculate_scratch_reaction_norm(net, scratch_reaction_norm);
+    node.reverse_mutate_bias(mutation);
+}
+
+////Calculates the reaction norm of a network with a mutated weights
+/// using a scratch reaction norm
+template<class Net>
+void calculate_rn_for_weights_mut(Net& net,
+                                  weight& weight,
+                                  reac_norm& scratch_reaction_norm,
+                                  const double& mutation)
+{
+    weight.mutate_weight(mutation);
+    recalculate_scratch_reaction_norm(net, scratch_reaction_norm);
+    weight.reverse_mutate_weight(mutation);
+}
+
+///Calculates the robustness of the fitness
+/// of a network to a series of mutations
+/// on all its loci
+template<typename Func, class Net>
+double calc_fitness_mutational_sensibility(Net& net,
+                                           const std::vector<double> mutations,
+                                           Func optimal_function,
+                                           const range& input_range = {-1,1},
+                                           int n_points = 100)
+{
+
+    std::vector<double> distances_differences;
+
+    auto optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
+    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+
+    auto distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
+
+    for(const auto& mutation : mutations)
+        for(auto& layer : net.get_net_weights())
+            for(auto& node : layer)
+            {
+                auto distance_from_optimal_after_bias_mut = calculate_rn_distance_for_bias_mut(net, node, optimal_reac_norm, mutation);
+                distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_bias_mut);
+
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    auto distance_from_optimal_after_weight_mut =  calc_rn_distance_for_weight_mut(net,
+                                                                                                   current_weight,
+                                                                                                   optimal_reac_norm,
+                                                                                                   mutation);
+
+                    distances_differences.emplace_back(distance_base_rn_from_optimal_rn - distance_from_optimal_after_weight_mut);
+                }
+            }
+
+    return distances_differences.empty() ? 0 : calc_mean(distances_differences);
+}
+
+///Calculates the robustness of the phenotype produced by a network
+/// to a series of mutations on all its loci
+template<class Net>
+double calc_phenotype_mutational_sensibility(Net& net,
+                                             const std::vector<double> mutations,
+                                             const range& input_range = {-1,1},
+                                             int n_points = 100)
+{
+
+    std::vector<double> distances;
+    auto base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+
+    for(const auto& mutation : mutations)
+        for(auto& layer : net.get_net_weights())
+            for(auto& node : layer)
+            {
+                distances.emplace_back(calculate_rn_distance_for_bias_mut(net, node, base_reac_norm, mutation));
+
+                for(auto& current_weight : node.get_vec_mutable_weights())
+                {
+                    distances.emplace_back(calc_rn_distance_for_weight_mut(net,
+                                                                           current_weight,
+                                                                           base_reac_norm,
+                                                                           mutation));
+                }
+            }
+    return distances.empty() ? 0 : calc_mean(distances);
+}
+
+///Calculates the robustness of the phenotype produced by a network
+/// and its fitness
+/// to a series of mutations on all its loci
+template<class Net, typename Func>
+fit_and_phen_sens_t calc_phen_and_fit_mut_sensibility(Net& net,
+                                                      const std::vector<double>& mutations,
+                                                      Func optimal_function,
+                                                      const range& input_range = {-1,1},
+                                                      int n_points = 100)
+{
+
+    std::vector<double> fitness_distances;
+    std::vector<double> phenotype_distances;
+
+    reac_norm optimal_reac_norm = calculate_reaction_norm_from_function(optimal_function, input_range, n_points);
+    reac_norm base_reac_norm = calculate_reaction_norm(net, input_range, n_points);
+    reac_norm scratch_reac_norm = base_reac_norm;
+
+    double distance_base_rn_from_optimal_rn = rn_distance(optimal_reac_norm,base_reac_norm);
+
+    for(const auto& mutation : mutations)
+        for(auto& layer : net.get_net_weights())
+        {
+            auto active_nodes = layer | std::views::filter([](node& n){return is_active(n);});
+            for(auto& node : active_nodes)
+            {
+                calculate_rn_for_bias_mut(net, node, scratch_reac_norm, mutation);
+                fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+
+                auto active_weights = node.get_vec_mutable_weights() | std::views::filter([](weight& w){return is_active(w);});
+                for(auto& current_weight : active_weights)
+                {
+                    calculate_rn_for_weights_mut(net, current_weight, scratch_reac_norm, mutation);
+                    fitness_distances.emplace_back(distance_base_rn_from_optimal_rn - rn_distance(optimal_reac_norm, scratch_reac_norm));
+                    phenotype_distances.emplace_back(rn_distance(base_reac_norm, scratch_reac_norm));
+                }
+            }
+        }
+
+    return fit_and_phen_sens_t{calc_mean(fitness_distances), calc_mean(phenotype_distances)};
+}
+
 template<class Net>
 Net change_all_weights_values(Net n, double new_weight)
 {
@@ -778,7 +1104,89 @@ Net change_all_weights_values_and_activations(Net n, weight new_weight)
     return n;
 }
 
+///Counts the number of biases
+/// in a network
+template<class Net>
+int count_biases(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count++;
+        }
+    return count;
+}
 
+///Counts the number of nodes
+/// in a network
+template<class Net>
+int count_nodes(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count += node.get_vec_weights().size();
+        }
+    return count;
+}
+
+///Counts the number of weights and biases (mutable loci by standard mode of mutation)
+/// in a network
+template<class Net>
+int count_weights_and_biases(const Net& n)
+{
+    int count = 0;
+    for(const auto& layer : n.get_net_weights())
+        for(const auto& node : layer)
+        {
+            count++;
+            count += node.get_vec_weights().size();
+        }
+    return count;
+}
+
+
+///Calculates the reaction_norm that is produced by an optimal function
+/// for a given range and a given number of data points
+template<class Func>
+reac_norm calculate_reaction_norm_from_function(const Func& func,
+                                                const range& cue_range,
+                                                const int& n_data_points)
+{
+    reac_norm r_norm;
+    r_norm.reserve(n_data_points);
+    std::vector<double> input;
+    double step_size = (cue_range.m_end - cue_range.m_start) / n_data_points;
+    if(step_size == 0)
+    {
+        input.assign({ cue_range.m_start });
+        r_norm.emplace_back(cue_range.m_start, func(input));
+        return r_norm;
+    }
+
+    for (double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
+    {
+        input.assign({ i });
+        r_norm.emplace_back(i, func(input));
+    }
+    return r_norm;
+}
+
+///Checks if the distance of the reaction norm of a network
+/// from an optimal function is 0
+template<typename Fun, class Net>
+bool rn_is_equal_to_optimal_rn(const Net& net,
+                               Fun function,
+                               range input_range,
+                               int n_points)
+{
+    auto net_rn = calculate_reaction_norm(net, input_range, n_points);
+    auto optimal_rn = calculate_reaction_norm_from_function(function, input_range, n_points);
+
+    return net_rn == optimal_rn;
+}
 ///Mutates a network n times with given mutation
 /// rate and step and returns vector all mutated weights
 /// of network in all times it was mutated
@@ -828,7 +1236,49 @@ bool all_weigths_are_active(const Net &n);
 
 ///Checks that all weights have a certain value
 template<class Net>
-bool all_weigths_have_value(const Net &n, double value);
+bool all_weigths_have_value(const Net &n, double value)
+{
+    auto weights = n.get_net_weights();
+
+    for(auto &layer : weights ){
+        for(auto &node : layer){
+            for (size_t i = 0; i != node.get_vec_weights().size(); ++i){
+                const class weight& current_weight = node.get_vec_weights()[i];
+                if(current_weight.get_weight() != value)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+///Checks that all weights have an absolute value higher than a certain amount
+template<class Net>
+bool all_weigths_have_higher_abs_value(const Net &n, double value);
+//{
+//    auto weights = n.get_net_weights();
+
+//    for(const auto &layer : weights )
+//    {
+//        for(const auto &node : layer)
+//        {
+//            if(is_active(node))
+//            {
+//                for(const auto& current_weight : node.get_vec_weights())
+//                {
+//                    if(is_active(current_weight) &&
+//                            std::abs(current_weight.get_weight()) < value)
+//                    {
+//                        return false;
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return true;
+//}
 
 ///Checks that the registered_mutations correspond to the given mutation rate
 template<class Net>
@@ -912,32 +1362,45 @@ std::vector<double> output(const Net& n, std::vector<double> input)
 template<class Net>
 void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<double>& output)
 {
+    if constexpr(Net::response_t == response_type::additive)
+    {
+        output.resize(1);
+        const react_norm_t& gene =  *std::find_if(n.get_genes().begin(), n.get_genes().end(),
+                                                  [&](const auto& gene){return gene.m_x == input[0];});
+        output[0] = gene.m_y;
+        return;
+    }
     assert(input.size() == n.get_input_size());
 
     if (n.any_layer_has_no_nodes())
     {
         throw std::runtime_error{ "One layer has 0 nodes" };
     }
-    for (size_t layer = 0; layer != n.get_net_weights().size(); layer++)
+
+    auto n_layers = n.get_net_weights().size();
+    for (size_t layer = 0; layer != n_layers; layer++)
     {
-        output.clear();
-        for (size_t node = 0; node != n.get_net_weights().at(layer).size(); node++)
+        auto n_nodes = n.get_net_weights()[layer].size();
+        output.resize(n_nodes);
+        for (size_t node = 0; node != n_nodes; node++)
         {
-            const auto& current_node = n.get_net_weights().at(layer).at(node);
-            double node_value = 0;
+            const auto& current_node = n.get_net_weights()[layer][node];
             if (current_node.is_active())
             {
                 const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                node_value = current_node.get_bias() +
-                        std::inner_product(input.begin(),
-                                           input.end(),
-                                           vec_w.begin(),
-                                           0.0,
-                                           [](double a, double b) { return a + b; },
+                output[node] = n(current_node.get_bias() +
+                                 std::inner_product(input.begin(),
+                                                    input.end(),
+                                                    vec_w.begin(),
+                                                    0.0,
+                                                    [](double a, double b) { return a + b; },
                 [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
-                );
+                ));
             }
-            output.push_back(n(node_value));
+            else
+            {
+                output[node] = 0;
+            }
         }
         output.swap(input);
     }
@@ -1181,20 +1644,19 @@ reac_norm calculate_reaction_norm(const Net& net,
                                   const range& cue_range,
                                   const int& n_data_points)
 {
-    //reac_norm r_norm;
-    //r_norm.reserve(n_data_points);
-    //double step_size = (cue_range.m_end - cue_range.m_start)/n_data_points;
-    //for(double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
-    //{
-    //  r_norm.push_back({ i, output(net, std::vector<double>{i}).at(0) });
-    //}
-    //return r_norm;
-
     reac_norm r_norm;
     r_norm.reserve(n_data_points);
     std::vector<double> input;
     std::vector<double> output;
     double step_size = (cue_range.m_end - cue_range.m_start) / n_data_points;
+    if(step_size == 0)
+    {
+        input.assign({ cue_range.m_start });
+        output_ugly_but_fast(net, input, output);
+        r_norm.emplace_back(cue_range.m_start, output[0]);
+        return r_norm;
+    }
+
     for (double i = cue_range.m_start; i < cue_range.m_end; i += step_size)
     {
         input.assign({ i });
@@ -1203,6 +1665,25 @@ reac_norm calculate_reaction_norm(const Net& net,
     }
     return r_norm;
 }
+
+///Recalculates the reaction_norm of an individual's network
+///based on the inputs (.m_x) of a given reaction norm
+template<class Net>
+void recalculate_scratch_reaction_norm(const Net& net,
+                                       reac_norm& r_norm)
+{
+
+    std::vector<double> input;
+    std::vector<double> output;
+
+    for (int i = 0; i < r_norm.size(); i++)
+    {
+        input.assign({ r_norm[i].m_x });
+        output_ugly_but_fast(net, input, output);
+        r_norm[i].m_y = output[0];
+    }
+}
+
 
 ///Calculates the reaction_norm of an individual's network
 /// for a given range and a given number of data points
@@ -1238,6 +1719,22 @@ reac_norm calculate_reaction_norm_with_modified_weight(const Net& net,
     return r_norm;
 }
 
+template<class N>
+double weights_sum(const N& network)
+{
+    double sum = 0;
+    for(const auto& layer : network.get_net_weights())
+    {
+        for(const auto& node : layer)
+        {
+            for(const auto& weight : node.get_vec_weights())
+            {
+                sum += weight.get_weight();
+            }
+        }
+    }
+    return sum;
+}
 void test_network();
 
 #endif // NETWORK_H

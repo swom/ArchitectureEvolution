@@ -6,12 +6,14 @@
 
 #include "selection_type.h"
 #include "env_change_type.h"
+#include "evaluation_type.h"
 #include "adaptation_period.h"
 #include "environment.h"
 #include "population.h"
 //#include <omp.h>
 
-
+static int adaptation_period_proportion = 10;
+static int n_evaluation_point_for_full_reac_norm = 40;
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -24,10 +26,13 @@ struct sim_param
                                    selection_duration,
                                    n_generations,
                                    selection_freq,
+                                   selection_duration_prop_to_freq,
                                    change_sym_type,
                                    change_freq_type,
                                    sel_type,
-                                   adaptation_per)
+                                   adaptation_per,
+                                   evalu_type,
+                                   m_reac_norm_n_points)
 
 
     sim_param(int seed_n = 0,
@@ -36,22 +41,37 @@ struct sim_param
               double sel_strength = 1,
               int generations = 100,
               int selection_frequency = 1,
+              int selec_duration_prop_to_freq = 1,
+              int reaction_norm_n_points = 40,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,
-              adaptation_period adapt_per = adaptation_period::off):
+              adaptation_period adapt_per = adaptation_period::off,
+              evaluation_type eval_type = evaluation_type::full_rn):
         seed{seed_n},
         change_freq_A{change_frequency_A},
         change_freq_B{change_frequency_B},
         selection_strength{sel_strength},
         n_generations{generations},
         selection_freq{selection_frequency},
-        selection_duration{selection_freq == 0 ? 0 : selection_freq / 10},
+        selection_duration_prop_to_freq{selec_duration_prop_to_freq},
+        selection_duration{selection_freq == 0 ? 0 : selection_freq / selec_duration_prop_to_freq},
+                           m_reac_norm_n_points{reaction_norm_n_points},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
-                           adaptation_per{adapt_per}
-    {}
+                           adaptation_per{adapt_per},
+                           evalu_type{eval_type}
+    {
+                           if(selection_duration &&
+                              (static_cast<double>(selection_freq) / static_cast<double>(selec_duration_prop_to_freq)) < 1)
+    {
+                           throw std::invalid_argument{"Simulation parameters:"
+                                                       "the numbers provided for the seleciton frequency "
+                                                       "and the proportion of selection time between seleciton events are incorrect,"
+                                                       " as they selection period would be shorter than 1 generation"};
+}
+}
 
                            int seed;
     double change_freq_A;
@@ -60,16 +80,32 @@ struct sim_param
     int n_generations;
     int selection_freq;
     int selection_duration;
+    int selection_duration_prop_to_freq;
+
+    ///The number of data points on which to calculate the reaction norm of an individual
+    int m_reac_norm_n_points;
+
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
     selection_type sel_type;
     adaptation_period adaptation_per;
+    evaluation_type evalu_type;
 };
 
 bool operator==(const sim_param& lhs, const sim_param& rhs);
 
 struct all_params
 {
+    all_params(const env_param& e_p = env_param{},
+               const ind_param& i_p = ind_param{},
+               const pop_param& p_p = pop_param{},
+               const sim_param& s_p = sim_param{}):
+        e_p{e_p},
+        i_p{i_p},
+        p_p{p_p},
+        s_p{s_p}
+    {}
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(all_params,
                                    e_p,
                                    i_p,
@@ -88,14 +124,14 @@ struct all_params
 template<class Sim>
 void assign_new_inputs_to_inds(Sim &s, std::vector<double> new_input)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), new_input);
+    pop::assign_new_inputs_to_inds(s.get_pop_non_const(), new_input);
 }
 
 ///Assigns the input in simulation<M> to individuals
 template<class Sim>
 void assign_inputs(Sim &s)
 {
-    pop::assign_new_inputs_to_inds(s.get_pop(), s.create_inputs());
+    pop::assign_new_inputs_to_inds(s.get_pop_non_const(), s.create_inputs());
 }
 
 ///Returns the individuals in the simualtion
@@ -111,6 +147,14 @@ std::vector<double> get_inds_input(const Sim &s)
 {
     //assert(all_individuals_have_same_input(s));
     return get_inds(s)[0].get_input_values();
+}
+
+///Returns the additive genes of the first individual
+/// in the population
+template<class Sim>
+const reac_norm& get_first_ind_genes(const Sim &s)
+{
+    return get_inds(s)[0].get_net().get_genes();
 }
 
 ///Returns the size of the inputs of the individuals
@@ -139,7 +183,8 @@ template<class Pop = population<>,
          enum env_change_symmetry_type Env_change_sym = env_change_symmetry_type::symmetrical,
          enum env_change_freq_type Env_change_freq = env_change_freq_type::stochastic,
          enum selection_type Sel_Type = selection_type::constant,
-         enum adaptation_period Adapt_per = adaptation_period::off>
+         enum adaptation_period Adapt_per = adaptation_period::off,
+         enum evaluation_type Eval_type = evaluation_type::full_rn>
 class simulation
 {
 public:
@@ -193,6 +238,21 @@ public:
         m_optimal_output{1}
     {
         m_rng.seed(m_seed);
+        if constexpr(Pop::ind_t::net_t::response_t == response_type::additive)
+        {
+            if(params.s_p.m_reac_norm_n_points != params.i_p.net_par.n_sampled_inputs)
+            {
+                throw std::invalid_argument{"simulation on construction: Additive response selected,"
+                                            " but number of genes for inds is not the number of points in reaction norm"};
+            }
+            else if(get_first_ind_genes(*this) != calculate_reaction_norm_from_function(constant_zero,
+                                                                                    params.i_p.net_par.input_range,
+                                                                                    params.i_p.net_par.n_sampled_inputs))
+            {
+                throw std::invalid_argument{"simulation on construction: Additive response selected,"
+                                            " but genes x values for inds will not correspond to inputs"};
+            }
+        }
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(simulation,
@@ -204,11 +264,45 @@ public:
                                    m_sel_str,
                                    m_seed)
 
+    ///Assigns a unique ID to indivuduals
+    Pop assign_ID_to_inds() noexcept {return m_population.assign_ID_to_inds(m_time);};
+
+    ///Calculates the mutational sensibility to fitness and phenotype of all individuals in the population
+    std::vector<fit_and_phen_sens_t> calculate_fit_phen_mut_sens_for_all_inds(int n_mutations, int n_points)
+    {
+        return m_population.calculate_fit_phen_mut_sens_for_all_inds(n_mutations,
+                                                                     m_rng,
+                                                                     m_environment.get_current_function(),
+                                                                     m_params.e_p.cue_range,
+                                                                     n_points);
+    }
+
+    ///Changes all the weights of a given individual to a given value
+    void change_all_weights_nth_ind(size_t ind_index, double new_weight)
+    {
+        auto new_net = change_all_weights_values_and_activations(pop::get_nth_ind_net(m_population,
+                                                                                      ind_index),
+                                                                 new_weight);
+        pop::change_nth_ind_net(m_population,
+                                ind_index,
+                                new_net);
+    }
+
+    ///Changes weights of all individuals
+    void changel_all_inds_weights(double new_weight)
+    {
+        for(int ind = 0; ind != get_inds().size(); ind++)
+            change_all_weights_nth_ind(ind, new_weight);
+    }
+
     ///Returns const ref ot population memeber
     const Pop& get_pop() const noexcept {return m_population;}
 
     ///Returns const ref ot population memeber
-    Pop& get_pop() noexcept {return m_population;}
+    Pop& get_pop_non_const() noexcept {return m_population;}
+
+    ///Gets the size of the population
+    int get_pop_size() const noexcept {return m_population.get_inds().size();}
 
     ///Returns ref to rng
     std::mt19937_64& get_rng() noexcept {return m_rng;}
@@ -246,6 +340,12 @@ public:
     ///increases the number of genration the simulations has run for
     void increase_time() {++m_time;}
 
+    ///Returns the type of selection used in simulation
+    auto get_sel_type() const noexcept{return m_params.s_p.sel_type;}
+
+    ///Returns the type of enviromental change frequency used in simulation
+    auto get_e_change_f_type() const noexcept{return m_params.s_p.change_freq_type;}
+
     ///Returns the strength of selection
     double get_sel_str() const noexcept {return m_sel_str;}
 
@@ -255,7 +355,7 @@ public:
 
     ///Returns the number of generations for which
     ///selection takes place when selection is 'sporadic'
-    int get_sel_duration() const noexcept {return m_selection_duration;}
+    int get_selection_duration() const noexcept {return m_selection_duration;}
 
     ///Returns change frequency of environment/function A
     double get_change_freq_A() const noexcept {return m_change_freq_A;}
@@ -269,11 +369,30 @@ public:
     ///Returns a reference to the vector of individuals
     const std::vector<typename Pop::ind_t> &get_inds() const {return m_population.get_inds();};
 
-    ///Returns the current inputs in the simulation
+    ///Returns a const reference to the vector of individuals
+    const std::vector<typename Pop::ind_t> &get_new_inds() const noexcept {return m_population.get_new_inds();};
+
+    ///Returns a reference to the vector of individuals
+    std::vector<typename Pop::ind_t> &get_inds_non_const() {return m_population.get_inds_nonconst();};
+
+    ///Returns a reference to the vector of individuals
+    std::vector<typename Pop::ind_t> &get_new_inds_non_const() {return m_population.get_new_inds_nonconst();};
+
+    ///Returns the current inputs in the simulation for the current or last trial
     const std::vector<double> &get_input() const noexcept {return m_input;}
+
+    //Returns a const reference to the inputs given to individuals in this generation
+    const std::vector<std::vector<double>>& get_stored_inputs() const noexcept {return m_stored_inputs;}
 
     ///Returns the current optimal output
     const double &get_optimal() const noexcept {return m_optimal_output;}
+
+    ///Returns the selection duration to frequency of seleciton proportion
+    /// if selection frequency / selection_duration_prop_to_freq = selection period duration;
+    const int& get_selection_duration_prop_to_freq() const noexcept {return m_params.s_p.selection_duration_prop_to_freq;}
+
+    //Returns a const reference to the inputs given to individuals in this generation
+    const std::vector<double>& get_stored_optimals() const noexcept {return m_stored_optimal_output;}
 
     ///Checks if environment needs to change
     bool is_environment_changing(){
@@ -281,7 +400,7 @@ public:
 
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time < (m_n_generations / 2))
+            if(m_time <= (m_n_generations / adaptation_period_proportion))
                 return false;
         }
 
@@ -346,14 +465,56 @@ public:
     ///Updates the inputs of the simulation with new calculated inputs
     void update_inputs(std::vector<double> new_inputs){m_input = new_inputs;}
 
+    ///Updates the optimal to the given value
+    void store_optimals(std::vector<double> new_optimal) {m_stored_optimal_output = new_optimal;}
+
+    ///Updates the inputs of the simulation with new calculated inputs
+    void store_inputs(std::vector<std::vector<double>> new_inputs){m_stored_inputs = new_inputs;}
+
+    ///Creates the inputs for a simulation where networks
+    /// use an additive gene response mechanism
+    void create_inputs_additive_response( std::vector<std::vector<double>>& inputs)
+    {
+        auto genes = get_first_ind_genes(*this);
+        std::shuffle(genes.begin(), genes.end(), m_rng);
+        genes.resize(inputs.size());
+        std::transform(genes.begin(), genes.end(),
+                       inputs.begin(),
+                       [](const auto& rn_t){return std::vector<double>{rn_t.m_x};});
+    }
+
+    ///Creates the inputs and optimals for a simulation where networks
+    /// use a additive gene response mechanism
+    void create_inputs_optimals_additive_response(std::vector<std::vector<double>>& inputs, std::vector<double>& optimals)
+    {
+        create_inputs_additive_response(inputs);
+        for(int i = 0; i < inputs.size(); i++)
+        {
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+        }
+    }
+
+    ///Creates the inputs and optimals for a simulation where networks
+    /// use a network response mechanism
+    void create_inputs_optimals_network_response(std::vector<std::vector<double>>& inputs, std::vector<double>& optimals)
+    {
+        for(int i = 0; i < m_population.get_n_trials(); i++)
+        {
+            inputs[i] = create_inputs();
+            optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
+        }
+    }
+
     ///Gets inputs bsaed on the environment of the simulation
     /// and updates the input stored in simulation
     std::vector<double> create_inputs()
     {
-        auto inputs = env::create_n_inputs(get_env(),
-                        get_inds_input_size(*this),
-                        get_rng()
-                        );
+        std::vector<double> inputs;
+
+        inputs = env::create_n_inputs(get_env(),
+                                      get_inds_input_size(*this),
+                                      get_rng()
+                                      );
 
         if constexpr(Resp_type == response_type::plastic)
         {
@@ -364,69 +525,133 @@ public:
         return inputs;
     }
 
-    ///Evaluates the operformance of all indiivduals in a population
-    std::vector<double> evaluate_inds(){
-
-        std::vector<double> cumulative_performance(get_inds().size(), 0);
-
-        std::vector<std::vector<double>> inputs(m_population.get_n_trials());
-        std::vector<double> optimals(inputs.size());
-
+    ///Creates and stores the ininputs and optimal values for those
+    /// inputs to be then used inthe evaluation of individuals
+    void create_and_store_inputs_and_optimals(std::vector<std::vector<double>>& inputs,
+                                              std::vector<double>& optimals)
+    {
         for(int i = 0; i != m_population.get_n_trials(); i++)
         {
             inputs[i] = create_inputs();
             optimals[i] = env::calculate_optimal(m_environment, inputs[i]);
         }
 
-        ///BAD!!! Temporary solutions to pass test
-        update_inputs(inputs[0]);
-        update_optimal(optimals[0]);
+        store_inputs(inputs);
+        store_optimals(optimals);
+    }
+
+
+    ///Evaluates the operformance of all indiivduals in a population
+    std::vector<double> evaluate_inds(){
+
+        std::vector<double> cumulative_performance(get_inds().size(), 0);
+        std::vector<std::vector<double>> performances(0, cumulative_performance);;
+
+        std::vector<std::vector<double>> inputs;
+        std::vector<double> optimals;
+
+
+        if constexpr(Eval_type == evaluation_type::trial)
+        {
+            auto trials = m_population.get_n_trials();
+            inputs.resize(trials);
+            optimals.resize(inputs.size());
+            if constexpr(Resp_type == response_type::additive)
+            {
+                create_inputs_optimals_additive_response(inputs, optimals);
+            }
+            else
+            {
+                create_inputs_optimals_network_response(inputs, optimals);
+
+            }
+            store_inputs(inputs);
+            store_optimals(optimals);
+        }
+        if constexpr(Eval_type == evaluation_type::full_rn)
+        {
+            auto optimal_rn = calculate_reaction_norm_from_function(m_environment.get_current_function(),
+                                                                    m_environment.get_cue_range(),
+                                                                    n_evaluation_point_for_full_reac_norm);
+
+            inputs.resize(optimal_rn.size());
+            optimals.resize(inputs.size());
+            for(int i = 0; i != optimal_rn.size(); i++)
+            {
+                inputs[i] = {optimal_rn[i].m_x};
+                optimals[i] = {optimal_rn[i].m_y};
+            }
+        }
+
+        performances.resize(inputs.size());
 
 #pragma omp parallel for
-        for(int i = 0; i < m_population.get_n_trials(); i++)
+        for(int i = 0; i < inputs.size(); i++)
         {
-            auto performance = pop::calc_dist_from_target(get_inds(),
-                                                          optimals[i],
-                                                          inputs[i]);
-#pragma omp critical
-            {
-                std::transform(cumulative_performance.begin(),
-                               cumulative_performance.end(),
-                               performance.begin(),
-                               cumulative_performance.begin(),
-                               std::plus<double>());
-            }
+            performances[i] = pop::calc_dist_from_target(get_inds(),
+                                                         optimals[i],
+                                                         inputs[i]);
+        }
+
+        for(auto& performance : performances)
+        {
+            std::transform(cumulative_performance.begin(),
+                           cumulative_performance.end(),
+                           performance.begin(),
+                           cumulative_performance.begin(),
+                           std::plus<double>());
         }
         return cumulative_performance;
     }
+
 
     ///Calculates fitness of inds in pop given current env values
     const simulation<Pop,
     Env_change_sym,
     Env_change_freq,
     Sel_Type,
-    Adapt_per>&
+    Adapt_per,
+    Eval_type>&
     calc_fitness()
     {
         auto cumulative_performance = evaluate_inds();
 
         auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, get_sel_str());
 
-        pop::set_fitness_inds(get_pop(), fitness_vector);
+        pop::set_fitness_inds(get_pop_non_const(), fitness_vector);
 
         return *this;
     }
     ///Reproduces inds to next gen based on their fitness
     void reproduce()
     {
-        pop::reproduce(get_pop(), get_rng());
+        pop::reproduce(get_pop_non_const(), get_rng());
     }
 
     ///Reproduces inds to next gen randomly
     void reproduce_randomly()
     {
-        pop::reproduce_random(get_pop(), get_rng());
+        pop::reproduce_random(get_pop_non_const(), get_rng());
     }
+
+    ///Sorts indivudals in the vector of popoulation by fitness and assigns thema rank based on their position
+    Pop sort_and_assign_ranks_by_fitness()
+    {return m_population.sort_and_assign_ranks_by_fitness();}
+
+    ///Makes the rank of the indivdual become the ancestor rank
+    Pop ind_ID_becomes_ancestor_ID(std::vector<typename Pop::ind_t>& inds)
+    {return m_population.ind_ID_becomes_ancestor_ID(inds);}
+
+    ///Changes the ancestor rank for the current rank of the individual
+    /// and then sorts the individuals by fitness and assigns new ranks
+    Pop update_ancestor_rank_and_sort_by_new_rank()
+    {
+        sort_and_assign_ranks_by_fitness();
+        ind_ID_becomes_ancestor_ID(get_new_inds_non_const());
+
+        return m_population;
+    }
+
     ///Calculates fitness and selects a new population based on fitness
     void select_inds()
     {
@@ -434,7 +659,7 @@ public:
         {
             if constexpr(Adapt_per == adaptation_period::on)
             {
-                if(m_time < m_n_generations / 2)
+                if(m_time < m_n_generations /adaptation_period_proportion)
                 {
                     calc_fitness();
                     reproduce();
@@ -491,18 +716,25 @@ private:
 
     ///Every how many generations indiivdual are selected
     int m_selection_frequency;
+
     //For how many generations individuals are selected
     //A tenth of the selection frequency
     int m_selection_duration;
 
     all_params m_params;
 
-    ///The current inputs that the networks of individuals will recieve
+    ///The current inputs that the networks of individuals will recieve in a given trial
     std::vector<double> m_input;
 
-    ///The optimal output at a given moment;
+    ///The optimal output at a given trial;
     /// depends on inputs and environmental function
     double m_optimal_output;
+
+    ///The series of inputs individuals will receive during one update of the simulation
+    std::vector<std::vector<double>> m_stored_inputs;
+
+    ///The optimal phenotypic outputs for one simulation update
+    std::vector<double> m_stored_optimal_output;
 
 };
 
@@ -529,9 +761,9 @@ void save_json(const Class& s, const std::string& filename)
     {
         std::cout << "overriding previous results" << std::endl;
     }
-    std::ofstream f;
-    f.open(filename);
-    if(f.is_open())
+
+    std::ofstream f(filename);
+    if(f)
     {
         nlohmann::json json_out;
         json_out = s;
@@ -551,6 +783,14 @@ namespace sim {
 template<class Pop>
 bool operator ==(const simulation<Pop>& lhs, const simulation<Pop>& rhs);
 
+///Check that all individuals have the same network
+template<class Sim>
+bool all_inds_have_same_net(const Sim& s)
+{
+    auto inds = s.get_pop().get_inds();
+    return pop::all_inds_have_same_net(inds);
+}
+
 ///Checks if all the individuals in a simulated population have the same input
 template<class Sim>
 bool all_individuals_have_same_input(const Sim &s)
@@ -560,6 +800,30 @@ bool all_individuals_have_same_input(const Sim &s)
     return pop::all_individuals_have_same_input(p);
 }
 
+///Checks that all fitnesses in the population are not equal
+template<class Sim>
+bool all_fitnesses_are_not_equal(const Sim& s)
+{
+    return pop::all_fitnesses_are_not_equal(s.get_pop().get_inds());
+}
+
+///Checks that individuals all have a specific fitness value
+template<class Sim>
+bool all_inds_have_fitness(double value, const Sim& s)
+{
+    return pop::all_fitnesses_are(value, s.get_pop());
+}
+
+///Checks that the population in this simulation
+/// has individuals sorted by rank
+template<class Sim>
+bool all_ranks_are_equal(const Sim& s)
+{
+    return pop::all_ranks_are_equal(s.get_pop().get_inds());
+}
+
+///Assign random ranks/Ids to indiviudal in a population
+simulation<> assign_random_IDs_to_inds(simulation<> s, rndutils::xorshift128 &rng);
 
 ///Calculates the optimal output
 template<class Sim>
@@ -568,13 +832,30 @@ double calculate_optimal(const Sim &s)
     return(env::calculate_optimal(s.get_env(), s.get_input()));
 }
 
+///Calculates the time to add to the seleciton frequency to record
+/// data at the end of a selection period
+template<class S>
+int calculate_selection_duration(const S& o)
+{
+    int rec_freq_shift = 0;
+
+    if(o.get_sel_type() == selection_type::sporadic &&
+            o.get_e_change_f_type() == env_change_freq_type::regular)
+    {
+        rec_freq_shift += o.get_selection_duration();
+    }
+
+    return rec_freq_shift;
+}
+
+
 ///Returns a population whose fitness has been calculated
 template<class Sim>
 typename Sim::pop_t calc_fitness_of_pop(Sim s)
 {
 
     s.update_optimal(env::calculate_optimal(s.get_env(), s.get_input()));
-    return pop::calc_fitness(s.get_pop(),
+    return pop::calc_fitness(s.get_pop_non_const(),
                              s.get_optimal(),
                              s.get_sel_str(),
                              s.get_input());
@@ -587,15 +868,11 @@ double avg_fitness(const Sim& s)
     return pop::avg_fitness(s.get_pop());
 }
 
-///Changes all the weights of a given individual to a given value
-template<class Sim>
-void change_all_weights_nth_ind(Sim& s, size_t ind_index, double new_weight);
-
 ///Changes the network of the nth individual for a given network
 template<class Pop>
 void change_nth_ind_net(simulation<Pop>& s, size_t ind_index, const typename Pop::ind_t::net_t &n)
 {
-    pop::change_nth_ind_net(s.get_pop(), ind_index, n) ;
+    pop::change_nth_ind_net(s.get_pop_non_const(), ind_index, n) ;
 }
 
 ///Gets const ref the best n individuals in a pop
@@ -607,7 +884,11 @@ std::vector<typename Sim::pop_t::ind_t> get_best_n_inds(const Sim& s, int n)
 
 ///Returns the current optimal function of the environment
 template<class Sim>
-std::function<double(std::vector<double>)> get_current_env_function(const Sim &s);
+std::function<double(std::vector<double>)> get_current_env_function(const Sim &s)
+{
+    auto e = s.get_env();
+    return e.get_current_function();
+}
 
 ///Gets the name of the current environmental function
 template<class Sim>
@@ -620,10 +901,65 @@ char get_name_current_function(const Sim& s) noexcept
 template<class Sim>
 double get_nth_ind_fitness(const Sim& s, const size_t ind_index);
 
-///Returns const or non-onst ref to the network of the nth individual in the
-/// popoulation member of a simulation
+///Returns the net of the nth individual in the population
 template<class Sim>
-const typename Sim::pop_t::ind_t::net_t& get_nth_ind_net(const Sim& s, size_t ind_index);
+const typename Sim::pop_t::ind_t::net_t & get_nth_ind_net(const Sim& s, size_t ind_index)
+{
+    return pop::get_nth_ind_net(s.get_pop(), ind_index);
+}
+
+///Gets the vector of individuals whihc were the parents of the current generation
+template<class S>
+const std::vector<typename S::pop_t::ind_t>& get_parents(const S& s)
+{
+    return s.get_pop().get_new_inds();
+}
+
+///Gets the vector of individuals whihc were the parents of the current generation
+template<class S>
+const std::vector<typename S::pop_t::ind_t>& get_inds(const S& s)
+{
+    return s.get_pop().get_inds();
+}
+
+///retruns the Ids of the parent population (m_vec_new_indiv)
+template<class Ind>
+std::vector<std::string> pop_IDs(const std::vector<Ind>& pop)
+{
+    std::vector<std::string> IDs(pop.size());
+    std::transform(pop.begin(), pop.end(), IDs.begin(),
+                   [](const Ind& ind){return ind.get_rank();});
+    return IDs;}
+
+///retruns the ancestor Ids of the population
+template<class Ind>
+std::vector<std::string> ancestor_IDs(const std::vector<Ind>& pop)
+{
+    std::vector<std::string> IDs(pop.size());
+    std::transform(pop.begin(), pop.end(), IDs.begin(),
+                   [](const Ind& ind){return ind.get_ancestor_ID();});
+    return IDs;
+}
+
+///Checks that the ancestor IDs of inds in a population
+/// are equal to their parents IDs (inds store in new_inds_vec
+bool ancestor_ID_is_parent_ID(const simulation<>& s);
+
+///Checks that the population in this simulation
+/// has individuals sorted by fitness
+template<class Sim>
+bool is_sorted_by_fitness(const Sim& s)
+{
+    return pop::is_sorted_by_fitness(s.get_pop().get_inds());
+}
+
+///Checks that the population in this simulation
+/// has individuals sorted by rank
+template<class Sim>
+bool is_sorted_by_rank(const Sim& s)
+{
+    return pop::is_sorted_by_rank(s.get_pop().get_inds());
+}
 
 ///Switches the function of the environment used to calculate the optimal output
 template<class Sim>
@@ -661,13 +997,14 @@ double sum_of_fitnesses(const Sim& s)
 template<class Sim>
 void tick(Sim &s)
 {
+    s.increase_time();
+
     if(s.is_environment_changing()){
         perform_environment_change(s);
     }
 
     s.select_inds();
 
-    s.increase_time();
 }
 
 ///Calculates the standard devaition of the population fitness

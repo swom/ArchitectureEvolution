@@ -10,6 +10,8 @@ bool operator==(const ind_param& lhs, const ind_param& rhs)
     bool mut_type = lhs.m_mutation_type == rhs.m_mutation_type;
     return net_pars && mut_type;
 }
+
+
 #ifndef NDEBUG
 void test_individual()
 {
@@ -82,5 +84,12 @@ void test_individual()
         using i = individual<n>;
         assert(typeid (i::net_t)  == typeid (n) );
   }
+
+    ///Individuals have a ranking memeber that determines their ranking in terms of fitness in the population
+    {
+        individual i;
+        assert(i.get_rank() >= 0);
+    }
+
 }
 #endif
