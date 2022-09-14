@@ -3,8 +3,8 @@
     "version-string": "0.1.0",
     "dependencies": [
       "nlohmann-json",
-      "cxxopts"
-	  "range-v3"
+      "cxxopts",
+      "range-v3"
     ]
 }
   
