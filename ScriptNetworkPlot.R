@@ -12,12 +12,12 @@ library(networkD3)
 library(magick)
 library(patchwork)
 library(colorspace)
-dir = "C:/Users/p288427/Desktop/data_dollo_++/6_16_22_sampled_short/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/9_14_22/network/full_rn"
 setwd(dir)
 
 results=list()
-# pattern = "*json$"
-pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
+pattern = "*json$"
+# pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
 for (i in  list.files(path = '.', pattern = pattern)){
   
 ###Making a data tibble with all top individuals' data 
@@ -39,12 +39,12 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
   results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
+  
   ID = as.data.frame(results$m_params)
   
-  name1 = paste("top_inds", str_replace(i, ".json", ""), sep = "_")
-  assign(name1, cbind(results_df_top_inds, ID))
+  top_inds = (cbind(results_df_top_inds, ID))
   
-  architecture = as.integer(strsplit(get(name1)$i_p.net_par.max_arc, ",")[[1]])
+  architecture = as.integer(strsplit(top_inds$i_p.net_par.max_arc, ",")[[1]])
   
   #if response type is plastic add one extra node in the input layer to architecture that takes the environmental function as input
   if(length(ID$i_p.net_par.resp_type)){
@@ -56,25 +56,23 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   ###Keeping only network architecture, expanding to have each connection as a row
   
-  top_inds_net = unnest_wider(get(name1), col = "network")%>%
+  top_inds_net = unnest_wider(top_inds, col = "network")%>%
     unnest_wider(col = "m_network_weights", names_sep = "_layer_")%>%
     mutate(m_input_size = NULL, input_values = NULL, fitness = NULL)%>%
     pivot_longer(cols = sprintf("m_network_weights_layer_%s", seq(1:(length(architecture)-1))), names_to = "layer")%>%
     unnest_wider(col = "value", names_sep = "_node_")%>%
     pivot_longer(cols = sprintf("value_node_%s", seq(1:(max(architecture)))), names_to = "node")%>%
-    drop_na()%>%
+    # drop_na()%>%
     unnest_wider(col = "value", names_sep = "_node_")%>%
     unnest_wider(col = "value_node_m_weights", names_sep = "_")%>%
     pivot_longer(cols = sprintf("value_node_m_weights_%s", seq(1:(max(architecture)))), names_to = "weight")%>%
-    drop_na()%>%
+    # drop_na()%>%
     unnest_wider(col = "value")%>%
-    mutate(w_sign = if_else(m_weight < 0, 1, 2))
+    mutate(w_sign = if_else(m_weight < 0, 1, 2)) %>% 
+    drop_na(any_of(c("m_sign", "m_weight", "m_is_active")))
   top_inds_net$generation = as.factor(top_inds_net$generation)
   top_inds_net$w_sign = as.factor(top_inds_net$w_sign)
-  
-  name2 = paste("top_inds_net", str_replace(i, ".json", ""), sep = "_")
-  assign(name2, top_inds_net)
-  
+
   #generate coordinates for positioning nodes correctly in plot
   x = vector()
   y = vector()
@@ -100,8 +98,6 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   from = vector()
   to = vector()
-  
-  
   
   for(j in 1:length(levels(as.factor(node_tibble$layer)))){
     from = c(from, rep(filter(node_tibble, layer == j)$id, nrow(filter(node_tibble, layer == j+1))))
@@ -146,9 +142,9 @@ for (i in  list.files(path = '.', pattern = pattern)){
   dir.create(file.path(dir, subdir), showWarnings = FALSE)
   
   #Now let's loop through generations
-  for(gen in levels(get(name2)$generation)){
+  for(gen in levels(top_inds_net$generation)){
     #adding weights, weight sign, activation to the edge list
-    ind = filter(get(name2), generation == gen)
+    ind = filter(top_inds_net, generation == gen)
     edge_tibble_ind = cbind(edge_tibble, ind$m_weight, ind$m_is_active, ind$w_sign)
     
     node_active = c(TRUE, subset(ind, ind$weight == "value_node_m_weights_1")$value_node_m_active)

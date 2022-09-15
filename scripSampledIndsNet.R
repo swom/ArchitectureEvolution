@@ -10,8 +10,7 @@ library(ggraph)
 library(patchwork)
 library(RColorBrewer)
 library(magick)
-
-
+ 
 #remove scientific notation 
 options(scipen=999)
 
@@ -45,7 +44,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/7_20__22_multifunc_fullrn/"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/9_14_22/network/full_rn/"
 setwd(dir)
 
 results=list()
@@ -126,15 +125,17 @@ for (i in  list.files(path = '.', pattern = pattern)){
     pivot_longer(cols = sprintf("m_network_weights_layer_%s", seq(1:(length(architecture)-1))), names_to = "layer")%>%
     unnest_wider(col = "value", names_sep = "_node_")%>%
     pivot_longer(cols = sprintf("value_node_%s", seq(1:(max(architecture)))), names_to = "node")%>%
-    drop_na()%>%
+    # drop_na()%>%
     unnest_wider(col = "value", names_sep = "_node_")%>%
     unnest_wider(col = "value_node_m_weights", names_sep = "_")%>%
     pivot_longer(cols = sprintf("value_node_m_weights_%s", seq(1:(max(architecture)))), names_to = "weight")%>%
-    drop_na()%>%
+    # drop_na()%>%
     unnest_wider(col = "value")%>%
-    mutate(w_sign = if_else(m_weight < 0, 1, 2))
+    mutate(w_sign = if_else(m_weight < 0, 1, 2)) %>% 
+    drop_na(any_of(c("m_sign", "m_weight", "m_is_active")))
   top_inds_net$generation = as.factor(top_inds_net$generation)
   top_inds_net$w_sign = as.factor(top_inds_net$w_sign)
+  
   
   name2 = paste("top_inds_net", str_replace(i, ".json", ""), sep = "_")
   assign(name2, top_inds_net)

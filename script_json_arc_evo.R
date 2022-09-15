@@ -11,7 +11,13 @@ library(RColorBrewer)
 library(tidygraph)
 library(ggraph)
 library(purrr)
+library(forcats)
 
+a = fromJSON(file = filepaths[1])
+b = fromJSON(file = filepaths[5])
+c = fromJSON(file = filepaths[13]) 
+assertthat::are_equal(a$m_avg_fitnesses, b$m_avg_fitnesses, c$m_avg_fitnesses)
+  
 #remove scientific notation 
 options(scipen=999)
 #declare the 4 different optimal functions
@@ -47,7 +53,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/9_7_22_all_inds_full_rn/additive"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/9_14_22_short/network/full_rn"
 setwd(dir)
 
 pattern = '^m.*json$'
@@ -91,79 +97,80 @@ if(file.exists("all_simple_res.Rds") &&
     
     # convert to data.table with list column
     tmp_ = lapply(tmp_, as.data.table)
-   
-     # deal with all gens
-    tmp_ = lapply(tmp_, function(df) {
+    
+    # deal with all gens
+    tmp_ = rbindlist(lapply(tmp_, function(df) {
       df = df[, rbindlist(m_sensibilities), by = "m_generation"]
-    })
-    tmp_ = rbindlist(tmp_)
+    }))
     tmp_[, names(ID) := ID]
     all_sensibilities[[i]] = tmp_
     
-    if(ID$i_p.net_par.resp_type == "2"){
-      print("not saving rns")
-    }else{
-      print("not saving rns")
+    # if(ID$i_p.net_par.resp_type == "2"){
+    #   print("not saving rns")
+    # }else{
+    #   print("saving rns")
       
-    ###all_reaction norms
-    # Keep only what is necessary
-    data <- results$m_all_inds_rn
-    
-    # Extract the generations
-    gens <- map_dbl(data, ~ .x$generation)
-    names(data) <- gens
-    
-    # Extract x-values and individuals
-    xvalues <- map_dbl(data[[1]]$m_reac_norm[[1]], ~ .x$m_x)
-    inds <- seq(data[[1]]$m_reac_norm)
-    
-    # Make combinations of generation and individual...
-    newdata <- expand_grid(gen = seq(gens), ind = inds) %>%
-      mutate(
-        
-        # ... and for each combination ...
-        newdata = map2(gen, ind, function(gen, ind) {
-          
-          # Extract y-values and assemble them with x-values
-          tibble(
-            x = xvalues,
-            y = map_dbl(data[[gen]]$m_reac_norm[[ind]], last)
-          )
-          
-        })
-      ) %>%
-      unnest(newdata)
-    
-    # Prepare the renaming of generations
-    gens_labs <- unname(gens)
-    gens <- as.character(seq(gens))
-    names(gens) <- gens_labs
-    
-    # Rename generations
-    newdata <- newdata %>%
-      mutate(
-        gen = fct_recode(as.character(gen), !!!gens),
-        gen = as.numeric(as.character(gen))
+      ###all_reaction norms
+      # # Keep only what is necessary
+      # data <- results$m_all_inds_rn
+      # 
+      # # Extract the generations
+      # gens <- map_dbl(data, ~ .x$generation)
+      # names(data) <- gens
+      # 
+      # # Extract x-values and individuals
+      # xvalues <- map_dbl(data[[1]]$m_reac_norm[[1]], ~ .x$m_x)
+      # inds <- seq(data[[1]]$m_reac_norm)
+      # 
+      # # Make combinations of generation and individual...
+      # newdata <- expand_grid(gen = seq(gens), ind = inds) %>%
+      #   mutate(
+      #     
+      #     # ... and for each combination ...
+      #     newdata = map2(gen, ind, function(gen, ind) {
+      #       
+      #       # Extract y-values and assemble them with x-values
+      #       tibble(
+      #         x = xvalues,
+      #         y = map_dbl(data[[gen]]$m_reac_norm[[ind]], last)
+      #       )
+      #       
+      #     })
+      #   ) %>%
+      #   unnest(newdata)
+      # 
+      # # Prepare the renaming of generations
+      # gens_labs <- unname(gens)
+      # gens <- as.character(seq(gens))
+      # names(gens) <- gens_labs
+      # 
+      # # Rename generations
+      # newdata <- newdata %>%
+      #   mutate(
+      #     gen = fct_recode(as.character(gen), !!!gens),
+      #     gen = as.numeric(as.character(gen))
+      #   )
+      # 
+      # # Pivot wider if needed
+      # newdata %>%
+      #   pivot_wider(names_from = "ind", values_from = "y")
+      # 
+      
+      # ###compact version
+      tmp_ = results$m_all_inds_rn
+      gens <- map_dbl(tmp_, ~ .x$generation)
+      tmp_ = lapply(tmp_, as.data.table)
+
+      tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
+        tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]
+      })
       )
-    
-    # Pivot wider if needed
-    newdata %>%
-      pivot_wider(names_from = "ind", values_from = "y")
-   
-    
-    # ###compact version
-    #  tmp_ = results$m_all_inds_rn
-    # tmp_ = lapply(tmp_, as.data.table)
-    # tmp_ = rbindlist(
-    #   lapply(tmp_, function(df){
-    #   df = df[, rbindlist(lapply(df$m_reac_norm, rbindlist)), by = "generation"] 
-    #   })
-    #   )
-    # tmp_[, names(ID) := ID]
-    # all_inds_rns[[i]] = tmp_
-    
-    }
+      tmp_[, names(ID) := ID]
+      all_inds_rns[[i]] = tmp_
+      
+    # }
     gc()   
+    print(i)
   }
   
   all_sensibilities = rbindlist(all_sensibilities, fill =T) %>% 
@@ -188,10 +195,12 @@ jpeg("fitness_plots.jpg",
 
 filter_gen = 1000
 show_last_n_gen = 1000000
-wanted_freqs = c(1)
+# wanted_freqs = c(0,5,10,20,100)
+wanted_freqs = c(20)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
-  filter(gen < show_last_n_gen #&
+  filter(gen < show_last_n_gen & 
+           s_p.selection_freq %in% wanted_freqs
          # s_p.seed %in% wanted_seed &
          # gen %% filter_gen == 0 &
          # s_p.selection_strength %in% wanted_sel_str
@@ -269,7 +278,7 @@ jpeg("phen_sens_fit_plots.jpg",
 
 phen_sens_plus_fit_plot = ggplot(data = sens_summary_all) +
   geom_line(aes(x = m_generation,
-                 y = mean_phen_sens)) +
+                y = mean_phen_sens)) +
   geom_line(aes(x = m_generation,
                 y = mean_fit), color = "red") +
   geom_line(aes(x = m_generation,
@@ -324,7 +333,7 @@ for(adapt_per in adapt_levels){
               gc()
               
               ####general plots over entirety of time ====
-                            ###subset to a specific simulation for now
+              ###subset to a specific simulation for now
               sim_sens = all_sensibilities %>%
                 filter(s_p.seed == seed) %>% 
                 filter(s_p.adaptation_per == adapt_per) %>% 
@@ -357,7 +366,7 @@ for(adapt_per in adapt_levels){
               optimal_rn = produce_current_optimal_func(func_name = func_name, 
                                                         data.frame(x = unique(sim_all_inds_rns$m_x),
                                                                    y = length(unique(sim_all_inds_rns$m_x))))
-
+              
               # rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
               #                                         y = m_y)) +
               #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
@@ -537,9 +546,9 @@ for(adapt_per in adapt_levels){
                   #          width = 15,
                   #          height = 7.5)
                   # }
-
+                  
                   #plots####
-
+                  
                   
                   
                   p2 = ggplot(data = gen_sens %>% 
@@ -571,12 +580,12 @@ for(adapt_per in adapt_levels){
                   
                   p4 = rn_cloud /
                     (fit_plot + 
-                          geom_hline(yintercept = as.numeric(sim_fitness %>%
-                                                               filter(gen == generation) %>% 
-                                                               select(m_avg_fitnesses)),
-                                     color = "red") +
-                          geom_vline(xintercept = as.numeric(generation),
-                                     color = "red")) /
+                       geom_hline(yintercept = as.numeric(sim_fitness %>%
+                                                            filter(gen == generation) %>% 
+                                                            select(m_avg_fitnesses)),
+                                  color = "red") +
+                       geom_vline(xintercept = as.numeric(generation),
+                                  color = "red")) /
                     (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
                                                  color = "red")) /
                     (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),

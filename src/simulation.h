@@ -13,7 +13,6 @@
 //#include <omp.h>
 
 static int adaptation_period_proportion = 10;
-static int n_evaluation_point_for_full_reac_norm = 40;
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -572,7 +571,7 @@ public:
         {
             auto optimal_rn = calculate_reaction_norm_from_function(m_environment.get_current_function(),
                                                                     m_environment.get_cue_range(),
-                                                                    n_evaluation_point_for_full_reac_norm);
+                                                                    m_params.s_p.m_reac_norm_n_points);
 
             inputs.resize(optimal_rn.size());
             optimals.resize(inputs.size());
