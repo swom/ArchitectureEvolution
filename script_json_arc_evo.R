@@ -195,8 +195,8 @@ jpeg("fitness_plots.jpg",
 
 filter_gen = 1000
 show_last_n_gen = 1000000
-# wanted_freqs = c(0,5,10,20,100)
-wanted_freqs = c(20)
+wanted_freqs = c(0,5,10,20,100)
+# wanted_freqs = c(20)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
   filter(gen < show_last_n_gen & 

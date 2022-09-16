@@ -78,8 +78,8 @@ struct sim_param
     double selection_strength;
     int n_generations;
     int selection_freq;
-    int selection_duration;
     int selection_duration_prop_to_freq;
+    int selection_duration;
 
     ///The number of data points on which to calculate the reaction norm of an individual
     int m_reac_norm_n_points;
