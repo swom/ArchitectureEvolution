@@ -410,8 +410,7 @@ public:
         {
             mutate_genes(mut_rate_weight, mut_step, rng);
         }
-
-        if constexpr (M == mutation_type::activation)
+        else if constexpr (M == mutation_type::activation)
         {
             mutate_biases(*this, mut_rate_weight, mut_step, rng);
             mutate_activation(*this, mut_rate_act, rng);
@@ -1370,6 +1369,8 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
         output[0] = gene.m_y;
         return;
     }
+    else {
+
     assert(input.size() == n.get_input_size());
 
     if (n.any_layer_has_no_nodes())
@@ -1405,6 +1406,7 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
         output.swap(input);
     }
     output.swap(input); //undo swap in last iteration
+    }
 }
 
 // populates 'output' with the output of a network for a given input
