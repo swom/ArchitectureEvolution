@@ -664,7 +664,7 @@ public:
     ///Returns the input size
     size_t get_input_size() const noexcept {return static_cast<size_t>(m_input_size);}
 
-    double operator ()(double n) const {return m_activation_function(n);}
+    double operator ()(double input) const {return m_activation_function(input);}
 
     ///Returns the additive genes
     const reac_norm& get_genes() const noexcept {return m_additive_genes;}

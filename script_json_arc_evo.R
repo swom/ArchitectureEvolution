@@ -13,11 +13,6 @@ library(ggraph)
 library(purrr)
 library(forcats)
 
-a = fromJSON(file = filepaths[1])
-b = fromJSON(file = filepaths[5])
-c = fromJSON(file = filepaths[13]) 
-assertthat::are_equal(a$m_avg_fitnesses, b$m_avg_fitnesses, c$m_avg_fitnesses)
-  
 #remove scientific notation 
 options(scipen=999)
 #declare the 4 different optimal functions
@@ -53,10 +48,18 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/9_14_22_short/network/full_rn"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/test/network/full_rn"
 setwd(dir)
-
+filepaths = list.files(pattern = pattern)
 pattern = '^m.*json$'
+
+
+a = fromJSON(file = filepaths[1])
+b = fromJSON(file = filepaths[5])
+c = fromJSON(file = filepaths[9]) 
+d = fromJSON(file = filepaths[13])
+e = fromJSON(file = filepaths[17]) 
+assertthat::are_equal(a$m_avg_fitnesses, b$m_avg_fitnesses, c$m_avg_fitnesses)
 
 ####save load####
 if(file.exists("all_simple_res.Rds") && 
