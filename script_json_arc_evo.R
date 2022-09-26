@@ -52,7 +52,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 # pattern = '^m.*json$'
-pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_off_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_seed1.json'
+pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
 filepaths = list.files(pattern = pattern)
 
 

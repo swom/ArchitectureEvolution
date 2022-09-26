@@ -228,6 +228,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
             "_fA_" + p.e_p.name_func_A +
             "_g_" + std::to_string(p.s_p.n_generations) +
+            "_p_" + std::to_string(p.p_p.number_of_inds) +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
     std::cout   << "response type: " <<convert_response_type_to_string(p.i_p.net_par.resp_type) << std::endl;

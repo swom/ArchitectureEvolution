@@ -662,7 +662,7 @@ public:
         {
             if constexpr(Adapt_per == adaptation_period::on)
             {
-                if(m_time < m_n_generations /m_params.s_p.adaptation_period_proportion)
+                if(m_time < (m_n_generations /m_params.s_p.adaptation_period_proportion))
                 {
                     calc_fitness();
                     reproduce();
