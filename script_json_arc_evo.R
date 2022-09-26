@@ -48,10 +48,12 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/test/network/full_rn"
+# dir ="C:/Users/p288427/Desktop/data_dollo_++/test/network/full_rn"
+dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
+# pattern = '^m.*json$'
+pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_off_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_seed1.json'
 filepaths = list.files(pattern = pattern)
-pattern = '^m.*json$'
 
 
 a = fromJSON(file = filepaths[1])
@@ -77,8 +79,7 @@ if(file.exists("all_simple_res.Rds") &&
   all_sensibilities = list()
   all_simple_res = data.frame()
   all_inds_rns = list()
-  for (i in  filepaths)
-  {
+  for (i in  filepaths){
     
     results <- fromJSON(file = i)
     
@@ -198,7 +199,7 @@ jpeg("fitness_plots.jpg",
 
 filter_gen = 1000
 show_last_n_gen = 1000000
-wanted_freqs = c(0,5,10,20,100)
+wanted_freqs = c(0, 1, 5, 10, 20, 100)
 # wanted_freqs = c(20)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 

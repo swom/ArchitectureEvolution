@@ -64,6 +64,7 @@ sim_param convert_sim_args(const cxxopts::ParseResult& results)
                 results["sel_freq"].as<int>(),
                 results["selection_duration_prop_to_freq"].as<int>(),
                 results["n_reac_norm_points"].as<int>(),
+                results["adaptation_period_proportion"].as<int>(),
                 string_to_env_change_symmetry_type_map.find(results["env_change_sym_type"].as<std::string>())->second,
                 string_to_env_change_freq_type_map.find(results["env_change_freq_type"].as<std::string>())->second,
                 string_to_sel_type_map.find(results["sel_type"].as<std::string>())->second,
@@ -132,6 +133,10 @@ cxxopts::Options create_parser(){
             ("G,num_gens",
              "number of generations for which the simulation has to run",
              cxxopts::value<int>()->default_value("1000000"))
+            ("g,adaptation_period_proportion",
+             "the proportion of the total time in the simulation where selection will be constant,"
+             " only active if adaptaion_period is on",
+             cxxopts::value<int>()->default_value("10"))
             ("H,adapt_p",
              "if set to 'on' half of the runtime of a simulation"
              " will be spent in a stable environmetn and the other "

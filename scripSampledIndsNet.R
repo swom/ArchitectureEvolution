@@ -44,12 +44,13 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-dir = "C:/Users/p288427/Desktop/data_dollo_++/9_14_22/network/full_rn/"
+# dir = "C:/Users/p288427/Desktop/data_dollo_++/9_14_22/network/full_rn/"
+dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 
 results=list()
-pattern = '*json$'
-# pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
+# pattern = '*json$'
+pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_seed1.json'
 for (i in  list.files(path = '.', pattern = pattern)){
   
   # i = list.files(path = '.', pattern = pattern)[5]

@@ -227,6 +227,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
             "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
             "_fA_" + p.e_p.name_func_A +
+            "_g_" + std::to_string(p.s_p.n_generations) +
             "_seed" + std::to_string(p.s_p.seed) + ".json";
 
     std::cout   << "response type: " <<convert_response_type_to_string(p.i_p.net_par.resp_type) << std::endl;
@@ -494,7 +495,7 @@ void test_observer()
         sim_param s_p;
         s_p.change_freq_A = 1;
         s_p.change_freq_B = 0;
-        s_p.n_generations = adaptation_period_proportion;
+        s_p.n_generations = s_p.adaptation_period_proportion;
 
         obs_param o_p;
         o_p.m_spectrum_reg_freq = 0;
@@ -507,7 +508,7 @@ void test_observer()
 
         for(size_t i = 0; i != o.get_env_funcs().size(); i++ )
         {
-            if(i < o.get_env_funcs().size() / adaptation_period_proportion)
+            if(i < o.get_env_funcs().size() / s_p.adaptation_period_proportion)
             {
                 assert(o.get_env_funcs()[i] == 'A');
                 continue;

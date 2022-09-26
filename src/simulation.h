@@ -12,7 +12,6 @@
 #include "population.h"
 //#include <omp.h>
 
-static int adaptation_period_proportion = 10;
 double identity_first_element(const std::vector<double>& vector);
 
 struct sim_param
@@ -42,6 +41,7 @@ struct sim_param
               int selection_frequency = 1,
               int selec_duration_prop_to_freq = 1,
               int reaction_norm_n_points = 40,
+              int adaptation_period_proportion = 10,
               env_change_symmetry_type env_change_symmetry_type = env_change_symmetry_type::symmetrical,
               env_change_freq_type env_change_freq_type = env_change_freq_type::stochastic,
               selection_type selec_type = selection_type::constant,
@@ -56,6 +56,7 @@ struct sim_param
         selection_duration_prop_to_freq{selec_duration_prop_to_freq},
         selection_duration{selection_freq == 0 ? 0 : selection_freq / selec_duration_prop_to_freq},
                            m_reac_norm_n_points{reaction_norm_n_points},
+                           adaptation_period_proportion{adaptation_period_proportion},
                            change_sym_type{env_change_symmetry_type},
                            change_freq_type{env_change_freq_type},
                            sel_type{selec_type},
@@ -83,6 +84,9 @@ struct sim_param
 
     ///The number of data points on which to calculate the reaction norm of an individual
     int m_reac_norm_n_points;
+
+    ///The proportion of time n/sim_time in the simulation were selection will be constant (only if adaptive period is on)
+    int adaptation_period_proportion;
 
     env_change_symmetry_type change_sym_type;
     env_change_freq_type change_freq_type;
@@ -399,7 +403,7 @@ public:
 
         if constexpr (Adapt_per == adaptation_period::on)
         {
-            if(m_time <= (m_n_generations / adaptation_period_proportion))
+            if(m_time <= (m_n_generations / m_params.s_p.adaptation_period_proportion))
                 return false;
         }
 
@@ -658,7 +662,7 @@ public:
         {
             if constexpr(Adapt_per == adaptation_period::on)
             {
-                if(m_time < m_n_generations /adaptation_period_proportion)
+                if(m_time < m_n_generations /m_params.s_p.adaptation_period_proportion)
                 {
                     calc_fitness();
                     reproduce();
