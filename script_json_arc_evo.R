@@ -48,11 +48,11 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-# dir ="C:/Users/p288427/Desktop/data_dollo_++/9_6_22/1-2-2-2-1"
-dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/9_27_22_1000pop/network/full_rn"
+# dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
-# pattern = '^m.*json$'
-pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
+pattern = '^m.*json$'
+# pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
 filepaths = list.files(pattern = pattern)
 
 
@@ -80,104 +80,109 @@ if(file.exists("all_simple_res.Rds") &&
   all_simple_res = data.frame()
   all_inds_rns = list()
   for (i in  filepaths){
-    
-    results <- fromJSON(file = i)
-    
-    ###simple results
-    simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
-                                                     "m_env_functions",
-                                                     "m_var_fitnesses")]),
-                                 var = "gen")
-    results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
-    results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
-    ID = as.data.frame(results$m_params)
-    simple_res_ID = cbind(simple_res, ID)
-    all_simple_res = rbind(all_simple_res, simple_res_ID)
-    
-    ###sensibilities results
-    
-    # m fit suitability
-    tmp_ = results$m_fit_phen_mut_sensibility
-    
-    # convert to data.table with list column
-    tmp_ = lapply(tmp_, as.data.table)
-    
-    # deal with all gens
-    tmp_ = rbindlist(lapply(tmp_, function(df) {
-      df = df[, rbindlist(m_sensibilities), by = "m_generation"]
-    }))
-    tmp_[, names(ID) := ID]
-    all_sensibilities[[i]] = tmp_
-    
-    # if(ID$i_p.net_par.resp_type == "2"){
-    #   print("not saving rns")
-    # }else{
-    #   print("saving rns")
-      
-      ###all_reaction norms
-      # # Keep only what is necessary
-      # data <- results$m_all_inds_rn
-      # 
-      # # Extract the generations
-      # gens <- map_dbl(data, ~ .x$generation)
-      # names(data) <- gens
-      # 
-      # # Extract x-values and individuals
-      # xvalues <- map_dbl(data[[1]]$m_reac_norm[[1]], ~ .x$m_x)
-      # inds <- seq(data[[1]]$m_reac_norm)
-      # 
-      # # Make combinations of generation and individual...
-      # newdata <- expand_grid(gen = seq(gens), ind = inds) %>%
-      #   mutate(
-      #     
-      #     # ... and for each combination ...
-      #     newdata = map2(gen, ind, function(gen, ind) {
-      #       
-      #       # Extract y-values and assemble them with x-values
-      #       tibble(
-      #         x = xvalues,
-      #         y = map_dbl(data[[gen]]$m_reac_norm[[ind]], last)
-      #       )
-      #       
-      #     })
-      #   ) %>%
-      #   unnest(newdata)
-      # 
-      # # Prepare the renaming of generations
-      # gens_labs <- unname(gens)
-      # gens <- as.character(seq(gens))
-      # names(gens) <- gens_labs
-      # 
-      # # Rename generations
-      # newdata <- newdata %>%
-      #   mutate(
-      #     gen = fct_recode(as.character(gen), !!!gens),
-      #     gen = as.numeric(as.character(gen))
-      #   )
-      # 
-      # # Pivot wider if needed
-      # newdata %>%
-      #   pivot_wider(names_from = "ind", values_from = "y")
-      # 
-      
-      # ###compact version
-      tmp_ = results$m_all_inds_rn
-      gens <- map_dbl(tmp_, ~ .x$generation)
-      tmp_ = lapply(tmp_, as.data.table)
-
-      tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
-        tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]
-      })
-      )
-      tmp_[, names(ID) := ID]
-      all_inds_rns[[i]] = tmp_
-      
-    # }
-    gc()   
-    print(i)
+    tryCatch(
+      {
+        results <- fromJSON(file = i)
+        
+        ###simple results
+        simple_res = rowid_to_column(as_tibble(results[c("m_avg_fitnesses",
+                                                         "m_env_functions",
+                                                         "m_var_fitnesses")]),
+                                     var = "gen")
+        results$m_params$i_p$net_par$max_arc = toString(results$m_params$i_p$net_par$max_arc)
+        results$m_params$i_p$net_par$net_arc = toString(results$m_params$i_p$net_par$net_arc)
+        ID = as.data.frame(results$m_params)
+        simple_res_ID = cbind(simple_res, ID)
+        all_simple_res = rbind(all_simple_res, simple_res_ID)
+        
+        ###sensibilities results
+        tmp_ = results$m_fit_phen_mut_sensibility
+        
+        # convert to data.table with list column
+        tmp_ = lapply(tmp_, as.data.table)
+        
+        # deal with all gens
+        tmp_ = rbindlist(lapply(tmp_, function(df) {
+          df = df[, rbindlist(m_sensibilities), by = "m_generation"]
+        }))
+        tmp_[, names(ID) := ID]
+        all_sensibilities[[i]] = tmp_
+        
+        
+        
+        ###all_reaction norms
+        # # Keep only what is necessary
+        # data <- results$m_all_inds_rn
+        # 
+        # # Extract the generations
+        # gens <- map_dbl(data, ~ .x$generation)
+        # names(data) <- gens
+        # 
+        # # Extract x-values and individuals
+        # xvalues <- map_dbl(data[[1]]$m_reac_norm[[1]], ~ .x$m_x)
+        # inds <- seq(data[[1]]$m_reac_norm)
+        # 
+        # # Make combinations of generation and individual...
+        # newdata <- expand_grid(gen = seq(gens), ind = inds) %>%
+        #   mutate(
+        # 
+        #     # ... and for each combination ...
+        #     newdata = map2(gen, ind, function(gen, ind) {
+        # 
+        #       # Extract y-values and assemble them with x-values
+        #       tibble(
+        #         x = xvalues,
+        #         y = map_dbl(data[[gen]]$m_reac_norm[[ind]], last)
+        #       )
+        # 
+        #     })
+        #   ) %>%
+        #   unnest(newdata)
+        # 
+        # # Prepare the renaming of generations
+        # gens_labs <- unname(gens)
+        # gens <- as.character(seq(gens))
+        # names(gens) <- gens_labs
+        # 
+        # # Rename generations
+        # newdata <- newdata %>%
+        #   mutate(
+        #     gen = fct_recode(as.character(gen), !!!gens),
+        #     gen = as.numeric(as.character(gen))
+        #   )
+        # 
+        # # Pivot wider if needed
+        # newdata %>%
+        #   pivot_wider(names_from = "ind", values_from = "y")
+        
+        
+        # ###compact version
+        tmp_ = results$m_all_inds_rn
+        gens <- map_dbl(tmp_, ~ .x$generation)
+        tmp_ = lapply(tmp_, as.data.table)
+        
+        tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
+          tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]
+        })
+        )
+        tmp_[, names(ID) := ID]
+        all_inds_rns[[i]] = tmp_
+        
+        gc()   
+        print(paste("loading: ",i, sep = "" ))
+      },
+      error=function(cond){
+        message(paste("could not load file: ", i, sep = ""))
+        dir.create(file.path(dir, "defective"), showWarnings = FALSE)
+        file.move(i, "defective")
+        message("Moving defective file into defective directory")
+        message("The original message says:")
+        message(cond)
+      }
+    )
   }
   
-  all_sensibilities = rbindlist(all_sensibilities, fill =T) %>% 
+  all_sensibilities = rbindlist(all_sensibilities, fill =T) %>%
     #add 1 to all generations to sync with all_simple_res
     mutate(m_generation = m_generation + 1)
   
@@ -186,7 +191,7 @@ if(file.exists("all_simple_res.Rds") &&
     mutate(m_generation = m_generation + 1)
   
   obs_params = results$m_obs_param
-  # all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
+  all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
   saveRDS(obs_params, file = "obs_params.Rds")
   saveRDS(all_simple_res, file = "all_simple_res.Rds")
   saveRDS(all_sensibilities, file = "all_sensibilities.Rds")
@@ -195,13 +200,13 @@ if(file.exists("all_simple_res.Rds") &&
 }
 ### Plot ====
 jpeg("fitness_plots.jpg",
-     width = 700,
-     height = 700)
+     width = 1000,
+     height = 1000)
 
-filter_gen = 1000
-show_last_n_gen = 50000
+filter_gen = 100
+show_last_n_gen = 100000
 wanted_freqs = c(0, 1, 5, 10, 20, 100)
-adapt_per = c(0)
+adapt_per = c(0,1)
 # wanted_freqs = c(20)
 wanted_sel_str = c(0.1, 0.5, 1)
 p <- all_simple_res %>% 
@@ -277,7 +282,8 @@ sens_summary_all = all_sensibilities %>%
             mean_fit = mean(m_fitness),
             var_phen_sens = sd(m_phenotype_sens),
             var_fit_sens = sd(m_fitness_sens),
-            var_fit = sd(m_fitness))
+            var_fit = sd(m_fitness)) %>% 
+  mutate(m_generation = as.numeric(levels(m_generation))[m_generation])
 
 jpeg("phen_sens_fit_plots.jpg",
      width = 700,
@@ -286,21 +292,20 @@ jpeg("phen_sens_fit_plots.jpg",
 phen_sens_plus_fit_plot = ggplot(data = sens_summary_all) +
   geom_line(aes(x = m_generation,
                 y = mean_phen_sens)) +
-  geom_line(aes(x = m_generation,
-                y = mean_fit), color = "red") +
-  geom_line(aes(x = m_generation,
-                y = mean_fit_sens), color = "blue") +
-  geom_ribbon(aes(x = m_generation,
-                  y = mean_phen_sens,
-                  ymax = mean_phen_sens + var_phen_sens,
-                  ymin = mean_phen_sens - var_phen_sens),
-              alpha = 0.5) +
+  # geom_line(aes(x = m_generation,
+  #               y = mean_fit), color = "red") +
+  # geom_line(aes(x = m_generation,
+  #               y = mean_fit_sens), color = "blue") +
+  # geom_ribbon(aes(x = m_generation,
+  #                 y = mean_phen_sens,
+  #                 ymax = mean_phen_sens + var_phen_sens,
+  #                 ymin = mean_phen_sens - var_phen_sens),
+  #             alpha = 0.5) +
   ylim(c(-0.1, 1)) +
   xlab("Generations") +
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
-               e_p.name_func_A +
-               i_p.m_mutation_type + i_p.net_par.max_arc ~
+               e_p.name_func_A  ~
                s_p.seed + s_p.adaptation_per)
 
 print(phen_sens_plus_fit_plot)
@@ -319,7 +324,8 @@ fit_sens_plot = ggplot(data = sens_summary_all,
   facet_grid(s_p.selection_freq + 
                s_p.selection_strength + 
                e_p.name_func_A +
-               i_p.m_mutation_type + i_p.net_par.max_arc ~
+               i_p.m_mutation_type +
+               i_p.net_par.max_arc ~
                s_p.seed + s_p.adaptation_per)
 
 adapt_levels = levels(as.factor(all_simple_res$s_p.adaptation_per))
@@ -338,291 +344,309 @@ for(adapt_per in adapt_levels){
           for(mut_type in mut_types_levels){
             for(max_arc in max_arc_levels){
               gc()
-              
-              ####general plots over entirety of time ====
-              ###subset to a specific simulation for now
-              sim_sens = all_sensibilities %>%
-                filter(s_p.seed == seed) %>% 
-                filter(s_p.adaptation_per == adapt_per) %>% 
-                filter(s_p.selection_strength == sel_str) %>% 
-                filter(s_p.selection_freq == sel_freq) %>% 
-                filter(e_p.name_func_A == func_name) %>% 
-                filter(i_p.m_mutation_type == mut_type) %>% 
-                filter(i_p.net_par.max_arc == max_arc)
-              
-              ###get and plot fitnesses of the specific simulation 
-              sim_fitness = all_simple_res %>%
-                filter(s_p.adaptation_per == adapt_per) %>% 
-                filter(s_p.seed == seed) %>% 
-                filter(s_p.selection_strength == sel_str) %>% 
-                filter(s_p.selection_freq == sel_freq) %>% 
-                filter(e_p.name_func_A == func_name) %>% 
-                filter(i_p.m_mutation_type == mut_type) %>% 
-                filter(i_p.net_par.max_arc == max_arc)
-              
-              ###subset rns for all inds
-              sim_all_inds_rns = all_inds_rns %>% 
-                filter(s_p.adaptation_per == adapt_per) %>% 
-                filter(s_p.seed == seed) %>% 
-                filter(s_p.selection_strength == sel_str) %>% 
-                filter(s_p.selection_freq == sel_freq) %>% 
-                filter(e_p.name_func_A == func_name) %>% 
-                filter(i_p.m_mutation_type == mut_type) %>% 
-                filter(i_p.net_par.max_arc == max_arc)
-              
-              optimal_rn = produce_current_optimal_func(func_name = func_name, 
-                                                        data.frame(x = unique(sim_all_inds_rns$m_x),
-                                                                   y = length(unique(sim_all_inds_rns$m_x))))
-              
-              # rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
-              #                                         y = m_y)) +
-              #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
-              #   scale_fill_viridis_c() +
-              #   geom_line(data = optimal_rn, aes(x = x, y = y), color = "white") +
-              #   facet_grid( . ~ m_generation)          
-              
-              rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,y = m_y)) +
-                stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
-                scale_fill_viridis_c() +geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1) +
-                geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
-                facet_grid( . ~ m_generation)+
-                theme_minimal()
-              
-              sens_summary = sim_sens %>%
-                group_by(m_generation) %>% 
-                summarise(mean_phen_sens = mean(m_phenotype_sens),
-                          mean_fit_sens = mean(m_fitness_sens),
-                          var_phen_sens = sd(m_phenotype_sens),
-                          var_fit_sens = sd(m_fitness_sens))
-              
-              # sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
-              #                                       y = m_phenotype_sens)) +
-              #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
-              # 
-              # fit_sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
-              #                                           y = m_fitness_sens)) +
-              #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
-              
-              # sens_dens_plot / fit_sens_dens_plot
-              
-              fit_plot = ggplot(data = sim_fitness %>% 
-                                  filter(gen %in% sens_summary$m_generation)) +
-                geom_line(aes(x = gen, y = m_avg_fitnesses)) +
-                geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
-                                 ymax = m_avg_fitnesses + m_var_fitnesses,
-                                 ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
-              
-              phen_sens_plot = ggplot(data = sens_summary,
-                                      aes(x = m_generation,
-                                          y = mean_phen_sens)) +
-                geom_line() +
-                geom_ribbon(aes(x = m_generation,
-                                y = mean_phen_sens,
-                                ymax = mean_phen_sens + var_phen_sens,
-                                ymin = mean_phen_sens - var_phen_sens),
-                            alpha = 0.5) +
-                xlab("Generations")
-              
-              fit_sens_plot = ggplot(data = sens_summary,
-                                     aes(x = m_generation,
-                                         y = mean_fit_sens)) +
-                geom_line() +
-                geom_ribbon(aes(x = m_generation,
-                                y = mean_fit_sens,
-                                ymax = mean_fit_sens + var_fit_sens,
-                                ymin = mean_fit_sens - var_fit_sens),
-                            alpha = 0.5)+
-                xlab("Generations")
-              
-              #create directory where to save images
-              subdir = paste(
-                "phen_fit_sens_",
-                "s", seed,
-                "s_f", sel_freq,
-                "s_s", sel_str,
-                "a_p", adapt_per,
-                "func", func_name,
-                "mut_t", mut_type,
-                sep = "_")
-              dir.create(file.path(dir, subdir), showWarnings = FALSE)
-              print(subdir)
-              generations = unique(sim_sens$m_generation)
-              plot_every_n_gen = 500000
-              
-              
-              p_overall = rn_cloud /
-                (fit_plot) /
-                (phen_sens_plot)/
-                (fit_sens_plot) 
-              
-              p_overall
-              
-              ggsave(paste(subdir,paste("phen_fit_sens_plot_OVERALL.png"), sep = '/'),
-                     device = "png", 
-                     width = 30,
-                     height = 15)
-              
-              
-              ####loop over generations#####
-            #   for(generation in generations[generations %% plot_every_n_gen == 0]){
-            #     record_freq = as.numeric(obs_params$m_top_ind_reg_freq)
-            #     selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
-            #     
-            #     #skip generations that are after the selection period
-            #     #they will be included in the same plots
-            #     #of the generations pre-selection period
-            #     if((generation) %% record_freq == 0){
-            #       
-            #       #get the generations 
-            #       #across an entire cycle of
-            #       #drift - selection - drift - selection
-            #       post_sel_gen = generations[match(generation, generations) + 1]
-            #       post_drift_gen = generations[match(generation, generations) + 2]
-            #       post_drift_post_sel_gen = generations[match(generation, generations) + 3]
-            #       
-            #       important_subsequent_generations = c(post_sel_gen,
-            #                                            post_drift_gen,
-            #                                            post_drift_post_sel_gen)
-            #       gen_sens = sim_sens %>%
-            #         filter(m_generation %in% c(generation,
-            #                                    post_sel_gen)) 
-            #       # ancestry plots ####
-            #       
-            #       # if(generation %% plot_every_n_gen == 0 &&
-            #       #    generation + record_freq < max(generations))
-            #       # {
-            #       #   gen_sens = sim_sens %>%
-            #       #     filter(m_generation %in% c(generation,
-            #       #                                important_subsequent_generations)) 
-            #       #   
-            #       #   ###to create network of descendants 
-            #       #   #create edge data frame(Id + ancestor ID) of latest gen
-            #       #   #and node data frame
-            #       #   #(all IDs and IDs of earlier generation present in the ancestor IDs of the latest generation)
-            #       #   edge_tibble = gen_sens %>% 
-            #       #     filter(m_generation %in% important_subsequent_generations) %>% 
-            #       #     select(c(m_ancestor_ID, m_ID)) %>% 
-            #       #     rename(from = m_ancestor_ID, to = m_ID)
-            #       #   
-            #       #   ancestry_graph = tbl_graph(nodes = gen_sens,
-            #       #                              edges = edge_tibble,
-            #       #                              node_key = "m_ID") 
-            #       #   
-            #       #   
-            #       #   p_anc_inter_sel <- ggraph(ancestry_graph %>%
-            #       #                               filter(m_generation %in% c(generation,
-            #       #                                                          post_sel_gen)),
-            #       #                             x = m_phenotype_sens,
-            #       #                             y = m_fitness) +
-            #       #     geom_edge_link(alpha = 0.01)+
-            #       #     # geom_edge_density()+
-            #       #     geom_node_point(shape = 21,
-            #       #                     aes(color = as.factor(m_generation),
-            #       #                         # size = centrality_degree(mode = 'out'),
-            #       #                         fill = centrality_degree(mode = 'out'),
-            #       #                         alpha = ifelse(m_generation == post_sel_gen,0,1))
-            #       #     ) +
-            #       #     outdegree_gradient +
-            #       #     scale_shape_manual(c(21,24), guide = 'none') +
-            #       #     scale_size_continuous(c(0, 1), guide = 'none') +
-            #       #     scale_alpha(c(0, 1), guide = 'none') +
-            #       #     xlab("phenotypic_sens") +
-            #       #     ylab("fitness") +  
-            #       #     xlim(phen_x_lim) + 
-            #       #     ylim(c(0,1)) +
-            #       #     theme_light() +
-            #       #     theme(legend.position="none") +
-            #       #     ggtitle(paste(generation,"gen to ", post_sel_gen))
-            #       #   
-            #       #   p_anc_inter_drift <- ggraph(ancestry_graph %>%
-            #       #                                 filter(m_generation %in% c(post_sel_gen,
-            #       #                                                            post_drift_gen)),
-            #       #                               x = m_phenotype_sens,
-            #       #                               y = m_fitness) +
-            #       #     geom_edge_link(alpha = 0.01)+
-            #       #     # geom_edge_density()+
-            #       #     geom_node_point(shape = 21,
-            #       #                     aes(color = as.factor(m_generation),
-            #       #                         shape = as.factor(m_generation),
-            #       #                         # size = centrality_degree(mode = 'out'),
-            #       #                         fill = centrality_degree(mode = 'out'),
-            #       #                         alpha = ifelse(m_generation == post_drift_gen,0,1))
-            #       #     ) +
-            #       #     outdegree_gradient +
-            #       #     scale_shape_manual(c(21,24), guide = 'none') +
-            #       #     scale_size_continuous(c(0, 1), guide = 'none') +
-            #       #     scale_alpha(c(0.5, 1.5), guide = 'none') +
-            #       #     xlab("phenotypic_sens") +
-            #       #     ylab("fitness") +  
-            #       #     xlim(phen_x_lim) + 
-            #       #     ylim(c(0,1)) +
-            #       #     theme_light() +
-            #       #     theme(legend.position="none")+
-            #       #     ggtitle(paste(post_sel_gen,"gen to ", post_drift_gen))
-            #       #   
-            #       #   
-            #       #   p_anc_inter_sel + p_anc_inter_drift 
-            #       #   ggsave(paste(subdir,paste(paste("ancestry_plot",generation,sep = "_"),".png"), sep = '/'),
-            #       #          device = "png", 
-            #       #          dpi= "screen",
-            #       #          width = 15,
-            #       #          height = 7.5)
-            #       # }
-            #       
-            #       #plots####
-            #       
-            #       
-            #       
-            #       # p2 = ggplot(data = gen_sens %>% 
-            #       #               filter(m_generation %in% c(generation, 
-            #       #                                          post_sel_gen))) +
-            #       #   geom_point(shape = 21, 
-            #       #              aes(x = m_phenotype_sens,
-            #       #                  y = m_fitness,
-            #       #                  colour = m_fitness_sens
-            #       #              ), alpha = 0.5) +
-            #       #   ylim(c(0,1))+
-            #       #   xlim(phen_x_lim) +
-            #       #   fitness_sensitivity_palette +
-            #       #   facet_grid(.~as.factor(m_generation)) 
-            #       # 
-            #       # p3 = ggplot(data = gen_sens %>% 
-            #       #               filter(m_generation %in% c(generation,
-            #       #                                          post_sel_gen))) +
-            #       #   geom_point(shape = 21, 
-            #       #              aes(x = m_fitness_sens,
-            #       #                  y = m_phenotype_sens,
-            #       #                  # fill = m_rank,
-            #       #                  colour = m_fitness
-            #       #              ), alpha = 0.5)  +
-            #       #   xlim(fit_x_lim) +
-            #       #   ylim(phen_x_lim) +
-            #       #   fitness_gradient +
-            #       #   facet_grid(.~as.factor(m_generation))
-            #       
-            #       p4 = rn_cloud /
-            #         (fit_plot + 
-            #            geom_hline(yintercept = as.numeric(sim_fitness %>%
-            #                                                 filter(gen == generation) %>% 
-            #                                                 select(m_avg_fitnesses)),
-            #                       color = "red") +
-            #            geom_vline(xintercept = as.numeric(generation),
-            #                       color = "red")) /
-            #         (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
-            #                                      color = "red")) /
-            #         (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),
-            #                                      color = "red")) 
-            #       
-            #       (p3 + p2) / p4
-            #       
-            #       ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
-            #              device = "png", 
-            #              width = 30,
-            #              height = 15)
-            #       gc()
-            #       
-            #     }
-            #   }
+              tryCatch(
+                {
+                  ####general plots over entirety of time ====
+                  ###subset to a specific simulation for now
+                  # sim_sens = all_sensibilities %>%
+                  #   filter(s_p.seed == seed) %>% 
+                  #   filter(s_p.adaptation_per == adapt_per) %>% 
+                  #   filter(s_p.selection_strength == sel_str) %>% 
+                  #   filter(s_p.selection_freq == sel_freq) %>% 
+                  #   filter(e_p.name_func_A == func_name) %>% 
+                  #   filter(i_p.m_mutation_type == mut_type) %>% 
+                  #   filter(i_p.net_par.max_arc == max_arc)
+                  
+                  ###get and plot fitnesses of the specific simulation 
+                  sim_fitness = all_simple_res %>%
+                    filter(s_p.adaptation_per == adapt_per) %>% 
+                    filter(s_p.seed == seed) %>% 
+                    filter(s_p.selection_strength == sel_str) %>% 
+                    filter(s_p.selection_freq == sel_freq) %>% 
+                    filter(e_p.name_func_A == func_name) %>% 
+                    filter(i_p.m_mutation_type == mut_type) %>% 
+                    filter(i_p.net_par.max_arc == max_arc)
+                  
+                  ###subset rns for all inds
+                  sim_all_inds_rns = all_inds_rns %>% 
+                    filter(s_p.adaptation_per == adapt_per) %>% 
+                    filter(s_p.seed == seed) %>% 
+                    filter(s_p.selection_strength == sel_str) %>% 
+                    filter(s_p.selection_freq == sel_freq) %>% 
+                    filter(e_p.name_func_A == func_name) %>% 
+                    filter(i_p.m_mutation_type == mut_type) %>% 
+                    filter(i_p.net_par.max_arc == max_arc)
+                  
+                  optimal_rn = produce_current_optimal_func(func_name = func_name, 
+                                                            data.frame(x = unique(sim_all_inds_rns$m_x),
+                                                                       y = length(unique(sim_all_inds_rns$m_x))))
+                  
+                  # rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,
+                  #                                         y = m_y)) +
+                  #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
+                  #   scale_fill_viridis_c() +
+                  #   geom_line(data = optimal_rn, aes(x = x, y = y), color = "white") +
+                  #   facet_grid( . ~ m_generation)          
+                  
+                  rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,y = m_y)) +
+                    stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
+                    scale_fill_viridis_c() +geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1) +
+                    geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
+                    facet_grid( . ~ m_generation)+
+                    theme_minimal()
+                  
+                  # sens_summary = sim_sens %>%
+                  #   group_by(m_generation) %>% 
+                  #   summarise(mean_phen_sens = mean(m_phenotype_sens),
+                  #             mean_fit_sens = mean(m_fitness_sens),
+                  #             var_phen_sens = sd(m_phenotype_sens),
+                  #             var_fit_sens = sd(m_fitness_sens)) %>% 
+                  #   mutate(m_generation = as.numeric(levels(m_generation))[m_generation])
+                  
+                  # sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
+                  #                                       y = m_phenotype_sens)) +
+                  #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
+                  # 
+                  # fit_sens_dens_plot = ggplot(sim_sens, aes(x = m_generation,
+                  #                                           y = m_fitness_sens)) +
+                  #   stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE)
+                  
+                  # sens_dens_plot / fit_sens_dens_plot
+                  
+                  fit_plot = ggplot(data = sim_fitness %>% 
+                                      filter(gen %% 100 == 0
+                                             # %in% sens_summary$m_generation
+                                             )) +
+                    geom_line(aes(x = gen, y = m_avg_fitnesses)) +
+                    geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
+                                     ymax = m_avg_fitnesses + m_var_fitnesses,
+                                     ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
+                  std_fit_plot = fit_plot + ylim(c(0,1))
+                  
+                  # phen_sens_plot = ggplot(data = sens_summary,
+                  #                         aes(x = m_generation,
+                  #                             y = mean_phen_sens)) +
+                  #   geom_line() +
+                  #   geom_ribbon(aes(x = m_generation,
+                  #                   y = mean_phen_sens,
+                  #                   ymax = mean_phen_sens + var_phen_sens,
+                  #                   ymin = mean_phen_sens - var_phen_sens),
+                  #               alpha = 0.5) +
+                  #   xlab("Generations")
+                  # 
+                  # fit_sens_plot = ggplot(data = sens_summary,
+                  #                        aes(x = m_generation,
+                  #                            y = mean_fit_sens)) +
+                  #   geom_line() +
+                  #   geom_ribbon(aes(x = m_generation,
+                  #                   y = mean_fit_sens,
+                  #                   ymax = mean_fit_sens + var_fit_sens,
+                  #                   ymin = mean_fit_sens - var_fit_sens),
+                  #               alpha = 0.5)+
+                  #   xlab("Generations")
+                  
+                  #create directory where to save images
+                  subdir = paste(
+                    "phen_fit_sens_",
+                    "s", seed,
+                    "s_f", sel_freq,
+                    "s_s", sel_str,
+                    "a_p", adapt_per,
+                    "func", func_name,
+                    "mut_t", mut_type,
+                    sep = "_")
+                  dir.create(file.path(dir, subdir), showWarnings = FALSE)
+                  print(subdir)
+                  
+                  
+                  
+                  print(paste("plotting:",seed, adapt_per, sel_str, sel_freq, func_name, mut_type, max_arc, sep = " "))
+                  
+                  p_overall = rn_cloud /
+                    (fit_plot) /
+                    std_fit_plot
+                    # /
+                    # (phen_sens_plot)/
+                    # (fit_sens_plot) 
+                  
+                  p_overall
+                  
+                  ggsave(paste(subdir,paste("phen_fit_sens_plot_OVERALL.png"), sep = '/'),
+                         device = "png", 
+                         width = 30,
+                         height = 15)
+                  
+                  
+                  ####loop over generations#####
+                  #  generations = unique(sim_sens$m_generation)
+                  # plot_every_n_gen = 500000
+                  #   for(generation in generations[generations %% plot_every_n_gen == 0]){
+                  #     record_freq = as.numeric(obs_params$m_top_ind_reg_freq)
+                  #     selection_duration = as.numeric(as.character(unique(sim_sens$s_p.selection_duration)))
+                  #     
+                  #     #skip generations that are after the selection period
+                  #     #they will be included in the same plots
+                  #     #of the generations pre-selection period
+                  #     if((generation) %% record_freq == 0){
+                  #       
+                  #       #get the generations 
+                  #       #across an entire cycle of
+                  #       #drift - selection - drift - selection
+                  #       post_sel_gen = generations[match(generation, generations) + 1]
+                  #       post_drift_gen = generations[match(generation, generations) + 2]
+                  #       post_drift_post_sel_gen = generations[match(generation, generations) + 3]
+                  #       
+                  #       important_subsequent_generations = c(post_sel_gen,
+                  #                                            post_drift_gen,
+                  #                                            post_drift_post_sel_gen)
+                  #       gen_sens = sim_sens %>%
+                  #         filter(m_generation %in% c(generation,
+                  #                                    post_sel_gen)) 
+                  #       # ancestry plots ####
+                  #       
+                  #       # if(generation %% plot_every_n_gen == 0 &&
+                  #       #    generation + record_freq < max(generations))
+                  #       # {
+                  #       #   gen_sens = sim_sens %>%
+                  #       #     filter(m_generation %in% c(generation,
+                  #       #                                important_subsequent_generations)) 
+                  #       #   
+                  #       #   ###to create network of descendants 
+                  #       #   #create edge data frame(Id + ancestor ID) of latest gen
+                  #       #   #and node data frame
+                  #       #   #(all IDs and IDs of earlier generation present in the ancestor IDs of the latest generation)
+                  #       #   edge_tibble = gen_sens %>% 
+                  #       #     filter(m_generation %in% important_subsequent_generations) %>% 
+                  #       #     select(c(m_ancestor_ID, m_ID)) %>% 
+                  #       #     rename(from = m_ancestor_ID, to = m_ID)
+                  #       #   
+                  #       #   ancestry_graph = tbl_graph(nodes = gen_sens,
+                  #       #                              edges = edge_tibble,
+                  #       #                              node_key = "m_ID") 
+                  #       #   
+                  #       #   
+                  #       #   p_anc_inter_sel <- ggraph(ancestry_graph %>%
+                  #       #                               filter(m_generation %in% c(generation,
+                  #       #                                                          post_sel_gen)),
+                  #       #                             x = m_phenotype_sens,
+                  #       #                             y = m_fitness) +
+                  #       #     geom_edge_link(alpha = 0.01)+
+                  #       #     # geom_edge_density()+
+                  #       #     geom_node_point(shape = 21,
+                  #       #                     aes(color = as.factor(m_generation),
+                  #       #                         # size = centrality_degree(mode = 'out'),
+                  #       #                         fill = centrality_degree(mode = 'out'),
+                  #       #                         alpha = ifelse(m_generation == post_sel_gen,0,1))
+                  #       #     ) +
+                  #       #     outdegree_gradient +
+                  #       #     scale_shape_manual(c(21,24), guide = 'none') +
+                  #       #     scale_size_continuous(c(0, 1), guide = 'none') +
+                  #       #     scale_alpha(c(0, 1), guide = 'none') +
+                  #       #     xlab("phenotypic_sens") +
+                  #       #     ylab("fitness") +  
+                  #       #     xlim(phen_x_lim) + 
+                  #       #     ylim(c(0,1)) +
+                  #       #     theme_light() +
+                  #       #     theme(legend.position="none") +
+                  #       #     ggtitle(paste(generation,"gen to ", post_sel_gen))
+                  #       #   
+                  #       #   p_anc_inter_drift <- ggraph(ancestry_graph %>%
+                  #       #                                 filter(m_generation %in% c(post_sel_gen,
+                  #       #                                                            post_drift_gen)),
+                  #       #                               x = m_phenotype_sens,
+                  #       #                               y = m_fitness) +
+                  #       #     geom_edge_link(alpha = 0.01)+
+                  #       #     # geom_edge_density()+
+                  #       #     geom_node_point(shape = 21,
+                  #       #                     aes(color = as.factor(m_generation),
+                  #       #                         shape = as.factor(m_generation),
+                  #       #                         # size = centrality_degree(mode = 'out'),
+                  #       #                         fill = centrality_degree(mode = 'out'),
+                  #       #                         alpha = ifelse(m_generation == post_drift_gen,0,1))
+                  #       #     ) +
+                  #       #     outdegree_gradient +
+                  #       #     scale_shape_manual(c(21,24), guide = 'none') +
+                  #       #     scale_size_continuous(c(0, 1), guide = 'none') +
+                  #       #     scale_alpha(c(0.5, 1.5), guide = 'none') +
+                  #       #     xlab("phenotypic_sens") +
+                  #       #     ylab("fitness") +  
+                  #       #     xlim(phen_x_lim) + 
+                  #       #     ylim(c(0,1)) +
+                  #       #     theme_light() +
+                  #       #     theme(legend.position="none")+
+                  #       #     ggtitle(paste(post_sel_gen,"gen to ", post_drift_gen))
+                  #       #   
+                  #       #   
+                  #       #   p_anc_inter_sel + p_anc_inter_drift 
+                  #       #   ggsave(paste(subdir,paste(paste("ancestry_plot",generation,sep = "_"),".png"), sep = '/'),
+                  #       #          device = "png", 
+                  #       #          dpi= "screen",
+                  #       #          width = 15,
+                  #       #          height = 7.5)
+                  #       # }
+                  #       
+                  #       #plots####
+                  #       
+                  #       
+                  #       
+                  #       # p2 = ggplot(data = gen_sens %>% 
+                  #       #               filter(m_generation %in% c(generation, 
+                  #       #                                          post_sel_gen))) +
+                  #       #   geom_point(shape = 21, 
+                  #       #              aes(x = m_phenotype_sens,
+                  #       #                  y = m_fitness,
+                  #       #                  colour = m_fitness_sens
+                  #       #              ), alpha = 0.5) +
+                  #       #   ylim(c(0,1))+
+                  #       #   xlim(phen_x_lim) +
+                  #       #   fitness_sensitivity_palette +
+                  #       #   facet_grid(.~as.factor(m_generation)) 
+                  #       # 
+                  #       # p3 = ggplot(data = gen_sens %>% 
+                  #       #               filter(m_generation %in% c(generation,
+                  #       #                                          post_sel_gen))) +
+                  #       #   geom_point(shape = 21, 
+                  #       #              aes(x = m_fitness_sens,
+                  #       #                  y = m_phenotype_sens,
+                  #       #                  # fill = m_rank,
+                  #       #                  colour = m_fitness
+                  #       #              ), alpha = 0.5)  +
+                  #       #   xlim(fit_x_lim) +
+                  #       #   ylim(phen_x_lim) +
+                  #       #   fitness_gradient +
+                  #       #   facet_grid(.~as.factor(m_generation))
+                  #       
+                  #       p4 = rn_cloud /
+                  #         (fit_plot + 
+                  #            geom_hline(yintercept = as.numeric(sim_fitness %>%
+                  #                                                 filter(gen == generation) %>% 
+                  #                                                 select(m_avg_fitnesses)),
+                  #                       color = "red") +
+                  #            geom_vline(xintercept = as.numeric(generation),
+                  #                       color = "red")) /
+                  #         (phen_sens_plot + geom_vline(xintercept = as.numeric(generation),
+                  #                                      color = "red")) /
+                  #         (fit_sens_plot  + geom_vline(xintercept = as.numeric(generation),
+                  #                                      color = "red")) 
+                  #       
+                  #       (p3 + p2) / p4
+                  #       
+                  #       ggsave(paste(subdir,paste(paste("phen_fit_sens_plot",generation,sep = "_"),".png"), sep = '/'),
+                  #              device = "png", 
+                  #              width = 30,
+                  #              height = 15)
+                  #       gc()
+                  #       
+                  #     }
+                  #   }
+                },
+                error=function(cond){
+                  message(paste("could not plot: ", seed, adapt_per, sel_str, sel_freq, func_name, mut_type, max_arc, sep = " "))
+                  message("Plotting next combination of parameters")
+                  message("The original message says:")
+                  message(cond)
+                }
+              ) 
             }
             ####Create gif
             # imgs = list.files(path = subdir, pattern = "*")

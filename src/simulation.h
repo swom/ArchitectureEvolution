@@ -249,8 +249,8 @@ public:
                                             " but number of genes for inds is not the number of points in reaction norm"};
             }
             else if(get_first_ind_genes(*this) != calculate_reaction_norm_from_function(constant_zero,
-                                                                                    params.i_p.net_par.input_range,
-                                                                                    params.i_p.net_par.n_sampled_inputs))
+                                                                                        params.i_p.net_par.input_range,
+                                                                                        params.i_p.net_par.n_sampled_inputs))
             {
                 throw std::invalid_argument{"simulation on construction: Additive response selected,"
                                             " but genes x values for inds will not correspond to inputs"};
@@ -544,8 +544,45 @@ public:
     }
 
 
+    ///Creates the inputs and optimals for trial evaluations
+    void create_input_optimals_trial(std::vector<std::vector<double>>& inputs,
+                                     std::vector<double>& optimals)
+    {
+        auto trials = m_population.get_n_trials();
+        inputs.resize(trials);
+        optimals.resize(inputs.size());
+        if constexpr(Resp_type == response_type::additive)
+        {
+            create_inputs_optimals_additive_response(inputs, optimals);
+        }
+        else
+        {
+            create_inputs_optimals_network_response(inputs, optimals);
+
+        }
+        store_inputs(inputs);
+        store_optimals(optimals);
+    }
+
+    ///Creates the inputs and optimals for full_rn evalutaion
+    void create_inputs_optimal_full_rn(std::vector<std::vector<double>>& inputs,
+                                       std::vector<double>& optimals)
+    {
+        auto optimal_rn = calculate_reaction_norm_from_function(m_environment.get_current_function(),
+                                                                m_environment.get_cue_range(),
+                                                                m_params.s_p.m_reac_norm_n_points);
+
+        inputs.resize(optimal_rn.size());
+        optimals.resize(inputs.size());
+        for(int i = 0; i != optimal_rn.size(); i++)
+        {
+            inputs[i] = {optimal_rn[i].m_x};
+            optimals[i] = {optimal_rn[i].m_y};
+        }
+    }
+
     ///Evaluates the operformance of all indiivduals in a population
-    std::vector<double> evaluate_inds(){
+    std::vector<double> calculate_cumulative_performance_inds(){
 
         std::vector<double> cumulative_performance(get_inds().size(), 0);
         std::vector<std::vector<double>> performances(0, cumulative_performance);;
@@ -556,34 +593,11 @@ public:
 
         if constexpr(Eval_type == evaluation_type::trial)
         {
-            auto trials = m_population.get_n_trials();
-            inputs.resize(trials);
-            optimals.resize(inputs.size());
-            if constexpr(Resp_type == response_type::additive)
-            {
-                create_inputs_optimals_additive_response(inputs, optimals);
-            }
-            else
-            {
-                create_inputs_optimals_network_response(inputs, optimals);
-
-            }
-            store_inputs(inputs);
-            store_optimals(optimals);
+            create_input_optimals_trial(inputs, optimals);
         }
         if constexpr(Eval_type == evaluation_type::full_rn)
         {
-            auto optimal_rn = calculate_reaction_norm_from_function(m_environment.get_current_function(),
-                                                                    m_environment.get_cue_range(),
-                                                                    m_params.s_p.m_reac_norm_n_points);
-
-            inputs.resize(optimal_rn.size());
-            optimals.resize(inputs.size());
-            for(int i = 0; i != optimal_rn.size(); i++)
-            {
-                inputs[i] = {optimal_rn[i].m_x};
-                optimals[i] = {optimal_rn[i].m_y};
-            }
+            create_inputs_optimal_full_rn(inputs, optimals);
         }
 
         performances.resize(inputs.size());
@@ -596,6 +610,7 @@ public:
                                                          inputs[i]);
         }
 
+        //Check this out!
         for(auto& performance : performances)
         {
             std::transform(cumulative_performance.begin(),
@@ -604,9 +619,30 @@ public:
                            cumulative_performance.begin(),
                            std::plus<double>());
         }
+
         return cumulative_performance;
     }
 
+    ///Calculate the performance as the cumulative performance (sum of all trials distances)
+    /// divided by the number of trials (the performance is the mean distance per trial)
+    std::vector<double> calculate_performances_inds(std::vector<double> cumulative_performances)
+    {
+        if constexpr(Eval_type == evaluation_type::trial)
+        {
+            for(auto& cumulative_performance : cumulative_performances)
+            {
+                cumulative_performance /= m_population.get_n_trials();
+            }
+        }
+        if constexpr(Eval_type == evaluation_type::full_rn)
+        {
+            for(auto& cumulative_performance : cumulative_performances)
+            {
+                cumulative_performance /= m_params.s_p.m_reac_norm_n_points;
+            }
+        }
+        return cumulative_performances;
+    }
 
     ///Calculates fitness of inds in pop given current env values
     const simulation<Pop,
@@ -617,7 +653,7 @@ public:
     Eval_type>&
     calc_fitness()
     {
-        auto cumulative_performance = evaluate_inds();
+        auto cumulative_performance = calculate_cumulative_performance_inds();
 
         auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, get_sel_str());
 

@@ -111,6 +111,23 @@ evaluation_type::trial
             >{a_p};
 }
 
+///Creates a simple simualtion with full_rn evaluation type
+simulation<population<>,
+env_change_symmetry_type::symmetrical,
+env_change_freq_type::stochastic,
+selection_type::constant,
+adaptation_period::off,
+evaluation_type::full_rn
+> create_full_rn_simulation(const all_params& a_p = all_params{})
+{
+    return         simulation<population<>,
+            env_change_symmetry_type::symmetrical,
+            env_change_freq_type::stochastic,
+            selection_type::constant,
+            adaptation_period::off,
+            evaluation_type::full_rn
+            >{a_p};
+}
 #ifndef NDEBUG
 void test_simulation() noexcept//!OCLINT test may be many
 {
@@ -841,9 +858,9 @@ void test_simulation() noexcept//!OCLINT test may be many
 #define FIX_ISSUE_275
 #ifdef FIX_ISSUE_275
     //The number of trials (output-optimal_output distance)
-    //on which fitness can be calculated can be decided in the sim_parameters
+    //on which performance can be calculated can be decided in the sim_parameters
     //by defualt the number of trials is 1
-    //The final fitness of an individual is the cumulative sum of the rescaled distances
+    //The final cumulative performance of an individual is the cumulative sum of the rescaled distances
     //of an individual output to the optimal output
     {
         std::cout << "   test issue 275" << std::endl;
@@ -867,18 +884,80 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto s1 = create_trial_simulation(a_p1);
         auto s2 = create_trial_simulation(a_p2);
 
-        auto fitnesses_s1 = s1.evaluate_inds();
-        auto fitnesses_s2 = s2.evaluate_inds();
-        assert(fitnesses_s1 != fitnesses_s2);
+        auto cumulative_perf_s1 = s1.calculate_cumulative_performance_inds();
+        auto cumulative_perf_s2 = s2.calculate_cumulative_performance_inds();
+        assert(cumulative_perf_s1 != cumulative_perf_s2);
 
-        assert(std::equal(fitnesses_s1.begin(),
-                          fitnesses_s1.end(),
-                          fitnesses_s2.begin(),
+        assert(std::equal(cumulative_perf_s1.begin(),
+                          cumulative_perf_s1.end(),
+                          cumulative_perf_s2.begin(),
                           [p_p1, p_p2](const double& v_s1, const double& v_s2)
         {return v_s1 * p_p2.n_trials / p_p1.n_trials == v_s2;})
                );
         std::cout << "   end test issue 275" << std::endl;
 
+    }
+    ///IF EVALUATION TYPE IS TRIAL
+    /// The performance of individuals is the cumulative performance
+    /// divided by the number of trials they undergo
+    {
+        int number_of_trials = 5;
+        pop_param p_p1{};
+        pop_param p_p2{};
+
+        p_p1.number_of_inds = 2;
+        p_p2.number_of_inds = p_p1.number_of_inds;
+        p_p2.n_trials = number_of_trials;
+
+        env_param e_p;
+        e_p.cue_range = {1,1};
+        all_params trial_a_p1{e_p, ind_param{}, p_p1, sim_param{}};
+        all_params trial_a_p2{e_p, ind_param{}, p_p2, sim_param{}};
+
+        auto trial_s1 = create_trial_simulation(trial_a_p1);
+        auto trial_s2 = create_trial_simulation(trial_a_p2);
+
+        auto cumulative_perfs_s1 = trial_s1.calculate_cumulative_performance_inds();
+        auto cumulative_perfs_s2 = trial_s2.calculate_cumulative_performance_inds();
+
+        auto performances_s1 = trial_s1.calculate_performances_inds(cumulative_perfs_s1);
+        auto performances_s2 = trial_s2.calculate_performances_inds(cumulative_perfs_s2);
+
+        //The sum of the performances are differetn
+        assert(cumulative_perfs_s1 != cumulative_perfs_s2);
+        //But the means are the same
+        assert(performances_s1 == performances_s2);
+    }
+    ///IF EVALUATION TYPE IS FULL_RN
+    /// The performance of individuals is the cumulative performance
+    /// divided by the number of reaction norm points they undergo
+    {
+        int number_of_reac_norm_points = 5;
+        pop_param p_p1{};
+        pop_param p_p2{};
+
+        sim_param s_p1{};
+        sim_param s_p2{};
+        s_p1.m_reac_norm_n_points = number_of_reac_norm_points;
+
+        env_param e_p;
+        e_p.cue_range = {1,1};
+        all_params a_p1{e_p, ind_param{}, p_p1, s_p1};
+        all_params a_p2{e_p, ind_param{}, p_p2, s_p2};
+
+        auto full_rn_s1 = create_full_rn_simulation(a_p1);
+        auto full_rn_s2 = create_full_rn_simulation(a_p2);
+
+        auto cumulative_perfs_s1 = full_rn_s1.calculate_cumulative_performance_inds();
+        auto cumulative_perfs_s2 = full_rn_s2.calculate_cumulative_performance_inds();
+
+        auto performances_s1 = full_rn_s1.calculate_performances_inds(cumulative_perfs_s1);
+        auto performances_s2 = full_rn_s2.calculate_performances_inds(cumulative_perfs_s2);
+
+        //The sum of the performances are differetn
+        assert(cumulative_perfs_s1 != cumulative_perfs_s2);
+        //But the means are the same
+        assert(performances_s1 == performances_s2);
     }
 
     ///A simulation that is templated with a plastic response_type
