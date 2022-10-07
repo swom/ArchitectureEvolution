@@ -1,10 +1,10 @@
 #ifndef POPULATION_H
 #define POPULATION_H
+#include<set>
+#include <vector>
 
 #include "ind_data.h"
 #include "rndutils.hpp"
-#include<set>
-#include <vector>
 
 struct pop_param
 {

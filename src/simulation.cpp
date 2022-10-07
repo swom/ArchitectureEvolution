@@ -187,7 +187,7 @@ void test_simulation() noexcept//!OCLINT test may be many
     //A simulation has an absolute counter and you can access it
     {
         simulation s;
-        assert((s.get_time() > 0) | (s.get_time() <= 0));
+        assert((s.get_time() > 0) || (s.get_time() <= 0));
     }
 
 
@@ -941,7 +941,7 @@ void test_simulation() noexcept//!OCLINT test may be many
         s_p1.m_reac_norm_n_points = number_of_reac_norm_points;
 
         env_param e_p;
-        e_p.cue_range = {1,1};
+        e_p.cue_range = {0,1};
         all_params a_p1{e_p, ind_param{}, p_p1, s_p1};
         all_params a_p2{e_p, ind_param{}, p_p2, s_p2};
 
@@ -957,7 +957,11 @@ void test_simulation() noexcept//!OCLINT test may be many
         //The sum of the performances are differetn
         assert(cumulative_perfs_s1 != cumulative_perfs_s2);
         //But the means are the same
-        assert(performances_s1 == performances_s2);
+        for(int i = 0; i != performances_s1.size(); i++ )
+        {
+            assert(are_equal_with_high_tolerance(performances_s1[i],
+                                                 performances_s2[i]));
+        }
     }
 
     ///A simulation that is templated with a plastic response_type
