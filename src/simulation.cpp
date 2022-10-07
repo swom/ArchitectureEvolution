@@ -933,15 +933,17 @@ void test_simulation() noexcept//!OCLINT test may be many
     /// divided by the number of reaction norm points they undergo
     {
         int number_of_reac_norm_points = 5;
+        int number_of_reac_norm_points_2 = 3;
         pop_param p_p1{};
         pop_param p_p2{};
 
         sim_param s_p1{};
         sim_param s_p2{};
         s_p1.m_reac_norm_n_points = number_of_reac_norm_points;
+        s_p2.m_reac_norm_n_points = number_of_reac_norm_points_2;
 
         env_param e_p;
-        e_p.cue_range = {0,1};
+        e_p.cue_range = {-0.000001,0.000001};
         all_params a_p1{e_p, ind_param{}, p_p1, s_p1};
         all_params a_p2{e_p, ind_param{}, p_p2, s_p2};
 
@@ -951,8 +953,8 @@ void test_simulation() noexcept//!OCLINT test may be many
         auto cumulative_perfs_s1 = full_rn_s1.calculate_cumulative_performance_inds();
         auto cumulative_perfs_s2 = full_rn_s2.calculate_cumulative_performance_inds();
 
-        auto performances_s1 = full_rn_s1.calculate_performances_inds(cumulative_perfs_s1);
-        auto performances_s2 = full_rn_s2.calculate_performances_inds(cumulative_perfs_s2);
+        std::vector<double> performances_s1 = full_rn_s1.calculate_performances_inds(cumulative_perfs_s1);
+        std::vector<double> performances_s2 = full_rn_s2.calculate_performances_inds(cumulative_perfs_s2);
 
         //The sum of the performances are differetn
         assert(cumulative_perfs_s1 != cumulative_perfs_s2);
