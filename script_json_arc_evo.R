@@ -48,12 +48,14 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/9_27_22_1000pop/network/full_rn"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/10_12_22_avg_dist_fit/full_rn"
 # dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^m.*json$'
-# pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
+# pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_tri_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
 filepaths = list.files(pattern = pattern)
+
+
 
 
 a = fromJSON(file = filepaths[1])
