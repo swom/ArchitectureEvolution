@@ -1371,41 +1371,51 @@ void output_ugly_but_fast(const Net& n, std::vector<double>& input, std::vector<
     }
     else {
 
-    assert(input.size() == n.get_input_size());
+        assert(input.size() == n.get_input_size());
 
-    if (n.any_layer_has_no_nodes())
-    {
-        throw std::runtime_error{ "One layer has 0 nodes" };
-    }
-
-    auto n_layers = n.get_net_weights().size();
-    for (size_t layer = 0; layer != n_layers; layer++)
-    {
-        auto n_nodes = n.get_net_weights()[layer].size();
-        output.resize(n_nodes);
-        for (size_t node = 0; node != n_nodes; node++)
+        if (n.any_layer_has_no_nodes())
         {
-            const auto& current_node = n.get_net_weights()[layer][node];
-            if (current_node.is_active())
-            {
-                const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                output[node] = n(current_node.get_bias() +
-                                 std::inner_product(input.begin(),
-                                                    input.end(),
-                                                    vec_w.begin(),
-                                                    0.0,
-                                                    [](double a, double b) { return a + b; },
-                [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
-                ));
-            }
-            else
-            {
-                output[node] = 0;
-            }
+            throw std::runtime_error{ "One layer has 0 nodes" };
         }
-        output.swap(input);
-    }
-    output.swap(input); //undo swap in last iteration
+
+        auto n_layers = n.get_net_weights().size();
+        for (size_t layer = 0; layer != n_layers; layer++)
+        {
+            auto n_nodes = n.get_net_weights()[layer].size();
+            output.resize(n_nodes);
+            for (size_t node = 0; node != n_nodes; node++)
+            {
+                const auto& current_node = n.get_net_weights()[layer][node];
+                if (current_node.is_active())
+                {
+                    const std::vector<weight>& vec_w = current_node.get_vec_weights();
+                    output[node] = n(current_node.get_bias() +
+                                     std::inner_product(input.begin(),
+                                                        input.end(),
+                                                        vec_w.begin(),
+                                                        0.0,
+                                                        [](double a, double b) { return a + b; },
+                    [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
+                    ) /*DENDRITIC BEHAVIOUR
+                        +
+                                     std::inner_product(input.begin(),
+                                                        input.end(),
+                                                        input.begin(),
+                                                        0.0,
+                                                        [](const double& a,const double& b) { return a + b; },
+                    [](const double& a, const double& b) { return a * b;}
+                    ) * dendritcity_factor
+                 */
+                                     );
+                }
+                else
+                {
+                    output[node] = 0;
+                }
+            }
+            output.swap(input);
+        }
+        output.swap(input); //undo swap in last iteration
     }
 }
 

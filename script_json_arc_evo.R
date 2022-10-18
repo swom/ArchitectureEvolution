@@ -48,7 +48,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/10_12_22_avg_dist_fit/full_rn"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/10_17_22_sqrt_avg_sqr_dist/full_rn"
 # dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^m.*json$'

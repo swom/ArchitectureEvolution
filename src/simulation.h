@@ -631,14 +631,16 @@ public:
         {
             for(auto& cumulative_performance : cumulative_performances)
             {
-                cumulative_performance = std::sqrt(cumulative_performance / m_population.get_n_trials());
+                cumulative_performance = cumulative_performance / m_population.get_n_trials();
+                cumulative_performance = std::sqrt(cumulative_performance);
             }
         }
         if constexpr(Eval_type == evaluation_type::full_rn)
         {
             for(auto& cumulative_performance : cumulative_performances)
             {
-                cumulative_performance = std::sqrt(cumulative_performance / m_params.s_p.m_reac_norm_n_points);
+                cumulative_performance = cumulative_performance / m_params.s_p.m_reac_norm_n_points;
+                cumulative_performance = std::sqrt(cumulative_performance);
             }
         }
         return cumulative_performances;
