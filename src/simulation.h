@@ -659,7 +659,7 @@ public:
 
         auto performance = calculate_performances_inds(cumulative_performance);
 
-        auto fitness_vector = pop::rescale_dist_to_fit(cumulative_performance, get_sel_str());
+        auto fitness_vector = pop::rescale_dist_to_fit(performance, get_sel_str());
 
         pop::set_fitness_inds(get_pop_non_const(), fitness_vector);
 

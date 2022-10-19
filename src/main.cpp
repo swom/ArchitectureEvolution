@@ -45,10 +45,18 @@ int main(int argc, char ** argv) //!OCLINT tests may be long
         // In release mode, all asserts are removed from the code
         assert(1 == 2);
 #endif
-
-       run_simulation_given_evaluation_type(results);
-
-    }  catch (int exc) {
+        if(string_to_program_function_type_map.find(results["program_function"].as<std::string>())->second == program_function_type::simulation)
+        {
+            run_simulation_given_evaluation_type(results);
+        }
+        else if(string_to_program_function_type_map.find(results["program_function"].as<std::string>())->second == program_function_type::mutational_spectrum_calculation)
+        {
+            auto params = convert_all_params(results);
+            save_mut_spectrums(calculate_mut_spec_from_loaded_observer_data(params),
+                               create_mut_spec_save_name(params));
+        }
+    }
+    catch (int exc) {
         if(exc==2)
             std::cerr << "A wrong mutation type has been entered";
     }

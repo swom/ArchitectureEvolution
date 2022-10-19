@@ -176,26 +176,20 @@ void calculate_mut_spec_from_obs(observer<>& o,
                                  int n_gens = 0)
 {
 
-    auto gens = extract_gens(o.get_top_inds());
-    if(n_gens)
-        gens = extract_gens(o.get_top_inds(), n_gens);
+    auto gens = extract_gens(o.get_top_inds(), n_gens);
 
-#ifdef NDEBUG
-#pragma omp parallel for
-#else
-#pragma omp parallel for ordered
-#endif
+    namespace sw = stopwatch;
+    sw::Stopwatch my_watch;
+
     for (int i = 0 ; i < int(gens.size()); i++)
     {
 
-        auto spectrum = o.calculate_mut_spectrums_for_gen(gens[i]);
-#ifndef NDEBUG
-#pragma omp ordered
-#endif
-#pragma omp critical
+        std::cout << "Generation: " << i << std::endl;
+        auto spectrums = o.calculate_mut_spectrums_for_gen(gens[i]);
         {
-            o.add_spectrum(spectrum);
+            o.add_spectrum(spectrums);
         }
+        std::cout << "All top inds spectrums calculated. Time: " << my_watch.lap<stopwatch::ms>() << " ms" << std::endl;
     }
 }
 
@@ -203,7 +197,7 @@ observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params
 {
     auto o = load_json<observer<>>(create_save_name_from_params(params));
 
-    calculate_mut_spec_from_obs(o);
+    calculate_mut_spec_from_obs(o, gens_intervals);
     return o;
 }
 
@@ -449,7 +443,7 @@ void test_observer()
         for(int i = 0; i != s.get_n_gen(); i++)
         {
             auto original = o.get_top_spectrums().at(i);
-            auto calculated_from_upload = loaded_o.get_top_spectrums().at(i + length_of_simulation);
+            auto calculated_from_upload = loaded_o.get_top_spectrums().at(i);
             assert(original == calculated_from_upload);
         }
     }
