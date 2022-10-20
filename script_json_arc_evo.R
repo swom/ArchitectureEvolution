@@ -48,22 +48,12 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/10_12_22_avg_dist_fit/full_rn"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/10_17_22_sqrt_avg_sqr_dist/trial"
 # dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^m.*json$'
 # pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_tri_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
 filepaths = list.files(pattern = pattern)
-
-
-
-
-a = fromJSON(file = filepaths[1])
-b = fromJSON(file = filepaths[5])
-c = fromJSON(file = filepaths[9]) 
-d = fromJSON(file = filepaths[13])
-e = fromJSON(file = filepaths[17]) 
-assertthat::are_equal(a$m_avg_fitnesses, b$m_avg_fitnesses, c$m_avg_fitnesses)
 
 ####save load####
 if(file.exists("all_simple_res.Rds") && 
@@ -84,6 +74,7 @@ if(file.exists("all_simple_res.Rds") &&
   for (i in  filepaths){
     tryCatch(
       {
+        i =filepaths[1]
         results <- fromJSON(file = i)
         
         ###simple results
@@ -162,6 +153,12 @@ if(file.exists("all_simple_res.Rds") &&
         tmp_ = results$m_all_inds_rn
         gens <- map_dbl(tmp_, ~ .x$generation)
         tmp_ = lapply(tmp_, as.data.table)
+
+        # z= tmp_[[1]]
+        # zz = z[, ind := .I]
+        # zzz = zz[ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"]
+        # zzzz = zzz[, generation := gens[1]]
+        # zzzzz = tmp_[[1]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[1]]
         
         tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
           tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]

@@ -201,6 +201,10 @@ cxxopts::Options create_parser(){
             ("X,max_arc",
              "the maximum size of the network architecture",
              cxxopts::value<std::vector<int>>()->default_value("1,8,1"))
+            ("Z,program_function",
+             "the type of function operated by the program, could either run a simualtion,"
+             " or calculate the mutational spectrums from inds in a simulation that has already run",
+             cxxopts::value<std::string>()->default_value("simulation"))
             ("z,env_change_freq_type",
              "type of frequency environmental change that a simulation will undergo",
              cxxopts::value<std::string>()->default_value("stochastic"))

@@ -3,6 +3,8 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
+static const int gens_intervals = 25000;
+
 struct sensibilities_to_mut
 {
     sensibilities_to_mut(int gen = -1, std::vector<fit_and_phen_sens_t> sensibilities = {}):
@@ -95,7 +97,7 @@ struct obs_param{
     int m_all_inds_rn_record_frequency;
     ///The multiplier used to determine how often to sample individuals based on sensibilities
     /// based on the record frequency of the best individual
-     int m_sample_ind_record_freq_to_sens;
+    int m_sample_ind_record_freq_to_sens;
 };
 
 template<class Ind>
@@ -599,6 +601,11 @@ bool operator!=(const all_params& lhs, const all_params& rhs);
 bool all_inds_rns_are_equal_to(const std::vector<reac_norm>& all_inds_rns,
                                const reac_norm& rn);
 
+
+///Calculates the mutational spectrum of individuals from an already run simualtion
+/// given the parameters of that simulation
+observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params);
+
 ///Creates a very simple simulation with 1 individual
 /// that has a sigmoid transformation function
 /// that has 1 connection and one bias
@@ -651,7 +658,7 @@ template<class O, class S>
 bool is_time_to_record_all_inds_rns(const O& o, const S& s)
 {
     auto freq = o.get_obs_params().m_all_inds_rn_record_frequency;
-  if(!freq) return false;
+    if(!freq) return false;
     return s.get_time() % freq == 0;
 }
 
@@ -740,19 +747,17 @@ std::vector<int> extract_gens(const std::vector<ind_data_structure>& data_v,
                               int n_gens = 0) noexcept
 {
     std::vector<int> gens;
-    int n = 1;
     if(n_gens)
     {
-        n = data_v.size() / n_gens;
+        std::ranges::copy(data_v
+                          | views::filter([&](auto& gen_spec) {return (gen_spec.at(0).generation + 1) % n_gens == 0;}) //gen +1 since vectors starts from 0
+                          | views::transform([](auto& gen_spec) {return gen_spec.at(0).generation;}),
+                          std::back_inserter(gens));
     }
-
-    std::ranges::copy(data_v
-                      | std::views::filter([&](auto& gen_spec)
-    {return gen_spec.at(0).generation % n == 0;})
-                      | std::views::transform([](auto& gen_spec)
-    {return gen_spec.at(0).generation;}),
-                      std::back_inserter(gens));
-
+    else
+    {
+        gens.push_back(data_v.back().at(0).generation);
+    }
     return gens;
 }
 ///Returns the sensibilities recorded from the individuals

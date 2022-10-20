@@ -2,6 +2,7 @@
 #define PARSER_H
 #include <string>
 #include <vector>
+#include "program_function_type.h"
 #include "observer.h"
 
 //Version 2.1 of https://github.com/jarro2783/cxxopts
@@ -38,19 +39,10 @@ template<class Pop,
          selection_type S,
          adaptation_period A,
          evaluation_type Ev>
-simulation<Pop, Es, Ef, S, A, Ev> create_simulation(const cxxopts::ParseResult& parameters)
+simulation<Pop, Es, Ef, S, A, Ev> create_simulation(const cxxopts::ParseResult& results)
 {
-  auto env = convert_env_args(parameters);
-  auto ind = convert_ind_args(parameters);
-  auto pop = convert_pop_args(parameters);
-  auto sim = convert_sim_args(parameters);
-
-  all_params params{
-      env, ind, pop, sim
-  };
-
-  simulation<Pop, Es, Ef, S, A, Ev> s{params};
-  return s;
+    simulation<Pop, Es, Ef, S, A, Ev> s{convert_all_params(results)};
+    return s;
 }
 
 
