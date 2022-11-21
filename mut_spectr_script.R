@@ -48,7 +48,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 ####read data####
 # dir ="C:/Users/p288427/Desktop/data_dollo_++/10_17_22_sqrt_avg_sqr_dist/trial"
-dir ="C:/Users/p288427/Github/ArchitectureEvolution"
+dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^M.*json$'
 # pattern = 'mut_wei_sel_spo_sym_sym_fr_reg_ap_on_r_con_e_tri_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_5_fA_3_g_100001_p_1000_seed1.json'
@@ -68,31 +68,72 @@ filepaths = list.files(pattern = pattern)
         i= filepaths[1]
         results <- fromJSON(file = i)
         
-       tmp_ =  results[[1]][[1]]$net_spectrum$m_net_spectrum_weights_for_weights_mutation
-        ###mut_spectrum
-        t = lapply(tmp_, as.data.table)
-        tt = as.data.table(t[[1]])
-        ttt = as.data.table(tt[[1]])[, id := .I]
-        ttt1 = lapply(ttt[[1]], rbindlist)
-        ttt[[1]] = rbindlist(lapply(ttt[[1]], rbindlist))
-        ttt2 = rbindlist(ttt1)
-        tttt = ttt[, rbindlist(lapply(ttt[[1]],rbindlist)), by = "id"]
-        tttt = ttt[, rbindlist, by = "id"]
-        
-        tttt= lapply(seq_along(ttt),function(i){ttt[i] = rbindlist(ttt[[i]])})
-        tttttt = ttt[, rbindlist(), by = "id"]
-        ttttttt = rbindlist(ttt[[1]])
+        # tryingto extract automatically interesting part of results
+        u = as.data.table(results)
+        ut = data.table()
+        u$V1[1][[1]]$net_spectrum$m_net_spectrum_weights_for_weights_mutation
+        uu = lapply(u,  print)
+        uu = unnest(results)
         
         
+        #extracting manually interesting part of results
+        tmp_ =  results[[1]][[1]]$net_spectrum$m_net_spectrum_weights_for_weights_mutation
         
-        
-        tmp__ = rbindlist(lapply(seq_along(tmp_),function(i){
-          tmp_[[i]]= as.data.table(tmp_[[i]])[, layer := .I][ , rbindlist(lapply(tmp_[[i]], rbindlist))]
+        #for each element in each layer give name LAYER and NODE using set_names: https://stackoverflow.com/questions/35840692/r-how-to-set-names-in-a-nested-list-from-attributes
+        #works, but could probably be compacted in one call
+        #naming layers
+        tmp_ = set_names(tmp_, lapply(seq_along(tmp_), function(l){
+          paste("layer_", l, sep = "")
+        }))
+        #naming nodes
+        tmp_ = lapply(tmp_, function(x){
+          set_names(x,lapply(seq_along(x), function(n){paste("node_", n, sep = "")}))
         })
-        )
-        tmp_[, names(ID) := ID]
-        all_inds_rns[[i]] = tmp_
         
+        #naming weights
+        tmp_ = lapply(tmp_, function(x){
+          lapply(x, function(y){
+            set_names(y, lapply(seq_along(y), function(w){paste("weight_", w, sep = "")}))
+          })
+        })  
+        
+        #naming rn_s
+        tmp_ = lapply(tmp_, function(layer){
+          lapply(layer, function(node){
+            lapply(node, function(weights){
+              set_names(weights, lapply(seq_along(weights), function(r){paste("reac_n_", r, sep = "")}))
+            })
+          })
+        }) 
+        
+        ###Transforming lists into data.tables and adding ID to reac_norms by weight ->slowish
+        stt = lapply(tmp_, function(layer){
+          lapply(layer, function(node){
+            # node = as.data.table(node)[, id := .I]
+            lapply(node, function(weight){
+              lapply(weight, function(rn){
+                lapply(rn, function(x_y){
+                  as.data.table(x_y)
+                })
+              })
+            })
+          })
+        })
+    
+        #adding from:https://stackoverflow.com/questions/46595080/lapply-to-all-columns-in-a-data-frame-except-one-and-replace-the-data-in-r
+        #.cols <- setdiff(colnames(days), "id")
+        # days[, (.cols) := lapply(.SD, round, digits = 1), .SDcols = .cols]
+        unroll_node = function(node){
+          .cols <- colnames(as.data.table(node))
+          node = (as.data.table(node)[, id := .I][, (.cols) := lapply(.SD, function(column){lapply(column, rbindlist)}), .SDcols = .cols] %>% #add id and then trandsform into dataframe each reaction norm
+                  melt(id.vars = "id", measure.vars = .cols))[,rbindlist(value), by = c("id","variable")] #reshape resulting dataframe so that instead of 1 col x weight trhere is 1 col with reaction norm  + id col + weight_id_col
+        }
+        
+        #unrolling all nodes
+        sttt = lapply(stt, function(layer){
+          lapply(layer, unroll_node)
+        })
+
         gc()   
         print(paste("loading: ",i, sep = "" ))
       },

@@ -48,7 +48,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/10_17_22_sqrt_avg_sqr_dist/trial"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/10_25_22_func_3"
 # dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^m.*json$'
@@ -65,7 +65,9 @@ if(file.exists("all_simple_res.Rds") &&
   all_sensibilities <- readRDS("all_sensibilities.Rds")
   all_inds_rns <- readRDS("all_inds_rns.Rds")
 }else{
-  
+  # pattern1 = "^sut_wei_sel_spo_sym_sym_fr_reg_ap_.*_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_.*_fA_4_g_100000_p_1000_seed1.json" 
+  # pattern2 = "^mut_wei_sel_spo_sym_sym_fr_reg_ap_.*_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_.*_fA_4_g_100000_p_1000_seed1.json" 
+  # filepaths = c(list.files(pattern = pattern1),list.files(pattern = pattern2))
   filepaths = list.files(pattern = pattern)
   
   all_sensibilities = list()
@@ -74,7 +76,6 @@ if(file.exists("all_simple_res.Rds") &&
   for (i in  filepaths){
     tryCatch(
       {
-        i =filepaths[1]
         results <- fromJSON(file = i)
         
         ###simple results
@@ -153,7 +154,7 @@ if(file.exists("all_simple_res.Rds") &&
         tmp_ = results$m_all_inds_rn
         gens <- map_dbl(tmp_, ~ .x$generation)
         tmp_ = lapply(tmp_, as.data.table)
-
+        
         # z= tmp_[[1]]
         # zz = z[, ind := .I]
         # zzz = zz[ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"]
@@ -173,7 +174,7 @@ if(file.exists("all_simple_res.Rds") &&
       error=function(cond){
         message(paste("could not load file: ", i, sep = ""))
         dir.create(file.path(dir, "defective"), showWarnings = FALSE)
-        file.move(i, "defective")
+        #file.move(i, "defective")
         message("Moving defective file into defective directory")
         message("The original message says:")
         message(cond)
@@ -181,13 +182,17 @@ if(file.exists("all_simple_res.Rds") &&
     )
   }
   
+  all_simple_res = all_simple_res %>% 
+    mutate(sel_regime = as.factor(paste(as.character(s_p.selection_duration), as.character(s_p.selection_freq),sep="_")))
+  
   all_sensibilities = rbindlist(all_sensibilities, fill =T) %>%
     #add 1 to all generations to sync with all_simple_res
     mutate(m_generation = m_generation + 1)
   
   all_inds_rns = rbindlist(all_inds_rns, fill = T) %>%
     rename(m_generation = generation) %>%
-    mutate(m_generation = m_generation + 1)
+    mutate(m_generation = m_generation + 1) %>% 
+    mutate(sel_regime = as.factor(paste(as.character(s_p.selection_duration), as.character(s_p.selection_freq),sep="_")))
   
   obs_params = results$m_obs_param
   all_sensibilities$m_generation = as.factor(all_sensibilities$m_generation)
@@ -330,18 +335,18 @@ fit_sens_plot = ggplot(data = sens_summary_all,
 adapt_levels = levels(as.factor(all_simple_res$s_p.adaptation_per))
 seed_levels = levels(as.factor(all_simple_res$s_p.seed))
 sel_str_levels = levels(as.factor(all_simple_res$s_p.selection_strength))
-sel_freq_levels = levels(as.factor(all_simple_res$s_p.selection_freq))
 func_name_levels = levels(as.factor(all_simple_res$e_p.name_func_A))
 mut_types_levels = levels(as.factor(all_simple_res$i_p.m_mutation_type))
 max_arc_levels = levels(as.factor(all_simple_res$i_p.net_par.max_arc))
+sel_regime_levels = levels(as.factor(all_simple_res$sel_regime))
 #Loop over all params ----
 for(adapt_per in adapt_levels){
   for(seed in seed_levels){
     for(sel_str in sel_str_levels){
-      for(sel_freq in sel_freq_levels){
-        for(func_name in func_name_levels){
-          for(mut_type in mut_types_levels){
-            for(max_arc in max_arc_levels){
+      for(func_name in func_name_levels){
+        for(mut_type in mut_types_levels){
+          for(max_arc in max_arc_levels){ 
+            for(sel_reg in sel_regime_levels){
               gc()
               tryCatch(
                 {
@@ -361,17 +366,17 @@ for(adapt_per in adapt_levels){
                     filter(s_p.adaptation_per == adapt_per) %>% 
                     filter(s_p.seed == seed) %>% 
                     filter(s_p.selection_strength == sel_str) %>% 
-                    filter(s_p.selection_freq == sel_freq) %>% 
                     filter(e_p.name_func_A == func_name) %>% 
                     filter(i_p.m_mutation_type == mut_type) %>% 
-                    filter(i_p.net_par.max_arc == max_arc)
+                    filter(i_p.net_par.max_arc == max_arc) %>% 
+                    filter(sel_regime == sel_reg) 
                   
                   ###subset rns for all inds
                   sim_all_inds_rns = all_inds_rns %>% 
                     filter(s_p.adaptation_per == adapt_per) %>% 
                     filter(s_p.seed == seed) %>% 
                     filter(s_p.selection_strength == sel_str) %>% 
-                    filter(s_p.selection_freq == sel_freq) %>% 
+                    filter(sel_regime == sel_reg) %>% 
                     filter(e_p.name_func_A == func_name) %>% 
                     filter(i_p.m_mutation_type == mut_type) %>% 
                     filter(i_p.net_par.max_arc == max_arc)
@@ -389,10 +394,14 @@ for(adapt_per in adapt_levels){
                   
                   rn_cloud = ggplot(sim_all_inds_rns, aes(x = m_x,y = m_y)) +
                     stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
-                    scale_fill_viridis_c() +geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1) +
+                    scale_fill_viridis_c() +
+                    geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1, size = 0.1) +
                     geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
-                    facet_grid( . ~ m_generation)+
-                    theme_minimal()
+                    ylab("phenoytpe") +
+                    xlab("cue") +
+                    facet_grid( . ~ m_generation) +
+                    theme_classic2()+
+                    theme(legend.position = "none")
                   
                   # sens_summary = sim_sens %>%
                   #   group_by(m_generation) %>% 
@@ -415,12 +424,19 @@ for(adapt_per in adapt_levels){
                   fit_plot = ggplot(data = sim_fitness %>% 
                                       filter(gen %% 100 == 0
                                              # %in% sens_summary$m_generation
-                                             )) +
+                                      )) +
                     geom_line(aes(x = gen, y = m_avg_fitnesses)) +
                     geom_ribbon( aes(x = gen, y = m_avg_fitnesses,
                                      ymax = m_avg_fitnesses + m_var_fitnesses,
                                      ymin = m_avg_fitnesses - m_var_fitnesses), alpha = 0.5)
-                  std_fit_plot = fit_plot + ylim(c(0,1))
+                  # std_fit_plot = fit_plot + ylim(c(0,1))
+                  std_fit_plot = fit_plot +
+                    ylim(c(0.3, 0.8))  +
+                    theme_classic2()+
+                    theme(legend.position = "none") + 
+                    ylab("average fitness") +
+                    xlab("generation")
+                  
                   
                   # phen_sens_plot = ggplot(data = sens_summary,
                   #                         aes(x = m_generation,
@@ -448,32 +464,36 @@ for(adapt_per in adapt_levels){
                   subdir = paste(
                     "phen_fit_sens_",
                     "s", seed,
-                    "s_f", sel_freq,
                     "s_s", sel_str,
                     "a_p", adapt_per,
                     "func", func_name,
                     "mut_t", mut_type,
+                    "sel_reg", sel_reg,
                     sep = "_")
                   dir.create(file.path(dir, subdir), showWarnings = FALSE)
                   print(subdir)
                   
                   
                   
-                  print(paste("plotting:",seed, adapt_per, sel_str, sel_freq, func_name, mut_type, max_arc, sep = " "))
+                  print(paste("plotting:",seed, adapt_per, sel_str, sel_reg, func_name, mut_type, max_arc, "...", sep = " "))
                   
                   p_overall = rn_cloud /
-                    (fit_plot) /
+                    # (fit_plot) /
                     std_fit_plot
-                    # /
-                    # (phen_sens_plot)/
-                    # (fit_sens_plot) 
+                  # /
+                  # (phen_sens_plot)/
+                  # (fit_sens_plot) 
                   
                   p_overall
                   
                   ggsave(paste(subdir,paste("phen_fit_sens_plot_OVERALL.png"), sep = '/'),
                          device = "png", 
-                         width = 30,
-                         height = 15)
+                         width = 240,
+                         height = 120,
+                         units = "mm",
+                         dpi = 150)
+                  
+                  print(paste("plotted:",seed, adapt_per, sel_str, sel_reg, func_name, mut_type, max_arc, sep = " "))
                   
                   
                   ####loop over generations#####
@@ -646,22 +666,23 @@ for(adapt_per in adapt_levels){
                   message(cond)
                 }
               ) 
+              
+              ####Create gif
+              # imgs = list.files(path = subdir, pattern = "*")
+              # ## list file names and read in
+              # img_list = lapply(imgs, image_read)
+              # 
+              # ## join the images together
+              # img_joined <- image_join(img_list)
+              # 
+              # ## animate at 2 frames per second
+              # img_animated <- image_animate(img_joined, fps = 2)
+              # 
+              # ## save to disk
+              # path = paste("Gif",subdir,".gif", sep = "_")
+              # image_write(image = img_animated,
+              #             path = path)
             }
-            ####Create gif
-            # imgs = list.files(path = subdir, pattern = "*")
-            # ## list file names and read in
-            # img_list = lapply(imgs, image_read)
-            # 
-            # ## join the images together
-            # img_joined <- image_join(img_list)
-            # 
-            # ## animate at 2 frames per second
-            # img_animated <- image_animate(img_joined, fps = 2)
-            # 
-            # ## save to disk
-            # path = paste("Gif",subdir,".gif", sep = "_")
-            # image_write(image = img_animated,
-            #             path = path)
           }
         }
       }
