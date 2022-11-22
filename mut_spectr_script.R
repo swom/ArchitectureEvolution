@@ -47,7 +47,6 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 
 
 ####read data####
-# dir ="C:/Users/p288427/Desktop/data_dollo_++/10_17_22_sqrt_avg_sqr_dist/trial"
 dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 pattern = '^M.*json$'
@@ -134,6 +133,9 @@ filepaths = list.files(pattern = pattern)
           lapply(layer, unroll_node)
         })
 
+        #unrolling nodes in layers into single dataframe
+        #unrolling layers in network into ssingle dataframe
+        
         gc()   
         print(paste("loading: ",i, sep = "" ))
       },

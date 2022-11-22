@@ -182,6 +182,10 @@ setwd(dir)
   print(p)
   dev.off()
 }
+
+
+
+##Plotting all recatiuon norms from saved files
 readRDS("summarised_results.Rds")
 {
   # pattern1 = "^sut_wei_sel_spo_sym_sym_fr_reg_ap_.*_r_con_e_ful_arc_1-2-2-2-1_marc_1-2-2-2-1_wr_0.0_ar_0.0_dup_0.0_cA_0.0_cB_0.0_st_1.0_sf_.*_fA_4_g_100000_p_1000_seed1.json" 
