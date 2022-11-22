@@ -220,7 +220,7 @@ std::string create_save_name_from_params(const all_params& p)
             "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 3) +
             "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
             "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
-            "_sp_" + std::to_string(p.s_p.adaptation_period_proportion).substr(0,5) +
+            "_sp_" + std::to_string(p.s_p.selection_duration_prop_to_freq).substr(0,5) +
             "_fA_" + p.e_p.name_func_A +
             "_g_" + std::to_string(p.s_p.n_generations) +
             "_p_" + std::to_string(p.p_p.number_of_inds) +
