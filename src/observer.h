@@ -3,7 +3,7 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
-static const int gens_intervals = 25000;
+static const int gens_intervals = 250;
 
 struct sensibilities_to_mut
 {
@@ -747,7 +747,7 @@ std::vector<int> extract_gens(const std::vector<ind_data_structure>& data_v,
                               int n_gens = 0) noexcept
 {
     std::vector<int> gens;
-    if(n_gens)
+    if(n_gens && n_gens < data_v.back().at(0).generation)
     {
         std::ranges::copy(data_v
                           | views::filter([&](auto& gen_spec) {return (gen_spec.at(0).generation + 1) % n_gens == 0;}) //gen +1 since vectors starts from 0

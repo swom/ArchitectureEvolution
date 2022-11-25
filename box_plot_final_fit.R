@@ -46,7 +46,7 @@ produce_current_optimal_func <- function(func_name, reac_norm){
 }
 ####read data####
 dir ="C:/Users/p288427/Desktop/data_dollo_++/10_20_22_1_10thcomplete"
-# dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
+# dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2-_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 
 ####save & plot####
@@ -79,71 +79,72 @@ setwd(dir)
           message(cond)
         }
       )
-      tryCatch(
-        {   
-          tmp_ = results$m_all_inds_rn
-          gens <- map_dbl(tmp_, ~ .x$generation)
-          tmp_ = lapply(tmp_, as.data.table)
-          tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
-            tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]
-          })
-          )
-          tmp_[, names(ID) := ID]
-          tmp_ = tmp_ %>%
-            rename(m_generation = generation) %>%
-            mutate(m_generation = m_generation + 1)
-          tmp_[, names(ID) := ID]
-          # all_inds_rns[[i]] = tmp_ 
-        },
-        error=function(cond){
-          message(paste("could not wrangle file: ", i, sep = ""))
-          message("The original message says:")
-          message(cond)
-        }
-      )
-      tryCatch(
-        {       
-          optimal_rn = produce_current_optimal_func(func_name = ID$e_p.name_func_A, 
-                                                    data.frame(x = unique(tmp_$m_x),
-                                                               y = length(unique(tmp_$m_x))))
-          rn_cloud = ggplot(tmp_, aes(x = m_x,y = m_y)) +
-            stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
-            scale_fill_viridis_c() + 
-            geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1, size = 0.1) +
-            geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
-            # facet_grid( . ~ m_generation)+
-            theme_pubclean() + 
-            theme(legend.position = "none") +
-            xlab("cue")+
-            ylab("phenotype")
-          
-          # fit_plot = ggplot(data = simple_res %>% 
-          #                     filter(gen %% 100 == 0
-          #                            # %in% sens_summary$m_generation
-          #                     )) +
-          #   geom_line(aes(x = gen, y = m_avg_fitnesses))
-          # std_fit_plot = fit_plot + ylim(c(0,1))
-          
-          {
-            jpeg(paste("rn_cloud_",str_sub(i, end = -6),".jpg", sep = ""),
-                 width = 76,
-                 height = 76,
-                 units = "mm", 
-                 res = 300)
-            p_overall = rn_cloud# /
-            # (fit_plot) /
-            # std_fit_plot
-            print(p_overall)
-            dev.off()
-            print(paste("plotted:",str_sub(i, end = -6), sep = " "))
-            }
-        },
-        error=function(cond){
-          message(paste("could not plot file: ", i, sep = ""))
-          message("The original message says:")
-          message(cond)
-        }
-      )
+      # tryCatch(
+      #   {   
+      #     tmp_ = results$m_all_inds_rn
+      #     gens <- map_dbl(tmp_, ~ .x$generation)
+      #     tmp_ = lapply(tmp_, as.data.table)
+      #     tmp_ = rbindlist(lapply(seq_along(tmp_),function(i){
+      #       tmp_[[i]]= tmp_[[i]][, ind := .I][ , rbindlist(lapply(m_reac_norm, rbindlist)), by = "ind"][, generation := gens[i]]
+      #     })
+      #     )
+      #     tmp_[, names(ID) := ID]
+      #     tmp_ = tmp_ %>%
+      #       rename(m_generation = generation) %>%
+      #       mutate(m_generation = m_generation + 1)
+      #     tmp_[, names(ID) := ID]
+      #     # all_inds_rns[[i]] = tmp_ 
+      #   },
+      #   error=function(cond){
+      #     message(paste("could not wrangle file: ", i, sep = ""))
+      #     message("The original message says:")
+      #     message(cond)
+      #   }
+      # )
+      ###Plot RN clouds
+      # tryCatch(
+      #   {       
+      #     optimal_rn = produce_current_optimal_func(func_name = ID$e_p.name_func_A, 
+      #                                               data.frame(x = unique(tmp_$m_x),
+      #                                                          y = length(unique(tmp_$m_x))))
+      #     rn_cloud = ggplot(tmp_, aes(x = m_x,y = m_y)) +
+      #       stat_density2d(geom="tile", aes(fill = ..count..), contour = FALSE) +
+      #       scale_fill_viridis_c() + 
+      #       geom_line(aes(x = m_x, y = m_y, group = ind),color = "white", alpha = 0.1, size = 0.1) +
+      #       geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", size = 1) +
+      #       # facet_grid( . ~ m_generation)+
+      #       theme_pubclean() + 
+      #       theme(legend.position = "none") +
+      #       xlab("cue")+
+      #       ylab("phenotype")
+      #     
+      #     # fit_plot = ggplot(data = simple_res %>% 
+      #     #                     filter(gen %% 100 == 0
+      #     #                            # %in% sens_summary$m_generation
+      #     #                     )) +
+      #     #   geom_line(aes(x = gen, y = m_avg_fitnesses))
+      #     # std_fit_plot = fit_plot + ylim(c(0,1))
+      #     
+      #     {
+      #       jpeg(paste("rn_cloud_",str_sub(i, end = -6),".jpg", sep = ""),
+      #            width = 76,
+      #            height = 76,
+      #            units = "mm", 
+      #            res = 300)
+      #       p_overall = rn_cloud# /
+      #       # (fit_plot) /
+      #       # std_fit_plot
+      #       print(p_overall)
+      #       dev.off()
+      #       print(paste("plotted:",str_sub(i, end = -6), sep = " "))
+      #       }
+      #   },
+      #   error=function(cond){
+      #     message(paste("could not plot file: ", i, sep = ""))
+      #     message("The original message says:")
+      #     message(cond)
+      #   }
+      # )
       }
     gc()
   }
@@ -176,6 +177,7 @@ setwd(dir)
     theme_classic2() +
     xlab("selection regime: n rounds of selection / N generations") +
     ylab("final average fitness") +
+    ylim(c(0,1)) +
     theme(legend.position = "none") +
     theme(text =  element_text(size = 25))     
   

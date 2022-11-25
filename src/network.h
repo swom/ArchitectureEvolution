@@ -37,11 +37,11 @@ struct net_param
                                    n_sampled_inputs
                                    )
 
-    net_param(const std::vector<int>& net_arch = {1,2,1},
-              std::function<double(double)> func = linear,
-              const std::vector<int>& max_arch = {1,8,1},
+    net_param(std::vector<int> net_arch = {1,2,1},
+              std::function<double(double)> func = sigmoid,
+              std::vector<int> max_arch = {1,8,1},
               response_type response_type = response_type::constitutive,
-              const std::vector<double>& inp_range = {0,0},
+              std::vector<double> inp_range = {0,0},
               const int& n_sampl_inps = 0):
         net_arc{net_arch},
         function{func},
@@ -1463,29 +1463,29 @@ void output_with_modified_weight(const Net& n,
                     std::vector<weight> changed_weights = current_node.get_vec_weights();
                     changed_weights[modified_weight_index].change_weight(modified_weight);
 
-                    node_value = current_node.get_bias() +
+                    node_value = n(current_node.get_bias() +
                             std::inner_product(input.begin(),
                                                input.end(),
                                                changed_weights.begin(),
                                                0.0,
                                                [](double a, double b) { return a + b; },
                     [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
-                    );
+                    ));
                 }
                 else
                 {
                     const std::vector<weight>& vec_w = current_node.get_vec_weights();
-                    node_value = current_node.get_bias() +
+                    node_value = n(current_node.get_bias() +
                             std::inner_product(input.begin(),
                                                input.end(),
                                                vec_w.begin(),
                                                0.0,
                                                [](double a, double b) { return a + b; },
                     [](double a, const auto& b) { return a * (b.get_weight() * b.is_active()); }
-                    );
+                    ));
                 }
             }
-            output.push_back(n(node_value));
+            output.push_back(node_value);
         }
         output.swap(input);
     }

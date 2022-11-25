@@ -183,14 +183,11 @@ void calculate_mut_spec_from_obs(observer<>& o,
 
     for (int i = 0 ; i < int(gens.size()); i++)
     {
-
         std::cout << "Generation: " << i << std::endl;
         auto spectrums = o.calculate_mut_spectrums_for_gen(gens[i]);
-        {
-            o.add_spectrum(spectrums);
-        }
-        std::cout << "All top inds spectrums calculated. Time: " << my_watch.lap<stopwatch::ms>() << " ms" << std::endl;
+        o.add_spectrum(spectrums);
     }
+    std::cout << "All top inds spectrums calculated. Time: " << my_watch.lap<stopwatch::ms>() << " ms" << std::endl;
 }
 
 observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params)
