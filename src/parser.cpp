@@ -118,8 +118,8 @@ cxxopts::Options create_parser(){
              "the minimum and maximum of the distribution used to generate environmental cues",
              cxxopts::value<std::vector<double>>()->default_value("-1,1"))
             ("E,sample_ind_record_freq_to_sens",
-             "The multiplier used to determine how often to sample individuals"
-             " based on sensibilities based on the record frequency of the best individual",
+             "The multiplier used to determine how often to sample individuals based on sensibilities"
+             " based on the record frequency of the best individual",
              cxxopts::value<int>()->default_value("10"))
             ("e,env_change_sym_type",
              "type of symmetry of the environmental change that a simulation will undergo",

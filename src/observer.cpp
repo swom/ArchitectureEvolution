@@ -187,7 +187,7 @@ void calculate_mut_spec_from_obs(observer<>& o,
         auto spectrums = o.calculate_mut_spectrums_for_gen(gens[i]);
         o.add_spectrum(spectrums);
     }
-    std::cout << "All top inds spectrums calculated. Time: " << my_watch.lap<stopwatch::ms>() << " ms" << std::endl;
+    std::cout << "All spectrums calculated. Time: " << my_watch.lap<stopwatch::ms>() << " ms" << std::endl;
 }
 
 observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params)
@@ -442,7 +442,10 @@ void test_observer()
         {
             auto original = o.get_top_spectrums().at(i);
             auto calculated_from_upload = loaded_o.get_top_spectrums().at(i);
-            assert(original == calculated_from_upload);
+            ///the upload will also calculate spectrums of sampled individuals
+            /// therefore we just check if the spectrum of the top individual
+            /// calculate while the simulaiton was running is also present
+            assert(!std::ranges::search(original,calculated_from_upload).empty());
         }
     }
 
@@ -1044,6 +1047,24 @@ void test_observer()
 
         assert(loaded_o.get_all_inds_rn() == o.get_all_inds_rn());
     }
+
+    //it is possible to extract the top and sampled individuals for a generation all toghether
+    {
+        int sampling_freq = 1;
+        obs_param o_p(1,sampling_freq,0,1,0,sampling_freq);
+        observer o{o_p};
+        simulation s;
+
+        exec(s,o);
+        for (int i = 0; i != s.get_n_gen(); i++)
+        {
+            auto inds = o.get_top_and_sampled_inds_for_generation(i);
+        assert(!std::ranges::search(inds, o.get_top_inds_gen(i)).empty() &&
+               !std::ranges::search(inds, o.get_sampled_inds_gen(i)).empty());
+        }
+
+    }
+
 }
 #endif
 

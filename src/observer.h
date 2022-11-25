@@ -364,10 +364,36 @@ public:
     ///Returns the vector of sampled individuals
     const std::vector<std::vector<Ind_Data<Ind>>>& get_sampled_inds() const noexcept {return m_sampled_inds;}
 
+    //Returns the vector of sampled individuals in a generation
+    std::vector<Ind> get_sampled_inds_gen(int generation)
+    {
+        return  extract_inds(get_generation(m_sampled_inds, generation));
+    }
+
     ///Returns a vector containing the stored top idnividuals of a given gen
-    std::vector<Ind> get_top_inds_gen(int generation) noexcept
+    std::vector<Ind> get_top_inds_gen(int generation)
     {
         return extract_inds(get_generation(m_top_inds, generation));
+    }
+
+    ///Returns the individual with the hihgest fitness
+    /// and the three sampled individuals if there are an
+    /// for a given generation
+    std::vector<Ind> get_top_and_sampled_inds_for_generation(int generation){
+
+        std::vector<Ind> sampled;
+        try
+        {
+            sampled = get_sampled_inds_gen(generation);
+        }
+        catch (std::exception& e)
+        {
+            std::cout << "Sampled Inds: " << e.what() << std::endl;
+        }
+
+        auto top = get_top_inds_gen(generation);
+
+        return ranges::views::concat(sampled,top) | ranges::to_vector;
     }
 
     ///returns const ref to best_ind vector
@@ -526,7 +552,7 @@ public:
     std::vector<Ind_Spectrum<Ind>> calculate_mut_spectrums_for_gen(int generation)
     {
         std::mt19937_64 rng;
-        std::vector<Ind_Spectrum<Ind>> spectrums = calculate_mut_spectrums(get_top_inds_gen(generation),
+        std::vector<Ind_Spectrum<Ind>> spectrums = calculate_mut_spectrums(get_top_and_sampled_inds_for_generation(generation),
                                                                            m_params.p_p.mut_step,
                                                                            rng,
                                                                            get_n_mut_mutational_spectrum(),
