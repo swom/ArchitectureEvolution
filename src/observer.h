@@ -3,7 +3,7 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
-static const int gens_intervals = 250;
+static const int gens_intervals = 5000;
 
 struct sensibilities_to_mut
 {
