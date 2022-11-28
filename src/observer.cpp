@@ -210,18 +210,18 @@ std::string create_save_name_from_params(const all_params& p)
             "_e_" + convert_eval_type_to_string(p.s_p.evalu_type).substr(0,3) +
             "_arc_" + convert_arc_to_string(p.i_p.net_par.net_arc) +
             "_marc_" + convert_arc_to_string(p.i_p.net_par.max_arc) +
-            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,3) +
-            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 3) +
+//            "_wr_" + std::to_string(p.p_p.mut_rate_weight).substr(0,3) +
+//            "_ar_" + std::to_string(p.p_p.mut_rate_activation).substr(0, 3) +
             "_dup_" + std::to_string(p.p_p.mut_rate_duplication).substr(0, 3) +
             "_cA_" + std::to_string(p.s_p.change_freq_A).substr(0, 3) +
             "_cB_" + std::to_string(p.s_p.change_freq_B).substr(0, 3) +
             "_st_" + std::to_string(p.s_p.selection_strength).substr(0, 3) +
-            "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 5) +
-            "_sp_" + std::to_string(p.s_p.selection_duration_prop_to_freq).substr(0,5) +
+            "_sf_" + std::to_string(p.s_p.selection_freq).substr(0, 4) +
+            "_sp_" + std::to_string(p.s_p.selection_duration_prop_to_freq).substr(0,3) +
             "_fA_" + p.e_p.name_func_A +
             "_g_" + std::to_string(p.s_p.n_generations) +
             "_p_" + std::to_string(p.p_p.number_of_inds) +
-            "_seed" + std::to_string(p.s_p.seed) + ".json";
+            "_s" + std::to_string(p.s_p.seed) + ".json";
 
     std::cout   << "response type: " <<convert_response_type_to_string(p.i_p.net_par.resp_type) << std::endl;
     std::cout << "save name: " << name << std::endl;
