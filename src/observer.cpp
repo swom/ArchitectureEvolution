@@ -183,7 +183,7 @@ void calculate_mut_spec_from_obs(observer<>& o,
 
     for (int i = 0 ; i < int(gens.size()); i++)
     {
-        std::cout << "Generation: " << i << std::endl;
+        std::cout << "Generation: " << gens[i] << std::endl;
         auto spectrums = o.calculate_mut_spectrums_for_gen(gens[i]);
         o.add_spectrum(spectrums);
     }
@@ -194,7 +194,7 @@ observer<> calculate_mut_spec_from_loaded_observer_data(const all_params& params
 {
     auto o = load_json<observer<>>(create_save_name_from_params(params));
 
-    calculate_mut_spec_from_obs(o, gens_intervals);
+    calculate_mut_spec_from_obs(o, o.get_obs_params().m_gens_intervals_for_spectrum);
     return o;
 }
 

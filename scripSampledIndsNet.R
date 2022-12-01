@@ -44,14 +44,14 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   return(optimal_rn)
 }
 
-# dir = "C:/Users/p288427/Desktop/data_dollo_++/9_14_22/network/full_rn/"
-dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
+dir = "C:/Users/p288427/Desktop/data_dollo_++/test net plots"
+# dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2_4_MSVC2019_64bit-Release/src"
 setwd(dir)
 
 results=list()
-pattern = '*json$'
+pattern = '^m.*json$'
 # pattern = "mut_t_weights_sel_t_spo_sym_t_sym_fr_t_reg_a_p_off_r_t_con_arc_1-2-2-2-1_m_arc_1-2-2-2-1_act_r_0.001_dup_r_0.000_ch_A_0.000_ch_B_0.010_s_st_1.0_s_f_100_seed1"
-for (i in  list.files(path = '.', pattern = pattern)){
+for (i in  list.files(path = '.', pattern = pattern)[1]){
   
   # i = list.files(path = '.', pattern = pattern)[5]
   ###Making a data tibble with all top individuals' data 
@@ -428,24 +428,6 @@ for (i in  list.files(path = '.', pattern = pattern)){
              width = 30,
              height = 15)
     }  
-    
-    ####Create gif
-    # setwd(subdir)
-    # imgs = list.files(path = ".", pattern = "*")
-    # ## list file names and read in
-    # img_list = lapply(imgs, image_read)
-    # 
-    # ## join the images together
-    # img_joined <- image_join(img_list)
-    # 
-    # ## animate at 2 frames per second
-    # img_animated <- image_animate(img_joined, fps = 4)
-    # 
-    # ## save to disk
-    # path = paste("Gif_sampled_nets_fit_sens_plot", ".gif", sep = "_")
-    # image_write(image = img_animated,
-    #             path = path)
-    # setwd(dir)
   }
 }
 

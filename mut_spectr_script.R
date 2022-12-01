@@ -1,4 +1,4 @@
-library(rjson)
+library(jsonlite)
 library(ggplot2)
 library(tibble)
 library(dplyr)
@@ -57,13 +57,13 @@ filepaths = list.files(pattern = pattern)
 ####save load####
 {
   
-  filepaths = list.files(pattern = pattern)
+  filepaths = list.files(pattern = pattern)[3]
   all_spectrums = list()
   all_rns = list()
   for (i in  filepaths){
     tryCatch(
       {
-        results <- fromJSON(file = i)
+        results <- jsonlite::fromJSON(i, simplifyVector = FALSE)
         print(paste("loading: ",i, sep = "" ))
         
         for(generation in 1:length(results)){
@@ -173,10 +173,10 @@ filepaths = list.files(pattern = pattern)
             tmp_[, sim_ID := i]
             all_rns[[i]][[paste("gen_",generation, sep = "")]][[paste("ind_",individual,sep = "")]] = tmp_
             
-            print(paste("     loaded ind: ", individual, sep = ""))
+            print(paste("loaded ind: ", individual, sep = ""))
             gc()   
           }
-          print(paste("loaded gen: ", generation, sep = ""))
+          print(paste("       loaded gen: ", generation, sep = ""))
         }
       },
       error=function(cond){
@@ -208,7 +208,6 @@ all_rns  = readRDS(file = "all_rns.Rds")
 obs_params = readRDS(file = "obs_params.Rds")
 all_spectrums = readRDS(file = "all_spectrums.Rds")
 
-backgorund_color = viridis_pal()(20)[1]
 
 ###If I want to plot also optimal rn andactual rn it is bettwer to facet everything and cover plots that are not good
 # all_facets = unique(expand.grid(unique(select(all_spectrums[[1]][[generation]][[individual]], c(layer, node, weight)))))
@@ -216,11 +215,12 @@ backgorund_color = viridis_pal()(20)[1]
 #   full_join(all_facets) %>%   
 #   mutate(empty=ifelse(is.na(m_x), "X", NA_character_))
 
+backgorund_color = viridis_pal()(20)[1]
 for(generation in 1:length(all_spectrums[[1]])){
   for(individual in 1:length(all_spectrums[[1]][[generation]])){
     
     jpeg(paste("mut_spectrum_gen_", generation, "_ind_", individual, ".jpg", sep = ""),
-         width = 300,
+         width = 600,
          height = 300, 
          units ="mm",
          res = 300)
@@ -234,8 +234,8 @@ for(generation in 1:length(all_spectrums[[1]])){
                       ,
                       aes(x = m_x,y = m_y)) +
       geom_line(aes(x = m_x, y = m_y, group = rn), color = "white", alpha = 0.1, linewidth = 0.1) +
-      # geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", linewidth = 1) +
-      # geom_line(data = all_rns[[1]][[generation]][[individual]], aes(x = m_x, y = m_y), color = "green", linewidth = 0.2) +
+      geom_line(data = optimal_rn, aes(x = x, y = y), color = "red", linewidth = 1) +
+      geom_line(data = all_rns[[1]][[generation]][[individual]], aes(x = m_x, y = m_y), color = "green", linewidth = 0.2) +
       # geom_rect(data= .%>% 
       #             filter(is.na(m_x)) %>% 
       #             select(m_x, m_y,empty),
@@ -247,13 +247,9 @@ for(generation in 1:length(all_spectrums[[1]])){
       theme(legend.position = "none") +
       theme(panel.background = element_rect(fill = backgorund_color)) +
       facet_grid(layer ~ node + weight) +
-      ggtitle(paste("gen 2500 * ",as.character(generation), "; ind: ", individual,  sep = "")) 
+      ggtitle(paste("gen ",as.character(generation), "; ind: ", individual,  sep = "")) 
     print(rn_cloud)
     dev.off()
     print(paste("plot ind: ", individual,"; gen: ",generation, sep = ""))
   }
 }
-n <- 14
-l <- rep(list(0:1), n)
-
-expand.grid(l)

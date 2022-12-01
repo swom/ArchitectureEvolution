@@ -3,8 +3,6 @@
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
-static const int gens_intervals = 5000;
-
 struct sensibilities_to_mut
 {
     sensibilities_to_mut(int gen = -1, std::vector<fit_and_phen_sens_t> sensibilities = {}):
@@ -67,7 +65,8 @@ struct obs_param{
         m_spectrum_reg_freq{spectrum_reg_freq},
         m_n_mutations_per_locus{n_mutations_for_mutational_spectrum},
         m_all_inds_rn_record_frequency{all_inds_rn_record_frequency},
-        m_sample_ind_record_freq_to_sens{sample_ind_record_freq_to_sens}
+        m_sample_ind_record_freq_to_sens{sample_ind_record_freq_to_sens},
+        m_gens_intervals_for_spectrum{m_top_ind_reg_freq * m_sample_ind_record_freq_to_sens}
 
     {
         if(top_prop == 0)
@@ -80,7 +79,8 @@ struct obs_param{
                                    m_spectrum_reg_freq,
                                    m_n_mutations_per_locus,
                                    m_all_inds_rn_record_frequency,
-                                   m_sample_ind_record_freq_to_sens
+                                   m_sample_ind_record_freq_to_sens,
+                                   m_gens_intervals_for_spectrum
                                    )
 
     ///The top n idividuals stored in the observed
@@ -98,6 +98,11 @@ struct obs_param{
     ///The multiplier used to determine how often to sample individuals based on sensibilities
     /// based on the record frequency of the best individual
     int m_sample_ind_record_freq_to_sens;
+    ///the frequency at whihc inds will be sampled from the sampled and top inds vectors
+    /// to produce their mutational spectrum this is automatically set to be the frequency
+    /// at whihc sampled individuals are recorded
+    /// (which is in turn itself based on a multiplier of the frequnency at whihc the top indviduals are recorded)
+    int m_gens_intervals_for_spectrum;
 };
 
 template<class Ind>

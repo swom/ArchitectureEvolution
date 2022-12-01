@@ -112,8 +112,6 @@ for (i in  list.files(path = '.', pattern = pattern)){
   
   sum_of_weights = data.frame(generation = 0, sum_of_weights = 0)
   
-  
-  
   highest_weights = data.frame(generation = 0, max_weigth = 0)
   
   phenotype_robustness = data.frame(generation = 0, phen_robust = 0)
@@ -304,7 +302,8 @@ for (i in  list.files(path = '.', pattern = pattern)){
     plot(top_ind_fit$generation, top_ind_fit$top_ind_fit, type = 'l',
          main = "top_ind_fit")
     
-    plot(network_d, layout = as.matrix(layout),
+    plot(network_d,
+         layout = as.matrix(layout),
          edge.arrow.size = 0.5,                           # Arrow size, defaults to 1
          edge.arrow.width = 0.7,                          # Arrow width, defaults to 1
          edge.arrow.height = 0.9,                          # Arrow width, defaults to 1
@@ -314,40 +313,5 @@ for (i in  list.files(path = '.', pattern = pattern)){
          vertex.label = NA
     )
     dev.off()
-    
   }  
-  # 
-  # ####Create gif
-  # ## list file names and read in
-  # imgs = intersect(intersect(intersect(intersect(intersect(list.files(pattern = "*png$", full.names = T), list.files(pattern = levels(get(name1)$architecture)[1], full.names =  T)),
-  #                                                list.files(pattern = paste("duprate_",levels(get(name1)$mut_rate_dup)[1], sep=""), full.names =  T)),
-  #                                      list.files(pattern = paste("changefreq_", levels(get(name1)$change_freq)[1], sep=""), full.names =  T)),
-  #                            list.files(pattern = levels(as.factor(get(name1)$mut_type))[1], full.names =  T)),
-  #                  list.files(pattern = paste("actrate_", levels(get(name1)$mut_rate_act)[1], sep=""), full.names =  T))
-  # img_list = lapply(imgs, image_read)
-  # 
-  # ## join the images together
-  # img_joined <- image_join(img_list)
-  # 
-  # ## animate at 2 frames per second
-  # img_animated <- image_animate(img_joined, fps = 2)
-  # 
-  # ## save to disk
-  # path = paste("Gif",get(name1)$seed[1], get(name1)$mut_rate_act[1], get(name1)$mut_rate_dup[1], get(name1)$change_freq[1], get(name1)$architecture[1], ".gif", sep = "_")
-  # image_write(image = img_animated,
-  #             path = path)
-  
-  
 }
-
-min_gen = 800000
-max_gen = 900000
-mismatch_sub = mismatch %>% filter(as.numeric(generation) > min_gen) %>% filter(as.numeric(generation) < max_gen)
-top_ind_fit_sub = top_ind_fit %>% filter(as.numeric(generation) > min_gen) %>% filter(as.numeric(generation) < max_gen)
-par(mfrow=c(1,1))
-plot(top_ind_fit_sub$generation,
-     top_ind_fit_sub$top_ind_fit,
-     type = 'l',
-     col = 'red',
-     main = "match(black) and fitness(red)")
-lines(mismatch_sub$generation, mismatch_sub$mismatch)
