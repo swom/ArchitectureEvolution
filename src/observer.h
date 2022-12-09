@@ -1,5 +1,6 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
+
 #include "simulation.h"
 #include "Stopwatch.hpp"
 
@@ -142,8 +143,8 @@ struct Rn_Data
 {
     Rn_Data(){};
     Rn_Data(int gen, const std::vector<reac_norm>& rn):
-        generation{gen},
-        m_reac_norm{rn}
+        m_reac_norm{rn},
+        generation{gen}
     {}
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Rn_Data,

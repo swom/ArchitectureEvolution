@@ -39,13 +39,13 @@ static std::map<std::string, std::function<double(std::vector<double>)>> string_
 struct env_param
 {
 
-    env_param(std::string name_func_A = "1",
-              std::string name_func_B = "2",
+    env_param(std::string name_function_A = "1",
+              std::string name_function_B = "2",
               std::vector<double> env_cue_range = std::vector<double>{-1,1}) :
-        name_func_A{name_func_A},
-        name_func_B{name_func_B},
-        env_function_A{string_env_function_map.find(name_func_A)->second},
-        env_function_B{string_env_function_map.find(name_func_B)->second},
+        name_func_A{name_function_A},
+        name_func_B{name_function_B},
+        env_function_A{string_env_function_map.find(name_function_A)->second},
+        env_function_B{string_env_function_map.find(name_function_B)->second},
         cue_range{env_cue_range.front(),env_cue_range.back()}
     {}
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(env_param,

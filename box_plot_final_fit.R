@@ -44,13 +44,14 @@ produce_current_optimal_func <- function(func_name, reac_norm){
   }
   return(optimal_rn)
 }
+
 ####read data####
-dir ="C:/Users/p288427/Desktop/data_dollo_++/10_20_22_1_10thcomplete"
-# dir ="C:/Users/p288427/Github/build-ArchitectureEvolution-Desktop_Qt_6_2-_4_MSVC2019_64bit-Release/src"
+dir ="C:/Users/p288427/Desktop/data_dollo_++/12_5_22/f_2"
 setwd(dir)
 
 ####save & plot####
 {
+  #load
   {
     pattern = '^*.*json$'
     filepaths = list.files(pattern = pattern)
@@ -151,7 +152,7 @@ setwd(dir)
   saveRDS(all_simple_res, file = "all_simple_res_tail.Rds")
 
   sum_res = all_simple_res %>% 
-    group_by(s_p.seed, s_p.selection_freq, s_p.adaptation_per, s_p.selection_duration) %>% 
+    group_by(s_p.seed, s_p.selection_freq, s_p.adaptation_per, s_p.selection_duration, i_p.net_par.net_arc) %>% 
     summarise(mean_fit = mean(m_avg_fitnesses)) %>% 
     mutate(sel_regime = as.factor(paste(as.character(s_p.selection_duration), as.character(s_p.selection_freq),sep="/"))) %>% 
     mutate(sel_regime = recode_factor(sel_regime, "0/0" = "No_selection")) %>% 
@@ -179,7 +180,8 @@ setwd(dir)
     ylab("final average fitness") +
     ylim(c(0,1)) +
     theme(legend.position = "none") +
-    theme(text =  element_text(size = 25))     
+    theme(text =  element_text(size = 25)) +
+    facet_grid(. ~ i_p.net_par.net_arc)
   
   print(p)
   dev.off()

@@ -3,6 +3,9 @@
 
 #include "network.h"
 
+
+
+
 static std::map<std::string, mutation_type> string_to_mut_type_map
 {
     {"weights", mutation_type::weights},
@@ -213,23 +216,12 @@ double calc_sqr_distance(const Ind &i,
 template<class Ind>
 double calc_sqr_distance_scratch(const Ind &i,
                                  double env_value,
-                                 const std::vector<double>& input)
-{
-    auto output = response(i, input);
-    return (output[0] - env_value) * (output[0] - env_value);
-}
-
-///Calculates the distance of a response of a network
-/// and a given value using scratch memory vectors
-template<class Ind>
-double calc_sqr_distance_scratch(const Ind &i,
-                                 double env_value,
                                  std::vector<double>& input,
                                  std::vector<double>& output
                                  )
 {
     response_scratch(i, input, output);
-    return (output[0] - env_value) * (output[0] - env_value);
+    return std::fabs(output[0] - env_value);
 }
 
 }
